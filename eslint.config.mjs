@@ -4,7 +4,16 @@ import prettier from "eslint-config-prettier";
 
 export default tseslint.config(
   {
-    ignores: ["**/node_modules/**", "**/dist/**", "**/coverage/**"],
+    // `storybook-static` and `packages/*/r` are BUILD OUTPUT. The registry is
+    // committed (it needs a raw URL and a copy inside the package), which is
+    // exactly why it has to be named here: it is generated, not authored.
+    ignores: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/coverage/**",
+      "storybook-static/**",
+      "packages/*/r/**",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

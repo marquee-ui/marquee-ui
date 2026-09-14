@@ -136,6 +136,7 @@ export const arcade = definePreset({
     sm: "0 1px 2px rgba(0, 0, 0, 0.45)",
     md: "0 4px 16px rgba(0, 0, 0, 0.5)",
     lg: "0 18px 44px rgba(0, 0, 0, 0.55)",
+    band: "0 6px 18px rgba(0, 0, 0, 0.4)",
     focusRing: "0 0 0 2px {background}, 0 0 0 4px {primary}",
   },
 

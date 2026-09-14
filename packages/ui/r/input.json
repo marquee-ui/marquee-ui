@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "input",
+  "title": "Input",
+  "description": "The house field: the 44px floor, the 2px line and the action colour on focus.",
+  "registryDependencies": [
+    "@marquee/utils"
+  ],
+  "files": [
+    {
+      "path": "packages/ui/src/input.tsx",
+      "content": "import type { ComponentProps } from \"react\";\nimport { cn } from \"@/lib/utils\";\n\n/** The house field: 44px floor, 2px line, the action colour on focus. */\nexport const inputClass =\n  \"w-full min-h-hit rounded-md border-2 border-border bg-surface px-3 text-base text-foreground placeholder:text-muted focus:border-primary focus:outline-none\";\n\nexport function Input({ className, ...props }: ComponentProps<\"input\">) {\n  return <input data-slot=\"input\" className={cn(inputClass, className)} {...props} />;\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/input.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}

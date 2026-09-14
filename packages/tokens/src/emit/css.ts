@@ -94,6 +94,7 @@ export function emitCss(preset: Preset, pads: DisplayPads, options: CssEmitOptio
     "  --shadow-sm: var(--shadow-sm);",
     "  --shadow-md: var(--shadow-md);",
     "  --shadow-lg: var(--shadow-lg);",
+    "  --shadow-band: var(--shadow-band);",
     "  --shadow-lift: var(--shadow-lift);",
     "  --shadow-focus-ring: var(--shadow-focus-ring);",
     "  --ease-standard: var(--ease-standard);",

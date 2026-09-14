@@ -1,0 +1,19 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "utils",
+  "title": "cn",
+  "description": "Class-name merge for Marquee parts: clsx plus tailwind-merge, extended with the token namespaces tailwind-merge cannot know about.",
+  "dependencies": [
+    "clsx@^2.1.1",
+    "tailwind-merge@^3.7.0"
+  ],
+  "files": [
+    {
+      "path": "packages/ui/src/lib/utils.ts",
+      "content": "import { clsx, type ClassValue } from \"clsx\";\nimport { extendTailwindMerge } from \"tailwind-merge\";\n\n/**\n * D11: the library's `cn` has MERGE semantics from day one, not a join.\n *\n * Every shadcn-shaped component assumes `cn()` resolves conflicting utilities, so\n * that a caller's `className` beats a variant's. With a plain join both survive on\n * the element and the STYLESHEET's order decides the winner, which is not the\n * caller's.\n *\n * THE THEME LIST IS LOAD-BEARING, and it was measured rather than assumed:\n * tailwind-merge groups a utility by its own knowledge of Tailwind's DEFAULT\n * scales, so a design system's own theme names fall outside every size-ish group\n * and stop merging. `cn(\"min-h-hit\", \"min-h-0\")` returned BOTH classes before this\n * list existed - the exact bug merge semantics are here to prevent, hiding inside\n * the fix for it. Colour groups are unaffected (they accept any word), which is\n * why the failure is invisible until a size, a shadow or a tracking value is the\n * thing being overridden.\n *\n * `test/merge-theme.test.ts` derives the names from the emitted stylesheet and\n * fails if this list has fallen behind it.\n */\nconst twMerge = extendTailwindMerge({\n  extend: {\n    theme: {\n      text: [\"3xs\", \"2xs\", \"reading\", \"md\", \"display\"],\n      tracking: [\"label\", \"display\"],\n      shadow: [\"lift\", \"band\", \"focus-ring\"],\n      spacing: [\"hit\"],\n      font: [\"display\", \"body\", \"mono\"],\n      container: [\"content\", \"page\"],\n      ease: [\"standard\", \"emphasis\"],\n    },\n  },\n});\n\nexport function cn(...inputs: ClassValue[]): string {\n  return twMerge(clsx(inputs));\n}\n",
+      "type": "registry:lib",
+      "target": "lib/utils.ts"
+    }
+  ],
+  "type": "registry:lib"
+}

@@ -269,3 +269,274 @@ Baseline `Tests 90 passed (90)`.
   number; `AGENTS.md` corrected to say the brand guard reddens `pnpm test`, not
   `pnpm build`; `7.3:1` corrected to the measured `7.63:1`; the three throws proved;
   the `--safe-*` row added to the README's mapping table.
+
+## Consumers (DESIGN-LIB-a2)
+
+**Run 1, before writing code.** Empty by construction: the branch was created at
+`c5e4539d` and the diff was empty, so no exported name was added or changed yet.
+The one scan that was NOT vacuous is the outward one, and it was run:
+
+```
+$ git -C <consuming repo> grep -l 'marquee-ui' ffb71a66 -- apps packages
+(no hits)
+$ git -C <consuming repo> grep -l 'marquee-ui' ffb71a66
+ffb71a66:STATUS.md
+ffb71a66:docs/slices/DESIGN-LIB.md
+ffb71a66:docs/slices/MOBILE-1.md
+```
+
+Three planning documents and no code reference anywhere. Nothing outside this
+repository consumes anything in it; the consume step is a3's.
+
+**Run 2, at the commit point.** 76 exported names added or changed:
+
+```
+Accordion AccordionContent AccordionItem AccordionTrigger AlertDialog AsChildLink
+Badge BadgeProps Button ButtonProps CallerClassWins Card CardContent
+CardDescription CardFooter CardHeader CardTitle ChildScrolls Clickable Closed
+ContentOnly CustomSeparator Danger DangerArmed Decorative Default Destructive
+Disabled DismissesItself Empty ExplicitType Ghost HiddenTitle Horizontal Input
+Label LabelProps MessageOnly Micro MicroAsHeading Multiple OneClaim Primary
+PrimaryRounded Ribbon RibbonProps STORY_FILES ScannedFile Secondary Separator
+Sheet SheetBody SheetClose SheetContent SheetDescription SheetOverlay SheetPortal
+SheetTitle SheetTrigger Single Success Toast ToastAction ToastMessage ToastProps
+Vertical WithAction WithMarker WithValue badgeVariants buttonVariants cn
+inputClass labelVariants sourceFiles storyFiles
+```
+
+39 of them are STORY names (`Primary`, `Disabled`, `AlertDialog`, `WithMarker`…),
+which are exports only because CSF makes them so; their sole consumer is
+`test/stories.test.tsx` and `test/tailwind-compile.test.tsx`, which compose every
+module. `grep -rln` was run for every one of the 76 over `packages`, `.storybook`
+and `registry.json`: **every name has at least one consumer inside this repository,
+and none has a consumer outside it.**
+
+The two that touch a sibling's surface, both inside the tokens package and both
+this stream's own to change per the brief:
+
+- `sourceFiles` gained a sibling, `storyFiles`, and its return type is now the
+  named `ScannedFile[]` (the same shape it always returned). Consumers:
+  `brand-guard.test.ts`, `literal-guard.test.ts`, `source-coverage.test.ts`. The
+  brand guard now scans source AND stories; the literal guard deliberately still
+  scans source only, because a story may legitimately paint a swatch.
+- `--shadow-band` was ADDED to the emitted token contract, which the brief permits
+  (adding an emitted name; never renaming or removing one). Consumers of the
+  contract: `emitted-surface.test.ts`'s list, `packages/tokens/README.md`, and
+  `ribbon.tsx`.
+
+**0 CROSS. 0 NEW between the two runs (run 1 had no names to miss). 0 UNOWNED.**
+
+## DESIGN-LIB-a2: the components as parts, Storybook, and the registry (2026-09-14)
+
+Scope: step 4 of DESIGN-LIB sub-slice a, plus the Storybook and registry halves of
+step 1. Ten part families, the stories that are also the tests, a shadcn registry
+built and committed, the first real Tailwind compile of the emitted sheet, and a
+CI workflow. No docs site, nothing published, no version bump, and nothing in the
+consuming repo was changed - it was read only, at commit `ffb71a66`.
+
+### What shipped
+
+`packages/ui` (`@marquee-ui/ui`, `"private": true`), ten part families in shadcn's
+lowercase file spelling, each a set of PARTS with `asChild` slots and `cva` for
+visual axes only (D6):
+
+| part      | moved or new              | primitive          | parts                                                                                                                               |
+| --------- | ------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Button    | moved                     | Radix Slot         | `Button` + `buttonVariants`                                                                                                         |
+| Input     | moved (`inputClass`)      | none               | `Input` + `inputClass`                                                                                                              |
+| Label     | moved (`microLabelClass`) | Radix Label        | `Label` + `labelVariants` (`default`, `micro`)                                                                                      |
+| Sheet     | moved                     | Radix Dialog       | `Sheet`, `SheetTrigger`, `SheetPortal`, `SheetOverlay`, `SheetContent`, `SheetTitle`, `SheetDescription`, `SheetBody`, `SheetClose` |
+| Toast     | moved                     | none (body portal) | `Toast`, `ToastMessage`, `ToastAction`                                                                                              |
+| Ribbon    | moved                     | none               | `Ribbon` + `src/ribbon.css`                                                                                                         |
+| Card      | new                       | none               | `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`                                                   |
+| Accordion | new                       | Radix Accordion    | `Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`                                                                |
+| Badge     | new                       | Radix Slot         | `Badge` + `badgeVariants` (four tones)                                                                                              |
+| Separator | new                       | Radix Separator    | `Separator`                                                                                                                         |
+
+Also: `packages/ui/stories` (39 stories), `packages/ui/test` (6 suites),
+`registry.json` + the built `packages/ui/r`, `.storybook/`,
+`.github/workflows/verify.yml`, `cn` with merge semantics (D11), and one new token
+role, `--shadow-band`.
+
+### The fidelity mapping, per utility
+
+No class string in this package was retyped. The upstream strings were read with
+`git show ffb71a66:apps/web/src/components/ui/*` - the four button strings and the
+input from the byte-pins that repo's own tests produced by EVALUATING the module -
+and transliterated by a script through the a1 rename table.
+`packages/ui/test/fidelity.test.tsx` carries the upstream strings and the table and
+re-derives the expectation at run time, so a mistake in the TABLE reddens too; it
+compares the utility SET rather than the string, because every utility sits at the
+same specificity and the class attribute's order decides nothing.
+
+| upstream utility                       | Marquee utility                              | where                      |
+| -------------------------------------- | -------------------------------------------- | -------------------------- |
+| `bg-accent`                            | `bg-primary`                                 | button, ribbon             |
+| `text-on-accent`                       | `text-primary-foreground`                    | button, ribbon             |
+| `shadow-hard`                          | `shadow-lift`                                | button, toast              |
+| `hover:shadow-[4px_4px_0_var(--text)]` | `hover:shadow-[4px_4px_0_var(--foreground)]` | button                     |
+| `hover:bg-accent-hover`                | `hover:bg-primary-hover`                     | button                     |
+| `border-line-strong`                   | `border-border-strong`                       | button, toast              |
+| `text-text`                            | `text-foreground`                            | button, form, sheet, toast |
+| `hover:border-text-muted`              | `hover:border-muted`                         | button                     |
+| `text-danger`                          | `text-destructive`                           | button                     |
+| `hover:border-danger`                  | `hover:border-destructive`                   | button                     |
+| `border-danger`                        | `border-destructive`                         | button                     |
+| `border-line`                          | `border-border`                              | button, form, sheet        |
+| `text-text-secondary`                  | `text-foreground-2`                          | button, form, sheet        |
+| `hover:border-line-strong`             | `hover:border-border-strong`                 | button                     |
+| `hover:text-text`                      | `hover:text-foreground`                      | button                     |
+| `placeholder:text-text-muted`          | `placeholder:text-muted`                     | form                       |
+| `focus:border-accent`                  | `focus:border-primary`                       | form                       |
+| `pb-[max(1rem,var(--safe-bottom))]`    | `pb-[max(1rem,var(--safe-bottom,0px))]`      | sheet                      |
+| `bg-line-strong`                       | `bg-border-strong`                           | sheet                      |
+| `text-accent-ink`                      | `text-primary-ink`                           | toast                      |
+
+**Three departures that are not a rename**, each declared in the test with its
+reason, and each proved to actually fire:
+
+| where           | from                                                                                              | to                                      | why                                                                                                                                                                                                                                                                                                                                            |
+| --------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sheet.content` | `pb-[max(1rem,var(--safe-bottom))]`                                                               | `pb-[max(1rem,var(--safe-bottom,0px))]` | the safe-area inset is the consumer's document-level plumbing and a1 deliberately did not carry it. Without the fallback an undefined custom property makes the whole declaration invalid at computed-value time and the sheet loses its bottom padding outright. Where the consumer DOES define it, the two spellings compute the same pixel. |
+| `ribbon.band`   | `bg-accent` -> `bg-primary` -> `bg-brand`; `shadow-[0_6px_18px_rgba(0,0,0,0.4)]` -> `shadow-band` |                                         | D8 splits identity from action, and a band that announces the product is identity. Arcade assigns the same yellow to both, so no pixel moves. The shadow could not stay: a literal colour outside `src/presets/**` fails the literal guard, and the value is not any step of the existing ramp.                                                |
+| `ribbon.track`  | `pile-marquee` -> `mq-marquee`; `text-on-accent` -> `text-brand-foreground`                       |                                         | the upstream class name carries the product's own noun (D7). The keyframes and the class ship as `packages/ui/src/ribbon.css`, which `ribbon.tsx` imports and the registry installs beside it.                                                                                                                                                 |
+
+### API changes a3 has to make at the call sites
+
+These are the deliberate consequences of D6, not accidents. None of them moves a pixel.
+
+| upstream                                        | Marquee                                                                                                               | note                                                                                                                    |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `<Button href="/x">`                            | `<Button asChild><Link href="/x">…</Link></Button>`                                                                   | the library owns no router. The "no `type` on the link form" behaviour survives: the `asChild` branch never writes one. |
+| `<Button rounded>`                              | `<Button variant="primaryRounded">`                                                                                   | a boolean that is a no-op on three of four variants is a variant, not a flag.                                           |
+| `<Sheet title=… hideTitle childScrolls role=…>` | `<SheetContent>` with `<SheetTitle className="sr-only">`, with or without `<SheetBody>`, `role` passed to the content | the `role: undefined` bug the monolith had cannot recur: a part only spreads what the caller wrote.                     |
+| `<Toast toast={{message, action}} onDismiss>`   | `<Toast open onDismiss><ToastMessage/><ToastAction/></Toast>`                                                         | replacing the message while open needs a changing `key`, because the timer is an effect.                                |
+| `data-testid="sheet-handle"` / `"sheet-body"`   | `data-slot="sheet-handle"` / `"sheet-body"`                                                                           | shadcn's convention. 3 and 5 hits respectively in the consuming repo at the read commit.                                |
+| `.pile-marquee`                                 | `.mq-marquee`, from `components/ui/ribbon.css`                                                                        | 13 hits in 5 files upstream.                                                                                            |
+| `<label className={microLabelClass}>` on a span | `<Label tone="micro" asChild><span>…</span></Label>`                                                                  | or keep the class: `labelVariants({ tone: "micro" })` is exported.                                                      |
+
+### Every UNVERIFIED claim in the brief, measured
+
+**1. The literal guard reddens on a hex in a component file.** RUN, red, quoted below.
+
+**2. The brand guard reddens on the product's noun in a story.** RUN, red, quoted
+below. This needed the guard to be EXTENDED first: a1's walker only saw
+`packages/*/src`, so a story was invisible to it. Stories are now a second checked
+list (`STORY_FILES`), walked and compared the same way.
+
+**3. The role utilities resolve to `var(--role)` in a real Tailwind 4 compile.**
+CONFIRMED, and read directly rather than asserted: `bg-primary` compiles to
+`background-color: var(--primary)`, `min-h-hit` to `min-height: var(--hit-min)`,
+`text-3xs` to `font-size: var(--text-3xs)`, `font-display` to
+`font-family: var(--font-display)`. One refinement to the brief's expected shape:
+`shadow-lift` does NOT compile to `box-shadow: var(--shadow-lift)` - Tailwind 4
+emits `--tw-shadow: var(--shadow-lift)` and a composite `box-shadow` that reads the
+`--tw-*` chain. The assertion is written against what it actually emits.
+
+**4. A `shadcn add` round trip yields files byte-identical to the sources.** RUN,
+and it found two real defects before it was true:
+
+- With no `target`, shadcn 4.21 wrote `src/components/ui/src/button.tsx` - it keeps
+  the tail of the library's own path. Every file now carries an explicit `target`.
+- `shadcn add` STRIPS A LEADING COMMENT BLOCK from a stylesheet, as a banner. Every
+  other comment in the file survives. `ribbon.css` opened with its explanation, so
+  the consumer's copy differed from the registry's content on arrival - which would
+  make a `shadcn diff` drift check report drift forever, on a file nobody had
+  touched. The explanation moved below the first rule and
+  `test/registry.test.ts` holds the rule.
+
+  After both fixes, all twelve files (ten `.tsx`, `ribbon.css`, `lib/utils.ts`)
+  round-tripped IDENTICAL into a scratch consumer.
+
+**5. `registryDependencies` resolve offline.** They do:
+`"registries": { "@marquee": "./node_modules/@marquee-ui/ui/r/{name}.json" }` in the
+consumer's `components.json` is read as a local file (proved by its ENOENT when the
+file was missing, then by success once it was there). ⚠️ **But a top-level
+`shadcn add @marquee/button` does NOT honour a local registry path** in 4.21: it
+prefixes `https://ui.shadcn.com/r/` and 404s. The offline install is
+`shadcn add ./node_modules/@marquee-ui/ui/r/<name>.json`, with the `registries`
+entry present only so the `@marquee/utils` dependency resolves. **a3 must use the
+path form.**
+
+### The finding that was not in the brief
+
+**`cn`'s merge semantics do not work on this design system's own token names, and
+the failure is silent.** tailwind-merge groups a utility by its knowledge of
+Tailwind's DEFAULT scales, so `min-h-hit`, `text-3xs`, `text-display`,
+`tracking-label`, `shadow-lift`, `shadow-band`, `max-w-content` and the rest fall
+outside every size-ish group and simply stop merging: `cn("min-h-hit", "min-h-0")`
+returned `"min-h-hit min-h-0"`, both classes on the element, the stylesheet's order
+deciding - which is the exact bug D11 exists to prevent, hiding inside the fix for
+it. Colour groups are unaffected (they accept any word), which is why it is
+invisible until a size, a shadow or a tracking value is the thing being overridden.
+
+`cn` now uses `extendTailwindMerge` with the seven namespaces this system adds to,
+and `test/merge-theme.test.ts` reads the names back out of `dist/tokens.css` and
+checks the BEHAVIOUR - for every emitted name, overriding it with a stock utility
+of the same namespace must leave exactly the override - so the list cannot fall
+behind the emitter.
+
+### Decisions
+
+1. **Stories run under jsdom through `composeStories`, not in Storybook's browser
+   mode.** [V] The browser runner needs a Playwright chromium download in CI and on
+   every contributor's machine, for assertions that are all DOM-shaped (roles,
+   focus, attributes, portals). The one thing a browser adds that jsdom cannot is
+   COMPUTED STYLE, and that is proved directly and more cheaply by
+   `tailwind-compile.test.tsx`, which compiles these sources against the real
+   emitted stylesheet and reads the declarations. So the two halves are split by
+   instrument rather than merged into a slow one. The CI workflow needs no browser
+   step. Revisit when visual regression is wanted, which is a different job again.
+2. **The registry is built into `packages/ui/r`, not `public/r`.** [V] It has to be
+   raw-fetchable from GitHub AND inside the package's `files` for the no-network
+   install. One directory satisfies both, and two copies of the same JSON is a
+   drift waiting to happen. Raw URL:
+   `https://raw.githubusercontent.com/marquee-ui/marquee-ui/main/packages/ui/r/<name>.json`.
+3. **`rounded` became a fifth variant, `primaryRounded`.** [V] It was a boolean that
+   was a no-op on three of the four variants, and the upstream file says so itself.
+4. **`microLabelClass` is a `tone` on `Label`, not an eleventh part** (D10), with
+   `asChild` for the common case where the treatment is wanted on a heading rather
+   than on a form label. `Label`'s `default` tone is not invented: it is
+   `text-sm text-text-secondary`, the modal class of the consuming app's own
+   standalone labels (5 occurrences at the read commit), transliterated.
+5. **`Ribbon` is the one part family that is NOT parts.** The seamless loop's
+   invariant is "the two halves are identical", and a children slot is precisely
+   how that gets broken. What composes is the content: `items` and `separator`.
+6. **`Separator` is meaningful by default.** Radix's `decorative` defaults to false
+   and this part does not flip it, unlike shadcn's. The accessible answer should be
+   the one a caller gets without reading the props. (The brief's assumption, and
+   this stream's first draft, had it the other way round; the story caught it.)
+7. **`Accordion` draws no chevron.** An icon is a dependency and a taste call, and
+   the trigger is a slot with its own `data-state` for a marker to rotate on.
+8. **`--shadow-band` was added to the token contract** (the brief allows ADDING an
+   emitted name). Recorded in `packages/tokens/README.md`.
+9. **`pnpm verify` is now lint -> typecheck -> BUILD -> test**, not build last: the
+   component tests read the emitted stylesheet and the built registry, so those
+   artefacts have to exist and be current before the tests can judge them. CI adds
+   `git diff --exit-code -- packages/ui/r`, which is the real guard on a committed
+   build artefact.
+10. **`#toast-stack` keeps its id.** It is generic, it is not product vocabulary,
+    and six references upstream cost nothing to keep working.
+
+### A3 inputs
+
+- **Utilities the tokens package does not emit that a moved component needed:**
+  only two, and both were resolved inside this repo. `--shadow-band` became a depth
+  role; the marquee keyframes and `.mq-marquee` became `packages/ui/src/ribbon.css`,
+  shipped as a registry file alongside `ribbon.tsx`.
+- **Utilities the consuming app owns and this package does NOT provide:** `cut-6`,
+  `cut-10`, `cut-14`, `cut-20`, `cap-safe`, `descender-safe`, `tap-link`,
+  `card-lift`, `rail-bar`. None of the ten parts uses any of them, so they stay in
+  the consuming app's `globals.css` for its own product components. `cap-safe` and
+  `descender-safe` should be rewritten to read `var(--display-cap-pad)` /
+  `var(--display-descender-pad)` when the app imports the token sheet - the values
+  differ from the hardcoded pair (0.4/0.55 vs 0.3/0.5), which a1 already flagged.
+- **`tracking-[0.14em]` in the micro label is not `tracking-label` (0.12em).** It was
+  carried as the arbitrary value, unchanged, because changing it would move a pixel
+  on ~23 files. Whether the two should converge is a design question, not a move.
+- **Where the zero-diff proof should look:** every surface with a `Button`,
+  `inputClass` or `microLabelClass` (the widest: ~30 forms and ~23 files), the game
+  page and the landing hero for `Ribbon`, any sheet at 390 and at 768+ (the
+  breakpoint switch is inside one class string), and the toast's action at desktop
+  widths (its portal is what makes it clickable under a clip-path).
+- **The offline install form is the PATH form**, see UNVERIFIED 5 above.

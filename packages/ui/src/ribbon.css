@@ -1,0 +1,35 @@
+@keyframes mq-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* The marquee track: two identical halves at `width: max-content`, translated by
+   exactly one half, so the loop closes with no visible seam.
+
+   The DURATION is deliberately not set here. The loop advances one half per
+   cycle, so a fixed duration makes a longer band scroll FASTER; `<Ribbon>`
+   computes the pace per instance and sets it inline. The custom property is the
+   seam for anyone using this class without the component, and the fallback is
+   only ever reached that way.
+
+   ⚠️ This comment is not at the top of the file on purpose: `shadcn add` strips a
+   LEADING comment block from a stylesheet as a banner, which would make the
+   consumer's copy differ from the registry's content forever and turn a `shadcn
+   diff` drift check into a permanent false positive. `test/registry.test.ts`
+   holds that rule. */
+.mq-marquee {
+  display: flex;
+  width: max-content;
+  animation-name: mq-marquee;
+  animation-duration: var(--mq-marquee-duration, 44s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* Holds still under reduced motion. That is the design intent, not a fallback. */
+@media (prefers-reduced-motion: reduce) {
+  .mq-marquee {
+    animation-name: none;
+  }
+}

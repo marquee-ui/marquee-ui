@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   PUBLISHED_SOURCE_FILES,
+  STORY_FILES,
   repoRoot,
   sourceFiles,
+  storyFiles,
   stripComments,
 } from "./helpers/source-files.js";
 
@@ -20,12 +22,22 @@ describe("published source coverage", () => {
     ).toEqual([...PUBLISHED_SOURCE_FILES].sort());
   });
 
+  it("walks exactly the declared stories, by path", () => {
+    expect(
+      storyFiles()
+        .map((file) => file.rel)
+        .sort(),
+    ).toEqual([...STORY_FILES].sort());
+  });
+
   it("reads real content for every one of them", () => {
     // A walk that found the paths but read nothing would scan empty strings clean.
     // 100 bytes, because the smallest published file is `checks/types.ts` at 197.
-    for (const file of sourceFiles()) {
+    for (const file of [...sourceFiles(), ...storyFiles()]) {
       expect(file.text.length, file.rel).toBeGreaterThan(100);
-      expect(file.text, file.rel).toMatch(/\bexport\b/);
+      // A stylesheet has no exports; what it must have is at least one real rule.
+      const shape = file.rel.endsWith(".css") ? /\{[^}]*:[^}]*\}/ : /\bexport\b/;
+      expect(file.text, file.rel).toMatch(shape);
     }
   });
 

@@ -44,6 +44,45 @@ so a component copied out of the registry reads the same here as there.
 - **skeleton** (no preset may move these): the type scale, the 4px spacing grid, the
   radii, the motion durations, `hit-min` 44px, `content-max`, `page-max`
 
+## Where things are
+
+- `packages/tokens` - the role contract, the two presets, the emitters, the build
+  checks. Colour, type and depth are decided here and nowhere else.
+- `packages/ui` - the ten part families, one file each, in shadcn's lowercase
+  spelling (`button.tsx`). They import `cn` from `@/lib/utils`, which is the alias
+  the registry ships them under; the CLI rewrites it to the consumer's own.
+- `packages/ui/stories` - one story per part and per variant. **Stories are the
+  tests** (D4): `packages/ui/test/stories.test.tsx` composes every one of them and
+  runs every `play`, so a story that stops working reddens `pnpm test`.
+- `registry.json` at the root, built into `packages/ui/r/` by `pnpm build`. That
+  directory is COMMITTED build output: it needs a raw GitHub URL, and it needs to
+  sit inside the package's `files` so a consumer with no network can install from
+  `node_modules`. One copy serves both, so the two cannot drift.
+
+## Adding a part
+
+1. `packages/ui/src/<name>.tsx`, parts with `asChild`, `cva` for visual axes only.
+2. A story per variant in `packages/ui/stories/<name>.stories.tsx`.
+3. Add both paths to the lists in `packages/tokens/test/helpers/source-files.ts`.
+   The walk those guards stand on is CHECKED against those lists, so a new file
+   reddens the suite until it is declared - that edit is the review.
+4. Add the item to `registry.json` with an explicit `target`
+   (`components/ui/<name>.tsx`), then `pnpm build:registry`, then commit `r/`.
+5. `pnpm verify`.
+
+## Two things that are measured, not assumed
+
+**`cn` carries a theme list.** tailwind-merge groups a utility by its knowledge of
+Tailwind's DEFAULT scales, so every name this system adds - `min-h-hit`,
+`text-3xs`, `shadow-lift`, `tracking-label` - falls outside every size-ish group
+and silently stops merging. `packages/ui/src/lib/utils.ts` extends it, and
+`test/merge-theme.test.ts` reads the names back out of the emitted stylesheet.
+
+**A stylesheet in the registry must not open with a comment.** `shadcn add` strips
+a leading comment block from a css file as a banner, so the consumer's copy would
+differ from the registry's content forever and a `shadcn diff` drift check would
+report it as drift. Every other comment in the file survives.
+
 ## No product vocabulary
 
 The library carries no product's nouns. A pattern that is general gets a general

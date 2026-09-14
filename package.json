@@ -10,20 +10,29 @@
     "lint": "eslint . && pnpm lint:format",
     "lint:format": "prettier --check . || (echo 'ERROR: prettier found unformatted files (listed above as [warn]). Fix: pnpm format' && exit 1)",
     "format": "prettier --write .",
-    "typecheck": "pnpm -r --if-present typecheck",
+    "typecheck": "tsc -p tsconfig.json --noEmit && pnpm -r --if-present typecheck",
     "test": "vitest run",
-    "build": "pnpm -r --if-present build",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "build": "pnpm -r --if-present build && pnpm build:registry && pnpm build:storybook",
+    "verify": "pnpm lint && pnpm typecheck && pnpm build && pnpm test",
+    "build:registry": "shadcn build --output packages/ui/r",
+    "build:storybook": "storybook build --output-dir storybook-static --quiet",
+    "storybook": "storybook dev -p 6006"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@storybook/react-vite": "^10.6.0",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^22.20.2",
+    "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.6",
+    "shadcn": "^4.21.0",
+    "storybook": "^10.6.0",
     "tsx": "^4.23.13",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.70.0",
+    "vite": "^8.3.0",
     "vitest": "^4.1.10"
   },
   "license": "MIT"

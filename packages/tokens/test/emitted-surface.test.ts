@@ -73,6 +73,7 @@ const EMITTED_ROLE_AND_THEME_TOKENS = [
   "--shadow-sm",
   "--shadow-md",
   "--shadow-lg",
+  "--shadow-band",
   "--shadow-focus-ring",
   // motion
   "--dur-fast",
@@ -148,7 +149,8 @@ describe("the emitted token surface", () => {
         .map((key) => `--mq-${key}`)
         .sort(),
     );
-    expect(declared).toHaveLength(126);
+    // 126 at a1; +1 for `--shadow-band`, added by the first consumer (a2).
+    expect(declared).toHaveLength(127);
   });
 
   it("gives both presets the identical non-primitive surface", () => {
@@ -188,6 +190,7 @@ describe("the Tailwind mapping blocks", () => {
       "--shadow-sm": "var(--shadow-sm)",
       "--shadow-md": "var(--shadow-md)",
       "--shadow-lg": "var(--shadow-lg)",
+      "--shadow-band": "var(--shadow-band)",
       "--shadow-lift": "var(--shadow-lift)",
       "--shadow-focus-ring": "var(--shadow-focus-ring)",
       "--ease-standard": "var(--ease-standard)",

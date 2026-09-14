@@ -1,0 +1,6 @@
+/* The input the Tailwind compile test uses: the real emitted stylesheet, the real
+   component CSS, and the component sources as the only content source. */
+@import "tailwindcss";
+@import "@marquee-ui/tokens/tokens.css";
+@import "../../src/ribbon.css";
+@source "../../src";

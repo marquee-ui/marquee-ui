@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "accordion",
+  "title": "Accordion",
+  "description": "Disclosure as four parts over Radix Accordion. No icon: the trigger is a slot.",
+  "dependencies": [
+    "@radix-ui/react-accordion@^1.2.20"
+  ],
+  "registryDependencies": [
+    "@marquee/utils"
+  ],
+  "files": [
+    {
+      "path": "packages/ui/src/accordion.tsx",
+      "content": "\"use client\";\n\nimport * as AccordionPrimitive from \"@radix-ui/react-accordion\";\nimport type { ComponentProps } from \"react\";\nimport { cn } from \"@/lib/utils\";\n\n/**\n * Disclosure, as four parts over Radix Accordion: keyboard navigation, the\n * `aria-expanded`/`aria-controls` wiring and single-or-multiple behaviour come\n * from the primitive.\n *\n * No chevron is drawn. An icon is a dependency and a taste call, and the trigger\n * is a slot: put whatever marker the product uses inside it. The trigger's own\n * `data-state` is what any such marker rotates on.\n */\nexport const Accordion = AccordionPrimitive.Root;\n\nexport function AccordionItem({\n  className,\n  ...props\n}: ComponentProps<typeof AccordionPrimitive.Item>) {\n  return (\n    <AccordionPrimitive.Item\n      data-slot=\"accordion-item\"\n      className={cn(\"border-b-2 border-border\", className)}\n      {...props}\n    />\n  );\n}\n\nexport function AccordionTrigger({\n  className,\n  ...props\n}: ComponentProps<typeof AccordionPrimitive.Trigger>) {\n  return (\n    // The header is required by the primitive's semantics: the trigger has to be\n    // the only child of a heading, or the disclosure has no place in the outline.\n    <AccordionPrimitive.Header className=\"flex\">\n      <AccordionPrimitive.Trigger\n        data-slot=\"accordion-trigger\"\n        className={cn(\n          \"flex min-h-hit w-full items-center justify-between gap-3 py-3 text-left text-sm font-semibold text-foreground transition-colors hover:text-primary-ink focus-visible:outline-none focus-visible:shadow-focus-ring\",\n          className,\n        )}\n        {...props}\n      />\n    </AccordionPrimitive.Header>\n  );\n}\n\nexport function AccordionContent({\n  className,\n  ...props\n}: ComponentProps<typeof AccordionPrimitive.Content>) {\n  return (\n    <AccordionPrimitive.Content\n      data-slot=\"accordion-content\"\n      className={cn(\"overflow-hidden pb-3 text-sm text-foreground-2\", className)}\n      {...props}\n    />\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/accordion.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sourceFiles } from "./helpers/source-files.js";
+import { sourceFiles, storyFiles } from "./helpers/source-files.js";
 
 /**
  * D7: no product vocabulary in the library.
@@ -27,12 +27,16 @@ const BRAND_STRINGS = [
 const BRAND_WORD = /\bpile\b/i;
 
 describe("brand guard", () => {
-  const files = sourceFiles();
+  // Source AND stories: a story is the public workbench and the docs site's
+  // source, so it is exactly where a consuming product's noun arrives unnoticed.
+  const files = [...sourceFiles(), ...storyFiles()];
 
   it("has source to scan and an instrument that can see it", () => {
     // Anchor first: a guard whose walker returned nothing would pass in silence.
     expect(files.length).toBeGreaterThanOrEqual(8);
     expect(files.some((f) => f.rel.endsWith("packages/tokens/src/roles.ts"))).toBe(true);
+    expect(files.some((f) => f.rel.endsWith("packages/ui/src/button.tsx"))).toBe(true);
+    expect(files.some((f) => f.rel.endsWith("packages/ui/stories/button.stories.tsx"))).toBe(true);
     expect(files.filter((f) => f.text.includes("definePreset")).length).toBeGreaterThan(0);
   });
 

@@ -1,0 +1,39 @@
+/* The preview's own stylesheet: Tailwind, the emitted token sheet, and the
+   component CSS the parts import. `@source` is what makes the utilities the
+   parts use compile into this build. */
+@import "tailwindcss";
+@import "@marquee-ui/tokens/tokens.css";
+@source "../packages/ui/src";
+@source "../packages/ui/stories";
+
+/* The generated sheet's own `@font-face` rules point at `./fonts/*.woff2`,
+   relative to the file they were written into. Tailwind inlines an `@import`
+   without rebasing its urls, so the faces are declared here against the path
+   `staticDirs` serves them at (`/tokens/fonts/*`). Same files, same descriptors. */
+@font-face {
+  font-family: "Boldonse";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/tokens/fonts/boldonse.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("/tokens/fonts/space-grotesk.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Space Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/tokens/fonts/space-mono.woff2") format("woff2");
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+}

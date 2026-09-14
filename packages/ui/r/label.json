@@ -1,0 +1,22 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "label",
+  "title": "Label",
+  "description": "A form label, plus the mono micro-caps section label as a tone.",
+  "dependencies": [
+    "@radix-ui/react-label@^2.1.15",
+    "class-variance-authority@^0.7.1"
+  ],
+  "registryDependencies": [
+    "@marquee/utils"
+  ],
+  "files": [
+    {
+      "path": "packages/ui/src/label.tsx",
+      "content": "import * as LabelPrimitive from \"@radix-ui/react-label\";\nimport { cva, type VariantProps } from \"class-variance-authority\";\nimport type { ComponentProps } from \"react\";\nimport { cn } from \"@/lib/utils\";\n\n/**\n * Two tones, and the second one is why this part exists.\n *\n * `micro` is the mono micro-caps section label: the one piece of chrome the\n * panels, the save slots and the hubs all wear, moved here as a VARIANT rather\n * than as an eleventh part (D10). It is often wanted on something that is not a\n * form label at all - a section heading, a figure's caption - which is what\n * `asChild` is for: `<Label asChild tone=\"micro\"><span>Last played</span></Label>`\n * keeps the type treatment and drops the `for`/`id` semantics that would be a lie\n * on a heading.\n *\n * `default` is the ink 5 of the consuming app's standalone labels already carry\n * (`text-sm text-text-secondary`, surveyed at the read commit), transliterated -\n * not a new design decision.\n */\nexport const labelVariants = cva(\"\", {\n  variants: {\n    tone: {\n      default: \"text-sm text-foreground-2\",\n      micro: \"font-mono text-3xs uppercase tracking-[0.14em] text-foreground-2\",\n    },\n  },\n  defaultVariants: { tone: \"default\" },\n});\n\nexport type LabelProps = ComponentProps<typeof LabelPrimitive.Root> &\n  VariantProps<typeof labelVariants>;\n\nexport function Label({ className, tone, ...props }: LabelProps) {\n  return (\n    <LabelPrimitive.Root\n      data-slot=\"label\"\n      className={cn(labelVariants({ tone }), className)}\n      {...props}\n    />\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/label.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}

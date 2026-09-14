@@ -1,0 +1,42 @@
+name: verify
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.24.0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # lint + typecheck + BUILD + test, in that order: the component tests read
+      # the emitted token stylesheet and the built registry, so the artefacts have
+      # to exist and be current before the tests can judge them.
+      # No browser download: the stories run under jsdom through `composeStories`,
+      # and the one thing a browser would add - computed style - is covered by the
+      # real Tailwind compile in `packages/ui/test/tailwind-compile.test.tsx`.
+      - run: pnpm verify
+
+      # The registry is a COMMITTED build artefact (it needs a raw URL and a copy
+      # inside the package), so the build must not have moved it. A diff here means
+      # someone edited a component without rebuilding.
+      - name: the committed registry is current
+        run: git diff --exit-code -- packages/ui/r

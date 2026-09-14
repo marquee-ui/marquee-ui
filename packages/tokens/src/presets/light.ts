@@ -115,6 +115,9 @@ export const light = definePreset({
     sm: "0 1px 2px rgba(20, 23, 12, 0.12)",
     md: "0 4px 16px rgba(20, 23, 12, 0.14)",
     lg: "0 18px 44px rgba(20, 23, 12, 0.18)",
+    // Between `md` and `lg` in alpha, like Arcade's: the band is wider and softer
+    // than a card's drop, and on a light ground it has less room to be dark.
+    band: "0 6px 18px rgba(20, 23, 12, 0.16)",
     // NOT `{primary}`: the acid yellow is 1.1:1 on `overlay`, which is below the 3:1
     // a focus indicator owes under WCAG 1.4.11. The action INK is 7.63:1 there.
     focusRing: "0 0 0 2px {background}, 0 0 0 4px {primary-ink}",

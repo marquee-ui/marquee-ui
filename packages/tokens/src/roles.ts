@@ -163,6 +163,13 @@ export interface DepthRoles {
   sm: Scalar;
   md: Scalar;
   lg: Scalar;
+  /**
+   * The drop under a band that floats ACROSS the page rather than sitting on it -
+   * the tilted marquee is the one this exists for. It is not a fourth step of the
+   * `sm`/`md`/`lg` ramp: it is wider and softer than `md` at a lower alpha,
+   * because it is read against whatever the band happens to cross.
+   */
+  band: Scalar;
   focusRing: Scalar;
 }
 

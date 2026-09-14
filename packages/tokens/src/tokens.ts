@@ -130,6 +130,7 @@ export function buildTokens(preset: Preset, pads: DisplayPads): Token[] {
     ["--shadow-sm", "sm", "shadow", preset.depth.sm],
     ["--shadow-md", "md", "shadow", preset.depth.md],
     ["--shadow-lg", "lg", "shadow", preset.depth.lg],
+    ["--shadow-band", "band", "shadow", preset.depth.band],
     ["--shadow-focus-ring", "focus-ring", "shadow", preset.depth.focusRing],
   ];
   for (const [cssVar, name, type, raw] of depth) {

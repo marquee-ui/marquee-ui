@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "card",
+  "title": "Card",
+  "description": "The house surface, as parts: header, title, description, content, footer.",
+  "registryDependencies": [
+    "@marquee/utils"
+  ],
+  "files": [
+    {
+      "path": "packages/ui/src/card.tsx",
+      "content": "import type { ComponentProps } from \"react\";\nimport { cn } from \"@/lib/utils\";\n\n/**\n * The house surface: a raised panel with the 2px line and the small radius.\n *\n * Parts all the way down (D6), with the padding owned by `Card` so that a header\n * and a footer sit on the same gutter as the content without each re-declaring\n * it. \"A card inside an accordion item\" is a `Card` inside an `AccordionItem`,\n * and needs no prop on either.\n */\nexport function Card({ className, ...props }: ComponentProps<\"div\">) {\n  return (\n    <div\n      data-slot=\"card\"\n      className={cn(\n        \"flex flex-col gap-3 rounded-md border-2 border-border bg-surface p-4\",\n        className,\n      )}\n      {...props}\n    />\n  );\n}\n\nexport function CardHeader({ className, ...props }: ComponentProps<\"div\">) {\n  return (\n    <div data-slot=\"card-header\" className={cn(\"flex flex-col gap-1\", className)} {...props} />\n  );\n}\n\nexport function CardTitle({ className, ...props }: ComponentProps<\"h3\">) {\n  return (\n    <h3\n      data-slot=\"card-title\"\n      className={cn(\"font-display text-lg text-foreground\", className)}\n      {...props}\n    />\n  );\n}\n\nexport function CardDescription({ className, ...props }: ComponentProps<\"p\">) {\n  return (\n    <p\n      data-slot=\"card-description\"\n      className={cn(\"text-sm text-foreground-2\", className)}\n      {...props}\n    />\n  );\n}\n\n/** No class of its own: `Card` owns the gutter, this names the slot. */\nexport function CardContent({ className, ...props }: ComponentProps<\"div\">) {\n  return <div data-slot=\"card-content\" className={cn(className)} {...props} />;\n}\n\nexport function CardFooter({ className, ...props }: ComponentProps<\"div\">) {\n  return (\n    <div data-slot=\"card-footer\" className={cn(\"flex items-center gap-3\", className)} {...props} />\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/card.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}
