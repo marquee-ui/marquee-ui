@@ -1,0 +1,33 @@
+{
+  "name": "@marquee-ui/tokens",
+  "version": "0.0.0",
+  "description": "Marquee UI design tokens: one typed role contract, two presets, a stylesheet and a W3C DTCG export.",
+  "private": true,
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./dist/tokens.css",
+    "./tokens.json": "./dist/tokens.json",
+    "./light.css": "./dist/light.css",
+    "./light.json": "./dist/light.json",
+    "./fonts/*": "./dist/fonts/*"
+  },
+  "files": [
+    "dist",
+    "fonts",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsx src/build.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/culori": "^4.0.1",
+    "@types/fontkit": "^2.0.9",
+    "culori": "^4.0.2",
+    "fontkit": "^2.0.4"
+  }
+}
