@@ -103,9 +103,18 @@ exactly. `test/fonts.test.ts` keeps the pairing honest.
 
 ### Guards, each proved by running its reddening mutation
 
-Filled in below after the mutations were run against a committed head.
+All three ran in a DETACHED WORKTREE of the committed head `8c8039b`, the landing was
+confirmed by grep before the run, and each was reverted with `git checkout --`.
 
-<!-- MUTATIONS -->
+| guard      | mutation                                                                                     | landed           | the red it produced                                                                                                                                                                                                                                     |
+| ---------- | -------------------------------------------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| round trip | `"  --zz-probe: 1px;"` added to the `:root` role block in `src/emit/css.ts`, JSON untouched  | `css.ts:70`      | 5 tests red. `arcade: "--zz-probe" is declared in the stylesheet but absent from the JSON` (and the same for `light`); `pnpm build` exited non-zero with `FAIL [round-trip] ...` and `2 preset(s) did not publish.`                                     |
+| brand      | `/* ported from thepile's locked token sheet */` added above `TypeStep` in `src/skeleton.ts` | `skeleton.ts:11` | `brand guard > ships no brand string of the consuming app` red with `packages/tokens/src/skeleton.ts: "thepile"`                                                                                                                                        |
+| literal    | `export const FALLBACK_INK = "#f2f5e8";` added to `src/roles.ts`                             | `roles.ts:19`    | BOTH halves red: `finds no literal colour, font name or shadow outside src/presets/**` with `packages/tokens/src/roles.ts: a hex colour (#f2f5e8)`, and `finds no preset VALUE copied out of its preset` with `packages/tokens/src/roles.ts: "#f2f5e8"` |
+
+The literal guard reddening on both halves is the point of having two: the generic
+pattern and the runtime read of the presets' own values are independent instruments,
+and each was watched firing.
 
 ## Layer 1 (reviewer, detached worktree of <sha>, slot 7)
 
