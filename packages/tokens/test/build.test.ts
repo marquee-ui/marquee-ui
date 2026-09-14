@@ -9,8 +9,28 @@ describe("buildPreset", () => {
     const built = buildPreset(arcade);
     expect(built.failures).toEqual([]);
     expect(built.css).toContain("--background: var(--mq-olive-950);");
-    expect(built.pads.capPad).toMatch(/^\d+(\.\d+)?em$/);
     expect(Object.keys(built.json)).toContain("color");
+  });
+
+  it("publishes MEASURED pads, not the shape of one", () => {
+    // A pad that was never assigned leaves the sentinel `0em`, which satisfies any
+    // "looks like a length" assertion. So assert the value, and assert it in the
+    // stylesheet that actually ships.
+    const built = buildPreset(arcade);
+    expect(built.pads.capPad).toBe("0.4em");
+    expect(built.pads.descenderPad).toBe("0.55em");
+    expect(built.css).toContain("--display-cap-pad: 0.4em;");
+    expect(built.css).toContain("--display-descender-pad: 0.55em;");
+    // And that a real face was opened, rather than a zeroed sentinel carried through.
+    expect(built.pads.extents.unitsPerEm).toBe(1000);
+    expect(built.pads.extents.topGlyph).toBe("$");
+    expect(built.pads.extents.bottomGlyph).toBe("g");
+  });
+
+  it("writes the same measured pads for the light preset", () => {
+    const built = buildPreset(light);
+    expect(built.css).toContain("--display-cap-pad: 0.4em;");
+    expect(built.css).toContain("--display-descender-pad: 0.55em;");
   });
 
   it("builds light with no failures", () => {

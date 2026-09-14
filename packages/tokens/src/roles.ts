@@ -168,9 +168,14 @@ export interface DepthRoles {
 
 /**
  * A contrast pair this preset knowingly ships below the floor, with the ratio it
- * measured at and why. It is not an escape hatch: the check fails if the pair now
- * PASSES (a stale exception) or if it has got worse than the recorded ratio, so an
- * exception dies the moment the colour is fixed and cannot silently rot further.
+ * measured at and why.
+ *
+ * It is not an escape hatch. The check fails if the pair now PASSES (the exception is
+ * stale and must go), if the pair has got WORSE than the recorded ratio (it is
+ * rotting), and if the pair is BETTER than the recorded ratio by more than the
+ * epsilon (the record is out of date, and a wildly pessimistic number would otherwise
+ * license any future regression down to it). So the ratio is a measurement, not a
+ * budget, and the exception dies the moment the colour is fixed.
  */
 export interface ContrastException {
   ink: ColorRoleName;
@@ -229,6 +234,19 @@ export const BODY_INK_ROLES = [
   "warning",
   "info",
 ] as const satisfies readonly ColorRoleName[];
+
+/**
+ * Roles that are read as a GRAPHIC rather than as text, and so owe WCAG 1.4.11's
+ * 3:1 against every ground rather than 1.4.3's 4.5:1.
+ *
+ * `scale-empty` is here because it is the DENOMINATOR of a value: an unfilled glyph
+ * at 1.8:1 reads as undrawn, and 4/5 then looks identical to 5/5. The six scale STEPS
+ * are deliberately absent - they are always paired with the numeral they qualify, so
+ * the colour is never the sole carrier of the information and 1.4.11 does not reach
+ * them. `scale-track` is absent for the same reason a page background is: nothing is
+ * identified by it.
+ */
+export const GRAPHIC_ROLES = ["scale-empty"] as const satisfies readonly ColorRoleName[];
 
 /** Ink-on-fill pairs: [ink, fill]. */
 export const ON_FILL_PAIRS = [

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fileURLToPath } from "node:url";
 import {
+  assertUsesTypoMetrics,
   LATIN_ALNUM,
   PRINTABLE_ASCII,
   measureFace,
@@ -61,11 +62,34 @@ describe("measureFace (Boldonse, the display face)", () => {
   });
 });
 
+describe("assertUsesTypoMetrics", () => {
+  it("passes a face that sets fsSelection bit 7", () => {
+    expect(() => assertUsesTypoMetrics(true, "boldonse.woff2")).not.toThrow();
+  });
+
+  it("throws naming the face when it does not, because the formula assumes it", () => {
+    // A face laid out from win/hhea metrics gets a different line box, so every pad
+    // generated from typo metrics would be wrong in a way nothing else would show.
+    expect(() => assertUsesTypoMetrics(false, "mystery.woff2")).toThrow(
+      /mystery\.woff2.*USE_TYPO_METRICS/s,
+    );
+  });
+
+  it("is the precondition the real faces actually satisfy", () => {
+    // If a shipped face ever stopped setting it, measureFace would throw here.
+    expect(() => measureFace(face("boldonse.woff2"))).not.toThrow();
+    expect(() => measureFace(face("space-grotesk.woff2"))).not.toThrow();
+    expect(() => measureFace(face("space-mono.woff2"))).not.toThrow();
+  });
+});
+
 describe("padEm", () => {
-  it("reproduces thepile's hardcoded 0.3em cap pad from the alnum overflow", () => {
+  it("turns the alnum-set cap overflow into the 0.3em pad the app hardcodes", () => {
     // 0.14em geometry + 1px of independent rounding at the 7px floor = 0.283em,
-    // rounded up to the 0.05 step. thepile measured 0.3em on a board and typed it;
-    // this derives the same number from the file.
+    // rounded up to the 0.05 step. The upstream app measured 0.3em on a device and
+    // typed it; this derives the same number from the file. NOTE this is the
+    // alnum-set number: over the shipped coverage set (printable ASCII) the pad is
+    // 0.4em, pinned in `displayPads` below.
     expect(padEm(0.14)).toBeCloseTo(0.3, 10);
   });
 

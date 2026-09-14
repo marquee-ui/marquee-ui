@@ -45,3 +45,50 @@ export const indistinctPreset: Preset = {
   name: "fixture-indistinct",
   color: { ...arcade.color, destructive: "lime-600" },
 };
+
+/** An exception naming a pair the contrast matrix never makes. */
+export const deadExceptionPreset: Preset = {
+  ...arcade,
+  name: "fixture-dead-exception",
+  contrastExceptions: [
+    { ink: "scrim", ground: "background", ratio: 2, reason: "names a pair nothing checks" },
+  ],
+};
+
+/** A real shortfall with no reason given: an exception nobody has to justify. */
+export const emptyReasonPreset: Preset = {
+  ...arcade,
+  name: "fixture-empty-reason",
+  contrastExceptions: [{ ink: "muted", ground: "overlay", ratio: 4.36, reason: "   " }],
+};
+
+/**
+ * A real shortfall recorded as far worse than it is. Left unchecked this is the
+ * dangerous direction: a pair recorded at 1.01 licenses every future regression down
+ * to 1.01 without a single failure.
+ */
+export const overstatedExceptionPreset: Preset = {
+  ...arcade,
+  name: "fixture-overstated-exception",
+  contrastExceptions: [
+    { ink: "muted", ground: "overlay", ratio: 1.01, reason: "records a floor, not a measurement" },
+  ],
+};
+
+/** The unfilled half of a run dropped to a border colour: reads as undrawn. */
+export const lowGraphicContrastPreset: Preset = {
+  ...arcade,
+  name: "fixture-low-graphic-contrast",
+  color: { ...arcade.color, "scale-empty": "olive-800" },
+};
+
+/**
+ * A primitive that is not a colour at all. culori throws rather than returning a
+ * number, so without a guard this crashes the build with a TypeError naming neither
+ * the preset nor the role.
+ */
+export const unparseableColorPreset: Preset = {
+  ...arcade,
+  name: "fixture-unparseable-colour",
+  primitives: { ...arcade.primitives, "olive-600": "not-a-colour" },
+};

@@ -3,7 +3,7 @@ import { checkContrast } from "./contrast.js";
 import { checkDistinctness } from "./distinctness.js";
 import type { CheckFailure } from "./types.js";
 
-export { AA_FLOOR, checkContrast, contrastMatrix } from "./contrast.js";
+export { AA_FLOOR, GRAPHIC_FLOOR, checkContrast, contrastMatrix } from "./contrast.js";
 export type { ContrastResult } from "./contrast.js";
 export { MIN_DELTA_E, checkDistinctness } from "./distinctness.js";
 export type { CheckFailure } from "./types.js";

@@ -48,8 +48,9 @@ so a component copied out of the registry reads the same here as there.
 
 The library carries no product's nouns. A pattern that is general gets a general
 name (`scale-empty`, not the name of the glyph one app draws with it). The consuming
-product's brand strings are scanned for and fail the build
-(`test/brand-guard.test.ts`).
+product's brand strings are scanned for and redden `pnpm test` (and so `pnpm
+verify`); `pnpm build` never loads the guard, so it is the SUITE that stops them, not
+the build (`test/brand-guard.test.ts`).
 
 ## Accessibility is a build check, not a review note
 

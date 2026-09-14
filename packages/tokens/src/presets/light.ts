@@ -30,6 +30,7 @@ export const light = definePreset({
     "olive-300": "#d5dbc0",
     "olive-400": "#b3bc94",
     "olive-500": "#838b63",
+    "olive-600": "#74804f",
     "olive-700": "#5a6240",
     "olive-800": "#454c2e",
     "olive-950": "#14170c",
@@ -95,7 +96,10 @@ export const light = definePreset({
     "scale-4": "lime-600",
     "scale-5": "lime-700",
     "scale-track": "paper-300",
-    "scale-empty": "olive-400",
+    // NOT `olive-400`: at 1.62-1.99:1 on these grounds an unfilled glyph reads as
+    // undrawn, which is exactly the bug `scale-empty` exists to avoid. `olive-600`
+    // measures 3.46 / 3.67 / 3.78 / 3.83 / 3.12, clearing 1.4.11's 3:1 everywhere.
+    "scale-empty": "olive-600",
 
     "categorical-1": "lime-700",
     "categorical-2": "teal-800",
@@ -112,7 +116,7 @@ export const light = definePreset({
     md: "0 4px 16px rgba(20, 23, 12, 0.14)",
     lg: "0 18px 44px rgba(20, 23, 12, 0.18)",
     // NOT `{primary}`: the acid yellow is 1.1:1 on `overlay`, which is below the 3:1
-    // a focus indicator owes under WCAG 1.4.11. The action INK is 7.3:1 there.
+    // a focus indicator owes under WCAG 1.4.11. The action INK is 7.63:1 there.
     focusRing: "0 0 0 2px {background}, 0 0 0 4px {primary-ink}",
   },
 

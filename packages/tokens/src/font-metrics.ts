@@ -48,6 +48,20 @@ export interface FaceInkExtents {
   coverage: string;
 }
 
+/**
+ * The precondition of the whole pad formula, extracted so it can be tested without
+ * fabricating a font: a browser lays a face out from its OS/2 TYPO metrics only when
+ * `fsSelection` bit 7 is set. A face without it is laid out from win/hhea metrics
+ * instead, so a pad computed from typo metrics would not match what is drawn.
+ */
+export function assertUsesTypoMetrics(usesTypoMetrics: boolean, file: string): void {
+  if (usesTypoMetrics) return;
+  throw new Error(
+    `${file}: OS/2 fsSelection bit 7 (USE_TYPO_METRICS) is unset, so a browser lays this ` +
+      `face out from win/hhea metrics and the generated pads would not match what it draws`,
+  );
+}
+
 function openFace(file: string): Font {
   if (!existsSync(file)) throw new Error(`font file not found: ${file}`);
   const opened = fontkit.openSync(file);
@@ -68,12 +82,7 @@ function openFace(file: string): Font {
 export function measureFace(file: string, coverage: string = PRINTABLE_ASCII): FaceInkExtents {
   const font = openFace(file);
   const os2 = font["OS/2"];
-  if (!os2.fsSelection.useTypoMetrics) {
-    throw new Error(
-      `${file}: OS/2 fsSelection bit 7 (USE_TYPO_METRICS) is unset, so a browser lays this ` +
-        `face out from win/hhea metrics and the generated pads would not match what it draws`,
-    );
-  }
+  assertUsesTypoMetrics(os2.fsSelection.useTypoMetrics, file);
   const upm = font.unitsPerEm;
   const ascender = os2.typoAscender / upm;
   const descender = os2.typoDescender / upm;

@@ -36,21 +36,33 @@ export function emitDtcg(preset: Preset, pads: DisplayPads): DtcgDocument {
   };
 
   for (const token of buildTokens(preset, pads)) {
-    const [group, name] = token.path;
-    const existing = document[group];
-    const bucket: DtcgGroup = typeof existing === "object" ? existing : {};
-    if (bucket[name]) {
-      throw new Error(`duplicate token path: ${group}.${name}`);
-    }
-    bucket[name] = {
-      $type: token.type,
-      $value: token.alias ? `{${token.alias[0]}.${token.alias[1]}}` : token.value,
-      $extensions: { "gg.marquee.css": token.cssVar },
-    };
-    document[group] = bucket;
+    addToken(document, token);
   }
 
   return document;
+}
+
+/**
+ * Places one token in the document, refusing to overwrite a path already taken.
+ *
+ * Exported so the refusal can be proved: two tokens on one DTCG path would publish
+ * JSON missing one of them, the round trip would then blame the stylesheet, and the
+ * collision is not reachable through a well-typed preset - which is exactly why the
+ * branch would otherwise never be exercised.
+ */
+export function addToken(document: DtcgDocument, token: Token): void {
+  const [group, name] = token.path;
+  const existing = document[group];
+  const bucket: DtcgGroup = typeof existing === "object" ? existing : {};
+  if (bucket[name]) {
+    throw new Error(`duplicate token path: ${group}.${name} (${token.cssVar})`);
+  }
+  bucket[name] = {
+    $type: token.type,
+    $value: token.alias ? `{${token.alias[0]}.${token.alias[1]}}` : token.value,
+    $extensions: { "gg.marquee.css": token.cssVar },
+  };
+  document[group] = bucket;
 }
 
 /** Every custom property the JSON claims, for the round-trip guard. */

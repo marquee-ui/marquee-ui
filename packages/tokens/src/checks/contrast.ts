@@ -1,11 +1,14 @@
 import { wcagContrast } from "culori";
 import { resolveColor } from "../resolve.js";
-import { BODY_INK_ROLES, GROUND_ROLES, ON_FILL_PAIRS } from "../roles.js";
+import { BODY_INK_ROLES, GRAPHIC_ROLES, GROUND_ROLES, ON_FILL_PAIRS } from "../roles.js";
 import type { ColorRoleName, Preset } from "../roles.js";
 import type { CheckFailure } from "./types.js";
 
 /** WCAG 1.4.3 AA for body text. Large text gets 3:1; the system does not assume large. */
 export const AA_FLOOR = 4.5;
+
+/** WCAG 1.4.11 for a graphic that carries meaning, e.g. the unfilled half of a run. */
+export const GRAPHIC_FLOOR = 3;
 
 /** Floating-point slack when comparing a measured ratio to a recorded one. */
 const RATIO_EPSILON = 0.005;
@@ -14,11 +17,27 @@ export interface ContrastResult {
   ink: ColorRoleName;
   ground: ColorRoleName;
   ratio: number;
-  kind: "ink-on-ground" | "ink-on-fill";
+  kind: "ink-on-ground" | "ink-on-fill" | "graphic-on-ground";
+  /** The floor THIS pair owes: 4.5:1 for text, 3:1 for a meaningful graphic. */
+  floor: number;
 }
 
 const key = (ink: string, ground: string) => `${ink}|${ground}`;
 const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * culori THROWS on a colour it cannot parse rather than returning a number, so an
+ * invalid literal in a preset would otherwise crash the build with `Cannot read
+ * properties of undefined (reading 'r')` and name neither the preset nor the role.
+ * NaN here turns that into a named failure below.
+ */
+function ratio(a: string, b: string): number {
+  try {
+    return wcagContrast(a, b);
+  } catch {
+    return Number.NaN;
+  }
+}
 
 /**
  * Every comparison the contrast check makes, pass or fail. Exported so a test can
@@ -32,8 +51,18 @@ export function contrastMatrix(preset: Preset): ContrastResult[] {
       results.push({
         ink,
         ground,
-        ratio: wcagContrast(resolveColor(preset, ink), resolveColor(preset, ground)),
+        ratio: ratio(resolveColor(preset, ink), resolveColor(preset, ground)),
         kind: "ink-on-ground",
+        floor: AA_FLOOR,
+      });
+    }
+    for (const graphic of GRAPHIC_ROLES) {
+      results.push({
+        ink: graphic,
+        ground,
+        ratio: ratio(resolveColor(preset, graphic), resolveColor(preset, ground)),
+        kind: "graphic-on-ground",
+        floor: GRAPHIC_FLOOR,
       });
     }
   }
@@ -41,8 +70,9 @@ export function contrastMatrix(preset: Preset): ContrastResult[] {
     results.push({
       ink,
       ground: fill,
-      ratio: wcagContrast(resolveColor(preset, ink), resolveColor(preset, fill)),
+      ratio: ratio(resolveColor(preset, ink), resolveColor(preset, fill)),
       kind: "ink-on-fill",
+      floor: AA_FLOOR,
     });
   }
   return results;
@@ -69,12 +99,15 @@ export function checkContrast(preset: Preset): CheckFailure[] {
     if (!Number.isFinite(result.ratio)) {
       failures.push({
         check: "contrast",
-        detail: `${preset.name}: "${result.ink}" on "${result.ground}" did not resolve to a readable colour pair`,
+        detail:
+          `${preset.name}: "${result.ink}" (${resolveColor(preset, result.ink)}) on ` +
+          `"${result.ground}" (${resolveColor(preset, result.ground)}) is not a readable ` +
+          `colour pair - one of them did not parse`,
       });
       continue;
     }
 
-    if (result.ratio >= AA_FLOOR) {
+    if (result.ratio >= result.floor) {
       if (exception) {
         failures.push({
           check: "contrast",
@@ -92,7 +125,7 @@ export function checkContrast(preset: Preset): CheckFailure[] {
         check: "contrast",
         detail:
           `${preset.name}: ink "${result.ink}" on ground "${result.ground}" is ` +
-          `${round2(result.ratio)}:1, below the ${AA_FLOOR}:1 floor`,
+          `${round2(result.ratio)}:1, below the ${result.floor}:1 floor`,
       });
       continue;
     }
@@ -103,6 +136,16 @@ export function checkContrast(preset: Preset): CheckFailure[] {
         detail:
           `${preset.name}: ink "${result.ink}" on ground "${result.ground}" is ` +
           `${round2(result.ratio)}:1, worse than the ${exception.ratio}:1 its exception records`,
+      });
+    } else if (result.ratio > exception.ratio + RATIO_EPSILON) {
+      // The record is a MEASUREMENT, not a budget. Left unchecked, an exception
+      // recorded at 1.01 would license every regression down to 1.01.
+      failures.push({
+        check: "contrast",
+        detail:
+          `${preset.name}: ink "${result.ink}" on ground "${result.ground}" is ` +
+          `${round2(result.ratio)}:1, better than the ${exception.ratio}:1 its exception ` +
+          `records - update the recorded ratio`,
       });
     }
   }

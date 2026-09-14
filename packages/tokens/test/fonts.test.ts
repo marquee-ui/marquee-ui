@@ -34,9 +34,14 @@ describe("shipped faces", () => {
       it("declares the family the preset names", () => {
         const font = fontkit.openSync(join(fontsDir, face.file));
         if (!("familyName" in font)) throw new Error("not a single face");
-        // Space Grotesk's variable file names its default instance ("… Light"),
-        // so the preset's family must be a prefix of the file's, not equal to it.
-        expect(font.familyName.startsWith(face.family)).toBe(true);
+        // Space Grotesk's variable file names its default instance ("Space Grotesk
+        // Light"), so an exact match is not always available - but a bare prefix is
+        // not enough either: `family: "Bold"` would pass against "Boldonse" and the
+        // emitted CSS would then name a family no font has. The subfamily has to be
+        // a WHOLE word after the family name.
+        expect(
+          font.familyName === face.family || font.familyName.startsWith(`${face.family} `),
+        ).toBe(true);
       });
 
       it("ships an OFL text whose copyright is this font's own", () => {

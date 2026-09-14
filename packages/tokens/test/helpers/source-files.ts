@@ -18,9 +18,39 @@ function walk(dir: string, out: string[]): string[] {
 }
 
 /**
+ * Every file the packages publish, listed rather than counted.
+ *
+ * A floor ("at least 8 files") cannot tell a complete walk from a walk that silently
+ * skipped a directory, and a guard that scans 9 of 15 files passes while a brand
+ * string and a hex literal ship in the other 6 - measured, not imagined. So the walk
+ * is CHECKED against this list and throws on any difference in either direction.
+ * Adding a source file means adding it here, and that edit is the review.
+ */
+export const PUBLISHED_SOURCE_FILES = [
+  "packages/tokens/src/build.ts",
+  "packages/tokens/src/checks/contrast.ts",
+  "packages/tokens/src/checks/distinctness.ts",
+  "packages/tokens/src/checks/index.ts",
+  "packages/tokens/src/checks/types.ts",
+  "packages/tokens/src/emit/css.ts",
+  "packages/tokens/src/emit/dtcg.ts",
+  "packages/tokens/src/font-metrics.ts",
+  "packages/tokens/src/index.ts",
+  "packages/tokens/src/presets/arcade.ts",
+  "packages/tokens/src/presets/light.ts",
+  "packages/tokens/src/resolve.ts",
+  "packages/tokens/src/roles.ts",
+  "packages/tokens/src/skeleton.ts",
+  "packages/tokens/src/tokens.ts",
+] as const;
+
+/**
  * Every file under `packages/<pkg>/src`, which is what the package PUBLISHES.
  * `test/` is deliberately outside the scan: a test may name what the package was
  * ported from, a shipped file may not.
+ *
+ * Throws rather than returning a short list, so a walk that lost a directory reddens
+ * every guard that depends on it instead of quietly narrowing them.
  */
 export function sourceFiles(): { path: string; rel: string; text: string }[] {
   const packagesDir = join(repoRoot, "packages");
@@ -33,11 +63,24 @@ export function sourceFiles(): { path: string; rel: string; text: string }[] {
       continue;
     }
   }
-  return files.map((path) => ({
+  const found = files.map((path) => ({
     path,
     rel: relative(repoRoot, path).split(sep).join("/"),
     text: readFileSync(path, "utf8"),
   }));
+
+  const walked = found.map((file) => file.rel).sort();
+  const expected: string[] = [...PUBLISHED_SOURCE_FILES].sort();
+  const missing = expected.filter((rel) => !walked.includes(rel));
+  const unexpected = walked.filter((rel) => !expected.includes(rel));
+  if (missing.length > 0 || unexpected.length > 0) {
+    throw new Error(
+      `source walk does not match the published set (root ${repoRoot}). ` +
+        `Missing: [${missing.join(", ")}]. Unexpected: [${unexpected.join(", ")}]. ` +
+        `A new published source file must be added to PUBLISHED_SOURCE_FILES.`,
+    );
+  }
+  return found;
 }
 
 /**
