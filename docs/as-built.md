@@ -191,3 +191,56 @@ Baseline `pnpm test`: `Test Files 7 passed (7)` / `Tests 60 passed (60)`. `pnpm 
 | src/presets/arcade.ts:66 | `pnpm build` | `foreground-2` → `olive-700` | build **exit 1**, 5 pairs named, `dist/tokens.css` unchanged | the publish gate is real |
 
 <!-- prettier-ignore-end -->
+
+### Acting on the layer-1 findings (fixes at `4491b90`)
+
+Every mutation below is the reviewer's own, re-run in a DETACHED WORKTREE of the
+committed fix head, landing confirmed by grep, reverted with `git checkout --`.
+Baseline `Tests 90 passed (90)`.
+
+<!-- prettier-ignore-start -->
+
+| finding | mutation re-run | was | now |
+| --- | --- | --- | --- |
+| HIGH 1 | `pads` never assigned from `displayPads()` in `build.ts` | GREEN 60/60 | red 2 — `publishes MEASURED pads, not the shape of one`, `writes the same measured pads for the light preset` |
+| HIGH 2 | walker skips `src/emit` and `src/checks` | GREEN 60/60 | red 3 + the walker itself throws `source walk does not match the published set … Missing: [checks/contrast.ts, checks/distinctness.ts, checks/index.ts, checks/types.ts, emit/css.ts, emit/dtcg.ts]` |
+| HIGH 2b | plant `const FALLBACK_INK = "#e4ff3a"; // thepile Pile Score` in `src/emit/css.ts`, then skip `emit/` | GREEN 60/60 | red 3 — `Missing: [emit/css.ts, emit/dtcg.ts]`; the walk cannot be narrowed to hide the plant |
+| HIGH 3 | light `scale-empty` back to `olive-400` | GREEN 60/60 | red 2 — `light passes every check, with no exceptions at all`, `builds light with no failures` |
+| HIGH 4a | delete the `@media (prefers-reduced-motion: reduce)` block | GREEN 60/60 | red 1 — `zeroes both durations under prefers-reduced-motion` |
+| HIGH 4b | emit no `--color-*` `@theme inline` mapping | GREEN 60/60 | red 1 — `maps every colour role into the colour namespace` |
+| HIGH 4c | drop the whole `@theme inline reference` block | GREEN 60/60 | red 1 — `compiles the shadow and easing utilities without re-emitting the variables` |
+| MED 5a | delete the dead-exception and empty-reason loop | GREEN 60/60 | red 2 — `fails an exception that names a pair the matrix never makes`, `fails an exception carrying no reason` |
+| MED 5b | `if (!exception.reason.trim())` → `if (false)` | GREEN 60/60 | red 1 — `fails an exception carrying no reason` |
+| MED 5c | `if (!seen.has(…))` → `if (false)` | GREEN 60/60 | red 1 — `fails an exception that names a pair the matrix never makes` |
+| MED 6 | the new overstated-exception rule → `if (false)` | (hole) | red 1 — `fails an exception that records a ratio WORSE than the measured one` |
+| MED 7 | `family: "Boldonse"`→`"Bold"`, `"Space Grotesk"`→`"Space"` | GREEN 60/60 | red 1 — `declares the family the preset names` |
+| MED 8a | drop `--default-font-family`, `--default-mono-font-family`, `--default-transition-duration` | GREEN 60/60 | red 1 — `declares exactly the contract, no more and no less` |
+| MED 8b | emit no `radius`, `tracking`, `weight`, `layout` or `space` tokens | GREEN 60/60 | red 1 — same test |
+| MED 9 | drop `font-style`, `font-weight`, `font-display: swap` from every `@font-face` | GREEN 60/60 | red 1 — `ships every descriptor for every face, not just the src` |
+| MED 10 | `assertUsesTypoMetrics` early-return | GREEN 60/60 | red 1 — `throws naming the face when it does not, because the formula assumes it` |
+| LOW 16 | remove the `interpolateRoles`, `resolveColor` and `addToken` throws | GREEN 60/60 | red 3, one per throw |
+| (mine) | remove the unparseable-colour guard in `contrastMatrix` | n/a | red 1 + the raw `TypeError: Cannot read properties of undefined (reading 'r')` it used to produce |
+
+<!-- prettier-ignore-end -->
+
+### Findings recorded rather than fixed
+
+- **11, no corpus-level test-quality guard.** RECORDED. Worth porting before the
+  component packages land, when there are stories and many more suites; against 11
+  test files today it would find nothing these 18 mutations did not.
+- **15, the block parser is foolable** by a multi-line `@theme\n inline {` prelude, a
+  `--quote: "}"` value, or a value containing the text `@theme inline`. RECORDED, and
+  none is reachable: the parser's only input is this package's own emitter, which
+  produces neither. It gets hardened when it is first pointed at a stylesheet a human
+  wrote.
+- **17, a collection error reads as a clean `Tests` line** (`Tests 53 passed (53)`
+  with two files failing at import). RECORDED. The exit code holds and `pnpm verify`
+  reads it; the note is that the `Tests` line alone is not the verdict.
+- **18, `writeResults` hardcodes `FONTS_DIR` while `buildPreset` takes `fontsDir`.**
+  RECORDED. One caller, `main()`, always uses the package's own faces; a second fonts
+  directory is a problem only if one is ever introduced, and the signature is already
+  the half that is parameterised.
+- **12, 13, 14, 16, 19: FIXED.** The padEm test retitled to say it is the alnum-set
+  number; `AGENTS.md` corrected to say the brand guard reddens `pnpm test`, not
+  `pnpm build`; `7.3:1` corrected to the measured `7.63:1`; the three throws proved;
+  the `--safe-*` row added to the README's mapping table.
