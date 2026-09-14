@@ -27,5 +27,13 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // Node scripts: `process`, `console` and the WHATWG globals are real here, and
+    // `js.configs.recommended`'s `no-undef` has no environment to read them from.
+    files: ["**/*.mjs", "**/*.config.ts", "**/*.config.mjs"],
+    languageOptions: {
+      globals: { process: "readonly", console: "readonly", URL: "readonly" },
+    },
+  },
   prettier,
 );

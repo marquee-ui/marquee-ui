@@ -121,10 +121,11 @@ describe("checkContrast", () => {
   });
 
   it("checks every body ink and every graphic against every ground, not a sample", () => {
-    // 9 body inks x 5 grounds + 1 graphic role x 5 grounds + 2 ink-on-fill pairs. A
+    // 9 body inks x 5 grounds + 1 graphic role x 5 grounds + 5 ink-on-fill pairs. A
     // check that silently shrank its own matrix would still return [] for Arcade, so
-    // count the comparisons.
-    expect(contrastMatrix(arcade)).toHaveLength(52);
+    // count the comparisons. (52 at a1; +3 for the `*-muted` fills a status token
+    // draws its ink on, added with the first component that uses them.)
+    expect(contrastMatrix(arcade)).toHaveLength(55);
   });
 
   it("gives a meaningful graphic the 3:1 floor, not the 4.5:1 one", () => {

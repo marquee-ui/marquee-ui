@@ -255,10 +255,24 @@ export const BODY_INK_ROLES = [
  */
 export const GRAPHIC_ROLES = ["scale-empty"] as const satisfies readonly ColorRoleName[];
 
-/** Ink-on-fill pairs: [ink, fill]. */
+/**
+ * Ink-on-fill pairs: [ink, fill]. Text that sits on a FILL rather than on a ground,
+ * which the ground matrix therefore never measures.
+ *
+ * The three `*-muted` rows were added in a2, when the first component to use them
+ * shipped: a status token draws its own ink on its own muted fill, and neither half
+ * of that pair was in any checked set - so a preset could take `primary-muted` to a
+ * near-white and every check would still pass. Measured when they were added
+ * (arcade / light): primary 11.81 / 7.21, destructive 5.43 / 5.38, success 8.23 /
+ * 5.54. They were already clear; what was missing was anything that would notice if
+ * they stopped being.
+ */
 export const ON_FILL_PAIRS = [
   ["brand-foreground", "brand"],
   ["primary-foreground", "primary"],
+  ["primary-ink", "primary-muted"],
+  ["destructive", "destructive-muted"],
+  ["success", "success-muted"],
 ] as const satisfies readonly (readonly [ColorRoleName, ColorRoleName])[];
 
 /**

@@ -1,0 +1,37 @@
+{
+  "$generated": "node packages/ui/test/fixtures/extract-upstream.mjs <reference-repo> <commit>",
+  "$note": "Regenerate against the reference repository; the suite cannot verify these.",
+  "commit": "ffb71a6656d006846290c9b21778a21fafaf209b",
+  "files": [
+    "apps/web/src/components/ui/Button.tsx",
+    "apps/web/src/components/ui/Button.test.tsx",
+    "apps/web/src/components/ui/form-styles.ts",
+    "apps/web/src/components/ui/form-styles.test.ts",
+    "apps/web/src/components/ui/Sheet.tsx",
+    "apps/web/src/components/ui/Toast.tsx",
+    "apps/web/src/components/ui/Ribbon.tsx"
+  ],
+  "classes": {
+    "button.dangerArmed": "grid min-h-hit w-full place-items-center rounded-md border-2 px-4 text-sm font-semibold hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 text-danger hover:border-danger border-danger",
+    "button.dangerIdle": "grid min-h-hit w-full place-items-center rounded-md border-2 px-4 text-sm font-semibold hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 text-danger hover:border-danger border-line-strong",
+    "button.ghost": "inline-flex h-11 items-center rounded-md border-2 border-line px-4 text-sm text-text-secondary transition-colors hover:border-line-strong hover:text-text",
+    "button.primary": "grid min-h-[46px] w-full place-items-center bg-accent px-4 text-sm font-bold text-on-accent shadow-hard transition-[transform,box-shadow] hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0_var(--text)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:hover:translate-x-0 disabled:hover:translate-y-0 motion-reduce:transition-none",
+    "button.primaryRounded": "grid min-h-hit w-full place-items-center rounded-md bg-accent px-4 text-sm font-bold text-on-accent shadow-hard hover:bg-accent-hover hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0",
+    "button.secondary": "grid min-h-hit w-full place-items-center rounded-md border-2 px-4 text-sm font-semibold hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 border-line-strong text-text hover:border-text-muted",
+    "button.secondaryBase": "grid min-h-hit w-full place-items-center rounded-md border-2 px-4 text-sm font-semibold hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0",
+    "input.field": "w-full min-h-hit rounded-md border-2 border-line bg-surface px-3 text-base text-text placeholder:text-text-muted focus:border-accent focus:outline-none",
+    "label.micro": "font-mono text-3xs uppercase tracking-[0.14em] text-text-secondary",
+    "ribbon.band": "-rotate-3 overflow-hidden bg-accent shadow-[0_6px_18px_rgba(0,0,0,0.4)]",
+    "ribbon.outer": "pointer-events-none absolute left-1/2 top-[calc(64px+2.62vw)] z-[4] w-[110vw] -translate-x-1/2",
+    "ribbon.track": "pile-marquee py-1.5 font-display text-sm text-on-accent",
+    "sheet.body": "-mx-4 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4",
+    "sheet.content": "fixed z-50 flex max-h-[85dvh] flex-col gap-3 bg-overlay p-4 shadow-lg focus:outline-none inset-x-0 bottom-0 w-full rounded-t-lg border-t-2 border-line pb-[max(1rem,var(--safe-bottom))] md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:w-[min(92vw,28rem)] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-lg md:border-2 md:pb-4",
+    "sheet.description": "text-sm text-text-secondary",
+    "sheet.handle": "mx-auto h-1 w-10 shrink-0 rounded-full bg-line-strong md:hidden",
+    "sheet.overlay": "fixed inset-0 z-50 bg-scrim backdrop-blur-sm data-[state=closed]:opacity-0",
+    "sheet.title": "font-display text-lg text-text",
+    "toast.action": "min-h-11 shrink-0 px-2 font-mono text-xs font-bold uppercase tracking-widest text-accent-ink",
+    "toast.stack": "pointer-events-none fixed inset-x-4 bottom-24 z-50 mx-auto flex max-w-md flex-col gap-2 md:bottom-8",
+    "toast.strip": "pointer-events-auto flex items-center justify-between gap-3 border-2 border-line-strong bg-overlay px-4 py-2 text-sm text-text shadow-hard"
+  }
+}

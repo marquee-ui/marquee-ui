@@ -63,8 +63,24 @@ const storiesOf = (module: object): [string, PlayableStory][] =>
 
 afterEach(cleanup);
 
+/**
+ * Every story that HAS a play, and every play that actually RAN.
+ *
+ * `await Story.play?.(…)` optional-chains the one member carrying every interaction
+ * assertion in this package, so a Storybook release that renames `play` - or a
+ * `composeStories` that stops attaching it - would leave the whole suite green while
+ * 25 interaction tests silently stopped existing. Measured: renaming the read to
+ * `Story.runPlay` left the run at 226 passed. So the plays are COUNTED, from the
+ * story objects before the run and from inside the run, and the two totals are
+ * pinned to the number of `play:` functions in `stories/`.
+ */
+const DECLARED_PLAYS = 25;
+const DECLARED_STORIES = 42;
+
 describe("every story renders, and every play function passes", () => {
   const seen: string[] = [];
+  const withPlay: string[] = [];
+  const ran: string[] = [];
 
   for (const [name, module] of Object.entries(SUITES)) {
     const entries = storiesOf(module);
@@ -74,10 +90,14 @@ describe("every story renders, and every play function passes", () => {
     });
 
     for (const [storyName, Story] of entries) {
-      seen.push(`${name}/${storyName}`);
-      it(`${name}/${storyName}`, async () => {
+      const id = `${name}/${storyName}`;
+      seen.push(id);
+      if (typeof Story.play === "function") withPlay.push(id);
+      it(id, async () => {
         const { container } = render(<Story />);
-        await Story.play?.({ canvasElement: container });
+        if (typeof Story.play !== "function") return;
+        await Story.play({ canvasElement: container });
+        ran.push(id);
       });
     }
   }
@@ -96,6 +116,12 @@ describe("every story renders, and every play function passes", () => {
       "sheet",
       "toast",
     ]);
-    expect(seen.length).toBeGreaterThanOrEqual(35);
+    // Exact, not a floor: a floor of 35 tolerated seven stories vanishing.
+    expect(seen).toHaveLength(DECLARED_STORIES);
+  });
+
+  it(`runs all ${DECLARED_PLAYS} play functions, and knows if one stopped running`, () => {
+    expect(withPlay, "stories whose play was composed").toHaveLength(DECLARED_PLAYS);
+    expect(ran, "plays that actually executed").toEqual(withPlay);
   });
 });

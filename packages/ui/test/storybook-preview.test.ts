@@ -18,21 +18,30 @@ const root = process.cwd();
 const emitted = readFileSync(resolve(root, "packages/tokens/dist/tokens.css"), "utf8");
 const preview = readFileSync(resolve(root, ".storybook/preview.css"), "utf8");
 
-type Face = { family: string; style: string; weight: string; display: string; file: string };
+/** A face as its complete, normalised declaration list - not a chosen five. */
+type Face = { family: string; declarations: string[] };
 
 function faces(css: string): Face[] {
   const out: Face[] = [];
   for (const block of css.matchAll(/@font-face\s*\{([^}]*)\}/g)) {
-    const body = block[1]!;
-    const read = (property: string) =>
-      new RegExp(`${property}:\\s*([^;]+);`).exec(body)?.[1]?.trim() ?? "";
-    out.push({
-      family: read("font-family"),
-      style: read("font-style"),
-      weight: read("font-weight"),
-      display: read("font-display"),
-      file: /url\("[^"]*\/([^"/]+\.woff2)"\)/.exec(body)?.[1] ?? "",
-    });
+    const declarations: string[] = [];
+    let family = "";
+    for (const line of block[1]!.matchAll(/([a-z-]+)\s*:\s*([^;]+);/gi)) {
+      const property = line[1]!.trim().toLowerCase();
+      // The two sheets serve the same files from different paths on purpose (the
+      // generated sheet is written next to `fonts/`, the preview is served from a
+      // static directory), so the url is compared by FILENAME. Everything else -
+      // including a descriptor neither file carries today, like `size-adjust` or
+      // `ascent-override` - is compared as written.
+      const value =
+        property === "src"
+          ? (/url\("[^"]*\/([^"/]+)"\)(.*)$/.exec(line[2]!.trim())?.slice(1).join(" ") ??
+            line[2]!.trim())
+          : line[2]!.trim().replace(/\s+/g, " ");
+      if (property === "font-family") family = value;
+      declarations.push(`${property}: ${value}`);
+    }
+    out.push({ family, declarations: declarations.sort() });
   }
   return out.sort((a, b) => a.family.localeCompare(b.family));
 }
@@ -44,8 +53,18 @@ describe("the Storybook preview loads the faces the presets name", () => {
     expect(faces(preview)).toHaveLength(3);
   });
 
-  it("declares the same three faces, descriptor for descriptor", () => {
+  it("declares the same three faces, every descriptor of each", () => {
     expect(faces(preview)).toEqual(faces(emitted));
+  });
+
+  it("would see a descriptor that exists on one side only", () => {
+    // The instrument against its own violating sample: a five-name comparison was
+    // blind to `size-adjust` and `ascent-override`, which change how the face renders.
+    const withExtra = emitted.replace(
+      "font-display: swap;",
+      "font-display: swap;\n  size-adjust: 105%;",
+    );
+    expect(faces(withExtra)).not.toEqual(faces(emitted));
   });
 
   it("serves them from the static directory rather than the bundle", () => {

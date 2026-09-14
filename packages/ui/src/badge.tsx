@@ -8,6 +8,13 @@ import { cn } from "@/lib/utils";
  * Sharp (`rounded-sm`), because the rounded pill is the one shape the Arcade
  * skeleton does not draw.
  *
+ * ⚠️ A badge is sized as a LABEL, not as a control: it carries no tap floor,
+ * because one that is not interactive should not be 44px tall. If `asChild` makes it
+ * a link or a button, the CALLER owes it `min-h-hit` and room to breathe -
+ * `tailwind-compile.test.tsx` checks that every interactive element this package
+ * renders clears 44px in resolved pixels, and the `AsChildLink` story shows the
+ * shape.
+ *
  * `tone` is a VISUAL axis and nothing more - it never changes what is inside.
  * Each tone pairs a status ink with its own muted fill, which is the pairing the
  * presets are built to keep legible; `default` sits on `surface` because there is

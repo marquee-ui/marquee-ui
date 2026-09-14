@@ -42,11 +42,19 @@ const registry = JSON.parse(readFileSync(registryPath, "utf8")) as {
 const built = (name: string): RegistryItem =>
   JSON.parse(readFileSync(resolve(outDir, `${name}.json`), "utf8")) as RegistryItem;
 
-const uiDeps = (
-  JSON.parse(readFileSync(resolve(root, "packages/ui/package.json"), "utf8")) as {
-    devDependencies: Record<string, string>;
-  }
-).devDependencies;
+const uiPkg = JSON.parse(readFileSync(resolve(root, "packages/ui/package.json"), "utf8")) as {
+  dependencies: Record<string, string>;
+  devDependencies: Record<string, string>;
+  files: string[];
+  exports: Record<string, unknown>;
+};
+/**
+ * RUNTIME dependencies, deliberately not the dev ones. Every package a registry item
+ * tells a consumer to install is a package this one imports at runtime, so it belongs
+ * in `dependencies` - it was in `devDependencies` at first, and validating the ranges
+ * against THAT list is what made the mistake look correct.
+ */
+const uiDeps = uiPkg.dependencies;
 
 describe("registry.json", () => {
   it("declares the ten part families plus the one shared lib", () => {
@@ -155,6 +163,34 @@ describe("the built registry in packages/ui/r", () => {
     );
   });
 
+  it("ships an INDEX that is the root registry, byte for byte", () => {
+    // The shipped `r/registry.json` is what an agent or a consumer reads to find out
+    // what this registry contains, and nothing looked at its contents: setting its
+    // `name` to `marquee-ui-STALE`, or its `items` to `[]`, was green. It is a copy
+    // of the root file, so the honest assertion is that it is the SAME file.
+    const shipped = readFileSync(resolve(outDir, "registry.json"), "utf8");
+    expect(shipped).toBe(readFileSync(registryPath, "utf8"));
+  });
+
+  it("advertises every item in that index, with its files", () => {
+    // …and a byte-compare of two identical mistakes would still pass, so the index
+    // is also read as data.
+    const shipped = JSON.parse(readFileSync(resolve(outDir, "registry.json"), "utf8")) as {
+      name: string;
+      items: RegistryItem[];
+    };
+    expect(shipped.name).toBe("marquee-ui");
+    expect(shipped.items.map((item) => item.name).sort()).toEqual(
+      registry.items.map((item) => item.name).sort(),
+    );
+    for (const item of shipped.items) {
+      expect(item.files.length, item.name).toBeGreaterThan(0);
+      for (const file of item.files) {
+        expect(existsSync(resolve(root, file.path)), `${item.name}: ${file.path}`).toBe(true);
+      }
+    }
+  });
+
   it("carries the CURRENT bytes of every source it ships", () => {
     // The check that makes a committed build artefact safe: if a component
     // changed and nobody re-ran `pnpm build`, this is red.
@@ -185,11 +221,32 @@ describe("the built registry in packages/ui/r", () => {
   });
 
   it("is inside the package's published files, so it installs with no network", () => {
-    const pkg = JSON.parse(readFileSync(resolve(root, "packages/ui/package.json"), "utf8")) as {
-      files: string[];
-      exports: Record<string, unknown>;
-    };
-    expect(pkg.files).toContain("r");
-    expect(pkg.exports["./r/*"]).toBe("./r/*");
+    expect(uiPkg.files).toContain("r");
+    expect(uiPkg.exports["./r/*"]).toBe("./r/*");
+  });
+
+  it("declares as RUNTIME dependencies everything the shipped sources import", () => {
+    // The package advertises `exports["."]`, so an installed copy has to resolve
+    // every bare import in `src/`. A devDependency does not install for a consumer.
+    const imported = new Set<string>();
+    for (const item of registry.items) {
+      for (const file of item.files.filter(
+        (f) => f.path.endsWith(".tsx") || f.path.endsWith(".ts"),
+      )) {
+        const text = readFileSync(resolve(root, file.path), "utf8");
+        for (const match of text.matchAll(/from "([^".][^"]*)"/g)) {
+          const specifier = match[1]!;
+          if (specifier.startsWith("@/") || specifier.startsWith(".")) continue;
+          const name = specifier.startsWith("@")
+            ? specifier.split("/").slice(0, 2).join("/")
+            : specifier.split("/")[0]!;
+          imported.add(name);
+        }
+      }
+    }
+    expect(imported.size).toBeGreaterThan(4);
+    const peers = new Set(["react", "react-dom"]);
+    const missing = [...imported].filter((name) => !(name in uiDeps) && !peers.has(name));
+    expect(missing, "imported at runtime but not a dependency or a peer").toEqual([]);
   });
 });

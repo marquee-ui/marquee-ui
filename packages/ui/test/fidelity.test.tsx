@@ -1,10 +1,15 @@
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import upstream from "./fixtures/upstream-classes.json" with { type: "json" };
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/accordion";
+import { Badge } from "@/badge";
 import { buttonVariants } from "@/button";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/card";
 import { cn } from "@/lib/utils";
-import { inputClass } from "@/input";
-import { labelVariants } from "@/label";
+import { Input, inputClass } from "@/input";
+import { Label, labelVariants } from "@/label";
 import { Ribbon } from "@/ribbon";
+import { Separator } from "@/separator";
 import { Sheet, SheetBody, SheetContent, SheetDescription, SheetTitle } from "@/sheet";
 import { Toast, ToastAction, ToastMessage } from "@/toast";
 
@@ -21,8 +26,11 @@ import { Toast, ToastAction, ToastMessage } from "@/toast";
  * never retyped), applies the rename table, and compares the result to what the
  * parts actually render.
  *
- * So a mistake in the rename TABLE reddens this too, which a table of expected
- * strings could not do.
+ * So a mistake in the rename TABLE reddens this, which a table of expected strings
+ * could not do. A mistake in the UPSTREAM fixture does NOT - it is an input, read
+ * out of a repository this suite cannot see, and the only check on it is
+ * regenerating it. `upstream-classes.json` records the commit it came from for
+ * exactly that reason.
  *
  * Order is not asserted: every utility sits at the same specificity, so the
  * cascade is decided by the stylesheet, not by the class attribute. The SET is
@@ -103,10 +111,10 @@ function renameUtility(token: string): string {
   return prefix + (RENAME[base] ?? base);
 }
 
-function expected(key: string, upstream: string): string[] {
+function expected(key: string, upstreamValue: string): string[] {
   const departures = DEPARTURES[key] ?? [];
   const applied = new Set<string>();
-  const out = upstream
+  const out = upstreamValue
     .split(/\s+/)
     .filter(Boolean)
     .map(renameUtility)
@@ -130,43 +138,17 @@ function expected(key: string, upstream: string): string[] {
 const tokens = (value: string): string[] => value.split(/\s+/).filter(Boolean).sort();
 
 /**
- * The upstream strings, at the read commit. The four button strings and the input
- * are the product's own byte-pins; the rest were read out of the components.
+ * The upstream strings, GENERATED not typed.
+ *
+ * `fixtures/upstream-classes.json` is written by
+ * `fixtures/extract-upstream.mjs <reference-repo> <commit>`, which reads them with
+ * `git show` - four of the button strings and the input out of the byte-pins that
+ * repo's own tests produced by EVALUATING the module, the rest out of the
+ * components. The reference consumer is private, so THE SUITE CANNOT VERIFY THIS
+ * FIXTURE: re-running the generator is the check, and the commit it was taken at is
+ * recorded in the file so a regeneration against a different one is visible.
  */
-const UPSTREAM = {
-  "button.primary":
-    "grid min-h-[46px] w-full place-items-center bg-accent px-4 text-sm font-bold text-on-accent shadow-hard transition-[transform,box-shadow] hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0_var(--text)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:hover:translate-x-0 disabled:hover:translate-y-0 motion-reduce:transition-none",
-  "button.primaryRounded":
-    "grid min-h-hit w-full place-items-center rounded-md bg-accent px-4 text-sm font-bold text-on-accent shadow-hard hover:bg-accent-hover hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0",
-  "button.secondary":
-    "grid min-h-hit w-full place-items-center rounded-md border-2 px-4 text-sm font-semibold hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 border-line-strong text-text hover:border-text-muted",
-  "button.dangerArmed":
-    "grid min-h-hit w-full place-items-center rounded-md border-2 px-4 text-sm font-semibold hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 text-danger hover:border-danger border-danger",
-  "button.dangerIdle":
-    "grid min-h-hit w-full place-items-center rounded-md border-2 px-4 text-sm font-semibold hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 text-danger hover:border-danger border-line-strong",
-  "button.ghost":
-    "inline-flex h-11 items-center rounded-md border-2 border-line px-4 text-sm text-text-secondary transition-colors hover:border-line-strong hover:text-text",
-  "input.field":
-    "w-full min-h-hit rounded-md border-2 border-line bg-surface px-3 text-base text-text placeholder:text-text-muted focus:border-accent focus:outline-none",
-  "label.micro": "font-mono text-3xs uppercase tracking-[0.14em] text-text-secondary",
-  "sheet.overlay": "fixed inset-0 z-50 bg-scrim backdrop-blur-sm data-[state=closed]:opacity-0",
-  "sheet.content":
-    "fixed z-50 flex max-h-[85dvh] flex-col gap-3 bg-overlay p-4 shadow-lg focus:outline-none inset-x-0 bottom-0 w-full rounded-t-lg border-t-2 border-line pb-[max(1rem,var(--safe-bottom))] md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:w-[min(92vw,28rem)] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-lg md:border-2 md:pb-4",
-  "sheet.handle": "mx-auto h-1 w-10 shrink-0 rounded-full bg-line-strong md:hidden",
-  "sheet.title": "font-display text-lg text-text",
-  "sheet.description": "text-sm text-text-secondary",
-  "sheet.body": "-mx-4 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4",
-  "toast.stack":
-    "pointer-events-none fixed inset-x-4 bottom-24 z-50 mx-auto flex max-w-md flex-col gap-2 md:bottom-8",
-  "toast.strip":
-    "pointer-events-auto flex items-center justify-between gap-3 border-2 border-line-strong bg-overlay px-4 py-2 text-sm text-text shadow-hard",
-  "toast.action":
-    "min-h-11 shrink-0 px-2 font-mono text-xs font-bold uppercase tracking-widest text-accent-ink",
-  "ribbon.outer":
-    "pointer-events-none absolute left-1/2 top-[calc(64px+2.62vw)] z-[4] w-[110vw] -translate-x-1/2",
-  "ribbon.band": "-rotate-3 overflow-hidden bg-accent shadow-[0_6px_18px_rgba(0,0,0,0.4)]",
-  "ribbon.track": "pile-marquee py-1.5 font-display text-sm text-on-accent",
-} as const;
+const UPSTREAM: Readonly<Record<string, string>> = upstream.classes;
 
 afterEach(cleanup);
 
@@ -207,8 +189,22 @@ const CASES: readonly (readonly [keyof typeof UPSTREAM, () => string])[] = [
   ["button.dangerArmed", () => buttonVariants({ variant: "danger", armed: true })],
   ["button.dangerIdle", () => buttonVariants({ variant: "danger", armed: false })],
   ["button.ghost", () => buttonVariants({ variant: "ghost" })],
-  ["input.field", () => inputClass],
-  ["label.micro", () => labelVariants({ tone: "micro" })],
+  [
+    // Through a RENDER, not through the constant: a component that stopped applying
+    // its own class string left the constant-based assertion green.
+    "input.field",
+    () => {
+      render(<Input />);
+      return slotClass("input");
+    },
+  ],
+  [
+    "label.micro",
+    () => {
+      render(<Label tone="micro">Last played</Label>);
+      return slotClass("label");
+    },
+  ],
   [
     "sheet.overlay",
     () => {
@@ -298,21 +294,46 @@ const CASES: readonly (readonly [keyof typeof UPSTREAM, () => string])[] = [
 describe("the moved parts wear exactly the upstream utilities, renamed", () => {
   it("covers every moved string", () => {
     // Anchor: a table-driven suite that silently lost a row proves nothing.
-    expect(CASES.map(([key]) => key).sort()).toEqual(Object.keys(UPSTREAM).sort());
-    expect(CASES).toHaveLength(20);
+    const cased = CASES.map(([key]) => key).sort();
+    expect(cased).toHaveLength(20);
+    expect(new Set(cased).size).toBe(20);
+    // Every case is a fixture row, and the only fixture row that is NOT a case is
+    // `button.secondaryBase` - a fragment three variants share, never rendered alone.
+    expect(cased.filter((key) => !(key in UPSTREAM))).toEqual([]);
+    expect(Object.keys(UPSTREAM).filter((key) => !cased.includes(key))).toEqual([
+      "button.secondaryBase",
+    ]);
+    // …and the fixture is the one the generator recorded, at the recorded commit.
+    expect(upstream.commit).toBe("ffb71a6656d006846290c9b21778a21fafaf209b");
+    expect(upstream.files.length).toBe(7);
+  });
+
+  it("keeps the exported constants equal to what the elements actually wear", () => {
+    // `inputClass` and `labelVariants` are public API - a consumer may use the
+    // string directly on an element the library does not own.
+    render(<Input />);
+    expect(slotClass("input")).toBe(inputClass);
+    cleanup();
+    render(<Label tone="micro">Last played</Label>);
+    expect(slotClass("label")).toBe(labelVariants({ tone: "micro" }));
   });
 
   for (const [key, actual] of CASES) {
     it(key, () => {
-      expect(tokens(actual())).toEqual(expected(key, UPSTREAM[key]));
+      const upstreamValue = UPSTREAM[key];
+      // A missing fixture row would otherwise compare against `undefined` and throw
+      // somewhere less legible than here.
+      expect(upstreamValue, `${key} is not in upstream-classes.json`).toBeTypeOf("string");
+      expect(tokens(actual())).toEqual(expected(key, upstreamValue!));
     });
   }
 });
 
 describe("the rename table itself", () => {
-  it("maps every upstream token that has no Marquee spelling", () => {
-    // Every token in every upstream string either survives unchanged, is in the
-    // rename table, or is a declared departure. Nothing is quietly dropped.
+  it("carries no rename entry the upstream strings do not use", () => {
+    // A stale rename entry is a rule nobody can see is dead. This does NOT claim
+    // every upstream token is handled - a token with no entry is simply carried
+    // through unchanged, which is the common case and the correct one.
     const handled = new Set([...Object.keys(RENAME)]);
     const declared = new Set(
       Object.values(DEPARTURES).flatMap((rows) => rows.map(([from]) => from)),
@@ -352,4 +373,95 @@ describe("cn is a no-op on every string this package ships", () => {
     expect(cn("bg-surface", "bg-overlay")).toBe("bg-overlay");
     expect(cn("min-h-hit", "min-h-0")).toBe("min-h-0");
   });
+});
+
+/**
+ * The four NEW parts, pinned.
+ *
+ * These were not moved, so there is no upstream string to derive from and this IS a
+ * restatement - deliberately. The reason it earns its place: without it, emptying
+ * `badgeVariants`' base and all four tones, or the accordion trigger's whole class
+ * string (losing `min-h-hit` AND `focus-visible:shadow-focus-ring` with it), left
+ * the suite green. Measured, not imagined.
+ *
+ * The class rail is only half of it. `tailwind-compile.test.tsx` carries the other
+ * half for the properties that actually matter: that every one of these utilities
+ * COMPILES, and that every interactive element rendered anywhere in this package
+ * clears the 44px tap floor in resolved pixels.
+ */
+const NEW_PARTS: readonly (readonly [string, () => void, string])[] = [
+  [
+    "card",
+    () => render(<Card />),
+    "flex flex-col gap-3 rounded-md border-2 border-border bg-surface p-4",
+  ],
+  ["card-header", () => render(<CardHeader />), "flex flex-col gap-1"],
+  ["card-title", () => render(<CardTitle>t</CardTitle>), "font-display text-lg text-foreground"],
+  [
+    "card-description",
+    () => render(<CardDescription>d</CardDescription>),
+    "text-sm text-foreground-2",
+  ],
+  ["card-footer", () => render(<CardFooter />), "flex items-center gap-3"],
+  [
+    "badge",
+    () => render(<Badge>b</Badge>),
+    "inline-flex items-center gap-1 rounded-sm border-2 px-2 py-0.5 font-mono text-2xs font-bold uppercase tracking-label border-border-strong bg-surface text-foreground-2",
+  ],
+  [
+    "badge-primary",
+    () => render(<Badge tone="primary">b</Badge>),
+    "inline-flex items-center gap-1 rounded-sm border-2 px-2 py-0.5 font-mono text-2xs font-bold uppercase tracking-label border-primary bg-primary-muted text-primary-ink",
+  ],
+  [
+    "badge-destructive",
+    () => render(<Badge tone="destructive">b</Badge>),
+    "inline-flex items-center gap-1 rounded-sm border-2 px-2 py-0.5 font-mono text-2xs font-bold uppercase tracking-label border-destructive bg-destructive-muted text-destructive",
+  ],
+  [
+    "badge-success",
+    () => render(<Badge tone="success">b</Badge>),
+    "inline-flex items-center gap-1 rounded-sm border-2 px-2 py-0.5 font-mono text-2xs font-bold uppercase tracking-label border-success bg-success-muted text-success",
+  ],
+  [
+    "separator",
+    () => render(<Separator />),
+    "shrink-0 bg-border data-[orientation=horizontal]:h-0.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-0.5",
+  ],
+  ["accordion-item", () => renderAccordion(), "border-b-2 border-border"],
+  [
+    "accordion-trigger",
+    () => renderAccordion(),
+    "flex min-h-hit w-full items-center justify-between gap-3 py-3 text-left text-sm font-semibold text-foreground transition-colors hover:text-primary-ink focus-visible:outline-none focus-visible:shadow-focus-ring",
+  ],
+  ["accordion-content", () => renderAccordion(), "overflow-hidden pb-3 text-sm text-foreground-2"],
+  ["label", () => render(<Label>l</Label>), "text-sm text-foreground-2"],
+];
+
+function renderAccordion() {
+  render(
+    <Accordion type="single" collapsible defaultValue="one">
+      <AccordionItem value="one">
+        <AccordionTrigger>trigger</AccordionTrigger>
+        <AccordionContent>content</AccordionContent>
+      </AccordionItem>
+    </Accordion>,
+  );
+}
+
+describe("the new parts wear the utilities they declare", () => {
+  it("covers every slot the new parts render", () => {
+    // Anchor: a table that lost rows would pass by asserting less.
+    const slots = NEW_PARTS.map(([slot]) => slot);
+    expect(new Set(slots).size).toBe(slots.length);
+    expect(slots).toHaveLength(14);
+  });
+
+  for (const [slot, mount, classes] of NEW_PARTS) {
+    it(slot, () => {
+      mount();
+      const name = slot.startsWith("badge") ? "badge" : slot;
+      expect(tokens(slotClass(name))).toEqual(tokens(classes));
+    });
+  }
 });

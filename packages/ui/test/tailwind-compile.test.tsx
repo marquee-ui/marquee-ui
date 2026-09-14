@@ -53,6 +53,8 @@ if (!existsSync(FIXTURE)) throw new Error(`compile fixture not found at ${FIXTUR
 let css = "";
 /** Every class name the compile actually produced, unescaped. */
 const compiled = new Set<string>();
+/** class name -> the declaration bodies of every rule whose selector uses it. */
+const declarations = new Map<string, string[]>();
 
 beforeAll(async () => {
   const result = await postcss([tailwind()]).process(readFileSync(FIXTURE, "utf8"), {
@@ -60,19 +62,30 @@ beforeAll(async () => {
   });
   css = result.css;
   postcss.parse(css).walkRules((node) => {
+    const body = node.nodes
+      .map((child) => child.toString())
+      .join("; ")
+      .trim();
     for (const match of node.selector.matchAll(/\.((?:\\.|[^\s.,:>+~(){}[\]])+)/g)) {
-      compiled.add(match[1]!.replace(/\\(.)/g, "$1"));
+      const name = match[1]!.replace(/\\(.)/g, "$1");
+      compiled.add(name);
+      declarations.set(name, [...(declarations.get(name) ?? []), body]);
     }
   });
 }, 60_000);
 
-/** The body of the first rule whose selector starts with `.<name>`. */
+/**
+ * Every declaration Tailwind emitted for a class, joined.
+ *
+ * Built by WALKING the parsed stylesheet and unescaping each selector, not by
+ * building a regex out of the class name: a name like
+ * `transition-[transform,box-shadow]` escapes into a pattern that is not a valid
+ * regex at all, and one like `hover:-translate-y-0.5` escapes into one that matches
+ * the wrong rule. The walk is the same one that fills `compiled`, so the two cannot
+ * disagree about what exists.
+ */
 function rule(name: string): string {
-  const escaped = name.replace(/[.:[\]()/,%]/g, (c) => `\\${c}`);
-  const match = new RegExp(`\\.${escaped.replace(/[\\^$*+?{}|]/g, "\\$&")}\\s*\\{([^}]*)\\}`).exec(
-    css,
-  );
-  return match?.[1]?.trim() ?? "";
+  return declarations.get(name)?.join(" ") ?? "";
 }
 
 describe("the emitted stylesheet compiles", () => {
@@ -101,7 +114,10 @@ describe("the emitted stylesheet compiles", () => {
     expect(rule("shadow-lift")).toContain("var(--shadow-lift)");
     expect(rule("shadow-band")).toContain("var(--shadow-band)");
     expect(rule("shadow-lg")).toContain("var(--shadow-lg)");
-    expect(rule("shadow-focus-ring")).toContain("var(--shadow-focus-ring)");
+    // The form that actually ships: nothing writes `shadow-focus-ring` bare, and
+    // asserting the bare name only worked while Tailwind was extracting candidates
+    // out of this very file.
+    expect(rule("focus-visible:shadow-focus-ring")).toContain("var(--shadow-focus-ring)");
     // …and does NOT re-emit them into the theme layer as self-references.
     expect(css).not.toContain("--shadow-lift: var(--shadow-lift)");
   });
@@ -194,5 +210,113 @@ describe("every class the parts render is a utility that compiles", () => {
     // The instrument proved against its own violating sample.
     expect(compiled.has("bg-primary")).toBe(true);
     expect(compiled.has("bg-not-a-role")).toBe(false);
+  });
+});
+
+/**
+ * The 44px tap floor, in RESOLVED PIXELS.
+ *
+ * `min-h-hit` is a class rail on its own: it cannot say what height it produces, and
+ * a variant that lost it looks identical in jsdom. Here both instruments are already
+ * in the room, so the check is the real one - take every interactive element the
+ * stories render, look up each of its classes in the COMPILED stylesheet, resolve
+ * `var(--…)` against the sheet's own `:root`, convert to px, and demand 44.
+ *
+ * This is also what keeps a workbench story honest: a story is what a consumer
+ * copies, so a badge-as-link at 24px in the sidebar is a 24px tap target in someone
+ * else's product.
+ */
+const TAP_FLOOR_PX = 44;
+
+/** Custom properties declared in the compiled sheet's `:root` blocks. */
+function rootVars(): Map<string, string> {
+  const vars = new Map<string, string>();
+  for (const block of css.matchAll(/:root\s*(?:,[^{]*)?\{([^}]*)\}/g)) {
+    for (const line of block[1]!.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/gi)) {
+      if (!vars.has(line[1]!)) vars.set(line[1]!, line[2]!.trim());
+    }
+  }
+  return vars;
+}
+
+/**
+ * A CSS length in px. Resolves `var()` against the sheet's own `:root`, and the one
+ * `calc()` shape Tailwind's spacing scale emits (`calc(var(--spacing) * 11)`), which
+ * is how `h-11` and `min-h-11` are written and therefore how three real controls in
+ * this package declare their height. Null if it is not a length at all.
+ */
+function lengthPx(value: string, vars: Map<string, string>): number | null {
+  const resolved = value
+    .replace(/var\((--[a-z0-9-]+)\)/gi, (_, name: string) => vars.get(name) ?? "")
+    .trim();
+  const plain = /^(-?\d*\.?\d+)(px|rem)$/.exec(resolved);
+  if (plain) return Number(plain[1]) * (plain[2] === "rem" ? 16 : 1);
+  const scaled =
+    /^calc\(\s*(-?\d*\.?\d+)(px|rem)\s*\*\s*(-?\d*\.?\d+)\s*\)$/.exec(resolved) ??
+    /^calc\(\s*(-?\d*\.?\d+)\s*\*\s*(-?\d*\.?\d+)(px|rem)\s*\)$/.exec(resolved);
+  if (!scaled) return null;
+  const [a, b, c] = [scaled[1]!, scaled[2]!, scaled[3]!];
+  return /^\d/.test(b)
+    ? Number(a) * Number(b) * (c === "rem" ? 16 : 1)
+    : Number(a) * Number(c) * (b === "rem" ? 16 : 1);
+}
+
+describe("every interactive element clears the 44px tap floor", () => {
+  const offenders: string[] = [];
+  const checked: string[] = [];
+
+  beforeAll(() => {
+    const vars = rootVars();
+    const suites = {
+      accordion,
+      badge,
+      button,
+      card,
+      input,
+      label,
+      ribbon,
+      separator,
+      sheet,
+      toast,
+    };
+    for (const module of Object.values(suites)) {
+      for (const [, Story] of storiesOf(module)) {
+        render(<Story />);
+        const interactive = document.querySelectorAll<HTMLElement>(
+          'button, a[href], input, select, textarea, [role="button"]',
+        );
+        for (const element of interactive) {
+          const tokens = (element.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
+          let best = 0;
+          for (const token of tokens) {
+            const body = rule(token);
+            for (const declaration of body.matchAll(/(?:min-height|height)\s*:\s*([^;]+)/g)) {
+              const px = lengthPx(declaration[1]!, vars);
+              if (px !== null && px > best) best = px;
+            }
+          }
+          const id = `${element.tagName.toLowerCase()}[data-slot=${element.dataset.slot ?? "-"}] "${(element.textContent ?? "").slice(0, 24)}"`;
+          checked.push(id);
+          if (best < TAP_FLOOR_PX) offenders.push(`${id} -> ${best}px`);
+        }
+        cleanup();
+      }
+    }
+  });
+
+  it("found interactive elements to measure, and resolved a real variable", () => {
+    // Anchor: an empty candidate list, or a resolver that returns null for
+    // everything, would make the assertion below vacuous.
+    expect(checked.length).toBeGreaterThan(20);
+    expect(rootVars().get("--hit-min")).toBe("44px");
+    expect(lengthPx("var(--hit-min)", rootVars())).toBe(TAP_FLOOR_PX);
+    expect(lengthPx("2.75rem", rootVars())).toBe(TAP_FLOOR_PX);
+    // The spelling three real controls here use, via `h-11` / `min-h-11`.
+    expect(lengthPx("calc(var(--spacing) * 11)", rootVars())).toBe(TAP_FLOOR_PX);
+    expect(lengthPx("auto", rootVars())).toBeNull();
+  });
+
+  it("measures every one of them at or above the floor", () => {
+    expect(offenders).toEqual([]);
   });
 });

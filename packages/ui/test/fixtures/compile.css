@@ -1,6 +1,15 @@
 /* The input the Tailwind compile test uses: the real emitted stylesheet, the real
-   component CSS, and the component sources as the only content source. */
-@import "tailwindcss";
+   component CSS, and the component sources and stories as the ONLY content sources.
+
+   `source(none)` turns Tailwind's automatic source detection off, and that is the
+   load-bearing half. With detection on, Tailwind scans the whole repository - which
+   made the `@source` line inert (pointing it at a directory that does not exist
+   changed nothing), and, worse, meant the TEST FILE's own assertion strings were
+   being extracted as candidates: `shadow-focus-ring` compiled only because this
+   suite asserted it, not because anything renders it. Off, these two directories
+   decide what exists, and the test has no way to conjure a utility by naming it. */
+@import "tailwindcss" source(none);
 @import "@marquee-ui/tokens/tokens.css";
 @import "../../src/ribbon.css";
 @source "../../src";
+@source "../../stories";
