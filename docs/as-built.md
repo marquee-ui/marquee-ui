@@ -476,6 +476,32 @@ checks the BEHAVIOUR - for every emitted name, overriding it with a stock utilit
 of the same namespace must leave exactly the override - so the list cannot fall
 behind the emitter.
 
+### Guards, each proved by running its reddening mutation
+
+All ten ran in the COMMITTED tree at `e78d1b9d`, the landing was confirmed by grep
+before the run was read (one did not land the first time - a prettier line break -
+and the harness refused to read that run rather than report a green), and each was
+reverted with `git checkout --`. `git status --short` is empty afterwards.
+
+<!-- prettier-ignore-start -->
+
+| guard | mutation | landed | the red it produced |
+| --- | --- | --- | --- |
+| literal (a2's extension to the new package) | `const FALLBACK_INK = "#f2f5e8";` in `src/card.tsx` | `card.tsx:4` | BOTH halves: `finds no literal colour, font name or shadow outside src/presets/**` with `"packages/ui/src/card.tsx: a hex colour (#f2f5e8)"`, and `finds no preset VALUE copied out of its preset` with `"packages/ui/src/card.tsx: \"#f2f5e8\""` |
+| brand (a2's extension to STORIES) | `// ported from thepile's status chips` above `Default` in `stories/badge.stories.tsx` | `badge.stories.tsx:14` | `ships no brand string of the consuming app` with `"packages/ui/stories/badge.stories.tsx: \"thepile\""` |
+| utility coverage | `tracking-label` -> `tracking-caps` in `badgeVariants` | `badge.tsx:17` | `compiles every one of them` with `expected [ 'tracking-caps' ] to deeply equal []` |
+| registry staleness | `bg-border` -> `bg-border-strong` in `separator.tsx`, registry NOT rebuilt | `separator.tsx:24` | `carries the CURRENT bytes of every source it ships` with `separator: packages/ui/src/separator.tsx is stale` |
+| fidelity | `border-border-strong` -> `border-border` on the toast strip | `toast.tsx:76` | `toast.strip` with `- "border-border-strong"` / `+ "border-border"` |
+| merge theme | `spacing: ["hit"]` -> `spacing: []` in `cn` | `lib/utils.ts:30` | `--spacing-*` with `these --spacing-* names are missing from cn's theme list: expected [ 'hit' ] to deeply equal []` |
+| stories as tests | `type={type ?? "button"}` -> `type={type}` in `Button` | `button.tsx:86` | `button/Primary` with `expect(element).toHaveAttribute("type", "button")`, received `null` |
+| registry css rule | a leading `/* … */` prepended to `ribbon.css` | `ribbon.css:1` | TWO: `keeps no stylesheet's first token a comment`, and `ribbon: packages/ui/src/ribbon.css is stale` |
+| preview fonts | `font-weight: 300 700` -> `400` in `.storybook/preview.css` | `preview.css:16` | `declares the same three faces, descriptor for descriptor` with `- "weight": "300 700"` / `+ "weight": "400"` |
+| stories as tests (a11y) | `aria-hidden="true"` removed from the sheet handle | `sheet.tsx:73` | `sheet/Default` with `expect(element).toHaveAttribute("aria-hidden", "true")` |
+
+<!-- prettier-ignore-end -->
+
+Each red names the property that was mutated, not a neighbouring one.
+
 ### Decisions
 
 1. **Stories run under jsdom through `composeStories`, not in Storybook's browser
