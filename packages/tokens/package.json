@@ -29,5 +29,6 @@
     "@types/fontkit": "^2.0.9",
     "culori": "^4.0.2",
     "fontkit": "^2.0.4"
-  }
+  },
+  "license": "MIT"
 }

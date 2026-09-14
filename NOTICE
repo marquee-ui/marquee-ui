@@ -1,0 +1,10 @@
+Marquee UI is licensed under the MIT License (see LICENSE).
+
+That licence covers the code, the tokens and the presets in this repository.
+It does not cover, and this repository does not contain, the name "thepile",
+its wordmark, or any product string of the application that is its reference
+consumer. Those remain the property of their owner and are not licensed here.
+A guard test in this repository fails if any of them appears in the source.
+
+The bundled fonts (Boldonse, Space Grotesk, Space Mono) are under the SIL Open
+Font License 1.1; each face ships with its own licence text.

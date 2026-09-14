@@ -23,11 +23,10 @@ publishing. No components, no registry, no Storybook, no docs site yet.
 
 ## Licence
 
-**Pending.** No `LICENSE` file exists yet and nothing here is published. The
-recommendation on the table is MIT for code and tokens, CC BY 4.0 for the Figma kit,
-OFL for the fonts (they already are - see `packages/tokens/fonts/*.OFL.txt`), plus a
-notice that the consuming product's name, wordmark and brand strings are not
-licensed. Until that is decided, every package is `"private": true`.
+MIT (see `LICENSE`). That covers the code, the tokens and the presets. It does not cover, and
+this repository does not contain, the name "thepile", its wordmark or any product string of the
+application that is its reference consumer; `NOTICE` says so and a guard test enforces it. The
+bundled fonts are SIL OFL 1.1. Packages stay `"private": true` until their first publish.
 
 ## Working in this repo
 
