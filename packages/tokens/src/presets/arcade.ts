@@ -32,7 +32,7 @@ export const arcade = definePreset({
     "olive-800": "#3a4023",
     "olive-700": "#5f6642",
     "olive-650": "#6e7846",
-    "olive-600": "#858c62",
+    "olive-600": "#888f65", // PALETTE-1 (2026-09-14): was #858c62; +3/channel takes muted-on-overlay from 4.36 to 4.53
     "olive-500": "#a8b088",
     "olive-50": "#f2f5e8",
     "lime-950": "#2a3312",
@@ -139,18 +139,5 @@ export const arcade = definePreset({
     focusRing: "0 0 0 2px {background}, 0 0 0 4px {primary}",
   },
 
-  contrastExceptions: [
-    {
-      ink: "muted",
-      ground: "overlay",
-      ratio: 4.36,
-      reason:
-        "the upstream locked palette: the muted ink #858c62 on the overlay ground " +
-        "#22261a is 4.36:1, 0.14 short of AA. It clears the floor on every other " +
-        "ground (5.57 / 5.24 / 4.88 / 5.70). Recorded rather than hidden: this package " +
-        "does not move the upstream app's pixels (D10), so lightening the ink or " +
-        "darkening the overlay is its call to make. The check fails if this pair ever " +
-        "passes, so the exception dies with the fix.",
-    },
-  ],
+  contrastExceptions: [],
 });

@@ -50,10 +50,19 @@ Two corrections fall out of it:
 **Contrast.** Measured with culori's `wcagContrast` over the whole matrix (9 body
 inks x 5 grounds + 2 ink-on-fill pairs = 47 comparisons per preset). Arcade fails
 exactly one pair: `muted` (#858c62) on `overlay` (#22261a) at **4.36:1**, 0.14 short
-of AA. It clears on every other ground (5.57 / 5.24 / 4.88 / 5.70). Shipped as a
-recorded exception rather than a silent pass or a moved colour, because the package
-must not move the consuming app's pixels. `light` ships no exceptions; its worst
-pair is `muted` on `sunken` at 5.25:1.
+of AA. It cleared on every other ground (5.57 / 5.24 / 4.88 / 5.70).
+
+**PALETTE-1 (2026-09-14, Ankit): fixed, not recorded.** The first instinct here was to
+ship it as a recorded exception, on the reasoning that the package must not move the
+consuming app's pixels. Ankit's call went the other way: the upstream app moved
+`--text-muted` #858c62 -> **#888f65** (+3 per channel) and this package follows.
+Re-measured here: **5.79 / 5.45 / 5.07 / 4.53 / 5.93** on background / surface /
+raised / overlay / sunken, so the pair clears AA by 0.03 and every other ground gained
+~0.2. **Arcade now ships ZERO exceptions**, and so does `light` (worst pair `muted` on
+`sunken` at 5.25:1). The exception mechanism keeps all five of its rules and is proved
+entirely through fixtures, including the positive case - an accurate, justified, real
+exception must be ACCEPTED, or a check that simply refused every exception would
+satisfy the other four.
 
 `foreground-faint` is out of the 4.5:1 set by WCAG 1.4.3's exemption for inactive
 components: it measures 3.26 / 3.06 / 2.85 / 2.55 / 3.33 and is documented upstream
@@ -101,18 +110,34 @@ unrelated to the package name and do not collide (different namespace, and
 `--marquee-dur` is deliberately not carried by this package), but the word will
 appear twice in that codebase meaning two different things.
 
+### Decisions Ankit has taken (accepted, 2026-09-14)
+
+1. **Role names follow shadcn wherever shadcn has a name.** The primary consumer of
+   this library is an AI installing a component, so the names that already sit in
+   every model's head win over names that are merely ours: `background`,
+   `foreground`, `border`, `muted`, `primary`, `destructive`. Where shadcn has no name
+   for the thing - the six-step `scale`, `shadow-lift`, `hit-min`, `display-cap-pad` -
+   keep the closest popular convention rather than inventing vocabulary. This is what
+   settles the rename table in `packages/tokens/README.md`.
+2. **`@marquee-ui/tokens` as the package name, ΔE2000 25 as the distinctness floor,
+   and the `foreground-faint` exemption from the 4.5:1 set all stand** as proposed.
+3. **PALETTE-1: the 4.36:1 shortfall is FIXED, not recorded.** See the measurement
+   above. The exception mechanism stays in full, with no preset using it.
+
 ### Decisions
 
-1. **Package name `@marquee-ui/tokens`, repo package `marquee-ui-repo`, private.**
-   [V] D12 names the npm scope `marquee-ui`; the tokens package takes the scope.
-2. **ΔE2000 floor 25.** [V] Evidence above.
+1. **Package name `@marquee-ui/tokens`, repo package `marquee-ui-repo`.** ACCEPTED by
+   Ankit. D12 names the npm scope `marquee-ui`; the tokens package takes the scope.
+   Still `"private": true` until the licence is decided.
+2. **ΔE2000 floor 25.** ACCEPTED by Ankit. Evidence above.
 3. **Role names that differ from upstream**, all recorded in
    `packages/tokens/README.md`: `--star-ghost` → `--scale-empty` and `--score-*` →
    `--scale-*` (D7, product word out); `--danger` → `--destructive` (shadcn);
    `--font-sans` → `--font-body`; `--shadow-hard` → `--shadow-lift`; `--border-w` →
-   `--border-width`; `--accent` splits into `brand` and `primary`. [V]
+   `--border-width`; `--accent` splits into `brand` and `primary`. ACCEPTED by Ankit
+   under the shadcn-names rule above.
 4. **`foreground-faint` is not contrast-checked**, on WCAG 1.4.3's exemption for
-   inactive components, rather than carried as five exceptions. [V]
+   inactive components, rather than carried as five exceptions. ACCEPTED by Ankit.
 5. **The skeleton is not per-preset** (D16): the type scale, spacing, radii, motion
    and the layout maxima live in `src/skeleton.ts` and no preset may move them. A
    preset owns colour, the faces and depth.

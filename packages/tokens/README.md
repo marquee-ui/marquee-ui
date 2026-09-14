@@ -36,7 +36,11 @@ slipped below the recorded ratio (rotting), if the pair is BETTER than the recor
 ratio by more than the epsilon (the record is out of date - otherwise a pessimistic
 number would license every regression down to it), if the exception names a pair the
 matrix never makes, or if it carries no reason.
-Arcade ships exactly one (`muted` on `overlay`, 4.36:1); `light` ships none.
+**Neither shipped preset carries one.** Arcade had exactly one - `muted` on
+`overlay` at 4.36:1 - and PALETTE-1 fixed the colour instead of recording it
+(#858c62 -> #888f65, +3 per channel, which takes that pair to 4.53:1 and leaves
+every other ground where it was). The mechanism is proved entirely through the
+fixtures in `test/fixtures/failing-presets.ts`, including the positive case.
 
 ### The display pads
 

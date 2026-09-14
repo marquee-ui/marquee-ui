@@ -11,12 +11,15 @@ import {
   runChecks,
 } from "../src/checks/index.js";
 import {
+  acceptedExceptionPreset,
   deadExceptionPreset,
   emptyReasonPreset,
   indistinctPreset,
   lowGraphicContrastPreset,
+  outlivedExceptionPreset,
   overstatedExceptionPreset,
   unparseableColorPreset,
+  unrecordedShortfallPreset,
   lowContrastOnFillPreset,
   lowContrastPreset,
   staleExceptionPreset,
@@ -27,8 +30,21 @@ const messages = (preset: Parameters<typeof runChecks>[0]) =>
   runChecks(preset).map((f) => f.detail);
 
 describe("the shipped presets", () => {
-  it("Arcade passes every check", () => {
+  it("Arcade passes every check, with no exceptions at all", () => {
+    // PALETTE-1 (2026-09-14): `muted` moved #858c62 -> #888f65 and the one shortfall
+    // the palette had was FIXED rather than recorded, so Arcade's exception list is
+    // empty and the mechanism is proved entirely through the fixtures below.
+    expect(arcade.contrastExceptions).toEqual([]);
     expect(runChecks(arcade)).toEqual([]);
+  });
+
+  it("clears AA on the ground that used to fall short", () => {
+    const pair = contrastMatrix(arcade).find(
+      (result) => result.ink === "muted" && result.ground === "overlay",
+    );
+    expect(pair).toBeDefined();
+    expect(pair!.ratio).toBeGreaterThanOrEqual(AA_FLOOR);
+    expect(Math.round(pair!.ratio * 100) / 100).toBe(4.53);
   });
 
   it("light passes every check, with no exceptions at all", () => {
@@ -71,9 +87,37 @@ describe("checkContrast", () => {
     expect(joined).toMatch(/4\.49/);
   });
 
-  it("accepts Arcade's one recorded shortfall and reports nothing for it", () => {
-    expect(checkContrast(arcade)).toEqual([]);
-    expect(arcade.contrastExceptions).toHaveLength(1);
+  it("accepts an exception that is accurate, justified and real", () => {
+    // The positive case. Without it, every rule below would also be satisfied by a
+    // check that simply refused every exception, and the mechanism would be useless
+    // rather than strict.
+    expect(checkContrast(acceptedExceptionPreset)).toEqual([]);
+    expect(acceptedExceptionPreset.contrastExceptions).toHaveLength(1);
+  });
+
+  it("fails the same shortfall when it is NOT recorded", () => {
+    // Same palette, same pair, no exception: the floor still bites. This is the pair
+    // the mechanism exists for, so it has to fail without one.
+    const joined = checkContrast(unrecordedShortfallPreset)
+      .map((f) => f.detail)
+      .join("\n");
+    expect(joined).toMatch(/muted/);
+    expect(joined).toMatch(/overlay/);
+    expect(joined).toMatch(/4\.36/);
+    expect(joined).toMatch(/below the 4\.5:1 floor/);
+  });
+
+  it("fails an exception that outlived its fix", () => {
+    // PALETTE-1 raised `muted` to #888f65 and the pair now measures 4.53:1. An
+    // exception left behind after a fix is the exact case this rule is for, and it is
+    // why Arcade carries none.
+    const joined = checkContrast(outlivedExceptionPreset)
+      .map((f) => f.detail)
+      .join("\n");
+    expect(joined).toMatch(/muted/);
+    expect(joined).toMatch(/overlay/);
+    expect(joined).toMatch(/4\.53/);
+    expect(joined).toMatch(/stale/);
   });
 
   it("checks every body ink and every graphic against every ground, not a sample", () => {
