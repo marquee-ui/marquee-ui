@@ -83,6 +83,19 @@ a leading comment block from a css file as a banner, so the consumer's copy woul
 differ from the registry's content forever and a `shadcn diff` drift check would
 report it as drift. Every other comment in the file survives.
 
+**A test can conjure the thing it is testing.** `test/fixtures/compile.css` opens
+`@import "tailwindcss" source(none)` and names its sources explicitly. With
+Tailwind's automatic detection on it scans the whole repository, which includes the
+test files - so an assertion about a utility was enough to make that utility
+compile. If you add a probe there, add it to a source directory, not to a string in
+a test.
+
+**Interactive means 44px, measured.** `tailwind-compile.test.tsx` renders every
+story, takes every `button` / `a[href]` / `input` / `[role=button]`, looks its
+classes up in the COMPILED stylesheet and resolves the height in pixels. A part that
+is not a control (a `Badge`) carries no floor, so the moment `asChild` makes one a
+control the CALLER owes it `min-h-hit` - and the story is what gets copied.
+
 ## No product vocabulary
 
 The library carries no product's nouns. A pattern that is general gets a general

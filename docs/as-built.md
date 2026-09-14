@@ -277,9 +277,9 @@ Baseline `Tests 90 passed (90)`.
 The one scan that was NOT vacuous is the outward one, and it was run:
 
 ```
-$ git -C <consuming repo> grep -l 'marquee-ui' ffb71a66 -- apps packages
+$ git -C <reference repo> grep -l 'marquee-ui' ffb71a66 -- apps packages
 (no hits)
-$ git -C <consuming repo> grep -l 'marquee-ui' ffb71a66
+$ git -C <reference repo> grep -l 'marquee-ui' ffb71a66
 ffb71a66:STATUS.md
 ffb71a66:docs/slices/DESIGN-LIB.md
 ffb71a66:docs/slices/MOBILE-1.md
@@ -288,7 +288,8 @@ ffb71a66:docs/slices/MOBILE-1.md
 Three planning documents and no code reference anywhere. Nothing outside this
 repository consumes anything in it; the consume step is a3's.
 
-**Run 2, at the commit point.** 76 exported names added or changed:
+**Run 2, at the commit point** (re-run after the layer-1 fixes; the numbers below are
+the second run). **77 exported names** added or changed under `packages/**`:
 
 ```
 Accordion AccordionContent AccordionItem AccordionTrigger AlertDialog AsChildLink
@@ -301,30 +302,47 @@ PrimaryRounded Ribbon RibbonProps STORY_FILES ScannedFile Secondary Separator
 Sheet SheetBody SheetClose SheetContent SheetDescription SheetOverlay SheetPortal
 SheetTitle SheetTrigger Single Success Toast ToastAction ToastMessage ToastProps
 Vertical WithAction WithMarker WithValue badgeVariants buttonVariants cn
-inputClass labelVariants sourceFiles storyFiles
+inputClass labelVariants microLabelClass sourceFiles storyFiles
 ```
 
-39 of them are STORY names (`Primary`, `Disabled`, `AlertDialog`, `WithMarker`…),
-which are exports only because CSF makes them so; their sole consumer is
-`test/stories.test.tsx` and `test/tailwind-compile.test.tsx`, which compose every
-module. `grep -rln` was run for every one of the 76 over `packages`, `.storybook`
-and `registry.json`: **every name has at least one consumer inside this repository,
-and none has a consumer outside it.**
+plus one outside `packages/**`: **`TEST_GLOB`**, exported from `vitest.config.ts`.
 
-The two that touch a sibling's surface, both inside the tokens package and both
-this stream's own to change per the brief:
+`grep -rln` was run for every one of them over `packages`, `.storybook`,
+`vitest.config.ts` and `registry.json`.
 
-- `sourceFiles` gained a sibling, `storyFiles`, and its return type is now the
-  named `ScannedFile[]` (the same shape it always returned). Consumers:
+- **39 distinct STORY names** across 42 stories (several files reuse `Default`).
+  They are exports only because CSF makes them so, and their only consumers are
+  `test/stories.test.tsx` and `test/tailwind-compile.test.tsx`, which compose every
+  module.
+- **`microLabelClass` is a grep artefact**, and the only one: it appears inside a
+  string literal in `test/fixtures/extract-upstream.mjs`
+  (`after(forms, "export const microLabelClass =", …)`), which is the marker that
+  generator searches the reference source for. Nothing exports it here.
+- **`TEST_GLOB`** is consumed by `vitest.config.ts` itself and by
+  `packages/tokens/test/project-coverage.test.ts`, which is the point of it: one
+  spelling for both projects' includes, and a test that every package with tests is
+  named by one.
+- **Every other name has at least one consumer inside this repository, and none has
+  a consumer outside it.**
+
+The surfaces this stream changed that a sibling reads, both inside the tokens
+package and both this stream's own to change per the brief:
+
+- `sourceFiles` gained a sibling, `storyFiles`, and its return type is now the named
+  `ScannedFile[]` (the same shape it always returned). Consumers:
   `brand-guard.test.ts`, `literal-guard.test.ts`, `source-coverage.test.ts`. The
   brand guard now scans source AND stories; the literal guard deliberately still
   scans source only, because a story may legitimately paint a swatch.
-- `--shadow-band` was ADDED to the emitted token contract, which the brief permits
-  (adding an emitted name; never renaming or removing one). Consumers of the
-  contract: `emitted-surface.test.ts`'s list, `packages/tokens/README.md`, and
-  `ribbon.tsx`.
+- `--shadow-band` was ADDED to the emitted token contract, and three rows were added
+  to `ON_FILL_PAIRS`, which the brief permits (adding; never renaming or removing).
+  Consumers: `emitted-surface.test.ts`'s list and count, `checks.test.ts`'s matrix
+  count (52 → 55), `packages/tokens/README.md`, and `ribbon.tsx`.
 
-**0 CROSS. 0 NEW between the two runs (run 1 had no names to miss). 0 UNOWNED.**
+**0 CROSS. 1 NEW between the two runs (`microLabelClass`, the grep artefact above,
+resolved). 0 UNOWNED.**
+
+**Outward, re-run at the second commit point:** `git -C <reference repo> grep -l
+'marquee-ui' ffb71a66 -- apps packages` still returns nothing.
 
 ## DESIGN-LIB-a2: the components as parts, Storybook, and the registry (2026-09-14)
 
@@ -353,7 +371,8 @@ visual axes only (D6):
 | Badge     | new                       | Radix Slot         | `Badge` + `badgeVariants` (four tones)                                                                                              |
 | Separator | new                       | Radix Separator    | `Separator`                                                                                                                         |
 
-Also: `packages/ui/stories` (39 stories), `packages/ui/test` (6 suites),
+Also: `packages/ui/stories` (42 stories, 25 of them carrying a `play`),
+`packages/ui/test` (8 suites),
 `registry.json` + the built `packages/ui/r`, `.storybook/`,
 `.github/workflows/verify.yml`, `cn` with merge semantics (D11), and one new token
 role, `--shadow-band`.
@@ -405,15 +424,16 @@ reason, and each proved to actually fire:
 
 These are the deliberate consequences of D6, not accidents. None of them moves a pixel.
 
-| upstream                                        | Marquee                                                                                                               | note                                                                                                                    |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `<Button href="/x">`                            | `<Button asChild><Link href="/x">…</Link></Button>`                                                                   | the library owns no router. The "no `type` on the link form" behaviour survives: the `asChild` branch never writes one. |
-| `<Button rounded>`                              | `<Button variant="primaryRounded">`                                                                                   | a boolean that is a no-op on three of four variants is a variant, not a flag.                                           |
-| `<Sheet title=… hideTitle childScrolls role=…>` | `<SheetContent>` with `<SheetTitle className="sr-only">`, with or without `<SheetBody>`, `role` passed to the content | the `role: undefined` bug the monolith had cannot recur: a part only spreads what the caller wrote.                     |
-| `<Toast toast={{message, action}} onDismiss>`   | `<Toast open onDismiss><ToastMessage/><ToastAction/></Toast>`                                                         | replacing the message while open needs a changing `key`, because the timer is an effect.                                |
-| `data-testid="sheet-handle"` / `"sheet-body"`   | `data-slot="sheet-handle"` / `"sheet-body"`                                                                           | shadcn's convention. 3 and 5 hits respectively in the consuming repo at the read commit.                                |
-| `.pile-marquee`                                 | `.mq-marquee`, from `components/ui/ribbon.css`                                                                        | 13 hits in 5 files upstream.                                                                                            |
-| `<label className={microLabelClass}>` on a span | `<Label tone="micro" asChild><span>…</span></Label>`                                                                  | or keep the class: `labelVariants({ tone: "micro" })` is exported.                                                      |
+| upstream                                                                         | Marquee                                                                                                               | note                                                                                                                                                       |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<Button href="/x">`                                                             | `<Button asChild><Link href="/x">…</Link></Button>`                                                                   | the library owns no router. The "no `type` on the link form" behaviour survives: the `asChild` branch never writes one.                                    |
+| `<Button rounded>`                                                               | `<Button variant="primaryRounded">`                                                                                   | a boolean that is a no-op on three of four variants is a variant, not a flag.                                                                              |
+| `<Sheet title=… hideTitle childScrolls role=…>`                                  | `<SheetContent>` with `<SheetTitle className="sr-only">`, with or without `<SheetBody>`, `role` passed to the content | the `role: undefined` bug the monolith had cannot recur: a part only spreads what the caller wrote.                                                        |
+| `<Toast toast={{message, action}} onDismiss>`                                    | `<Toast open onDismiss><ToastMessage/><ToastAction/></Toast>`                                                         | replacing the message while open needs a changing `key`, because the timer is an effect.                                                                   |
+| `data-testid="sheet-handle"` / `"sheet-body"`                                    | `data-slot="sheet-handle"` / `"sheet-body"`                                                                           | shadcn's convention. 3 and 5 hits respectively in the consuming repo at the read commit.                                                                   |
+| `.pile-marquee`                                                                  | `.mq-marquee`, from `components/ui/ribbon.css`                                                                        | 13 hits in 5 files upstream.                                                                                                                               |
+| the monolith spread `{"aria-describedby": undefined}` when it had no description | every `<SheetContent>` with no `<SheetDescription>` passes `aria-describedby={undefined}` itself                      | Radix warns otherwise, and a part cannot know whether a Description is among its children. Moves no pixel; three of the four sheet stories show the shape. |
+| `<label className={microLabelClass}>` on a span                                  | `<Label tone="micro" asChild><span>…</span></Label>`                                                                  | or keep the class: `labelVariants({ tone: "micro" })` is exported.                                                                                         |
 
 ### Every UNVERIFIED claim in the brief, measured
 
@@ -566,3 +586,107 @@ Each red names the property that was mutated, not a neighbouring one.
   breakpoint switch is inside one class string), and the toast's action at desktop
   widths (its portal is what makes it clickable under a clip-path).
 - **The offline install form is the PATH form**, see UNVERIFIED 5 above.
+
+## Layer 1 (reviewer, detached worktree of fcd97957, r6)
+
+Baseline in the reviewer's own detached worktree: `pnpm install --frozen-lockfile` Done in 1s; `pnpm build` completed; `pnpm test` **Test Files 16 passed (16), Tests 226 passed (226)**, exit 0; `pnpm lint` exit 0; `pnpm typecheck` exit 0; `pnpm build:registry` then `git diff --exit-code -- packages/ui/r` exit 0 (the committed registry was current).
+
+28 collapse mutations run, **28 stayed GREEN**. Table verbatim:
+
+<!-- prettier-ignore-start -->
+
+| file | test | mutation applied | red / GREEN | what it asserts now |
+| --- | --- | --- | --- | --- |
+| src/input.tsx:9 | fidelity `input.field`, stories `input/*` | `className={cn(inputClass, className)}` → `cn(className)` | **GREEN** | that a string constant exists — not that `Input` wears it |
+| src/label.tsx:38 | fidelity `label.micro` | `cn(labelVariants({tone}), className)` → `cn(className)` | **GREEN** | same: the variant table, never the element |
+| src/label.tsx:24 | — | `default: "text-sm text-foreground-2"` → `""` | **GREEN** | nothing pins the `default` tone |
+| src/card.tsx:17 | — | `Card` base class → `""` | **GREEN** | nothing |
+| src/badge.tsx:17 | — | `badgeVariants` base → `""` | **GREEN** | nothing |
+| src/badge.tsx:21-24 | — | all four tones → `""` | **GREEN** | nothing |
+| src/accordion.tsx:42 | — | trigger class → `""` (loses `min-h-hit` and `focus-visible:shadow-focus-ring`) | **GREEN** | nothing |
+| src/accordion.tsx:25,58 | — | item / content class → `""` | **GREEN** | nothing |
+| src/separator.tsx:24 | — | class → `""` (invisible rule) | **GREEN** | nothing |
+| src/toast.tsx:30 | — | `DEFAULT_DURATION_MS` 6000 → 60000 | **GREEN** | nothing; the only timer story passes `duration={150}` |
+| src/ribbon.tsx:32 | — | `CHARS_PER_SECOND` 4.5 → 45 | **GREEN** | nothing — the "~45px/s" pace is unpinned |
+| src/ribbon.tsx:43 | — | `MIN_HALF_CHARS` 600 → 6 | **GREEN (total)** | nothing |
+| src/ribbon.tsx:40 | — | `DEFAULT_SEPARATOR` em-space+✦ → `" "` | **GREEN (total)** | nothing |
+| src/ribbon.tsx:52 | — | drop the trailing separator (`join(sep) + sep` → `join(sep)`) | **GREEN** | nothing — the loop-seam rule the docblock explains |
+| src/ribbon.tsx:74 | — | delete `style={{animationDuration}}` (falls back to the CSS `44s`) | **GREEN (total)** | nothing — the exact bug `ribbon.css`'s comment says the design avoids |
+| src/lib/utils.ts:31 | merge-theme `--font-*` | `font: [...]` → `[]` | **GREEN** | that case cannot fail; stock tailwind-merge already merges `font-*` |
+| presets/arcade.ts:81 | tokens `checks` | `primary-muted: lime-950` → `stone-200` (Badge tone=primary → ~1.3:1) | **GREEN (total)** | nothing checks `*-muted` as a ground |
+| presets/arcade.ts:86 | tokens `checks` | `success-muted: green-950` → `green-400` (green on green) | **GREEN (total)** | nothing |
+| test/stories.test.tsx:80 | all 42 story tests | `Story.play` → `Story.runPlay` (API-move simulation) | **GREEN (total)** | that 42 stories rendered; not that any `play` ran |
+| test/stories.test.tsx:99 | `covers all ten part families` | delete 6 stories (3 Button variants + 3 Badge tones) | **GREEN (total)**, 220 tests | `>= 35` tolerates 7 vanishing stories |
+| test/fidelity.test.tsx:156 | `sheet.title` | `UPSTREAM` row rewritten in the new spelling (`text-text`→`text-foreground`) | **GREEN (total)** | that the table agrees with itself |
+| test/fidelity.test.tsx:157 | `sheet.description` | same, `text-text-secondary`→`text-foreground-2` | **GREEN (total)** | same |
+| test/fidelity.test.tsx:307 | every `CASES` row | `expected(...)` → the actual (control) | **GREEN (total)** | expected — proves the comparison is the load-bearing line |
+| test/storybook-preview.test.ts:23 | `descriptor for descriptor` | add `size-adjust: 105%; ascent-override: 92%` to the emitted face only | **GREEN**, 3/3 | 5 named descriptors; blind to every other one |
+| packages/ui/r/registry.json | `has one file per item` | `name` → `marquee-ui-STALE` | **GREEN (total)** | the filename is in the directory listing |
+| packages/ui/r/registry.json | same | `items: []` (shipped index advertises nothing) | **GREEN (total)** | same |
+| test/fixtures/compile.css:6 | tailwind-compile (all) | `@source "../../src"` → a nonexistent dir | **GREEN (total)** | the directive is inert; Tailwind auto-detects anyway |
+| vitest.config.ts:13,24 | — | add `packages/newpkg/test/orphan.test.ts` + `packages/tokens/test/orphan.test.tsx`, both `expect(1).toBe(2)` | **GREEN (total)**, 226/226 | neither file is collected at all |
+
+<!-- prettier-ignore-end -->
+
+### Acting on the layer-1 findings (fixes at `9621c494`)
+
+Baseline before the fixes: `Test Files 16 passed (16)`, `Tests 226 passed (226)`.
+After: **18 files, 261 tests.** Every mutation below is the reviewer's own or its
+direct equivalent, re-run in the COMMITTED tree at `9621c494`, landing confirmed by
+`grep` before the run was read, reverted with `git checkout --`, and `git status
+--short` empty afterwards.
+
+<!-- prettier-ignore-start -->
+
+| GREEN row | what changed | the mutation re-run | now |
+| --- | --- | --- | --- |
+| `input.tsx` / `label.tsx` pinned on the constant | both `CASES` rows go through a RENDER and read the element's `data-slot` class, as the sheet and toast rows already did; a new case asserts the exported constant equals what the element wears, because the constant is public API | `className={cn(inputClass, className)}` → `cn(className)` | red **2** — `input.field` (`expected [] to deeply equal [ 'bg-surface', … ]`) and `keeps the exported constants equal to what the elements actually wear` |
+| the four NEW parts had no class instrument (`label.default`, `card*`, `badge*`, `accordion*`, `separator`) | a 14-row slot table in `fidelity.test.tsx`, `describe("the new parts wear the utilities they declare")`, rendering each part and comparing the utility SET — plus the tap-floor test below, which is the observable half | `default: "border-border-strong bg-surface text-foreground-2"` → `""` | red **1** — `badge`, `expected [ 'border-2', … ] to deeply equal [ 'bg-surface', … ]` |
+| `accordion.tsx` trigger class → `""` (loses `min-h-hit` **and** the focus ring) | the slot table above, and `tailwind-compile.test.tsx` now measures EVERY interactive element the stories render in RESOLVED PIXELS against a 44px floor (resolving `var(--hit-min)` and Tailwind's `calc(var(--spacing) * 11)` out of the compiled sheet) | trigger class → `""` | red **4** — `accordion-trigger` in the slot table, `measures every one of them at or above the floor` naming `button[data-slot=accordion-trigger] … -> 0px`, the focus-ring resolution, and the registry byte-compare |
+| `DEFAULT_DURATION_MS` 6000 → 60000 | `test/tuned-constants.test.tsx`: fake timers, nothing at 5999ms, dismissed at 6000ms, and a second case for a caller-shortened duration | 6000 → 60000 | red **1** — `dismisses itself after six seconds by default, and not before` (`expected "vi.fn()" to be called 1 times, but got 0`) |
+| `CHARS_PER_SECOND` 4.5 → 45, `MIN_HALF_CHARS` 600 → 6, the separator, the trailing separator, the deleted inline `animationDuration` | the same file, asserted as BEHAVIOUR rather than by reading the constants back: seconds-per-character measured across two different copies and pinned to 1/4.5, the half at ≥ 600 characters, the two halves identical, the seam token (`two\|one`), the em-space form, and `animationDuration` matching `/^\d+s$/` so the CSS fallback can never be what runs | 4.5 → 45 | red **1** — `holds one pace whatever the copy is` (`expected 0.0217 to be close to 0.2222, difference 0.2006, expected 0.005`) |
+| `utils.ts` `font: [...]` is inert | RECORDED, not changed. See below. | — | — |
+| `primary-muted` / `success-muted` are in no checked set | three rows added to `ON_FILL_PAIRS` in `packages/tokens/src/roles.ts` — `primary-ink`/`primary-muted`, `destructive`/`destructive-muted`, `success`/`success-muted` — because a status token draws its own ink on its own muted fill. Measured when added (arcade / light): 11.81 / 7.21, 5.43 / 5.38, 8.23 / 5.54. The matrix count anchor went 52 → 55. | `primary-muted: lime-950` → `olive-50` | red **2** — `Arcade passes every check, with no exceptions at all` and `accepts an exception that is accurate, justified and real` |
+| `Story.play` → `Story.runPlay` left 226 green | plays are COUNTED: from the composed story objects before the run, and from inside each test after the play returns, both pinned at `DECLARED_PLAYS = 25` and asserted equal | `Story.play` → `Story.runPlay` | red **1** — `runs all 25 play functions, and knows if one stopped running` (`plays that actually executed: expected [] to deeply equal [ 'accordion/Single', …(24) ]`) |
+| `>= 35` tolerated seven stories vanishing | `expect(seen).toHaveLength(42)`, exact | delete `Badge.Success` | red **1** — `expected [ … ] to have a length of 42 but got 41` |
+| the `UPSTREAM` table is unverifiable, and two comments overstated what the suite checks | the 20 strings are now a GENERATED fixture, `test/fixtures/upstream-classes.json`, written by the committed `test/fixtures/extract-upstream.mjs <reference-repo> <commit>` which reads them with `git show`; the file records the commit and the seven source paths, and the suite asserts the recorded commit is the one this slice read. The docblock now says plainly that a mistake in the RENAME table reddens and a mistake in the FIXTURE does not — regenerating is its only check — and the rename-table test was retitled to what it actually asserts (no stale entry), not to what it did not (every token handled). | — (the fixture replaces the hand-typed table the mutation exploited) | — |
+| the shipped `r/registry.json` is unchecked | two assertions: it is byte-identical to the root `registry.json`, and it is read as DATA (name, the eleven item names, every item has files, every referenced path exists) | `items: []` | red **2** — `ships an INDEX that is the root registry, byte for byte` and `advertises every item in that index, with its files` |
+| `@source` is inert | the fixture now opens `@import "tailwindcss" source(none)` and lists `../../src` and `../../stories`, so this file decides what the compile can see. **This exposed a second, worse problem the reviewer's mutation had masked:** with auto-detection on, Tailwind was extracting candidates from the TEST FILE's own assertion strings, so `shadow-focus-ring` compiled only because the suite named it. That assertion moved to the form that actually ships, `focus-visible:shadow-focus-ring`. | `@source "../../src"` → `../../no-such-dir` | red **4** — every role-resolution test, `expected '' to contain 'var(--primary)'` first |
+| a test file collected by no project | `vitest.config.ts` exports ONE glob spelling, `TEST_GLOB(pkg)` = `packages/<pkg>/test/**/*.test.{ts,tsx}`, used by both projects; and `packages/tokens/test/project-coverage.test.ts` asserts every package with a `test/` directory is named by a project, that every include carries both extensions, and that every project is named | plant `packages/newpkg/test/orphan.test.ts` and `packages/tokens/test/orphan.test.tsx`, both `expect(1).toBe(2)` | red **2** — the `.tsx` one now RUNS and fails (`expected 1 to be 2`), and `names every package that has tests` reports `expected [ 'newpkg' ] to deeply equal []` |
+| the `@font-face` guard compares five named descriptors | it now normalises and compares the WHOLE block: every declaration, sorted, with the url reduced to its filename because the two sheets serve the same files from different paths on purpose. An in-suite case proves the comparison sees a descriptor that exists on one side only. | `size-adjust: 105%` added to the emitter, **and the sheet rebuilt** — the reviewer's own run mutated the emitter without rebuilding, and `dist/tokens.css` is the artefact the guard reads | red **1** — `declares the same three faces, every descriptor of each` |
+| (M6, reasoned not proved) every runtime dependency was a `devDependency` | the eight runtime packages moved to `dependencies`; `registry.test.ts` validates the registry's declared ranges against THAT list, and a new test walks every shipped source's bare imports and demands each is a dependency or a declared peer | `clsx` demoted back to `devDependencies` | red **2** — `clsx is not a dependency of @marquee-ui/ui`, and `imported at runtime but not a dependency or a peer: expected [ 'clsx' ]` |
+| (L7, reasoned not proved) the `AsChildLink` badge story shipped a ~24px tap target as the recommended pattern | the story carries `className="min-h-hit px-3"` and says why in its docblock; `badge.tsx` says a badge is sized as a LABEL and the caller owes the floor the moment `asChild` makes it a control | remove that `className` from the story | red **1** — `measures every one of them at or above the floor` |
+
+<!-- prettier-ignore-end -->
+
+**The M6 probe the reviewer asked for, run.** `pnpm pack` → a 21,948-byte tarball with
+27 entries (`r/` and `src/`, no tests, no stories). Installed OUTSIDE the workspace
+with `npm install ../marquee-ui-ui-0.0.0.tgz react@19 react-dom@19` into a bare
+project: exit 0, and `createRequire().resolve` finds all ten of
+`@radix-ui/react-{slot,dialog,accordion,label,separator}`,
+`class-variance-authority`, `clsx`, `tailwind-merge`, `react`, `react-dom`. Then
+`shadcn add ./node_modules/@marquee-ui/ui/r/sheet.json ./node_modules/@marquee-ui/ui/r/ribbon.json`
+in that same project: exit 0, four files written, all four byte-identical to the
+sources. So the no-network install path is proved end to end from a real tarball,
+not from a workspace symlink. Logs under `$BATCH_SCRATCH/s2/`.
+
+### Findings recorded rather than changed
+
+- **L1, 17 of 42 stories assert only "did not throw".** RECORDED, and now bounded
+  rather than open: the 25 that DO have a `play` are counted and pinned, and the
+  visual-variant stories that do not are exactly the rows the new slot table and the
+  tap-floor test cover from the other side. A `play` on `Badge.Success` could only
+  restate its own args.
+- **L4, three entries in `cn`'s theme list are inert.** RECORDED. `font`, and the
+  `3xs`/`2xs`/`md` steps, are already merged by stock tailwind-merge, so those
+  entries do nothing today. They are kept because the list is derived from what the
+  emitter EMITS, not from what tailwind-merge happens to miss this release: dropping
+  the inert ones would make the list a snapshot of another package's internals, and
+  `merge-theme.test.ts` would then have to encode the same knowledge to stay honest.
+  The reviewer confirmed the list is otherwise complete against all ten emitted
+  namespaces and that no stock merge regressed.
+- **The reviewer's control finding.** Every mutation to a file listed in
+  `registry.json` also reddens `carries the CURRENT bytes of every source it ships`,
+  because that test byte-compares sources to the committed JSON. That is the guard
+  working, and it is why "GREEN" in the table above means "everything except that
+  byte-compare".
