@@ -69,7 +69,10 @@ and below the closest pair the system actually draws.
 **Tailwind theme keys.** `--default-font-family`, `--default-mono-font-family` and
 `--default-transition-duration` were verified against `tailwindcss` 4.x `theme.css`
 before being emitted (`--default-font-family` is `--theme(--font-sans, initial)` and
-preflight reads it), rather than assumed.
+preflight reads it), rather than assumed. Tailwind was installed for that read and
+removed again: this package emits CSS and does not compile it. Proving the emitted
+sheet through a real Tailwind compile belongs with the docs site, which needs the
+dependency anyway.
 
 **Font licences.** Each OFL text was pulled from that family's own upstream repo,
 and its first line matches the `copyright` record inside the corresponding woff2
