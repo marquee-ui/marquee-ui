@@ -78,6 +78,29 @@ dependency anyway.
 and its first line matches the `copyright` record inside the corresponding woff2
 exactly. `test/fonts.test.ts` keeps the pairing honest.
 
+### Consumers
+
+Run at the commit point against the whole tree, since every file in it is new
+(`git diff $(git hash-object -t tree /dev/null) HEAD -- 'packages/**'`). The
+equivalent run "before writing code" was empty by construction: the repository did
+not exist.
+
+**85 exported names**, two of which are grep artefacts (`P` from a generic parameter,
+`satisfies` from an `as const satisfies` clause). Every consumer of every one of them
+is inside this repository - `src/index.ts`, the other modules, and `test/`.
+
+**Nothing outside this repository consumes any of them.** The package is
+`"private": true`, unpublished, unpushed, and referenced by no lockfile or workspace
+anywhere. The one mention of `marquee-ui` in the consuming repo is a line in its own
+planning doc, `docs/slices/DESIGN-LIB.md`; there is no code reference. The consume
+step is a later sub-slice and is not this stream's.
+
+**One naming note for whoever does that step:** the consuming app already has a
+`.pile-marquee` class and a `--marquee-dur` custom property, for its ticker. They are
+unrelated to the package name and do not collide (different namespace, and
+`--marquee-dur` is deliberately not carried by this package), but the word will
+appear twice in that codebase meaning two different things.
+
 ### Decisions
 
 1. **Package name `@marquee-ui/tokens`, repo package `marquee-ui-repo`, private.**
