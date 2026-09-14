@@ -1,0 +1,11 @@
+/* Utilities this package PROMISES a consumer, that no part here happens to render.
+
+   `@source inline(...)` is the deliberate opposite of the rule in `compile.css`:
+   there, naming a class in a test was a bug, because the claim was "every class the
+   parts paint compiles". Here the claim is the other one - "a consumer replacing its
+   own `@theme` block with this sheet keeps the utilities it already calls" - and the
+   only honest way to state it is to hand Tailwind the candidate and read what comes
+   back. Each line is a call site in a consuming app, not an invention. */
+@import "tailwindcss" source(none);
+@import "@marquee-ui/tokens/tokens.css";
+@source inline("leading-display-wrap");

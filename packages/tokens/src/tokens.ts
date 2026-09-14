@@ -1,6 +1,6 @@
 import type { DisplayPads } from "./font-metrics.js";
 import type { ColorRoleName, Preset } from "./roles.js";
-import { layout, motion, radius, space, tracking, typeScale, weight } from "./skeleton.js";
+import { layout, leading, motion, radius, space, tracking, typeScale, weight } from "./skeleton.js";
 
 /**
  * ONE list, two emitters. `tokens.css` and `tokens.json` are both projections of
@@ -217,6 +217,16 @@ export function buildTokens(preset: Preset, pads: DisplayPads): Token[] {
         tier: "theme",
       });
     }
+  }
+
+  for (const [name, value] of Object.entries(leading)) {
+    tokens.push({
+      cssVar: `--leading-${name}`,
+      path: ["leading", name],
+      type: "number",
+      value,
+      tier: "theme",
+    });
   }
 
   for (const [name, value] of Object.entries(tracking)) {

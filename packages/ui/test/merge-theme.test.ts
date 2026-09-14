@@ -37,6 +37,7 @@ function themeNames(namespace: string): string[] {
  */
 const NAMESPACES: Readonly<Record<string, readonly [(name: string) => string, string]>> = {
   text: [(n) => `text-${n}`, "text-base"],
+  leading: [(n) => `leading-${n}`, "leading-none"],
   tracking: [(n) => `tracking-${n}`, "tracking-normal"],
   shadow: [(n) => `shadow-${n}`, "shadow-none"],
   font: [(n) => `font-${n}`, "font-sans"],

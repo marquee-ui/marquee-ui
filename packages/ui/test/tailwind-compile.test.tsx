@@ -320,3 +320,52 @@ describe("every interactive element clears the 44px tap floor", () => {
     expect(offenders).toEqual([]);
   });
 });
+
+/**
+ * The utilities a CONSUMER calls that no part in this package renders.
+ *
+ * A design system's contract is not only what its own components use. The consuming
+ * app replaces its `@theme` block with this sheet, so any utility it already calls
+ * has to survive that swap - and a utility that stops existing compiles to NOTHING,
+ * with no rule, no warning and no failing build. It simply stops applying, and the
+ * element falls back to whatever else it carries.
+ *
+ * `leading-display-wrap` is the first of these, and it is here because exactly that
+ * nearly happened: the display face's ink leaves its em box, so a WRAPPED heading
+ * collides with itself at the step's own line-height (1.1-1.2 above `lg`), and the
+ * consuming app fixed 16 headings with a `--leading-display-wrap: 1.6` of its own.
+ * Nothing in this package uses it, so nothing here would have noticed it missing.
+ */
+describe("the utilities a consumer calls survive the swap", () => {
+  let contract = "";
+
+  beforeAll(async () => {
+    const fixture = resolve(process.cwd(), "packages/ui/test/fixtures/consumer-contract.css");
+    if (!existsSync(fixture)) throw new Error(`contract fixture not found at ${fixture}`);
+    const result = await postcss([tailwind()]).process(readFileSync(fixture, "utf8"), {
+      from: fixture,
+    });
+    contract = result.css;
+  }, 60_000);
+
+  it("compiled something", () => {
+    // Anchor: `toContain` on an empty string fails, but say so here rather than
+    // three assertions later.
+    expect(contract.length).toBeGreaterThan(1_000);
+  });
+
+  it("compiles leading-display-wrap to the role, not to a step's pair", () => {
+    const match = /\.leading-display-wrap\s*\{([^}]*)\}/.exec(contract);
+    // Measured, not predicted: Tailwind 4 sets its own `--tw-leading` alongside the
+    // property, exactly as it does for `--tw-shadow`.
+    expect(match?.[1]).toContain("line-height: var(--leading-display-wrap)");
+    expect(match?.[1]).toContain("--tw-leading: var(--leading-display-wrap)");
+    // …and the ROLE carries the measured value, rather than a size step's pair.
+    expect(contract).toContain("--leading-display-wrap: 1.6;");
+  });
+
+  it("would notice a utility that compiles to nothing", () => {
+    // The instrument's own reddening case, in the same shape as the claim.
+    expect(/\.leading-no-such-role\s*\{/.test(contract)).toBe(false);
+  });
+});

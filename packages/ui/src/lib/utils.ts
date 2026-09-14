@@ -25,6 +25,7 @@ const twMerge = extendTailwindMerge({
   extend: {
     theme: {
       text: ["3xs", "2xs", "reading", "md", "display"],
+      leading: ["display-wrap"],
       tracking: ["label", "display"],
       shadow: ["lift", "band", "focus-ring"],
       spacing: ["hit"],

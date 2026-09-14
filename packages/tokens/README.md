@@ -102,6 +102,7 @@ at commit `a60d6801` (`design/tokens.css` + `apps/web/src/app/globals.css`).
 | `--font-sans`                                                           | `--font-body`                                       | plus `--default-font-family: var(--font-body)`, which is what Tailwind preflight reads, so body text still arrives without a second name                                                                                   |
 | `--font-display` / `--font-mono`                                        | same                                                | `--font-mono` quotes `"Menlo"`; the upstream sheet writes it bare. Both select Menlo, and a quoted family name is the safer spelling                                                                                       |
 | `--text-*` `--tracking-*` `--radius-*` `--space-*` `--weight-*`         | same                                                |                                                                                                                                                                                                                            |
+| `--leading-display-wrap`                                                | same                                                | the wrapped-heading line-height; see below                                                                                                                                                                                 |
 | `--hit-min` `--content-max` `--page-max`                                | same                                                | mapped to `--spacing-hit`, `--container-content`, `--container-page`                                                                                                                                                       |
 | `--dur-*` `--ease-*`                                                    | same                                                |                                                                                                                                                                                                                            |
 | `cap-safe` 0.3em / `descender-safe` 0.5em                               | `--display-cap-pad` / `--display-descender-pad`     | **generated: 0.4em / 0.55em.** The utilities read the tokens instead of hardcoding one face's metrics                                                                                                                      |
@@ -109,6 +110,22 @@ at commit `a60d6801` (`design/tokens.css` + `apps/web/src/app/globals.css`).
 | `--safe-top` `--safe-right` `--safe-bottom` `--safe-left`               | not carried                                         | app-shell plumbing, not design tokens: they read `env(safe-area-inset-*)`, which is a device value the browser supplies at runtime and no preset can assign. They need `viewport-fit=cover` in the consumer's own document |
 
 ### Added after a1, by the first consumer
+
+`--leading-display-wrap` (DESIGN-LIB-a2, after a cross-repo review). A line-height
+with a ROLE rather than one that rides on a size step: the display face's ink leaves
+its em box, so a heading that WRAPS collides with itself at the step's own pair
+(every `--text-*--line-height` above `lg` is 1.1-1.2, which is right for one line and
+wrong for two). The consuming app measured its display face's worst case at
+**1.5357em on the 28px step** and chose **1.6**; this package carries that number
+rather than re-deriving it, because the measurement was taken on a device. [V]
+
+It is SKELETON, not preset (D8 fixes the type scale, and a preset that could move
+this could make wrapped headings collide again by changing nothing else). The NAME is
+load-bearing too: it emits `--leading-display-wrap`, so the utility is exactly
+`leading-display-wrap` and a consumer replacing its own `@theme` block with this
+sheet keeps every call site it already has. Without it the class compiles to nothing
+at all - no rule, no warning, no failing build - and every wrapped heading falls back
+to the step pair, which is the defect it exists to fix.
 
 `--shadow-band` (DESIGN-LIB-a2). The tilted marquee band carried its drop shadow
 as an inline arbitrary value with a literal colour in it, which cannot live

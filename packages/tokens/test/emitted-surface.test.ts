@@ -126,6 +126,7 @@ const EMITTED_ROLE_AND_THEME_TOKENS = [
   "--text-3xl--line-height",
   "--text-display",
   "--text-display--line-height",
+  "--leading-display-wrap",
   "--tracking-label",
   "--tracking-display",
   "--radius-sm",
@@ -149,8 +150,9 @@ describe("the emitted token surface", () => {
         .map((key) => `--mq-${key}`)
         .sort(),
     );
-    // 126 at a1; +1 for `--shadow-band`, added by the first consumer (a2).
-    expect(declared).toHaveLength(127);
+    // 126 at a1; +1 for `--shadow-band` and +1 for `--leading-display-wrap`, both
+    // added by the first consumer (a2) for a utility a real component needed.
+    expect(declared).toHaveLength(128);
   });
 
   it("gives both presets the identical non-primitive surface", () => {

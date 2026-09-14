@@ -42,6 +42,27 @@ export const typeScale = {
 
 export type TypeStepName = keyof typeof typeScale;
 
+/**
+ * Line-heights with a ROLE, as opposed to the pair that rides on a size step.
+ *
+ * `display-wrap` exists because the display face's ink leaves its em box, so a
+ * heading that WRAPS collides with itself at the step's own line-height: every
+ * `--text-*--line-height` above `lg` is between 1.1 and 1.2, which is right for one
+ * line and wrong for two. The consuming app measured Boldonse's worst case at
+ * 1.5357em on the 28px step and chose 1.6; this package carries that number rather
+ * than re-deriving it, because the measurement was taken on a device.
+ *
+ * It is skeleton, not preset: D8 fixes the type scale, and a preset that could move
+ * this could make wrapped headings collide again by changing nothing else.
+ *
+ * The name is load-bearing in one more way: it emits `--leading-display-wrap`, so
+ * the utility is exactly `leading-display-wrap` and a consumer replacing its own
+ * `@theme` block with this sheet keeps every call site it already has.
+ */
+export const leading = {
+  "display-wrap": "1.6",
+} as const;
+
 /** The two letter-spacings with a role. 0.1em is Tailwind's own `widest`. */
 export const tracking = {
   label: "0.12em",

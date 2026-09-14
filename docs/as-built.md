@@ -561,11 +561,35 @@ Each red names the property that was mutated, not a neighbouring one.
    artefacts have to exist and be current before the tests can judge them. CI adds
    `git diff --exit-code -- packages/ui/r`, which is the real guard on a committed
    build artefact.
-10. **`#toast-stack` keeps its id.** It is generic, it is not product vocabulary,
+10. **`--leading-display-wrap` was added to the token contract, in the SKELETON.**
+    [V] Found by the batch's cross-repo review, not by this stream, and it could not
+    have been: the consuming app introduced the token after the commit this slice
+    read. A sibling slice fixed 16 wrapped display headings with a
+    `--leading-display-wrap: 1.6` declared in that app's own `@theme` block, which
+    a3 REPLACES with this sheet - and this sheet emitted no `--leading-*` namespace
+    at all, so the class would have compiled to nothing: no rule, no warning, no
+    failing build, every one of those headings silently back on the step pair
+    (1.1-1.2) that the fix existed to escape. The value is the app's measurement
+    (worst-case ink 1.5357em on the 28px step, 1.6 chosen), carried rather than
+    re-derived. Skeleton rather than preset because D8 fixes the type scale.
+    `cn`'s merge map gained the `leading` namespace in the same commit, because
+    `cn("leading-display-wrap", "leading-tight")` was returning both classes.
+11. **`#toast-stack` keeps its id.** It is generic, it is not product vocabulary,
     and six references upstream cost nothing to keep working.
 
 ### A3 inputs
 
+- **`--leading-display-wrap` is now PROVIDED by the sheet**, so a3 DELETES the
+  consuming app's own declaration of it rather than keeping it: the emitted
+  `@theme` block carries `--leading-display-wrap: 1.6` and Tailwind compiles
+  `leading-display-wrap` to `line-height: var(--leading-display-wrap)` (measured -
+  it also sets Tailwind's own `--tw-leading`, exactly as `shadow-lift` sets
+  `--tw-shadow`). All 16 call sites keep their class unchanged. `cn`'s merge map
+  covers the namespace, so `cn("leading-display-wrap", "leading-tight")` now
+  resolves to the override instead of leaving both on the element.
+  `packages/ui/test/fixtures/consumer-contract.css` is where any future utility of
+  this kind goes: a utility a CONSUMER calls that no part here renders, and which
+  therefore nothing else in this repository would notice disappearing.
 - **Utilities the tokens package does not emit that a moved component needed:**
   only two, and both were resolved inside this repo. `--shadow-band` became a depth
   role; the marquee keyframes and `.mq-marquee` became `packages/ui/src/ribbon.css`,
