@@ -356,6 +356,9 @@ describe("the utilities a consumer calls survive the swap", () => {
 
   it("compiles leading-display-wrap to the role, not to a step's pair", () => {
     const match = /\.leading-display-wrap\s*\{([^}]*)\}/.exec(contract);
+    // Say WHICH utility vanished. Without this the red is a chai type complaint
+    // about `undefined`, which names nothing and proves nothing.
+    expect(match, "`leading-display-wrap` compiled to no rule at all").not.toBeNull();
     // Measured, not predicted: Tailwind 4 sets its own `--tw-leading` alongside the
     // property, exactly as it does for `--tw-shadow`.
     expect(match?.[1]).toContain("line-height: var(--leading-display-wrap)");
