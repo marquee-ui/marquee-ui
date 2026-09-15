@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { PRESETS } from "../src/build.js";
 import { displayPads } from "../src/font-metrics.js";
 import { declaredCssVars, emitCss, emitFontFaces } from "../src/emit/css.js";
 import { arcade } from "../src/presets/arcade.js";
@@ -245,10 +247,28 @@ describe("the emitted @font-face rules", () => {
     expect(blocksNamed(emitFontFaces(arcade), "@font-face")).toHaveLength(3);
   });
 
-  it("emits ONE faces sheet for every preset, because they name the same faces", () => {
-    // `light.fonts` is `arcade.fonts` by re-export; a second copy would be a
-    // second thing to rot, and the build writes only the one.
-    expect(emitFontFaces(light)).toBe(emitFontFaces(arcade));
+  /**
+   * The build writes ONE `dist/fonts.css`, from `PRESETS[0]`. Every preset must
+   * be covered by it.
+   *
+   * Comparing `emitFontFaces(light)` to `emitFontFaces(arcade)` is NOT enough and
+   * was the first spelling here: two calls of one function are equal whenever the
+   * function collapses to a constant, and a THIRD preset naming its own faces
+   * would leave the pair matching while `dist/fonts.css` silently omitted it
+   * (layer 1, a3). So this walks `PRESETS` - the list the build itself reads -
+   * and pins each against the bytes on disk.
+   */
+  it("emits ONE faces sheet, and the file on disk covers every preset the build ships", () => {
+    const written = readFileSync(
+      fileURLToPath(new URL("../dist/fonts.css", import.meta.url)),
+      "utf8",
+    );
+    expect(written).toContain("@font-face");
+    for (const { preset } of PRESETS) {
+      expect(emitFontFaces(preset), `${preset.name}'s faces are not what the build wrote`).toBe(
+        written,
+      );
+    }
   });
 });
 
