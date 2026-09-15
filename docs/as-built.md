@@ -714,3 +714,105 @@ not from a workspace symlink. Logs under `$BATCH_SCRATCH/s2/`.
   because that test byte-compares sources to the committed JSON. That is the guard
   working, and it is why "GREEN" in the table above means "everything except that
   byte-compare".
+
+## DESIGN-LIB-a3: publishable, and the faces moved out (2026-09-15)
+
+Scope: steps 1-4 of the a3 slice, from the library side. Both packages are
+publishable, `prepack` closes the stale-artefact hole, and the `@font-face`
+rules left `tokens.css` because the consuming app measured what importing them
+costs. Nothing was published (`npm whoami` is `E401` on this box; the first
+publish is Ankit's) and nothing was pushed (the Actions-minutes freeze).
+
+### What shipped
+
+| commit    | what                                                                                                                                  |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `ed7f34c` | both packages `0.1.0`, `private` gone, `publishConfig.access: public`, `repository` with `directory`, and a `prepack` that builds     |
+| `3f63bd7` | `dist/fonts.css`: the three `@font-face` rules as their own sheet, exported as `./fonts.css`, with the README rule and two new guards |
+
+### `prepack`, and why each is the shape it is
+
+- **tokens: `pnpm build`.** `dist/` is gitignored, so whatever the last build
+  left is what `pnpm pack` would ship. Proved by `rm -rf packages/tokens/dist`
+  then packing: the tarball came out with a freshly built `dist/`, including the
+  `--leading-display-wrap` that a stale `dist` had been missing at session start.
+- **ui: `pnpm -w build:registry && git diff --exit-code -- r`.** `r/` is a
+  COMMITTED build artefact, so the risk is the opposite one: packing bytes that
+  no longer match the sources. Proved by mutating `separator.tsx`
+  (`bg-border` -> `bg-border-strong`) without rebuilding and running the script:
+  **exit 1**, with the diff naming `packages/ui/r/separator.json` and the changed
+  class inside its `content` string. Reverted; `git status --short` empty.
+
+  ⚠️ `pnpm -w build:registry` is the spelling that works. `pnpm -w exec shadcn …`
+  and `pnpm --filter marquee-ui-repo …` both fail from inside `packages/ui`
+  ("Command \"shadcn\" not found", "No projects matched the filters").
+
+### The faces: measured in the consumer, not argued
+
+The a3 brief's risk 1 asked whether Next still emits the sheet's three woff2 as
+build assets when the app loads the same families through `next/font`. It does,
+and the precache makes it worse. Measured in the thepile worktree, `next build`
+after `rm -rf .next`, with only the `@import` added:
+
+|                                        | faces in `tokens.css` | faces in `fonts.css` |
+| -------------------------------------- | --------------------- | -------------------- |
+| `.next/static/media` woff2             | **6**                 | **3**                |
+| `@font-face` blocks in the served CSS  | 9                     | 6                    |
+| woff2 in the Serwist precache manifest | **6**                 | **3**                |
+| duplicate bytes shipped                | **62,508**            | 0                    |
+
+The duplicates were byte-identical to next/font's own hashed copies
+(`boldonse.0d07dd86.woff2` beside `0d07dd86a15746ab-s.p.woff2`), declared at
+`font-display: swap` against next/font's `optional`, and precached, so every PWA
+install downloaded 61 KB of font it could never use.
+
+So the faces are their own sheet and the import is opt-in. One sheet for both
+presets, because `light.fonts` is `arcade.fonts` by re-export.
+
+**A second finding the same probe produced**, and the reason a consumer must
+re-declare after the import: the sheet sets `--default-font-family:
+var(--font-body)`, and thepile never declared that key, so the LIBRARY's line won
+and Tailwind's preflight got the literal `"Space Grotesk"` - a family the app
+does not load, since `next/font` names its face uniquely and `fonts.css` is
+deliberately skipped. Read out of the built CSS, not reasoned. The consumer now
+declares `--default-font-family: var(--font-sans)` and
+`--default-mono-font-family: var(--font-mono)` after the import; re-measured, both
+resolve to thepile's stacks and the woff2 count stays 3.
+
+### Guards, each proved by running its reddening mutation
+
+Run in the COMMITTED tree at `3f63bd7`, landing confirmed by `grep` before the
+run was read, reverted with `git checkout --`, `git status --short` empty after.
+
+| guard                                      | mutation                                                                       | landed             | the red it produced                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------------------------------------------ | ------------------------------------------------------------------------------ | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| faces stay out of the token sheet          | `emitFontFaces(preset)` prepended back into `emitCss`'s output, `dist` rebuilt | `emit/css.ts:78`   | THREE, each naming the mutated property: `keeps the faces OUT of the token sheet, so an import cannot duplicate them` with `expected [ { …(5) }, { …(5) }, { …(5) } ] to deeply equal []`; `ships a @font-face for every face the preset names, in the faces sheet` with `expected '/* @marquee-ui/tokens - the faces the…' not to contain 'boldonse.woff2'`; `resolves the three faces` with `expected '/*! tailwindcss v4.3.3 | MIT License …' not to contain '@font-face'` |
+| ui registry staleness (the `prepack` half) | `bg-border` -> `bg-border-strong` in `separator.tsx`, `r/` not rebuilt         | `separator.tsx:24` | `prepack` exit **1**, `git diff` naming `packages/ui/r/separator.json`                                                                                                                                                                                                                                                                                                                                                          |
+
+⚠️ The faces guard was written once as `expect(arcadeCss).not.toContain("woff2")`
+and **failed for the wrong reason**: the sheet's header comment says "Pads are
+measured from the display woff2". It now asserts `not.toContain("url(")`, which
+is the property that actually matters - a bundler emits an asset for every
+`url()`, and emits nothing for prose.
+
+### Decisions
+
+1. **The faces are a separate `fonts.css`, not an option on `emitCss`.** [V] Risk
+   1 offered this shape and the measurement chose it. An option would put the
+   decision in every caller and leave the default wrong for the one consumer that
+   exists. `emitCss` lost its unused `CssEmitOptions` parameter; `emitFontFaces`
+   took it.
+2. **One faces sheet, not one per preset.** Both presets name the same three
+   faces, and `emitFontFaces(light)` is asserted equal to `emitFontFaces(arcade)`
+   so a preset that diverges reddens rather than silently shipping the wrong file.
+3. **`tailwind-compile.test.tsx` anchors on `--font-display: "Boldonse"` instead
+   of `font-family: "Boldonse"`.** The family name still reaches the compile, now
+   through the token, which is where it belongs; the test also asserts the compile
+   contains NO `@font-face`, so the two halves cannot both drift.
+
+### What a3's consumer half still needs from here
+
+Nothing in this package. The tarballs
+(`marquee-ui-tokens-0.1.0.tgz` 99,601 B, `marquee-ui-ui-0.1.0.tgz` 22,005 B) are
+vendored in the thepile worktree under `vendor/marquee-ui/` with the flip
+instructions beside them.
