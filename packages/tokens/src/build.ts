@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { runChecks } from "./checks/index.js";
 import type { CheckFailure } from "./checks/index.js";
-import { declaredCssVars, emitCss } from "./emit/css.js";
+import { declaredCssVars, emitCss, emitFontFaces } from "./emit/css.js";
 import { declaredJsonVars, emitDtcg } from "./emit/dtcg.js";
 import type { DtcgDocument } from "./emit/dtcg.js";
 import { displayPads } from "./font-metrics.js";
@@ -113,7 +113,15 @@ export function writeResults(results: readonly BuildResult[], outDir: string = D
     writeFileSync(json, `${JSON.stringify(result.json, null, 2)}\n`, "utf8");
     written.push(css, json);
   }
-  // The faces ship beside the stylesheet, because the stylesheet asks for
+  // The faces are ONE sheet, not one per preset: every preset here re-exports
+  // Arcade's `fonts`, and a second identical copy is a second thing to rot. It is
+  // imported separately from `tokens.css` so a consumer whose framework already
+  // loads these families does not get a duplicate of each woff2 in its build.
+  const fontsCss = join(outDir, "fonts.css");
+  writeFileSync(fontsCss, emitFontFaces(PRESETS[0]!.preset), "utf8");
+  written.push(fontsCss);
+
+  // The faces ship beside the stylesheet, because `fonts.css` asks for
   // `./fonts/<file>` and a preset that cannot load its face is a preset in name only.
   for (const { preset } of PRESETS) {
     for (const face of Object.values(preset.fonts)) {

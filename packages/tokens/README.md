@@ -1,13 +1,32 @@
 # @marquee-ui/tokens
 
-One typed role contract, two presets, and two generated artefacts: `dist/tokens.css`
-(primitives, roles, and the Tailwind mapping) and `dist/tokens.json` (W3C DTCG, for
-Figma). The three faces ship with them, because a preset that names a family it does
-not load renders as a fallback.
+One typed role contract, two presets, and three generated artefacts: `dist/tokens.css`
+(primitives, roles, and the Tailwind mapping), `dist/fonts.css` (the three `@font-face`
+rules) and `dist/tokens.json` (W3C DTCG, for Figma). The woff2 files ship with them,
+because a preset that names a family it does not load renders as a fallback.
 
 ```sh
 pnpm build     # measures the faces, runs every check, writes dist/
 ```
+
+## Importing it
+
+```css
+@import "tailwindcss";
+@import "@marquee-ui/tokens/tokens.css";
+@import "@marquee-ui/tokens/fonts.css"; /* unless your framework loads the faces */
+```
+
+**Import both, unless your framework loads these families itself.** The faces are a
+separate sheet on purpose. A bundler emits every `url()` inside an imported
+stylesheet as a build asset whether or not the rule matches anything, so a consumer
+that already loads Boldonse, Space Grotesk and Space Mono through its own pipeline
+(Next's `next/font`, say) gets a SECOND copy of each woff2 in its output - and, if it
+precaches its build, in its service worker too. Measured in thepile at DESIGN-LIB-a3:
+six woff2 instead of three, all six precached, 62,508 bytes of duplicate, declared at
+`font-display: swap` against next/font's `optional`. Skipping the `fonts.css` import
+costs nothing there, because the families are already loaded; the token sheet names
+them and the framework supplies them.
 
 ## Three tiers
 

@@ -94,7 +94,9 @@ describe("the emitted stylesheet compiles", () => {
     // vacuously against a compile that silently produced nothing.
     expect(css.length).toBeGreaterThan(10_000);
     expect(css).toContain("--primary:");
-    expect(css).toContain("@font-face");
+    // NOT @font-face: the faces are their own sheet since a3, and this compile
+    // imports only the tokens. `--font-display` is the equivalent anchor.
+    expect(css).toContain("--font-display:");
   });
 
   it("resolves colour roles straight to their :root variable, not to a copy", () => {
@@ -133,7 +135,11 @@ describe("the emitted stylesheet compiles", () => {
   it("resolves the three faces", () => {
     expect(rule("font-display")).toContain("var(--font-display)");
     expect(rule("font-mono")).toContain("var(--font-mono)");
-    expect(css).toContain('font-family: "Boldonse"');
+    // The literal family name reaches the compile through the TOKEN, not through
+    // an `@font-face`: the faces are their own sheet since a3 and this compile
+    // imports only the tokens. Loading the file is the consumer's job.
+    expect(css).toContain('--font-display: "Boldonse"');
+    expect(css).not.toContain("@font-face");
   });
 
   it("ships the component stylesheet the ribbon imports", () => {

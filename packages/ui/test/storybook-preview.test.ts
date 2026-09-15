@@ -15,7 +15,7 @@ import { describe, expect, it } from "vitest";
  */
 
 const root = process.cwd();
-const emitted = readFileSync(resolve(root, "packages/tokens/dist/tokens.css"), "utf8");
+const emitted = readFileSync(resolve(root, "packages/tokens/dist/fonts.css"), "utf8");
 const preview = readFileSync(resolve(root, ".storybook/preview.css"), "utf8");
 
 /** A face as its complete, normalised declaration list - not a chosen five. */

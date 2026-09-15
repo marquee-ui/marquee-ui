@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fileURLToPath } from "node:url";
 import { displayPads } from "../src/font-metrics.js";
-import { declaredCssVars, emitCss } from "../src/emit/css.js";
+import { declaredCssVars, emitCss, emitFontFaces } from "../src/emit/css.js";
 import { arcade } from "../src/presets/arcade.js";
 import { light } from "../src/presets/light.js";
 import { blocksNamed } from "./helpers/css-blocks.js";
@@ -208,7 +208,7 @@ describe("the Tailwind mapping blocks", () => {
 
 describe("the emitted @font-face rules", () => {
   it("ships every descriptor for every face, not just the src", () => {
-    const blocks = blocksNamed(arcadeCss, "@font-face");
+    const blocks = blocksNamed(emitFontFaces(arcade), "@font-face");
     expect(blocks).toHaveLength(3);
     const faces = [arcade.fonts.display, arcade.fonts.body, arcade.fonts.mono];
     for (const [index, face] of faces.entries()) {
@@ -222,6 +222,33 @@ describe("the emitted @font-face rules", () => {
       });
     }
     expect(blocks[1]!["font-weight"]).toBe("300 700");
+  });
+
+  /**
+   * The faces live in their own sheet, and `tokens.css` must not carry them.
+   *
+   * Not a tidiness rule. A consumer that loads these families itself still gets
+   * every `url()` inside an imported stylesheet emitted as a build asset,
+   * matched or not: importing a faces-carrying `tokens.css` into thepile put six
+   * woff2 in the build and all six in the service worker's precache, 62,508
+   * bytes of it a duplicate of what `next/font` had already hashed, at
+   * `font-display: swap` against next/font's `optional` (measured, a3).
+   */
+  it("keeps the faces OUT of the token sheet, so an import cannot duplicate them", () => {
+    expect(blocksNamed(arcadeCss, "@font-face")).toEqual([]);
+    expect(blocksNamed(lightCss, "@font-face")).toEqual([]);
+    // `url(` is the property that matters: a bundler emits an asset for every
+    // one of them. (The word "woff2" also appears in the header prose, which
+    // emits nothing, so asserting on THAT would fail for no reason.)
+    expect(arcadeCss).not.toContain("url(");
+    expect(lightCss).not.toContain("url(");
+    expect(blocksNamed(emitFontFaces(arcade), "@font-face")).toHaveLength(3);
+  });
+
+  it("emits ONE faces sheet for every preset, because they name the same faces", () => {
+    // `light.fonts` is `arcade.fonts` by re-export; a second copy would be a
+    // second thing to rot, and the build writes only the one.
+    expect(emitFontFaces(light)).toBe(emitFontFaces(arcade));
   });
 });
 

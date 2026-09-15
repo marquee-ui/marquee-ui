@@ -9,6 +9,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./tokens.css": "./dist/tokens.css",
+    "./fonts.css": "./dist/fonts.css",
     "./tokens.json": "./dist/tokens.json",
     "./light.css": "./dist/light.css",
     "./light.json": "./dist/light.json",

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fileURLToPath } from "node:url";
 import { displayPads } from "../src/font-metrics.js";
-import { declaredCssVars, emitCss } from "../src/emit/css.js";
+import { declaredCssVars, emitCss, emitFontFaces } from "../src/emit/css.js";
 import { declaredJsonVars, emitDtcg } from "../src/emit/dtcg.js";
 import { fontStack } from "../src/tokens.js";
 import { arcade } from "../src/presets/arcade.js";
@@ -49,9 +49,13 @@ describe("declaredCssVars", () => {
 describe("the emitted stylesheet", () => {
   const css = emitCss(arcade, pads);
 
-  it("ships a @font-face for every face the preset names", () => {
+  it("ships a @font-face for every face the preset names, in the faces sheet", () => {
+    const fonts = emitFontFaces(arcade);
     for (const face of [arcade.fonts.display, arcade.fonts.body, arcade.fonts.mono]) {
-      expect(css).toContain(`url("./fonts/${face.file}") format("woff2")`);
+      expect(fonts).toContain(`url("./fonts/${face.file}") format("woff2")`);
+      // and NOT in the token sheet: an importing framework that loads these
+      // families itself would otherwise ship each woff2 twice (a3).
+      expect(css).not.toContain(face.file);
     }
   });
 
