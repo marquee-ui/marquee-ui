@@ -3,10 +3,12 @@ import { resolve } from "node:path";
 
 import * as accordion from "../../stories/accordion.stories.js";
 import * as badge from "../../stories/badge.stories.js";
+import * as breadcrumb from "../../stories/breadcrumb.stories.js";
 import * as button from "../../stories/button.stories.js";
 import * as card from "../../stories/card.stories.js";
 import * as input from "../../stories/input.stories.js";
 import * as label from "../../stories/label.stories.js";
+import * as pagination from "../../stories/pagination.stories.js";
 import * as ribbon from "../../stories/ribbon.stories.js";
 import * as separator from "../../stories/separator.stories.js";
 import * as sheet from "../../stories/sheet.stories.js";
@@ -27,10 +29,12 @@ import * as toast from "../../stories/toast.stories.js";
 export const STORY_SUITES = {
   accordion,
   badge,
+  breadcrumb,
   button,
   card,
   input,
   label,
+  pagination,
   ribbon,
   separator,
   sheet,

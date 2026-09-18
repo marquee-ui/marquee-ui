@@ -297,6 +297,122 @@ describe("every interactive element clears the 44px tap floor", () => {
 });
 
 /**
+ * THE TWO NAVIGATION FAMILIES' LOAD-BEARING GEOMETRY, IN RESOLVED DECLARATIONS.
+ *
+ * Both of these are invariants a class name cannot state and jsdom cannot see:
+ *
+ *   1. the trail is ONE LINE, and it is the tap-target rule rather than a look -
+ *      the linked steps may not shrink, and the step you are standing on is the
+ *      only item that may. `className.toContain("shrink-0")` is the rail the
+ *      consuming product's own unit test is stuck with; here the pair is read as
+ *      `flex-shrink: 0` on one item and NOT declared on the other, out of the
+ *      compiled stylesheet;
+ *   2. the pager's cells are 44px on BOTH axes. The package's floor guard above
+ *      reads `min-height` and `height` only, so `min-w-11` - the axis a 1-digit
+ *      page number actually needs - is measured nowhere else.
+ *
+ * ⚠️ Every class name here is read off a RENDERED STORY, never typed: a utility
+ * named in a test file is a utility the test can conjure into existence, which is
+ * why `fixtures/compile.css` names its sources.
+ */
+describe("the trail's one line and the pager's two axes, in resolved declarations", () => {
+  /**
+   * The class list shared by every element a selector matches in one story - and
+   * a throw if they disagree, so a read is never "whichever came first". The
+   * selector is spelled out rather than built from a slot name because the pager
+   * draws two kinds of link and the state must not be able to change a floor.
+   */
+  function slotTokens(module: object, storyName: string, selector: string): string[] {
+    const found = storiesOf(module).find(([name]) => name === storyName);
+    if (!found) throw new Error(`no story named ${storyName}`);
+    const Story = found[1];
+    const { container } = render(<Story />);
+    const elements = [...container.querySelectorAll(selector)];
+    if (elements.length === 0) throw new Error(`${storyName} renders no ${selector}`);
+    const lists = elements.map((element) => element.getAttribute("class") ?? "");
+    if (new Set(lists).size !== 1) {
+      throw new Error(`${storyName}: ${selector} matched elements wearing different classes`);
+    }
+    cleanup();
+    return lists[0]!.split(/\s+/).filter(Boolean);
+  }
+
+  /** Every value the compiled sheet declares for one property across a class list. */
+  function declaredValues(classes: readonly string[], property: string): string[] {
+    const out: string[] = [];
+    for (const token of classes) {
+      for (const match of rule(token).matchAll(
+        new RegExp(`(?:^|[;\\s])${property}\\s*:\\s*([^;]+)`, "g"),
+      )) {
+        out.push(match[1]!.trim());
+      }
+    }
+    return out;
+  }
+
+  const crumb = () => STORY_SUITES.breadcrumb;
+  const pager = () => STORY_SUITES.pagination;
+
+  it("found the classes to measure, and a sheet that can answer about them", () => {
+    // Anchors: both helpers can return nothing, and everything below would then
+    // pass vacuously. One positive read and one negative, in the same shapes.
+    const item = slotTokens(crumb(), "Trail", '[data-slot="breadcrumb-item"]');
+    expect(item.length).toBeGreaterThan(2);
+    expect(declaredValues(item, "flex-shrink")).not.toEqual([]);
+    expect(declaredValues(item, "border-collapse")).toEqual([]);
+  });
+
+  it("lets only the step you are standing on give way", () => {
+    const item = slotTokens(crumb(), "Trail", '[data-slot="breadcrumb-item"]');
+    const pageItem = slotTokens(crumb(), "Trail", '[data-slot="breadcrumb-page-item"]');
+    // The linked steps: pinned at their own width, so a 44px tap band can never
+    // end up over a neighbour's visible text.
+    expect(declaredValues(item, "flex-shrink")).toEqual(["0"]);
+    expect(declaredValues(item, "min-width")).toEqual([]);
+    // The current step: allowed to shrink, and below its content, which is what
+    // the truncation needs. A flex item's automatic minimum size is its content,
+    // so `min-width: 0` is the whole difference between truncating and overflowing.
+    expect(declaredValues(pageItem, "flex-shrink")).toEqual([]);
+    expect(
+      declaredValues(pageItem, "min-width").map((value) => lengthPx(value, rootVars())),
+    ).toEqual([0]);
+  });
+
+  it("truncates the current step rather than wrapping the trail", () => {
+    const page = slotTokens(crumb(), "Trail", '[data-slot="breadcrumb-page"]');
+    expect(declaredValues(page, "overflow")).toEqual(["hidden"]);
+    expect(declaredValues(page, "text-overflow")).toEqual(["ellipsis"]);
+    expect(declaredValues(page, "white-space")).toEqual(["nowrap"]);
+  });
+
+  it("gives every tappable step of the trail the floor, in pixels", () => {
+    const link = slotTokens(crumb(), "Trail", '[data-slot="breadcrumb-link"]');
+    const heights = declaredValues(link, "min-height").map((value) => lengthPx(value, rootVars()));
+    expect(heights).toEqual([TAP_FLOOR_PX]);
+  });
+
+  it("gives the pager's cells the floor on BOTH axes, which no other guard reads", () => {
+    const vars = rootVars();
+    // Both kinds of cell, because the page you are on is drawn from a different
+    // string and a floor that moved with the state would be a floor nobody has.
+    for (const [what, selector] of [
+      ["the page you are on", '[data-slot="pagination-link"][aria-current="page"]'],
+      ["every other page", '[data-slot="pagination-link"]:not([aria-current])'],
+    ] as const) {
+      const link = slotTokens(pager(), "Window", selector);
+      expect(
+        declaredValues(link, "min-height").map((value) => lengthPx(value, vars)),
+        `${what}: min-height`,
+      ).toEqual([TAP_FLOOR_PX]);
+      expect(
+        declaredValues(link, "min-width").map((value) => lengthPx(value, vars)),
+        `${what}: min-width`,
+      ).toEqual([TAP_FLOOR_PX]);
+    }
+  });
+});
+
+/**
  * The utilities a CONSUMER calls that no part in this package renders.
  *
  * A design system's contract is not only what its own components use. The consuming

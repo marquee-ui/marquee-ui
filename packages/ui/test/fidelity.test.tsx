@@ -1,13 +1,30 @@
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import upstream from "./fixtures/upstream-classes.json" with { type: "json" };
+import upstreamNav from "./fixtures/upstream-nav-classes.json" with { type: "json" };
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/accordion";
 import { Badge } from "@/badge";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbPageItem,
+  BreadcrumbSeparator,
+} from "@/breadcrumb";
 import { buttonVariants } from "@/button";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/card";
 import { cn } from "@/lib/utils";
 import { Input, inputClass } from "@/input";
 import { Label, labelVariants } from "@/label";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+} from "@/pagination";
 import { Ribbon } from "@/ribbon";
 import { Separator } from "@/separator";
 import { Sheet, SheetBody, SheetContent, SheetDescription, SheetTitle } from "@/sheet";
@@ -16,7 +33,7 @@ import { Toast, ToastAction, ToastMessage } from "@/toast";
 /**
  * The move is a RENAME, not a redesign.
  *
- * Six of the eleven part families were lifted out of a real product, and the promise
+ * Eight of the thirteen part families were lifted out of a real product, and the promise
  * this package makes to that product is that the consume step shows an empty
  * screenshot diff. Class assertions are normally worthless - a restatement of the
  * implementation - and here they are the deliverable itself, so this file pins
@@ -82,6 +99,13 @@ const DEPARTURES: Readonly<Record<string, readonly (readonly [string, string, st
       "an arbitrary shadow with a literal colour cannot live in this package (the literal guard), and it is not any step of the existing ramp, so it became the `band` depth role with exactly this value.",
     ],
   ],
+  "pagination.nav": [
+    [
+      "mt-2",
+      "",
+      "DROPPED, not renamed: the only utility on the upstream nav is the gap between the pager and whatever sits above it, which is the PAGE's composition and not the part's. A part that decides its own outer margin decides its relationship to a sibling it does not own. The consumer passes `className=\"mt-2\"` and the pixel does not move.",
+    ],
+  ],
   "ribbon.track": [
     [
       "pile-marquee",
@@ -122,8 +146,11 @@ function expected(key: string, upstreamValue: string): string[] {
       const swap = departures.find(([from]) => from === token);
       if (!swap) return token;
       applied.add(swap[0]);
+      // An empty target is a DROP, declared with its reason like any other
+      // departure: the utility leaves the part rather than changing name.
       return swap[1];
-    });
+    })
+    .filter(Boolean);
   // A departure that no longer applies is a stale excuse; say so loudly.
   for (const [from] of departures) {
     if (!applied.has(from)) {
@@ -338,12 +365,12 @@ describe("the rename table itself", () => {
     const declared = new Set(
       Object.values(DEPARTURES).flatMap((rows) => rows.map(([from]) => from)),
     );
+    const strings = [...Object.values(UPSTREAM), ...Object.values(UPSTREAM_NAV)];
     const stale = [...handled].filter(
-      (from) =>
-        !Object.values(UPSTREAM).some((value) => value.split(/\s+/).some((t) => t.endsWith(from))),
+      (from) => !strings.some((value) => value.split(/\s+/).some((t) => t.endsWith(from))),
     );
     expect(stale, "rename entries that no upstream string uses").toEqual([]);
-    expect([...declared].length).toBe(5);
+    expect([...declared].length).toBe(6);
   });
 
   it("names a reason for every departure", () => {
@@ -352,6 +379,200 @@ describe("the rename table itself", () => {
         expect(reason.length, `${key}: ${from} -> ${to}`).toBeGreaterThan(40);
       }
     }
+  });
+});
+
+/**
+ * The two MOVED NAVIGATION families, from their own fixture and their own commit.
+ *
+ * Same instrument, one extra shape: three of these elements wear a BASE string
+ * plus one of a pair (the pager's current/other ink), so a case names the fixture
+ * rows whose renamed union it must equal rather than a single row. The ARIA half
+ * of what these two parts owe the reference consumer - the landmark names, the
+ * test id, the per-link label - is pinned in `nav-consumption.test.tsx` against
+ * the same fixture's `contracts`.
+ */
+const UPSTREAM_NAV: Readonly<Record<string, string>> = upstreamNav.classes;
+
+/** A trail of two steps: one link, one current page, one separator between them. */
+function renderTrail() {
+  render(
+    <Breadcrumb>
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <BreadcrumbLink asChild>
+            <a href="/">Start</a>
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbPageItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbPage>This page</BreadcrumbPage>
+        </BreadcrumbPageItem>
+      </BreadcrumbList>
+    </Breadcrumb>,
+  );
+}
+
+/**
+ * One page link, rendered twice over: the two renders keep exactly ONE element per
+ * slot, so every class below is read off an element resolved by its slot rather
+ * than by its position among siblings.
+ */
+function renderPage(current: boolean) {
+  render(
+    <Pagination>
+      <PaginationContent>
+        <PaginationItem>
+          {current && <PaginationEllipsis />}
+          <PaginationLink href="/2" aria-label="Page 2" isActive={current}>
+            2
+          </PaginationLink>
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>,
+  );
+}
+
+type NavCase = {
+  /** The fixture rows whose renamed union this element must wear. */
+  readonly keys: readonly string[];
+  readonly actual: () => string;
+};
+
+const NAV_CASES: Readonly<Record<string, NavCase>> = {
+  "breadcrumb.list": {
+    keys: ["breadcrumb.list"],
+    actual: () => {
+      renderTrail();
+      return slotClass("breadcrumb-list");
+    },
+  },
+  "breadcrumb.item": {
+    keys: ["breadcrumb.item"],
+    actual: () => {
+      renderTrail();
+      return slotClass("breadcrumb-item");
+    },
+  },
+  "breadcrumb.currentItem": {
+    keys: ["breadcrumb.currentItem"],
+    actual: () => {
+      renderTrail();
+      return slotClass("breadcrumb-page-item");
+    },
+  },
+  "breadcrumb.separator": {
+    keys: ["breadcrumb.separator"],
+    actual: () => {
+      renderTrail();
+      return slotClass("breadcrumb-separator");
+    },
+  },
+  "breadcrumb.link": {
+    keys: ["breadcrumb.link"],
+    actual: () => {
+      renderTrail();
+      return slotClass("breadcrumb-link");
+    },
+  },
+  "breadcrumb.page": {
+    keys: ["breadcrumb.page"],
+    actual: () => {
+      renderTrail();
+      return slotClass("breadcrumb-page");
+    },
+  },
+  "pagination.nav": {
+    keys: ["pagination.nav"],
+    actual: () => {
+      renderPage(false);
+      return slotClass("pagination");
+    },
+  },
+  "pagination.content": {
+    keys: ["pagination.content"],
+    actual: () => {
+      renderPage(false);
+      return slotClass("pagination-content");
+    },
+  },
+  "pagination.item": {
+    keys: ["pagination.item"],
+    actual: () => {
+      renderPage(false);
+      return slotClass("pagination-item");
+    },
+  },
+  "pagination.ellipsis": {
+    keys: ["pagination.ellipsis"],
+    actual: () => {
+      renderPage(true);
+      return slotClass("pagination-ellipsis");
+    },
+  },
+  "pagination.linkCurrent": {
+    keys: ["pagination.link", "pagination.linkCurrent"],
+    actual: () => {
+      renderPage(true);
+      return slotClass("pagination-link");
+    },
+  },
+  "pagination.linkOther": {
+    keys: ["pagination.link", "pagination.linkOther"],
+    actual: () => {
+      renderPage(false);
+      return slotClass("pagination-link");
+    },
+  },
+};
+
+/** The renamed union of several fixture rows, sorted like `expected`. */
+function expectedUnion(keys: readonly string[]): string[] {
+  return keys
+    .flatMap((key) => {
+      const value = UPSTREAM_NAV[key];
+      // A missing row would otherwise be compared against `undefined` somewhere
+      // less legible than here.
+      expect(value, `${key} is not in upstream-nav-classes.json`).toBeTypeOf("string");
+      return expected(key, value!);
+    })
+    .sort();
+}
+
+describe("the moved navigation families wear exactly the upstream utilities, renamed", () => {
+  it("covers every moved string", () => {
+    // Anchor: a table-driven suite that silently lost a row proves nothing, and
+    // here the rows come from the FIXTURE, so a row nothing renders is named.
+    const covered = Object.values(NAV_CASES).flatMap((navCase) => navCase.keys);
+    expect([...new Set(covered)].sort()).toEqual(Object.keys(UPSTREAM_NAV).sort());
+    expect(Object.keys(NAV_CASES)).toHaveLength(12);
+    // …and the fixture is the one the generator recorded, at the recorded commit.
+    expect(upstreamNav.commit).toBe("f00ce14ab35f5d4e053debeaf35ba9103143cdaa");
+    expect(upstreamNav.files.length).toBe(2);
+  });
+
+  for (const [name, navCase] of Object.entries(NAV_CASES)) {
+    it(name, () => {
+      expect(tokens(navCase.actual())).toEqual(expectedUnion(navCase.keys));
+    });
+  }
+
+  /**
+   * The one DROPPED utility, asserted as a behaviour rather than as an empty
+   * array: the pager's nav carries no class of its own, and the gap above it is
+   * the caller's to pass. Both halves matter - that the part adds nothing, and
+   * that what the caller passes actually lands.
+   */
+  it("leaves the pager's outer margin to the caller, and passes it through", () => {
+    renderPage(false);
+    expect(slotClass("pagination")).toBe("");
+    cleanup();
+    render(
+      <Pagination className="mt-2">
+        <PaginationContent />
+      </Pagination>,
+    );
+    expect(slotClass("pagination")).toBe("mt-2");
   });
 });
 
@@ -365,6 +586,13 @@ describe("cn is a no-op on every string this package ships", () => {
   for (const [key, actual] of CASES) {
     it(key, () => {
       const value = actual();
+      expect(cn(value)).toBe(value);
+    });
+  }
+
+  for (const [name, navCase] of Object.entries(NAV_CASES)) {
+    it(name, () => {
+      const value = navCase.actual();
       expect(cn(value)).toBe(value);
     });
   }

@@ -182,6 +182,36 @@
           "target": "components/ui/ribbon.css"
         }
       ]
+    },
+    {
+      "name": "breadcrumb",
+      "type": "registry:ui",
+      "title": "Breadcrumb",
+      "description": "The trail of where you are, as parts: one line always, where only the step you are standing on may give way and every linked step keeps its whole tap band.",
+      "dependencies": ["@radix-ui/react-slot@^1.3.3"],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/breadcrumb.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/breadcrumb.tsx"
+        }
+      ]
+    },
+    {
+      "name": "pagination",
+      "type": "registry:ui",
+      "title": "Pagination",
+      "description": "Numbered pages as plain anchors, crawlable with no scripts: one cell per page, 44px on both axes, and one prop deciding the current page's ink and its announcement together.",
+      "dependencies": ["@radix-ui/react-slot@^1.3.3"],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/pagination.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/pagination.tsx"
+        }
+      ]
     }
   ]
 }
