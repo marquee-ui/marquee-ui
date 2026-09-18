@@ -385,9 +385,9 @@ describe("the rename table itself", () => {
 /**
  * The two MOVED NAVIGATION families, from their own fixture and their own commit.
  *
- * Same instrument, one extra shape: three of these elements wear a BASE string
- * plus one of a pair (the pager's current/other ink), so a case names the fixture
- * rows whose renamed union it must equal rather than a single row. The ARIA half
+ * Same instrument, one extra shape: TWO of these cases (the pager's current link
+ * and every other one) wear a BASE string plus one of a pair, so a case names the
+ * fixture rows whose renamed union it must equal rather than a single row. The ARIA half
  * of what these two parts owe the reference consumer - the landmark names, the
  * test id, the per-link label - is pinned in `nav-consumption.test.tsx` against
  * the same fixture's `contracts`.
