@@ -1137,6 +1137,17 @@ Recorded rather than fixed:
   selection and cannot carry a second interactive element. Inherent to the pattern
   and now stated in the part's docblock rather than discovered by a consumer.
 
+### The gate
+
+One run, at `210a576`, detached with a sentinel in `$BATCH_SCRATCH/s2/`:
+`pnpm verify` **exit 0** in 16s (06:33:38 -> 06:33:54 IST, 2026-09-18), the
+runner's own lines being `All matched files use Prettier code style!`, both
+packages' `typecheck: Done`, `✔ Building registry.`,
+`└ Storybook build completed successfully` and
+`Test Files 19 passed (19)` / `Tests 290 passed (290)`. `git status --short` was
+empty afterwards, so the committed `packages/ui/r` is what `build:registry`
+produces.
+
 ### The pipeline, end to end
 
 `pnpm pack` in both packages (`prepack` builds the registry and runs
