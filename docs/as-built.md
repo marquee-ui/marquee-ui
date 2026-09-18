@@ -816,3 +816,389 @@ Nothing in this package. The tarballs
 (`marquee-ui-tokens-0.1.0.tgz` 99,601 B, `marquee-ui-ui-0.1.0.tgz` 22,005 B) are
 vendored in the thepile worktree under `vendor/marquee-ui/` with the flip
 instructions beside them.
+
+## DESIGN-LIB-d: Switch (2026-09-18)
+
+Scope: the first catalogue ADDITION, in the order the consuming product's design
+audit asks for it - its `/settings` row ships two boolean controls in two shapes,
+and the pair of strings it drew them with says in its own docblock that "it goes
+away when the library ships one". Nothing was published, nothing was pushed (the
+Actions-minutes freeze), no version was bumped, and nothing in the consuming repo
+was changed: it was read only, at commit `06cbb192`.
+
+### What shipped
+
+| file                                          | what                                                                                                                                                                                                            |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/ui/src/switch.tsx`                  | four parts - `Switch`, `SwitchInput`, `SwitchTrack`, `SwitchThumb` - and no state of any kind (6,823 B)                                                                                                         |
+| `packages/ui/stories/switch.stories.tsx`      | 7 stories, 4 of them carrying a `play`                                                                                                                                                                          |
+| `packages/ui/test/switch-drawing.test.tsx`    | 9 tests: the geometry in resolved pixels, the two triggers compared, and the state cascade observed                                                                                                             |
+| `registry.json` + `packages/ui/r/switch.json` | the `switch` item, `target` `components/ui/switch.tsx`, `@marquee/utils` as its registry dependency (7,600 B)                                                                                                   |
+| `packages/ui/src/index.ts`                    | the four parts and `SwitchProps`                                                                                                                                                                                |
+| the declared lists                            | both lists in `packages/tokens/test/helpers/source-files.ts`, `stories.test.tsx`'s suites and its two counts, `tailwind-compile.test.tsx`'s two suite maps, `registry.test.ts`'s item list and its two counters |
+| the stated count                              | `AGENTS.md`, `README.md` and `packages/ui/package.json`'s description say eleven part families                                                                                                                  |
+
+No new dependency: `@radix-ui/react-slot` was already here for `asChild`, and
+nothing else was needed. `pnpm test` goes from 267 tests in 18 files to **283 in
+19** (+9 for the drawing suite, +7 story renders).
+
+The shape, in one line each:
+
+```tsx
+// the button host: the whole row is the control, `aria-checked` is the state
+<Switch aria-checked={on} aria-label="…" onClick={…} className="w-full justify-between …">
+  <span>Show adult artwork</span>
+  <SwitchTrack><SwitchThumb /></SwitchTrack>
+</Switch>
+
+// the native host: a real checkbox, `:checked` is the state, same drawing
+<Switch asChild>
+  <label className="w-full justify-between …">
+    <span>Notify me on this device</span>
+    <SwitchInput name="notifications" checked={on} onChange={…} />
+    <SwitchTrack><SwitchThumb /></SwitchTrack>
+  </label>
+</Switch>
+```
+
+### Measurements, and what they corrected
+
+**1. What the tap floor actually selects, and why the track can never be the
+control.** `tailwind-compile.test.tsx` takes
+`button, a[href], input, select, textarea, [role="button"]` out of every rendered
+story and resolves each one's height from the compiled sheet. So a
+`button[role="switch"]` is measured as a `button` (the `[role=…]` arm is for
+buttons, not for this part), and a native checkbox is measured as an `input` -
+which settles the design question the brief left open: an `<input>` drawn as the
+44x24 track is a **24px** control and fails the house rule, however tall the label
+around it is. Measured by mutation: removing `min-h-hit` from the root produced
+five offenders in that guard, one per story that renders a control. Hence the
+root carries the floor, and the native host's input is an invisible overlay over
+the row (which carries `min-h-hit` too, and means it).
+
+**2. jsdom lays nothing out, so "the thumb's box moved" is not observable here in
+any story.** Measured on this tree: for an element with a height in the sheet,
+`getBoundingClientRect()` is `{x:0, y:0, width:0, height:0}` and
+`offsetWidth`/`offsetHeight` are `0`, while `getComputedStyle(el).height` returns
+the declared `16px`. The brief asked for a `play` that "asserts the thumb's
+bounding box MOVED by the travel the track leaves it"; under this runner such a
+play would be comparing zeroes, which is the exact shape of a test that cannot
+fail. What replaced it is in the next two rows, and the real move stays where a
+box can actually move: the consuming product's browser e2e.
+
+**3. The cascade IS observable, once the layers come off.** jsdom applies a
+stylesheet even though it lays nothing out - but Tailwind 4 emits every utility
+inside `@layer utilities`, and jsdom implements no cascade layers: injecting the
+compiled sheet as-is left the track at `position: static` and
+`background-color: rgba(0, 0, 0, 0)`, with not one rule applied. Unwrapping the
+`@layer` blocks (selectors and declarations untouched, and the test throws if
+there are none to unwrap) makes the sheet behave as a browser's would, and then
+the thumb's `translate` is `none` while the control is off and carries the
+declared travel when it goes on. That is the half no class-name assertion can
+make, and it is the defect class the consuming repo's own layer 1 found in the
+strings this part replaces (a trigger rewritten to `group-hover:` left their
+source test 4/4 green).
+
+**4. `:has()` is not supported by jsdom 30's cascade.** Measured directly: a rule
+`:is(:where(.group):has(:checked) *)` applies in NEITHER state, and
+`element.matches()` on the same selector returns false, while the identical rule
+written against `[aria-checked="true"]` follows the attribute exactly.
+`input.matches(":checked")` is true from the property, but the STYLE path needs
+the attribute. **So the native host's on-state is proved from the stylesheet (the
+selector it compiles to, and the declarations it carries, asserted equal to the
+button host's) and never in a rendered DOM.** Both hosts' behaviour is proved -
+the checkbox toggles from a click on the row, and its value reaches a `FormData` -
+but the drawing's response to it is not, in this repo, at this jsdom.
+
+**5. What Tailwind compiles each trigger to** (run against the real emitted
+tokens sheet, and again inside the bare consumer):
+
+| written                                  | compiled selector                                    | reaches                    |
+| ---------------------------------------- | ---------------------------------------------------- | -------------------------- |
+| `group-aria-checked/switch:bg-primary`   | `:is(:where(.group\/switch)[aria-checked="true"] *)` | any descendant of the root |
+| `group-has-checked/switch:translate-x-5` | `:is(:where(.group\/switch):has(:checked) *)`        | any descendant of the root |
+| `peer-checked:bg-primary`                | `:is(:where(.peer):checked ~ *)`                     | a FOLLOWING SIBLING only   |
+| `has-disabled:opacity-50`                | `:has(:disabled)`                                    | the element itself         |
+
+The third row is why the two hosts can now share one nesting: `peer-checked:` (the
+spelling the consuming product uses) forces the thumb to be a sibling of the
+input, and the ancestor-scoped pair does not - so the thumb sits inside the track
+in BOTH hosts, and one drawing means one drawing.
+
+**6. The roles, against the presets rather than against taste** (`wcagContrast`
+over the resolved preset values; WCAG 1.4.11 asks 3:1 of a meaningful graphic):
+
+| pair                                               | arcade      | light       |
+| -------------------------------------------------- | ----------- | ----------- |
+| thumb `muted` on track `overlay` (off)             | **4.53:1**  | **6.45:1**  |
+| thumb `primary-foreground` on track `primary` (on) | **17.54:1** | **16.12:1** |
+| off track fill vs on track fill                    | 13.72:1     | **1.13:1**  |
+| track edge `border-strong` on `background`         | 1.82:1      | 1.80:1      |
+
+The third row is the finding: **in the light preset the two track fills are 1.13:1
+apart**, so a viewer who reads the fill alone cannot tell the states apart. The
+state is therefore carried by the thumb having MOVED, in both presets and in no
+colour at all, which is why the travel is what the guards measure and what the
+consuming product's e2e clicks for. (The fourth row is the house line weight, a
+preset decision this slice consumes and does not touch.)
+
+**7. `storybook/test`'s `userEvent` cannot click inside a `<label>` under jsdom 30.** A click on anything inside a label is forwarded to the labelled control, and
+forwarding makes it clone the pointer event: `TypeError: Failed to construct
+'PointerEvent': member view is not of type Window`. Measured on a bare
+`<label><span/><input/></label>` with nothing of this package in it, so it is the
+environment and not the part; the element's own `click()` follows the platform's
+activation path and works, and that is what the `NativeCheckbox` play uses, with
+the error quoted beside it.
+
+**8. The base is green only after a build.** `pnpm test` in a fresh worktree is
+red on four files (`emitted-surface`, `merge-theme`, `storybook-preview`,
+`tailwind-compile`) because `packages/tokens/dist` is gitignored build output;
+after `pnpm build` it is 18 files / 267 tests passing. `pnpm verify` already
+orders it that way (a2 D9); the bootstrap instruction in the brief did not.
+
+### Every UNVERIFIED claim in the brief, measured
+
+1. **"⚠️ UNVERIFIED how `tailwind-compile.test.tsx` reads a `role="switch"`
+   button: run it and quote"** - quoted in measurement 1: it never looks at
+   `role="switch"` at all, it matches the element as a `button`. The brief's
+   conclusion (the track cannot be the control, the root carries the floor) is
+   right, and now for the measured reason - which also extends to the native host,
+   whose input the same selector catches.
+2. **The brief's story requirement, "at least one `play` that toggles and asserts
+   the thumb's bounding box MOVED"** - NOT SATISFIABLE in this repo, measurement 2.
+   Corrected to arithmetic over the compiled sheet plus a cascade observation, and
+   said out loud at the top of `switch-drawing.test.tsx` rather than only here.
+3. **"a Radix `Switch` renders `button[role="switch"]` plus a hidden input inside a
+   form, so host 2's native checkbox would take host 1's shape at consumption"** -
+   NOT measured, because the decision did not rest on it: `@radix-ui/react-switch`
+   cannot render a native `<input type="checkbox">` as the control at all, which is
+   the consuming product's second host, so the "one part family" answer had to be
+   a drawing either host composes whatever Radix's own root does. No dependency was
+   added, so nothing about Radix's hidden input is claimed here in either direction.
+4. **The consumer contract's geometry** (44x24 track, 16px thumb inset 2px, 20px of
+   travel, `44 - 2*2 - 2*2 - 16`) - read at `06cbb192` and CONFIRMED, and it is the
+   geometry this part ships, re-derived from the compiled stylesheet instead of from
+   a class string.
+5. **"the thumb a SIBLING element and never `::after`"** - half right, and the half
+   that is wrong has a pixel consequence. In the consuming product the thumb is a
+   sibling of the INPUT in the native host only; in the button host it is a CHILD of
+   the track. That difference is not cosmetic: an absolutely-positioned element is
+   laid out against its containing block's PADDING box, so the button host's
+   `left-0.5` puts the thumb 2px inside the track's 2px border (4px from its outer
+   edge, flush at the far end), while the native host's containing block is the
+   wrapping `<span class="relative">`, whose padding box starts at the input's OUTER
+   edge - so that thumb sits ON the border at rest and stops 4px short of flush when
+   it travels. **The two hosts do not draw the same thing today**, by 2px at rest,
+   and the difference is invisible to their source test (which compares class
+   strings) and to their e2e (which measures the button host only, and whose own
+   comment says "a device pass still owes the push row a look"). This part removes
+   the difference by construction rather than by fixing it: with ancestor-scoped
+   triggers the thumb is inside the track in both hosts, so there is one containing
+   block, one inset and one travel. Derived from the source and the containing-block
+   rule, not rendered - no command of that repo was run from here.
+6. **The e2e arms** at `e2e/mobile-390.spec.ts` - present and as described: the
+   thumb's move is asserted as `> 12` px of travel on a real click, with track and
+   thumb resolved from INSIDE the clicked switch, transitions killed first. The
+   consumption keeps that arm true unchanged; only the `data-testid`s have to ride
+   along (see "thepile inputs").
+
+### Guards, each proved by running its reddening mutation
+
+Run in the COMMITTED tree (`4a58893`, then `af6ee6e` for the two that came after
+the instrument was improved), landing confirmed by `grep` before the run was read,
+reverted with `git checkout --`, `git status --short` empty after each.
+
+<!-- prettier-ignore-start -->
+
+| guard | mutation | landed | the red it produced |
+| --- | --- | --- | --- |
+| the travel is the track's arithmetic | track `h-6 w-11` -> `h-6 w-12`, travel untouched | `switch.tsx:58` | TWO: `draws a 44x24 track…` with `expected 48 to be 44`, and `travels exactly the width the track leaves it` with `expected 20 to be 24` |
+| the on-state exists on both triggers | `group-aria-checked/switch:translate-x-5` -> `group-hover/switch:…` | `switch.tsx:78` | THREE: `expected null to be 20`; `thumb: no :checked-driven on-state: expected 2 to be 1`; `group-aria-checked/switch:translate-x-5 declares no --tw-translate-x in the compiled sheet` |
+| the drawing is OFF while the control is off | an unconditional `translate-x-5` added to the thumb | `switch.tsx:78` | `sets the travel only while the control is on` with `expected 'var(--tw-translate-x) var(--tw-transl…' to be 'none'` - and NOTHING else noticed |
+| the drawing follows the ROOT's state | `group/switch` removed from the root's class, every other class name unchanged | `switch.tsx:52` | `sets the travel only while the control is on` with `expected 'var(--overlay)' to be 'var(--primary)'` - again the only test that noticed |
+| the tap floor is on the control | `min-h-hit` removed from the root | `switch.tsx:52` | TWO: this slice's `puts the tap floor on the row…` with `expected null to be 44`, and the package's own floor guard, `measures every one of them at or above the floor`, with 5 offenders |
+| the registry cannot ship stale bytes | `border-border-strong` -> `border-border` in the track, `r/` not rebuilt | `switch.tsx:58` | `carries the CURRENT bytes of every source it ships` with `switch: packages/ui/src/switch.tsx is stale` |
+| the thumb is inside the track | the story's drawing changed to two siblings | `switch.stories.tsx:15` | `switch/Off` with `expect(element).toContainElement(element)`, plus the play counter |
+| the native control announces a switch | `role="switch"` removed from `SwitchInput` | `switch.tsx` (1 of 2 left) | `switch/NativeCheckbox` and `switch/InAForm`, both `Unable to find an accessible element with the role "switch" and name "Notify me on this device"` |
+| the disabled rendering reaches both hosts | `has-disabled:cursor-not-allowed has-disabled:opacity-50` removed | `switch.tsx:52` | `dims the whole row when either host is disabled…` with `the root has no disabled treatment for a disabled descendant: expected +0 to be 2` |
+| the native host really is a form control | `name="notifications"` removed from the form story | `switch.stories.tsx` | `switch/InAForm` with `expected null to be 'on'` |
+
+<!-- prettier-ignore-end -->
+
+Each red names the property that was mutated. One of them changed the code: the
+cascade test's helper threw `TypeError: Cannot read properties of null` instead of
+naming the utility that had vanished, which is a red that proves nothing, so it
+now says `<utility> declares no <property> in the compiled sheet` and the mutation
+was re-run against the committed fix.
+
+### The pipeline, end to end
+
+`pnpm pack` in both packages (`prepack` builds the registry and runs
+`git diff --exit-code -- r`, so packing at all is the evidence that `r/` is
+committed and current) -> `marquee-ui-ui-0.1.0.tgz` **26,396 B** (22,005 B at a3)
+and `marquee-ui-tokens-0.1.0.tgz` 99,608 B -> `npm install` of both into a bare
+project -> `shadcn add ./node_modules/@marquee-ui/ui/r/switch.json`:
+
+```
+✔ Created 2 files:
+  - src/lib/utils.ts
+  - src/components/ui/switch.tsx
+```
+
+`src/lib/utils.ts` is the `@marquee/utils` registry dependency resolving offline
+through `components.json`'s `registries` map, and the target is
+`components/ui/switch.tsx`, not `components/ui/src/switch.tsx`. The bytes:
+
+```
+installed bytes: 6823
+installed === r/switch.json content: true
+installed === packages/ui/src/switch.tsx: true
+```
+
+Then the installed copy compiled in the bare project's own Tailwind 4.3.3 against
+the published `@marquee-ui/tokens/tokens.css`: all eleven utilities present,
+including `.group\/switch`, both named-group state variants,
+`.has-disabled\:opacity-50` and `.has-focus-visible\:shadow-focus-ring`, with the
+travel rule reading
+`:is(:where(.group\/switch)[aria-checked="true"] *) { --tw-translate-x: calc(var(--spacing) * 5); … }`
+and a deliberately absent control name absent.
+
+⚠️ **`shadcn add` needs a `tsconfig.json` in the consumer.** Without one, 4.21
+fails with `Failed to load tsconfig.json. Couldn't find tsconfig.json` and writes
+nothing - worth knowing before someone reads it as a registry problem. And the
+alias the copy lands with is the consumer's own: with `aliases.utils` set to
+`@/lib/utils` the file is byte-identical, and with it set to `src/lib/utils` the
+import line is rewritten and the copy differs by exactly those two bytes.
+
+### Decisions
+
+1. **No Radix, and no new dependency.** [V] The native `button[role="switch"]` and
+   the native `<input type="checkbox">` ARE the platform features here, and
+   `@radix-ui/react-switch` can serve only the first of the consuming product's two
+   hosts. A Radix root would also hold the state in React and reflect it, where
+   this part holds none at all - which is the property the consumer's own docblock
+   calls central, and the one a `style={{ translate }}` computed in a component
+   breaks. `@radix-ui/react-slot` (already a dependency) covers `asChild`.
+2. **One part family serves both hosts, and the drawing is what composes.** [V]
+   `Switch` is the control and the hit area; `SwitchTrack` and `SwitchThumb` are
+   the drawing; `SwitchInput` is the native control for the label host. Four parts,
+   no `variant` prop that changes what is inside anything (D6).
+3. **Both state triggers ride ONE named group on the root.** [V]
+   `group-aria-checked/switch:` and `group-has-checked/switch:` are spelled out
+   literally, twice, because Tailwind scans source text. Neither can fire in the
+   other's host (a button has no `:checked` descendant; a label carries no
+   `aria-checked`), and NAMED because the unnamed `group-has-checked:` would light
+   up every switch inside any `.group` that happened to contain one checked box -
+   a settings page with three switches and a hover group around it is exactly that
+   page. The named form costs a longer class and removes the whole class of bug.
+4. **The native host's input is an invisible overlay on the row, not the track.**
+   [V] Measurement 1: an input drawn as the 44x24 track is a 24px control. As an
+   overlay it keeps everything that made a native checkbox the right choice - focus,
+   keyboard, the label's accessible name, its value in a `FormData`, `:checked` -
+   and its hit box becomes the 44px row, which is what the person is pointing at.
+   The cost is that its own focus ring is invisible, so the ring is drawn on the row
+   (`has-focus-visible:shadow-focus-ring`, beside `focus-visible:` for the button
+   host).
+5. **No `cva`.** [V] `cva` is for visual axes, state is never one, and this part has
+   no visual axis with a second value: one size, one tone, one geometry. A `size`
+   axis with a single member is scaffolding, and a second size is a second travel
+   arithmetic that no consumer has asked for. `Input` and `Card` are the precedent.
+   The class strings stay module-private for the same reason - the parts are the API,
+   and an exported string is a second one to keep honest.
+6. **`role="switch"` on the native checkbox.** [V] Both hosts then announce the same
+   thing, and a checkbox's checkedness maps to the switch state on its own, so the
+   part writes no `aria-checked` that could disagree with the box.
+7. **No `aria-hidden` on the drawing.** [V] The track and the thumb are empty
+   elements with no role and no text, so they name nothing to hide; and the native
+   host's focusable input lives inside the same row, where an `aria-hidden` ancestor
+   would be a real violation. The consuming product's own `aria-hidden="true"` on
+   its track can ride along as a `className`-free prop if it wants it.
+8. **`disabled:opacity-50`, the house value, not the consumer's `opacity-60`.** [V]
+   Two buttons here already dim at 50 and this part is new rather than moved, so the
+   fidelity rule ("the tokens change name, the pixels do not") does not bind it. The
+   consumption dims its settings switch 10% less than today; nothing else moves.
+9. **The stated part count was updated where the package DESCRIBES itself**
+   (`AGENTS.md`, `README.md`, `packages/ui/package.json`), and deliberately NOT in
+   `label.tsx`'s "rather than as an eleventh part (D10)", which records a2's decision
+   at the time it was taken - and whose bytes are frozen by the consuming repo's
+   drift test, so a comment edit there is a re-sync that buys nothing.
+
+### thepile inputs
+
+What the consumption half needs when `0.1.1` publishes, in one list:
+
+- `switch` goes into `CONSUMED` in `scripts/marquee-drift.test.ts`, and
+  `components/ui/switch.tsx` arrives by `shadcn add` like the other six.
+- **`ContentSettings.tsx`**: the row becomes `<Switch>` itself - it is already a
+  `button[role="switch"]` with `aria-checked`, `disabled` and an `aria-label`, so
+  the row's own classes (`w-full justify-between rounded-md border-2 …`) pass
+  through `className` and the drawing becomes `<SwitchTrack><SwitchThumb/></SwitchTrack>`.
+  Keep `data-testid="switch-track"` / `"switch-thumb"` on those two parts: they
+  spread props, and `e2e/mobile-390.spec.ts` resolves both from inside the clicked
+  switch by exactly those ids. `min-h-hit`, `group` and the disabled treatment come
+  from the part now and should be deleted from the row's own string; the `hover:`
+  and the box are the page's and stay.
+- **`PushSettings.tsx`**: `<Switch asChild><label …>` with `<SwitchInput>` in place
+  of the bare `<input className={`peer ${SWITCH_TRACK_CHECKED}`}>`, and the same
+  `<SwitchTrack><SwitchThumb/></SwitchTrack>` after it. The wrapping
+  `<span className="relative shrink-0">` goes: the thumb is inside the track now,
+  which is what makes the two rows the same drawing (UNVERIFIED 5 - they are 2px
+  apart today).
+- `switch-styles.ts` and `switch-styles.test.ts` are DELETED. Everything the test
+  asserted survives, in the library: the platform-driven state (by the compiled
+  selector AND by a cascade), the two hosts changing the same properties by the
+  same amounts (compared by declaration, not by class string), the disabled
+  rendering on both hosts, and `travel === trackW - 2*border - 2*inset - thumbW`
+  (re-derived from the compiled sheet rather than from the strings).
+- `e2e/mobile-390.spec.ts`'s thumb-move arm stays TRUE and unchanged: same 44x24
+  track, same 20px of travel, same `aria-checked` under it. It is also now the only
+  instrument in either repo that can see the thumb move, so it should not be
+  weakened.
+- `selected-contrast.test.tsx`'s comment about the switch's ink stays true: the
+  off thumb is `--muted` (4.53:1 on the track) and the on fill `--primary`.
+- Two behaviours the consumption GAINS, and should be looked at on a device: the
+  push row's control becomes the whole 44px row rather than a 44x24 box, and its
+  focus ring moves from the input's own box to the row.
+
+### Consumers
+
+Both runs of the scan (`50130fa…` in place of `origin/next`, over `packages/**`
+and `registry.json`), the script in `$BATCH_SCRATCH/s2/consumer-scan.sh`.
+
+**Run 1, before any code** (`consumer-scan.1.txt`): the diff was empty, so scans 1-3
+printed nothing; scan 4 enumerated the declared lists an eleventh family must
+enter, which is what the run was for:
+
+```
+packages/ui/test/registry.test.ts:60:  it("declares the ten part families plus the one shared lib", …
+packages/ui/test/registry.test.ts:142:    expect(checked).toBe(10);
+packages/ui/test/registry.test.ts:210:    expect(compared).toBe(12);
+packages/ui/test/stories.test.tsx:77:const DECLARED_PLAYS = 25;
+packages/ui/test/stories.test.tsx:78:const DECLARED_STORIES = 42;
+packages/ui/test/stories.test.tsx:105:  it("covers all ten part families, with every story counted", …
+packages/ui/test/fidelity.test.tsx:19: * Six of the ten part families were lifted out of a real product…
+AGENTS.md:51:- `packages/ui` - the ten part families, one file each…
+```
+
+⚠️ That run also corrected the scan itself: `git grep … -- 'packages/*/test'`
+matches NOTHING in this repository and returns 0 quietly. The pathspec is spelled
+`packages/ui/test packages/tokens/test`, and the empty output of the first spelling
+was not evidence of anything.
+
+**Run 2, at the commit point** (`consumer-scan.2.txt`): 12 exported names - the
+four parts, `SwitchProps`, and the seven story exports. Every reader of every one
+of them is inside this slice's own files (`index.ts`, `switch.stories.tsx`,
+`switch-drawing.test.tsx`, `registry.json`). The one hit outside them,
+`packages/tokens/src/presets/arcade.ts` for the story named `On`, is the word "On"
+starting a comment, not a consumer. Scan 3 named `AGENTS.md`,
+`source-files.ts`, `packages/ui/package.json`, `registry.test.ts` and
+`registry.json` - all five updated in this diff.
+
+**0 CROSS, 0 UNOWNED**, 12 names NEW between the two runs (the first ran against an
+empty diff by construction). The batch's other stream is in a different repository.
+
+⚠️ A blind spot worth carrying: scan 3's stem arm looks for `./<stem>"` and
+`../<stem>"` and so does NOT see `import * as x from "../stories/switch.stories.js"`,
+which is how `stories.test.tsx` and `tailwind-compile.test.tsx` reach a new story
+file. Both were found by reading the suite rather than by the scan, and the
+declared-list arm (scan 4) is what actually covers them here.
