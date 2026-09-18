@@ -18,10 +18,14 @@ import { cn } from "@/lib/utils";
  *   `<Switch asChild><label>…<SwitchInput/>…</label></Switch>` - a native
  *     checkbox, whose `:checked` is the browser's own, reached through `:has()`.
  *
- * Neither trigger can fire in the other's host: a `button` has no `:checked`
- * descendant, and a `label` carries no `aria-checked`. Both are scoped to the
- * NAMED group `group/switch`, so a switch inside some other `.group` that happens
- * to contain a checked box is not lit up by it.
+ * Neither trigger can fire in the other's host, and that is enforced HERE rather
+ * than left to the caller: a `button` has no `:checked` descendant, and the
+ * `asChild` branch STRIPS `aria-checked` - without that, one
+ * `<Switch asChild aria-checked>` on a label draws a fully ON pill over an
+ * unchecked box while the row announces no state at all, which is exactly the
+ * disagreement this part exists to make impossible (layer 1, HIGH-4). Both
+ * triggers are scoped to the NAMED group `group/switch`, so a switch inside some
+ * other `.group` that happens to contain a checked box is not lit up by it.
  *
  * ⚠️ THE VARIANTS ARE SPELLED OUT, TWICE, ON PURPOSE. Tailwind scans source text,
  * so a prefix assembled at run time (`${trigger}:bg-primary`) generates no CSS at
@@ -84,15 +88,26 @@ export type SwitchProps = ComponentProps<"button"> & {
   /**
    * Render the caller's child instead of a `button[role=switch]`, keeping the
    * classes and every other prop. This is the native host: a `<label>` that
-   * wraps a `SwitchInput` brings its own semantics, so the `role` this part
-   * would otherwise write is deliberately NOT spread onto it - a
-   * `label[role=switch]` announces a switch with no state behind it.
+   * wraps a `SwitchInput` brings its own semantics, so neither the `role` nor
+   * the `aria-checked` this part would otherwise write is spread onto it - a
+   * `label[role=switch]` announces a switch with no state behind it, and an
+   * `aria-checked` on a label announces nothing while lighting the drawing.
    */
   asChild?: boolean;
 };
 
-export function Switch({ className, asChild = false, type, ...props }: SwitchProps) {
+export function Switch({
+  className,
+  asChild = false,
+  type,
+  "aria-checked": ariaChecked,
+  ...props
+}: SwitchProps) {
   const classes = cn(switchClass, className);
+  // No `role`, no `type` and no `aria-checked` on this branch, deliberately: the
+  // child brings its own semantics, and each of those three is a lie on a
+  // `<label>`. A caller whose child IS a button writes them on that button,
+  // where they belong and where they survive the merge.
   if (asChild) return <Slot data-slot="switch" className={classes} {...props} />;
   return (
     <button
@@ -101,6 +116,12 @@ export function Switch({ className, asChild = false, type, ...props }: SwitchPro
       // never means.
       type={type ?? "button"}
       role="switch"
+      // `role="switch"` REQUIRES `aria-checked`, so the part writes the default
+      // the role mandates rather than shipping an `aria-required-attr`
+      // violation whenever a caller forgets (layer 1, HIGH-3). It is not state:
+      // it is what "off" is spelled as, and the drawing reads the same
+      // attribute, so the two cannot disagree.
+      aria-checked={ariaChecked ?? false}
       className={classes}
       {...props}
     />

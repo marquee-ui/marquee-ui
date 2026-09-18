@@ -142,6 +142,9 @@ export const NativeCheckbox: Story = {
   },
 };
 
+/** The native host's ON drawing, which nothing in the workbench showed. */
+export const NativeCheckboxOn: Story = { render: () => <CheckboxSwitch defaultChecked /> };
+
 /**
  * The native host inside a form. No hidden mirror input and no JavaScript: the
  * control IS the form control, so its value is in the `FormData` on its own.
@@ -158,5 +161,37 @@ export const InAForm: Story = {
     await expect(new FormData(form).get("notifications")).toBeNull();
     await userEvent.click(canvas.getByRole("switch", { name: "Notify me on this device" }));
     await expect(new FormData(form).get("notifications")).toBe("on");
+  },
+};
+
+/**
+ * The BUTTON host inside a form, which is where its `type="button"` default is
+ * the difference between a toggle and a page navigation. An untyped `<button>`
+ * submits its form; the play clicks the switch and watches for a submit that
+ * must not come (layer 1, MED-5).
+ */
+export const ButtonInAForm: Story = {
+  render: function ButtonInAFormStory() {
+    const [submits, setSubmits] = useState(0);
+    return (
+      <form
+        aria-label="Content settings"
+        onSubmit={(event) => {
+          event.preventDefault();
+          setSubmits((count) => count + 1);
+        }}
+      >
+        <ButtonSwitch />
+        <output data-testid="submits">{submits}</output>
+      </form>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const control = canvas.getByRole("switch", { name: "Show adult artwork" });
+    await userEvent.click(control);
+    await expect(control).toHaveAttribute("aria-checked", "true");
+    // The form did NOT submit: the count is still zero, and the switch toggled.
+    await expect(canvasElement.querySelector('[data-testid="submits"]')).toHaveTextContent("0");
   },
 };

@@ -7,6 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { composeStories } from "@storybook/react-vite";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
+import { Switch, SwitchInput, SwitchThumb, SwitchTrack } from "@/switch";
 import * as switchStories from "../stories/switch.stories.js";
 
 /**
@@ -232,6 +233,22 @@ describe("one drawing, two hosts", () => {
 
   it("gives each trigger a selector only its own host can satisfy", () => {
     const parts = drawing();
+    // ⚠️ ANCHOR FIRST, and in THIS test: every loop below iterates `triggered(…)`,
+    // so stripping the on-state classes made all three run zero times and the
+    // test passed having asserted nothing (layer 1, MED-3). Its anchor used to
+    // live in the previous `it`, which is safety by a neighbour's grace.
+    const both = [
+      ["track", parts.track],
+      ["thumb", parts.thumb],
+    ] as const;
+    for (const [name, classes] of both) {
+      expect(triggered(classes, ARIA).length, `${name}: no aria-driven on-state`).toBeGreaterThan(
+        0,
+      );
+      expect(triggered(classes, HAS).length, `${name}: no :checked-driven on-state`).toBe(
+        triggered(classes, ARIA).length,
+      );
+    }
     for (const token of triggered(parts.track, ARIA)) {
       // An ancestor carrying the state, not the element itself: the drawing is
       // inside the control, and the control is what the platform marks.
@@ -240,10 +257,13 @@ describe("one drawing, two hosts", () => {
     for (const token of triggered(parts.track, HAS)) {
       expect(selectors.get(token)?.join(" ")).toContain(":has(:checked)");
     }
-    // …and both are scoped to this part's own named group, so a switch inside
-    // some other `.group` that contains a checked box is not lit up by it.
-    for (const token of [...triggered(parts.track, ARIA), ...triggered(parts.thumb, HAS)]) {
-      expect(selectors.get(token)?.join(" ")).toContain(".group\\/switch");
+    // …and ALL FOUR combinations are scoped to this part's own named group, so a
+    // switch inside some other `.group` that contains a checked box is not lit
+    // up by it. (Two of the four went unchecked in the first edition.)
+    for (const [, classes] of both) {
+      for (const token of [...triggered(classes, ARIA), ...triggered(classes, HAS)]) {
+        expect(selectors.get(token)?.join(" "), token).toContain(".group\\/switch");
+      }
     }
   });
 
@@ -276,10 +296,14 @@ describe("the drawing follows the state, in a real cascade", () => {
    * inside `@layer utilities`: measured on this tree, injecting the compiled
    * sheet as-is left the track at `position: static` and
    * `background-color: rgba(0, 0, 0, 0)` - not one rule applied. Unwrapping the
-   * layer blocks is the closest faithful model of a browser that has them, and it
-   * is the ONLY thing done to the sheet: every selector and every declaration is
-   * the compiler's own, so nothing here can conjure a rule that the build does
-   * not ship.
+   * layer blocks is faithful for every rule INSIDE `@layer utilities`, which is
+   * every rule this file reads. It is not faithful in general - after flattening,
+   * specificity decides where layer order used to, and this sheet carries two
+   * unlayered class rules (`.mq-marquee`) whose precedence it therefore inverts,
+   * neither of which any switch class touches (layer 1, LOW-1). What carries the
+   * weight is this: unwrapping is the ONLY thing done to the sheet, every
+   * selector and every declaration is the compiler's own, so nothing here can
+   * conjure a rule that the build does not ship.
    */
   function flattenLayers(source: string): string {
     const root = postcss.parse(source);
@@ -294,33 +318,47 @@ describe("the drawing follows the state, in a real cascade", () => {
     return root.toString();
   }
 
+  /** The compiled sheet in the document, flattened, for one test. */
+  function withSheet<T>(read: () => T): T {
+    const style = document.createElement("style");
+    style.textContent = flattenLayers(css);
+    document.head.append(style);
+    try {
+      return read();
+    } finally {
+      style.remove();
+      cleanup();
+    }
+  }
+
+  const computed = (element: Element, property: string) =>
+    window.getComputedStyle(element as HTMLElement).getPropertyValue(property);
+  /** jsdom re-serialises a value it stores (`calc(var(--spacing)*5)`), so the two
+   *  sides are compared with whitespace collapsed. */
+  const same = (a: string, b: string) => expect(a.replace(/\s+/g, "")).toBe(b.replace(/\s+/g, ""));
+  /** What the compiled sheet declares for one utility. Says WHICH utility
+   *  vanished: without this the red is a type complaint about `null`, which names
+   *  nothing and proves nothing (found by running the mutation). */
+  const declares = (name: string, property: string) => {
+    const match = new RegExp(`(?:^|[;\\s])${property}\\s*:\\s*([^;]+)`).exec(rule(name));
+    expect(match, `${name} declares no ${property} in the compiled sheet`).not.toBeNull();
+    return match![1]!.trim();
+  };
+
   it("sets the travel only while the control is on", async () => {
-    // The one place in this package where the STATE and the DRAWING are observed
-    // together. A trigger that did not follow the state - `group-hover:`, or a
-    // React prop - would carry the same class names and never reach the `on`
+    // The button host. A trigger that did not follow the state - `group-hover:`,
+    // or a React prop - would carry the same class names and never reach the `on`
     // branch below.
+    // This one does its own injection rather than using the harness above,
+    // because the sheet has to stay in the document ACROSS the click.
     const style = document.createElement("style");
     style.textContent = flattenLayers(css);
     document.head.append(style);
     try {
       const { container } = render(<stories.Off />);
       const control = container.querySelector('[data-slot="switch"]')! as HTMLElement;
-      const thumb = container.querySelector('[data-slot="switch-thumb"]')! as HTMLElement;
-      const track = container.querySelector('[data-slot="switch-track"]')! as HTMLElement;
-      const computed = (element: HTMLElement, property: string) =>
-        window.getComputedStyle(element).getPropertyValue(property);
-      /** jsdom re-serialises a value it stores (`calc(var(--spacing)*5)`), so
-       *  the two sides are compared with whitespace collapsed. */
-      const same = (a: string, b: string) =>
-        expect(a.replace(/\s+/g, "")).toBe(b.replace(/\s+/g, ""));
-      /** What the compiled sheet declares for one utility. Says WHICH utility
-       *  vanished: without this the red is a type complaint about `null`, which
-       *  names nothing and proves nothing (found by running the mutation). */
-      const declares = (name: string, property: string) => {
-        const match = new RegExp(`(?:^|[;\\s])${property}\\s*:\\s*([^;]+)`).exec(rule(name));
-        expect(match, `${name} declares no ${property} in the compiled sheet`).not.toBeNull();
-        return match![1]!.trim();
-      };
+      const thumb = container.querySelector('[data-slot="switch-thumb"]')!;
+      const track = container.querySelector('[data-slot="switch-track"]')!;
 
       // OFF, and positively: the off fill IS painted, so a sheet jsdom failed to
       // apply cannot read as "no travel".
@@ -334,8 +372,6 @@ describe("the drawing follows the state, in a real cascade", () => {
         computed(track, "background-color"),
         declares("group-aria-checked/switch:bg-primary", "background-color"),
       );
-      // The travel the stylesheet declares for this class, not a number retyped
-      // here.
       same(
         computed(thumb, "--tw-translate-x"),
         declares("group-aria-checked/switch:translate-x-5", "--tw-translate-x"),
@@ -347,5 +383,139 @@ describe("the drawing follows the state, in a real cascade", () => {
     } finally {
       style.remove();
     }
+  });
+
+  it("draws the NATIVE host from the checkbox's own state", () => {
+    // The host this part exists for, and until layer 1 nothing rendered observed
+    // it at all (HIGH-1): deleting the label host's whole class string left the
+    // suite green. `:has(:checked)` IS supported by jsdom 30 - what is not is
+    // invalidating a computed style that was read BEFORE a property-only
+    // `.checked` change, which is what made the first measurement of this file
+    // say the opposite. So the two states are read from two RENDERS instead of
+    // from one element toggled in place, and the click half is proved by the
+    // `NativeCheckbox` play.
+    const off = withSheet(() => {
+      const { container } = render(<stories.NativeCheckbox />);
+      const input = container.querySelector('[data-slot="switch-input"]')!;
+      return {
+        checked: (input as HTMLInputElement).checked,
+        // MED-4: `opacity-0` is the whole visual design of the native host and
+        // nothing pinned it - without it the OS checkbox paints over the pill.
+        opacity: computed(input, "opacity"),
+        bg: computed(container.querySelector('[data-slot="switch-track"]')!, "background-color"),
+        translate: computed(container.querySelector('[data-slot="switch-thumb"]')!, "translate"),
+      };
+    });
+    const on = withSheet(() => {
+      const { container } = render(<stories.NativeCheckboxOn />);
+      const input = container.querySelector('[data-slot="switch-input"]')!;
+      return {
+        checked: (input as HTMLInputElement).checked,
+        bg: computed(container.querySelector('[data-slot="switch-track"]')!, "background-color"),
+        travel: computed(
+          container.querySelector('[data-slot="switch-thumb"]')!,
+          "--tw-translate-x",
+        ),
+      };
+    });
+
+    expect(off.checked).toBe(false);
+    expect(on.checked).toBe(true);
+    same(off.opacity, declares("opacity-0", "opacity"));
+    same(off.bg, declares("bg-overlay", "background-color"));
+    expect(off.translate).toBe("none");
+    same(on.bg, declares("group-has-checked/switch:bg-primary", "background-color"));
+    same(on.travel, declares("group-has-checked/switch:translate-x-5", "--tw-translate-x"));
+  });
+
+  it("positions the drawing and the overlay against the boxes the geometry assumes", () => {
+    // The 20px of travel is derived from the TRACK's padding box, and the
+    // overlay input's `inset-0` from the ROW's. Both are one `relative` that no
+    // class-name assertion can miss the absence of: deleting either left the
+    // suite green while the drawing went wrong at every state (HIGH-2).
+    const button = withSheet(() => {
+      const { container } = render(<stories.Off />);
+      return {
+        root: computed(container.querySelector('[data-slot="switch"]')!, "position"),
+        track: computed(container.querySelector('[data-slot="switch-track"]')!, "position"),
+        thumb: computed(container.querySelector('[data-slot="switch-thumb"]')!, "position"),
+      };
+    });
+    const native = withSheet(() => {
+      const { container } = render(<stories.NativeCheckbox />);
+      return {
+        root: computed(container.querySelector('[data-slot="switch"]')!, "position"),
+        input: computed(container.querySelector('[data-slot="switch-input"]')!, "position"),
+      };
+    });
+    expect(button.track).toBe("relative");
+    expect(button.thumb).toBe("absolute");
+    expect(button.root).toBe("relative");
+    expect(native.root).toBe("relative");
+    expect(native.input).toBe("absolute");
+  });
+
+  it("announces off, and draws off, when the caller writes no state at all", () => {
+    // `role="switch"` REQUIRES `aria-checked`; a caller who forgets used to ship
+    // an `aria-required-attr` violation AND a switch drawn permanently off with
+    // nothing to say so (HIGH-3). The part writes the default the role mandates,
+    // and the drawing agrees with it because it reads the same attribute.
+    const seen = withSheet(() => {
+      const { container } = render(
+        <Switch>
+          <SwitchTrack>
+            <SwitchThumb />
+          </SwitchTrack>
+        </Switch>,
+      );
+      const root = container.querySelector('[data-slot="switch"]')!;
+      return {
+        role: root.getAttribute("role"),
+        aria: root.getAttribute("aria-checked"),
+        type: root.getAttribute("type"),
+        bg: computed(container.querySelector('[data-slot="switch-track"]')!, "background-color"),
+        translate: computed(container.querySelector('[data-slot="switch-thumb"]')!, "translate"),
+      };
+    });
+    expect(seen.role).toBe("switch");
+    expect(seen.aria).toBe("false");
+    // …and the other attribute a `<button>` in a form cannot do without.
+    expect(seen.type).toBe("button");
+    same(seen.bg, declares("bg-overlay", "background-color"));
+    expect(seen.translate).toBe("none");
+  });
+
+  it("will not draw a state the row does not announce", () => {
+    // HIGH-4, and the reason there is no story for it: this is the misuse, not
+    // the workbench. `<Switch asChild aria-checked>` on a label used to light the
+    // pill fully ON over an unchecked box while the row announced nothing at all.
+    // The `asChild` branch strips the attribute, so the drawing cannot get ahead
+    // of what a screen reader is told.
+    const seen = withSheet(() => {
+      const { container } = render(
+        <Switch asChild aria-checked>
+          <label>
+            <span>Notify me on this device</span>
+            <SwitchInput />
+            <SwitchTrack>
+              <SwitchThumb />
+            </SwitchTrack>
+          </label>
+        </Switch>,
+      );
+      const root = container.querySelector('[data-slot="switch"]')!;
+      return {
+        tag: root.tagName,
+        aria: root.getAttribute("aria-checked"),
+        role: root.getAttribute("role"),
+        bg: computed(container.querySelector('[data-slot="switch-track"]')!, "background-color"),
+        translate: computed(container.querySelector('[data-slot="switch-thumb"]')!, "translate"),
+      };
+    });
+    expect(seen.tag).toBe("LABEL");
+    expect(seen.aria).toBeNull();
+    expect(seen.role).toBeNull();
+    same(seen.bg, declares("bg-overlay", "background-color"));
+    expect(seen.translate).toBe("none");
   });
 });

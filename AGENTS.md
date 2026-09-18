@@ -66,9 +66,20 @@ so a component copied out of the registry reads the same here as there.
 3. Add both paths to the lists in `packages/tokens/test/helpers/source-files.ts`.
    The walk those guards stand on is CHECKED against those lists, so a new file
    reddens the suite until it is declared - that edit is the review.
-4. Add the item to `registry.json` with an explicit `target`
+4. Export the parts from `packages/ui/src/index.ts`.
+5. Add the story module to `packages/ui/test/helpers/story-suites.ts`, and move
+   `DECLARED_STORIES` / `DECLARED_PLAYS` in `packages/ui/test/stories.test.tsx` by
+   what you added. The suites map is shared with `tailwind-compile.test.tsx` and
+   is checked against the files on disk, so a part cannot leave the compile check
+   or the 44px floor check quietly - it used to be two hand-written maps, and
+   deleting a part from both was green (layer 1 of the Switch, MED-2).
+6. Move the counters in `packages/ui/test/registry.test.ts`: its item list, the
+   `registryDependencies` count and the number of files compared.
+7. Add the item to `registry.json` with an explicit `target`
    (`components/ui/<name>.tsx`), then `pnpm build:registry`, then commit `r/`.
-5. `pnpm verify`.
+8. Say the new count where the package describes itself: `README.md`, the
+   `packages/ui/package.json` description, and the list at the top of this file.
+9. `pnpm verify`.
 
 ## Two things that are measured, not assumed
 

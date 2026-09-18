@@ -3,17 +3,7 @@ import { composeStories } from "@storybook/react-vite";
 import type { ReactElement } from "react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import * as accordion from "../stories/accordion.stories.js";
-import * as badge from "../stories/badge.stories.js";
-import * as button from "../stories/button.stories.js";
-import * as card from "../stories/card.stories.js";
-import * as input from "../stories/input.stories.js";
-import * as label from "../stories/label.stories.js";
-import * as ribbon from "../stories/ribbon.stories.js";
-import * as separator from "../stories/separator.stories.js";
-import * as sheet from "../stories/sheet.stories.js";
-import * as switchPart from "../stories/switch.stories.js";
-import * as toast from "../stories/toast.stories.js";
+import { STORY_SUITES, storySuiteNames } from "./helpers/story-suites.js";
 
 /**
  * D4: the stories ARE the tests. One render to maintain, not two.
@@ -33,19 +23,7 @@ import * as toast from "../stories/toast.stories.js";
  * halves are split by instrument rather than merged into a slow one.
  */
 
-const SUITES = {
-  accordion,
-  badge,
-  button,
-  card,
-  input,
-  label,
-  ribbon,
-  separator,
-  sheet,
-  switch: switchPart,
-  toast,
-};
+const SUITES = STORY_SUITES;
 
 /**
  * `composeStories` returns a map whose values widen to `unknown` through a
@@ -76,8 +54,8 @@ afterEach(cleanup);
  * story objects before the run and from inside the run, and the two totals are
  * pinned to the number of `play:` functions in `stories/`.
  */
-const DECLARED_PLAYS = 29;
-const DECLARED_STORIES = 49;
+const DECLARED_PLAYS = 30;
+const DECLARED_STORIES = 51;
 
 describe("every story renders, and every play function passes", () => {
   const seen: string[] = [];
@@ -106,19 +84,11 @@ describe("every story renders, and every play function passes", () => {
 
   it("covers all eleven part families, with every story counted", () => {
     // The anchor: a loop that silently composed nothing would pass in silence.
-    expect(Object.keys(SUITES).sort()).toEqual([
-      "accordion",
-      "badge",
-      "button",
-      "card",
-      "input",
-      "label",
-      "ribbon",
-      "separator",
-      "sheet",
-      "switch",
-      "toast",
-    ]);
+    // Checked against the FILES rather than against a list retyped here, so a
+    // part that never entered the shared map reddens instead of vanishing
+    // (layer 1 of the Switch, MED-2).
+    expect(Object.keys(SUITES).sort()).toEqual(storySuiteNames());
+    expect(storySuiteNames()).toHaveLength(11);
     // Exact, not a floor: a floor of 35 tolerated seven stories vanishing.
     expect(seen).toHaveLength(DECLARED_STORIES);
   });

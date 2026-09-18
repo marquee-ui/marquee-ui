@@ -7,17 +7,7 @@ import { composeStories } from "@storybook/react-vite";
 import type { ReactElement } from "react";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import * as accordion from "../stories/accordion.stories.js";
-import * as badge from "../stories/badge.stories.js";
-import * as button from "../stories/button.stories.js";
-import * as card from "../stories/card.stories.js";
-import * as input from "../stories/input.stories.js";
-import * as label from "../stories/label.stories.js";
-import * as ribbon from "../stories/ribbon.stories.js";
-import * as separator from "../stories/separator.stories.js";
-import * as sheet from "../stories/sheet.stories.js";
-import * as switchPart from "../stories/switch.stories.js";
-import * as toast from "../stories/toast.stories.js";
+import { STORY_SUITES } from "./helpers/story-suites.js";
 
 /**
  * The first REAL Tailwind compile of the emitted stylesheet.
@@ -172,19 +162,7 @@ describe("every class the parts render is a utility that compiles", () => {
   const rendered = new Set<string>();
 
   beforeAll(() => {
-    const suites = {
-      accordion,
-      badge,
-      button,
-      card,
-      input,
-      label,
-      ribbon,
-      separator,
-      sheet,
-      switch: switchPart,
-      toast,
-    };
+    const suites = STORY_SUITES;
     for (const module of Object.values(suites)) {
       for (const [, Story] of storiesOf(module)) {
         render(<Story />);
@@ -275,19 +253,7 @@ describe("every interactive element clears the 44px tap floor", () => {
 
   beforeAll(() => {
     const vars = rootVars();
-    const suites = {
-      accordion,
-      badge,
-      button,
-      card,
-      input,
-      label,
-      ribbon,
-      separator,
-      sheet,
-      switch: switchPart,
-      toast,
-    };
+    const suites = STORY_SUITES;
     for (const module of Object.values(suites)) {
       for (const [, Story] of storiesOf(module)) {
         render(<Story />);
