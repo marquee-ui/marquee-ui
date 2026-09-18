@@ -16,13 +16,13 @@ parts and props instead of inventing one.
 
 ## Status
 
-Tokens and the first ten parts. No docs site yet, and nothing published.
+Tokens and the first eleven parts. No docs site yet, and nothing published.
 
 - **`packages/tokens`**: the typed role contract, two presets (`arcade`, the dark
   default, and `light`), the generated stylesheet and W3C DTCG JSON, the three
   faces with their licences, and the build checks that stop a preset publishing.
-- **`packages/ui`**: ten part families - `Button`, `Input`, `Label`, `Card`,
-  `Badge`, `Separator`, `Accordion`, `Sheet`, `Toast`, `Ribbon` - as parts with
+- **`packages/ui`**: eleven part families - `Button`, `Input`, `Label`, `Card`,
+  `Badge`, `Separator`, `Accordion`, `Sheet`, `Switch`, `Toast`, `Ribbon` - as parts with
   `asChild` slots, `cva` for visual axes only, Radix where a primitive exists. Six
   of them were moved out of a real product through the role rename table, and
   `packages/ui/test/fidelity.test.tsx` is what says the move changed no pixel.

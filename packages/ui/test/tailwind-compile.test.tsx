@@ -16,6 +16,7 @@ import * as label from "../stories/label.stories.js";
 import * as ribbon from "../stories/ribbon.stories.js";
 import * as separator from "../stories/separator.stories.js";
 import * as sheet from "../stories/sheet.stories.js";
+import * as switchPart from "../stories/switch.stories.js";
 import * as toast from "../stories/toast.stories.js";
 
 /**
@@ -181,6 +182,7 @@ describe("every class the parts render is a utility that compiles", () => {
       ribbon,
       separator,
       sheet,
+      switch: switchPart,
       toast,
     };
     for (const module of Object.values(suites)) {
@@ -283,6 +285,7 @@ describe("every interactive element clears the 44px tap floor", () => {
       ribbon,
       separator,
       sheet,
+      switch: switchPart,
       toast,
     };
     for (const module of Object.values(suites)) {

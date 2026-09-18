@@ -12,6 +12,7 @@ import * as label from "../stories/label.stories.js";
 import * as ribbon from "../stories/ribbon.stories.js";
 import * as separator from "../stories/separator.stories.js";
 import * as sheet from "../stories/sheet.stories.js";
+import * as switchPart from "../stories/switch.stories.js";
 import * as toast from "../stories/toast.stories.js";
 
 /**
@@ -42,6 +43,7 @@ const SUITES = {
   ribbon,
   separator,
   sheet,
+  switch: switchPart,
   toast,
 };
 
@@ -74,8 +76,8 @@ afterEach(cleanup);
  * story objects before the run and from inside the run, and the two totals are
  * pinned to the number of `play:` functions in `stories/`.
  */
-const DECLARED_PLAYS = 25;
-const DECLARED_STORIES = 42;
+const DECLARED_PLAYS = 29;
+const DECLARED_STORIES = 49;
 
 describe("every story renders, and every play function passes", () => {
   const seen: string[] = [];
@@ -102,7 +104,7 @@ describe("every story renders, and every play function passes", () => {
     }
   }
 
-  it("covers all ten part families, with every story counted", () => {
+  it("covers all eleven part families, with every story counted", () => {
     // The anchor: a loop that silently composed nothing would pass in silence.
     expect(Object.keys(SUITES).sort()).toEqual([
       "accordion",
@@ -114,6 +116,7 @@ describe("every story renders, and every play function passes", () => {
       "ribbon",
       "separator",
       "sheet",
+      "switch",
       "toast",
     ]);
     // Exact, not a floor: a floor of 35 tolerated seven stories vanishing.

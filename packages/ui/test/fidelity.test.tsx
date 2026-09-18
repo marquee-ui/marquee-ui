@@ -16,7 +16,7 @@ import { Toast, ToastAction, ToastMessage } from "@/toast";
 /**
  * The move is a RENAME, not a redesign.
  *
- * Six of the ten part families were lifted out of a real product, and the promise
+ * Six of the eleven part families were lifted out of a real product, and the promise
  * this package makes to that product is that the consume step shows an empty
  * screenshot diff. Class assertions are normally worthless - a restatement of the
  * implementation - and here they are the deliverable itself, so this file pins

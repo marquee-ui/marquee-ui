@@ -17,5 +17,6 @@ export {
   SheetTitle,
   SheetTrigger,
 } from "./sheet.js";
+export { Switch, SwitchInput, SwitchThumb, SwitchTrack, type SwitchProps } from "./switch.js";
 export { Toast, ToastAction, ToastMessage, type ToastProps } from "./toast.js";
 export { cn } from "./lib/utils.js";
