@@ -1826,3 +1826,118 @@ docblock naming `fidelity.test.tsx` and `switch-drawing.test.tsx`'s naming
 
 **0 CROSS, 0 UNOWNED**, 20 names NEW between the two runs (run 1 ran against an empty
 diff by construction). The batch's other stream is in a different repository.
+
+## Layer 1 (reviewer, detached worktree of c6cd0c2b, slot r6)
+
+33 mutations, **2 stayed GREEN**, 8 findings (1 HIGH / 2 MED / 5 LOW). The reviewer
+ran `pnpm build` before `pnpm test` (the base needs it), took the baseline at
+`Test Files 20 passed (20) / Tests 342 passed (342)`, applied every mutation as a
+FULL `pnpm test` with `git status --short` confirmed empty between them, re-ran this
+slice's own consumer scan (byte-identical to run 2) and its own independent sweep of
+every counter a new family must enter, and removed its worktree. Its table, verbatim:
+
+<!-- prettier-ignore-start -->
+
+| file | test | mutation applied | red / GREEN | what it asserts now |
+|---|---|---|---|---|
+| src/breadcrumb.tsx | nav-consumption "names itself…", "links every step…", "puts the call site's test id…"; stories breadcrumb/Trail, breadcrumb/OneStep, "runs all 35 play functions" | M1 drop the `= NAV_LABEL` default on `Breadcrumb` | **red** (7 failed) | intact |
+| src/pagination.tsx | nav-consumption "resolves the pager…"; stories pagination/Window, LastPage, SinglePage, "runs all 35 play functions" | M2 drop the `= NAV_LABEL` default on `Pagination` | **red** (6 failed) | intact |
+| src/breadcrumb.tsx | nav-consumption "gives every tappable step the 44px floor"; fidelity `breadcrumb.link`; tailwind-compile "measures every one of them at or above the floor" + "gives every tappable step of the trail the floor, in pixels" | M3 `const linkClass = ""` | **red** (5 failed) | intact |
+| src/breadcrumb.tsx | nav-consumption "keeps the linked steps unshrinkable"; fidelity `breadcrumb.item`; tailwind-compile "found the classes to measure…" + "lets only the step you are standing on give way" | M4 drop `shrink-0` from `itemClass` | **red** (5 failed) | intact |
+| src/breadcrumb.tsx | fidelity `breadcrumb.currentItem`; tailwind-compile "lets only the step you are standing on give way" | M5 drop `min-w-0` from `pageItemClass` | **red** (3 failed) | intact |
+| src/pagination.tsx | fidelity `pagination.linkCurrent` + `pagination.linkOther`; tailwind-compile "gives the pager's cells the floor on BOTH axes" | M6 drop **only** `min-w-11` from `linkClass` | **red**, message `the page you are on: min-width: expected [] to deeply equal [ 44 ]` | intact - the new min-WIDTH arm can fail |
+| src/pagination.tsx | tailwind-compile "gives the pager's cells the floor on BOTH axes"; fidelity `pagination.linkOther` | M7 move `min-w-11` out of the base into `linkCurrentClass` only | **red**, message `every other page: min-width: expected [] to deeply equal [ 44 ]`; the current-page arm stayed green | intact - BOTH link states are measured independently |
+| src/pagination.tsx | nav-consumption "resolves the pager…"; 3 pagination plays; tailwind-compile BOTH axes | M8 `const current = undefined` (never write `aria-current`) | **red** (7 failed) | intact |
+| src/pagination.tsx | nav-consumption "resolves the pager…"; pagination/Window + LastPage plays; tailwind-compile BOTH axes | M9 drop `aria-current` from the **`asChild` branch only** | **red** (6 failed; SinglePage stayed green - it uses the non-asChild branch) | intact |
+| src/breadcrumb.tsx | nav-consumption "hides the trail's separator and lets a caller replace the glyph" | M10 drop `aria-hidden="true"` from `BreadcrumbSeparator` | **red** (1 failed) | intact, but no story `play` sees it |
+| src/breadcrumb.tsx | nav-consumption "hides the trail's separator…", "renders the steps in trail order" | M11 `{children}` instead of `{children ?? SEPARATOR}` | **red** (2 failed) | intact |
+| test/nav-consumption.test.tsx | "renders the steps in trail order, as one list" | M12 rebuild `Trail` in shadcn's shape (separator in a sibling `<li role="presentation" aria-hidden>`) | **red**, `expected [ 'Start', 'A section', …(1) ] to deeply equal [ 'Start', '·A section', …(1) ]` | the **corrected** docblock is exactly right: the strip assertion stays green, the item-TEXT assertion is the one that holds the shape |
+| test/fidelity.test.tsx | "covers every moved string" (nav) | M13 empty `NAV_CASES` | **red** (1 failed; 24 tests vanished, 342 -> 318) | the anchor caught it |
+| test/fidelity.test.tsx | the 12 nav rows | M14 `expectedUnion` returns `[]` | **red** 11/12; **`pagination.nav` stayed GREEN** | see LOW-1 |
+| test/fidelity.test.tsx | every slot-read row in the file | M15 `slotClass` returns `""` | **red** (40 failed) | intact; the `cn is a no-op` nav rows and `pagination.nav` stayed green (`cn("") === ""`) |
+| test/fixtures/upstream-nav-classes.json | fidelity `pagination.nav` | M16 change the upstream `pagination.nav` string so the declared DROP no longer matches | **red**, `Error: pagination.nav: declared departure "mt-2" matched nothing in the upstream string` | a stale DROP departure throws by name |
+| test/fixtures/upstream-nav-classes.json | fidelity `pagination.nav` | M17 add a SECOND utility beside the dropped one (`"mt-2 border-line-strong"`) | **red**, `expected [] to deeply equal [ 'border-border-strong' ]` | the DROP cannot hide a second dropped utility |
+| test/tailwind-compile.test.tsx | all 5 tests of the new describe | M18 `declaredValues` returns `[]` | **red** (5 failed) | no vacuous pass; every test carries a positive read |
+| test/tailwind-compile.test.tsx | all 5 tests of the new describe | M19 `slotTokens` returns `[]` | **red** (5 failed) | intact |
+| test/tailwind-compile.test.tsx | the whole file | M20 anchor the floor-guard regex to `(?:^\|[;\s])(?:min-height\|height)` | **GREEN** (342 passed) | nothing currently scores its 44px off a `line-height` substring - see LOW-3 |
+| test/tailwind-compile.test.tsx | 12 tests across 3 describes | M21 `rule()` returns `""` | **red** (12 failed) | intact |
+| stories/breadcrumb.stories.tsx | stories "runs all 35 play functions, and knows if one stopped running" | M22 delete `Trail`'s `play` | **red** (1 failed) | intact |
+| stories/breadcrumb.stories.tsx | stories "covers all thirteen part families…", "runs all 35 play functions…" | M23 delete the `OneStep` story | **red** (2 failed) | intact |
+| test/helpers/story-suites.ts | stories "covers all thirteen…", "runs all 35…"; tailwind-compile's 4 nav-reading tests | M24 remove `breadcrumb` from `STORY_SUITES` | **red** (6 failed) | the shared map + `storySuiteNames()` anchor works; note the two sweep tests ("compiles every one of them", "measures every one of them at or above the floor") stayed green by simply measuring less |
+| packages/tokens/test/helpers/source-files.ts | source-coverage x3, brand-guard, literal-guard | M25 remove `packages/ui/src/breadcrumb.tsx` from `PUBLISHED_SOURCE_FILES` | **red** (3 failed + 2 files errored) | intact |
+| packages/tokens/test/helpers/source-files.ts | source-coverage x2, brand-guard | M26 remove `packages/ui/stories/pagination.stories.tsx` from `STORY_FILES` | **red** (2 failed + 1 file errored) | intact |
+| registry.json | registry.test x7 | M27 delete the `breadcrumb` registry item | **red** (7 failed) | the 13/15 counters and the byte-for-byte index all fire |
+| src/breadcrumb.tsx | nav-consumption x3, breadcrumb plays x2, "runs all 35…" | M28 `NAV_LABEL = "breadcrumb"` (shadcn's lowercase) | **red** (7 failed) | the case-sensitivity claim in the docblock is true and instrumented |
+| test/fixtures/upstream-nav-classes.json | nav-consumption "reads its names out of the fixture…", "lets the caller rename either landmark" | M29 delete the `breadcrumb.navLabel` contracts key | **red** 2/13; **3 name-resolving tests stayed GREEN** | see MED-2 |
+| test/fixtures/upstream-nav-classes.json | nav-consumption "reads its names out of the fixture…" | M29b change `pagination.linkLabel` to a WRONG value (`"Pages ${p}"`) | **red** 1/13 (anchor only); the other 12 stayed GREEN | the anchor is the sole check on a wrong fixture value - by design, stated in the file |
+| test/fixtures/upstream-nav-classes.json | nav-consumption x4 | M29c delete the `pagination.linkLabel` key | **red** 4/13, `TypeError: Cannot read properties of undefined (reading 'replace')` | a missing template key is loud |
+| test/fixtures/upstream-nav-classes.json | nav-consumption x2 | M29d delete the `breadcrumb.testId` key | **red** 2/13, `Unable to find an element by: [data-testid="undefined"]` | a missing test-id key is loud |
+| src/pagination.tsx | fidelity `pagination.nav` + "leaves the pager's outer margin to the caller, and passes it through" | M30 give the pager's `<nav>` a `className="mt-2"` of its own | **red** (3 failed) | the DROP is guarded from both sides |
+| src/pagination.tsx | nav-consumption "resolves the pager…" + "derives the current page's announcement…"; pagination/Window + SinglePage plays | M31 make `PaginationLink` guess its own `aria-label` from the child, after the caller's props | **red** (6 failed); `pagination/LastPage` stayed green (it resolves by index, never by name) | intact |
+| test/fidelity.test.tsx | "carries no rename entry the upstream strings do not use" | M32 add an unused RENAME entry | **red**, `rename entries that no upstream string uses: expected [ 'text-nowhere' ] to deeply equal []` | intact |
+| src/breadcrumb.tsx | nav-consumption "marks the step you are standing on as the current page"; both breadcrumb plays; "runs all 35…" | M33 drop `aria-current="page"` from `BreadcrumbPage` | **red** (5 failed) | intact |
+
+<!-- prettier-ignore-end -->
+
+**Mutations run: 33. Stayed GREEN: 2** - M20, which was a deliberate probe for the
+latent regex hazard of LOW-3 rather than the collapse of a claim, and the
+`pagination.nav` fidelity row of LOW-1, which compares `[]` to `[]` by construction.
+Its two scans found no consumer and no declared list this slice's own runs missed.
+
+### Acting on the layer-1 findings (fixes at `59d54f13`)
+
+**Every finding was reproduced here before it was acted on** - a probe in this
+worktree that printed the child's `aria-current` as `"page"` on a link wearing
+`border-border-strong`, the child's `aria-label` as `"Go to two"`, and the empty
+`aria-label` attribute as `""`.
+
+- **HIGH-1 (taken, as a narrowing plus an instrument).** Radix's `Slot` merges the
+  CHILD's props over the slot's, so `aria-current` written after `{...props}` beats a
+  prop passed to `PaginationLink` and NOT an attribute on the child - and `asChild` is
+  the branch a real app uses. The docblock called that disagreement impossible, which
+  is the class-B shape exactly. ⚠️ The code did NOT change: stripping a child's own
+  attribute would fight `asChild`'s contract (the caller's element is the caller's) and
+  would need `cloneElement` machinery no part in this package has. What changed is that
+  the claim now says how far it reaches, and the behaviour is PINNED by a test rather
+  than promised away - `lets a child's own attributes win under asChild, which is the
+caller's to get right`, which asserts the name resolution the consumer would lose AND
+  the announcement/ink split. The rule for a host is one line in the checklist: pass
+  `isActive`, and write neither `aria-current` nor `aria-label` on your child.
+- **MED-1 (taken, same place).** The same merge order reaches the per-link name; said
+  in `pagination.tsx`'s own docblock and covered by the same new test.
+- **MED-2 (taken).** The ARIA contracts are read through `contract()`, which throws on
+  a missing or empty key. Measured: with `breadcrumb.navLabel` deleted, the file now
+  fails to load at all (`upstream-nav-classes.json has no contract for
+breadcrumb.navLabel`, 329 tests collected instead of 344) where before three
+  name-resolving tests went GREEN with `{ name: undefined }` silently dropping the
+  filter.
+- **LOW-2 (taken).** `aria-label={value || ""}` shipped an unnamed landmark, because a
+  default parameter fires only on `undefined`. Both landmarks now fall back on any
+  falsy label, with `never ships an unnamed landmark, whatever falsy label a caller
+computes` behind it.
+- **LOW-3 (taken).** The older floor guard's property read is anchored, so `height`
+  cannot match inside `line-height:`. Re-proved that the guard still FIRES after the
+  anchor rather than only that it stayed green: removing `min-h-11` from the trail's
+  link reddens `measures every one of them at or above the floor` with four offenders.
+- **LOW-4 (taken).** The pager's floor comment now gives the reason that holds for it
+  (fidelity: the rename table carries no entry, so `min-h-hit` reddens two fidelity
+  rows) instead of borrowing the trail's "the consumer's tests grep the literal", which
+  is substantiated for the trail only.
+- **LOW-5 (taken).** The separator's `aria-hidden` is now asserted in the story a
+  consumer copies as well as in the consumption suite; dropping it reddens both.
+- **LOW-1 (recorded, not changed).** The `pagination.nav` fidelity row compares `[]`
+  to `[]` and cannot fail today. It is kept because it is the ledger entry for the
+  dropped utility, and the property is carried by two arms that DO fail: `leaves the
+pager's outer margin to the caller` and the stale-departure throw. It stops being
+  vacuous the moment the upstream nav grows a second utility. It is not evidence for
+  anything and is named here so nobody counts it.
+
+Re-reddened after the fixes (the same protocol, at `59d54f13`, logs in
+`$BATCH_SCRATCH/s2/mutations/`): the `asChild` branch collapsed to a plain anchor
+(7 red, including the new test and the package floor guard seeing a 0px link); the
+inactive ink swapped for the active one (`expected 'flex min-h-11 min-w-11 items-center j…' to contain 'border-border-strong'`);
+the falsy-label fallback reverted to a default parameter
+(`Unable to find an accessible element with the role "navigation" and name "Breadcrumb"`);
+a contracts key deleted (the file throws by name); `min-h-11` removed after the regex
+anchor (`gives every tappable step the 44px floor`, `breadcrumb.link`, both floor arms);
+and the separator's `aria-hidden` removed (the consumption test AND the `Trail` play).
