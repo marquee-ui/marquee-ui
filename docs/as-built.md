@@ -1149,7 +1149,11 @@ What the consumption half needs when `0.1.1` publishes, in one list:
   selector AND by a cascade), the two hosts changing the same properties by the
   same amounts (compared by declaration, not by class string), the disabled
   rendering on both hosts, and `travel === trackW - 2*border - 2*inset - thumbW`
-  (re-derived from the compiled sheet rather than from the strings).
+  (re-derived from the compiled sheet rather than from the strings). Its other two
+  arms - that the two hosts share the off-state drawing, and that neither host
+  spells a track of its own - stop being assertions and become true by
+  construction: there is ONE track string and ONE thumb string, carrying both
+  triggers, and a host that hand-typed a pill would not be using the part at all.
 - `e2e/mobile-390.spec.ts`'s thumb-move arm stays TRUE and unchanged: same 44x24
   track, same 20px of travel, same `aria-checked` under it. It is also now the only
   instrument in either repo that can see the thumb move, so it should not be
