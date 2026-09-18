@@ -1362,3 +1362,467 @@ story file it renders). Still **0 CROSS, 0 UNOWNED**.
 which is how `stories.test.tsx` and `tailwind-compile.test.tsx` reach a new story
 file. Both were found by reading the suite rather than by the scan, and the
 declared-list arm (scan 4) is what actually covers them here.
+
+## DESIGN-LIB-d: Breadcrumb and Pagination (2026-09-18)
+
+Scope: the second catalogue addition, and the first MOVES since a2 - the consuming
+product's design audit names `Breadcrumb` in the `should use` column of 10 rows and
+`Pagination` of 9, more than any part that does not already ship (re-counted on the
+thepile base: `awk -F'|' 'NF>4 {print $4}' docs/design-audit.md` piped through
+`command grep -c -w`, which is the brief's number confirmed). Both are lifted out of
+one component each, so the FIDELITY rule binds them: the tokens change name, the
+pixels do not. Nothing was published, nothing was pushed (the Actions-minutes
+freeze), no version was bumped, and nothing in the consuming repo was changed - it
+was read only, with `git show`, at commit `f00ce14a`.
+
+### What shipped
+
+| file                                                  | what                                                                                                                                                          |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/ui/src/breadcrumb.tsx`                      | seven parts - `Breadcrumb`, `BreadcrumbList`, `BreadcrumbItem`, `BreadcrumbPageItem`, `BreadcrumbSeparator`, `BreadcrumbLink`, `BreadcrumbPage` (6,801 B)     |
+| `packages/ui/src/pagination.tsx`                      | five parts - `Pagination`, `PaginationContent`, `PaginationItem`, `PaginationEllipsis`, `PaginationLink` (4,954 B)                                            |
+| `packages/ui/stories/breadcrumb.stories.tsx`          | 3 stories, 2 with a `play`                                                                                                                                    |
+| `packages/ui/stories/pagination.stories.tsx`          | 3 stories, 3 with a `play`                                                                                                                                    |
+| `packages/ui/test/nav-consumption.test.tsx`           | 14 tests: the consuming product's own six unit assertions, its three `data-testid` probes and its pager e2e resolution, run against the real parts            |
+| `packages/ui/test/fixtures/extract-upstream-nav.mjs`  | the second upstream extractor: 13 class strings and 4 ARIA contracts, read with `git show`, markers checked for uniqueness                                    |
+| `packages/ui/test/fixtures/upstream-nav-classes.json` | its output, recording the commit it was read at                                                                                                               |
+| `packages/ui/test/fidelity.test.tsx`                  | 25 new assertions: 12 nav cases over 13 fixture rows, the `cn` no-op loop over them, one DROP departure, and the stale-rename check now reading both fixtures |
+| `packages/ui/test/tailwind-compile.test.tsx`          | a new describe, 5 tests: the shrink/`min-width` pair and the pager's floor on BOTH axes, in resolved declarations                                             |
+| `registry.json` + `packages/ui/r/*.json`              | the `breadcrumb` and `pagination` items, `@radix-ui/react-slot` as their dependency, `@marquee/utils` as their registry dependency                            |
+| the declared lists                                    | both lists in `source-files.ts`, the shared suites map, `stories.test.tsx`'s two counts, `registry.test.ts`'s item list and its two counters                  |
+| the stated count                                      | `AGENTS.md`, `README.md` and `packages/ui/package.json` say thirteen part families; `README.md` and `fidelity.test.tsx` say EIGHT of them were moved          |
+
+No new dependency: `@radix-ui/react-slot` was already here, no Radix primitive exists
+for either family, and the house glyph is the middot `·` as text, so no icon package.
+`pnpm test` goes from **290 tests in 19 files to 342 in 20** (base measured at
+`9c40f3ad`: `pnpm verify` exit 0 in 13.81 s, `Test Files 19 passed (19)`,
+`Tests 290 passed (290)`).
+
+The shape, in one line each:
+
+```tsx
+// the trail: the separator is INSIDE the item it precedes, and which ITEM part a
+// step uses is what decides whether it may shrink
+<Breadcrumb data-testid="breadcrumb">
+  <BreadcrumbList>
+    <BreadcrumbItem><BreadcrumbLink asChild><Link href="/">Home</Link></BreadcrumbLink></BreadcrumbItem>
+    <BreadcrumbPageItem><BreadcrumbSeparator /><BreadcrumbPage>{name}</BreadcrumbPage></BreadcrumbPageItem>
+  </BreadcrumbList>
+</Breadcrumb>
+
+// the pager: `pageWindow` stays with the collection, the label stays with the caller
+<Pagination className="mt-2">
+  <PaginationContent>
+    <PaginationItem>
+      {gap && <PaginationEllipsis />}
+      <PaginationLink asChild isActive={p === current} aria-label={`Page ${p}`}>
+        <Link href={href(p)}>{p}</Link>
+      </PaginationLink>
+    </PaginationItem>
+  </PaginationContent>
+</Pagination>
+```
+
+### Measurements, and what they corrected
+
+**1. `min-h-11` is not interchangeable with the house's `min-h-hit`, and the rename
+table's silence about it is load-bearing.** Both resolve to 44px - the package's own
+floor guard reads them identically, in pixels, out of the compiled sheet. But the
+consuming product's unit test greps the LITERAL string
+(`expect(link.className).toContain("min-h-11")`), so a part that spelled the floor the
+house way would redden a repository this suite cannot run. Measured by mutation: with
+`min-h-hit` in the link, `gives every tappable step the 44px floor` fails with
+`expected 'inline-flex min-h-hit items-center un…' to contain 'min-h-11'` and the
+package's resolved-pixel floor guard stays **green**. Same for the pager's
+`min-h-11 min-w-11`.
+
+**2. The pager's cells are 44px on two axes and the second one was measured nowhere.**
+`tailwind-compile.test.tsx`'s floor guard collects
+`min-height`/`height` only (its regex, line 268), which is the right instrument for
+every control that shipped before this one. A page link is a box whose CONTENT is one
+or two digits, so `min-w-11` is the half that makes it tappable, and deleting it left
+that guard green: the new arm
+(`gives the pager's cells the floor on BOTH axes, which no other guard reads`) is what
+reddens, `the page you are on: min-width: expected [] to deeply equal [ 44 ]`. It
+measures both link states, because a floor that moved with the state would be a floor
+nobody has.
+
+**3. `min-w-0` has to be on the ITEM, not on the page inside it** - and that is why
+the one-line rule ships as two `li` parts rather than as a prop. A flex item's
+automatic minimum size is its content, so the `<li>` must be allowed below its
+content or the row overflows instead of the name truncating; the `<span>` inside is a
+scroll container (`truncate` brings `overflow: hidden`) and can already shrink. The
+brief said "the item and the page part carry the right flex classes"; the page part
+carries `truncate text-foreground` and nothing else, and moving `min-w-0` onto it
+would stop the truncation it exists for. Read as resolved declarations, the pair is
+`flex-shrink: 0` on the linked item with no `min-width` at all, and `min-width: 0px`
+on the current one with no `flex-shrink`.
+
+**4. The separator's shape: what I claimed, and what the runner actually does.** The
+first version of this part's docblock said a separator as its own list item "puts
+FIVE items in a three-step trail" and would redden the consumer's trail-order test.
+The reddening run for it reddened nothing but the byte guard, so the claim was
+measured instead of argued (`$BATCH_SCRATCH/s2/separator-shapes.txt`, a two-step list
+in this runner):
+
+| separator shape                                 | `getAllByRole("listitem")` | raw `<li>` | the items' texts  |
+| ----------------------------------------------- | -------------------------- | ---------- | ----------------- |
+| inside the item (this part)                     | 2                          | 2          | `["a", "·b"]`     |
+| a `<li>` NESTED inside the item (the mutation)  | 2                          | 3          | `["a", "·b"]`     |
+| shadcn's `<li role="presentation" aria-hidden>` | 2                          | 3          | `["a", "b"]`      |
+| a sibling `<li>` with no role and not hidden    | 3                          | 3          | `["a", "·", "b"]` |
+
+So the item COUNT cannot tell the shapes apart: a nested `<li>` has no `listitem` role
+at all and an `aria-hidden` sibling is excluded from the tree. What can tell them
+apart is the item's own TEXT, which is what the consumer's `replace(/^·\s*/, "")` is
+written for - and that is now asserted beside the strip
+(`["Start", "·A section", "·The page you are on"]`), which reddens when the separator
+moves out of its item. The reasons the shape is kept are the two that survive
+measurement: one flex child per step, which is what the `shrink-0` rule was measured
+against, and the glyph inside the text.
+
+**5. The landmark name is CASE-SENSITIVE in the consumer's instrument, so shadcn's
+default would have reddened it.** `getByRole("navigation", { name: "Breadcrumb" })`
+matches the accessible name exactly; with the part's default lowercased to shadcn's
+`"breadcrumb"`, three tests fail with
+`Unable to find an accessible element with the role "navigation" and name "Breadcrumb"`.
+The pager's is the same shape one step further: the e2e asks Playwright for
+`{ name: "Pages" }`, which is case-insensitive but still a whole-string match, and
+shadcn's `"pagination"` is a different word. Both parts therefore default to the
+consumer's own spelling, and both let a caller rename the landmark (`aria-label` is
+destructured with a default rather than spread, so a caller who passes none still
+gets a named landmark).
+
+**6. The base is green only after a build** (the Switch's measurement 8, unchanged and
+re-confirmed here): `pnpm test` in a fresh worktree is red on four files until
+`packages/tokens/dist` exists. `pnpm verify` orders it that way.
+
+**7. jsdom lays nothing out, so no `play` here sees the truncation, the tap or a box.**
+That is DL7's measurement in this same document (its measurement 2), not re-run; it is
+why the two stories that exist to SHOW the one-line rule carry no `play`, and why the
+geometry lives in the compiled-sheet arms instead.
+
+### Every UNVERIFIED claim in the brief, measured
+
+1. **"`<nav aria-label="Breadcrumb" data-testid="breadcrumb">` (the testid is the CALL
+   SITE's to pass; the part spreads props)"** - the first half is right and the
+   parenthesis is not, TODAY: the id is hard-coded in the component
+   (`components/game/Breadcrumb.tsx:31`) and the single call site
+   (`app/game/[slug]/page.tsx:522`) passes only `crumbs`. The part here does spread
+   props, so the conclusion stands, but the consumption has to MOVE the id to the call
+   site rather than keep it - and three e2e specs resolve by it
+   (`e2e/seo.spec.ts:371`, `e2e/a11y.spec.ts:450`, `e2e/mobile-390.spec.ts:883`, all
+   three line numbers confirmed at the base).
+2. **"Pagination: `<nav aria-label="Pages">` (the call site adds `mt-2`)"** - WRONG,
+   and the batch section says the same thing. `mt-2` is on the nav inside
+   `components/hubs/HubPagination.tsx:34`, and all NINE call sites pass only
+   `href` / `current` / `totalPages` (`[username]/[shelf]/[[...view]]/page.tsx:306`,
+   `components/browse/BrowseListing.tsx:167`, `lib/genre-hub.tsx:133`,
+   `lib/lists-hub.tsx:118`, `lib/members-hub.tsx:125`, `lib/platform-hub.tsx:123`,
+   `lib/releases.tsx:204`, `lib/series-hub.tsx:119`, `lib/studio-hub.tsx:115`). Same
+   for the per-link `aria-label={`Page ${p}`}`, which is the component's
+   (`HubPagination.tsx:50`). Consequence for the consumption, in the checklist below:
+   the margin and the two labels become the call site's, at nine sites, or the pager
+   moves up 8px on every hub and `e2e/hubs.spec.ts:565` loses both its resolutions.
+3. **The trail's class contract** (`ol` `flex items-center text-sm text-text-secondary`,
+   link items `flex shrink-0 items-center`, the current item `flex min-w-0 items-center`,
+   the separator `px-2 text-text-muted` before every item but the first, links
+   `inline-flex min-h-11 items-center underline underline-offset-2 hover:text-text`,
+   the page `truncate text-text` under `aria-current="page"`) - CONFIRMED byte for
+   byte: those strings are what the extractor read into
+   `upstream-nav-classes.json`, and the parts are compared against them through the
+   rename table rather than against anything typed here.
+4. **The pager's class contract** - CONFIRMED byte for byte, including the current /
+   other pair (`border-accent text-text` against
+   `border-line-strong text-text-secondary hover:border-accent hover:text-text`).
+5. **"the item and the page part carry the right flex classes"** - half wrong, and the
+   half that is wrong would cost the feature: measurement 3.
+6. **"`pageWindow` (WHICH pages) stays in thepile's contracts package; the part is
+   presentation"** - CONFIRMED: `HubPagination.tsx:1` imports it from
+   `@thepile/contracts/pure`, and nothing about a window crossed into this package.
+7. **"Roles, never thepile's names"** (five renames listed) - CONFIRMED, and the
+   stronger result is that the a1 table needed NO new entry: every one of the 13
+   upstream strings maps through the table as it stood, with `min-h-11`, `min-w-11`,
+   `truncate`, `underline-offset-2` and the layout utilities carried through
+   unchanged. The one change that is not a rename is the pager nav's `mt-2`, declared
+   as a DROP with its reason (decision 4).
+8. **"No Radix primitive exists for either; `@radix-ui/react-slot` covers `asChild`;
+   NO new dependency and no icon package"** - CONFIRMED by construction: both families
+   ship with `@radix-ui/react-slot` alone, which was already a dependency, and the
+   glyph is text.
+9. **"`Breadcrumb` on 10 rows and `Pagination` on 9"** - re-counted at the thepile
+   base: 10 and 9.
+10. **"`e2e/shots/manifest.ts:1013` (prose only)"** - CONFIRMED: line 1013 is the
+    `/lists/page/[n]` exclusion's reason, which names `HubPagination` in a sentence and
+    asserts nothing about it.
+
+### Guards, each proved by running its reddening mutation
+
+Run in the COMMITTED tree (`5e1f5634`, and the two that came after the correction at
+`c6cd0c2b`), each landing confirmed by `git grep` before the run was read, each
+reverted with `git checkout --` and `git status --short` empty afterwards. The runner
+is `$BATCH_SCRATCH/s2/mutate.py`, the logs are in `$BATCH_SCRATCH/s2/mutations/`.
+
+⚠️ Read one thing into every row below: **every source mutation also reddens
+`carries the CURRENT bytes of every source it ships`**, because `packages/ui/r` was
+not rebuilt. That is the registry guard doing its job (it is how a committed build
+artefact is kept honest) and it is omitted from the table, which lists the reds that
+NAME the mutated property.
+
+<!-- prettier-ignore-start -->
+
+| guard | mutation | landed | the red it produced |
+| --- | --- | --- | --- |
+| the moved set is the upstream set, renamed | `text-foreground-2` -> `text-muted` in the trail's list | `breadcrumb.tsx:44` | `breadcrumb.list`, the utility SETS compared |
+| the floor keeps the spelling its consumer greps | link `min-h-11` -> `min-h-hit` | `breadcrumb.tsx:51` | TWO: `breadcrumb.link` (the set), and `gives every tappable step the 44px floor` with `expected 'inline-flex min-h-hit items-center un…' to contain 'min-h-11'`. The package's own pixel floor guard stayed GREEN, which is the finding |
+| the glyph is part of the item's text | the separator moved out of the item in the CONSUMPTION render | `nav-consumption.test.tsx:79` | TWO: `renders the steps in trail order, as one list` with `expected [ 'Start', 'A section', …(1) ] to deeply equal [ 'Start', '·A section', …(1) ]`, and the separator count |
+| the separator is inside the item, in the story a consumer copies | the separator moved out of the item in `breadcrumb/Trail` | `breadcrumb.stories.tsx:30` | `breadcrumb/Trail` with `expect(element).toContainElement(element)`, plus the play counter |
+| the current step announces itself | `aria-current="page"` removed from `BreadcrumbPage` | `breadcrumb.tsx:135` | FOUR: `marks the step you are standing on as the current page`, `breadcrumb/Trail`, `breadcrumb/OneStep`, and the play counter |
+| the landmark's name is the consumer's | the default `"Breadcrumb"` -> `"breadcrumb"` | `breadcrumb.tsx:40` | SIX: three consumption tests with `Unable to find an accessible element with the role "navigation" and name "Breadcrumb"`, both breadcrumb plays, and the play counter |
+| only the step you are standing on may give way | the linked item's `shrink-0` -> `min-w-0` | `breadcrumb.tsx:46` | FOUR: `keeps the linked steps unshrinkable, so they cannot stack`; `breadcrumb.item`; and in resolved declarations `expected [] to deeply equal [ '0' ]` for `flex-shrink` plus the instrument's own anchor |
+| the pager's cell is 44px on BOTH axes | `min-w-11` removed from the page link | `pagination.tsx:36` | THREE: `the page you are on: min-width: expected [] to deeply equal [ 44 ]`, `pagination.linkCurrent`, `pagination.linkOther` |
+| the ink and the announcement come from ONE prop | `aria-current` decoupled from `isActive` | `pagination.tsx:112` | SIX: `resolves the pager by its landmark name and each page by its whole phrase`, all three pagination plays, the play counter, and `Window renders no [data-slot="pagination-link"][aria-current="page"]` |
+| the pager decides no outer margin | `className="mt-2"` added back to the nav | `pagination.tsx:55` | TWO: `pagination.nav` with `expected [ 'mt-2' ] to deeply equal []`, and `leaves the pager's outer margin to the caller` with `expected 'mt-2' to be ''` |
+| a part cannot leave the shared suites map | `breadcrumb` deleted from `STORY_SUITES` | `story-suites.ts:31` | SIX: `covers all thirteen part families`, the play counter, and all four of the new declaration arms, which stop finding anything to measure |
+| a source cannot leave the declared walk | `packages/ui/src/pagination.tsx` deleted from `PUBLISHED_SOURCE_FILES` | `source-files.ts` | THREE, all naming it: `source walk does not match the declared set … Unexpected: [packages/ui/src/pagination.tsx]` |
+| a story cannot stop being one | `export const SinglePage` -> `const SinglePage` | `pagination.stories.tsx` | TWO: `expected […(55)] to have a length of 57 but got 56` and the play counter at 34 of 35 |
+
+<!-- prettier-ignore-end -->
+
+One mutation proved nothing and is recorded as such: making `BreadcrumbSeparator`
+render a nested `<li>` reddened only the byte guard, which is measurement 4 and the
+reason this part's docblock and the consumption test's now say what the runner does
+rather than what shadcn's shape suggested.
+
+### The pipeline, end to end
+
+`pnpm pack` in both packages (`prepack` builds the registry and runs
+`git diff --exit-code -- r`, so packing at all is the evidence that `r/` is committed
+and current) -> `marquee-ui-ui-0.1.0.tgz` **34,383 B** (26,396 B at the Switch) and
+`marquee-ui-tokens-0.1.0.tgz` 99,608 B -> `npm install` of both into a bare project
+(`package.json`, a `tsconfig.json`, and a `components.json` whose `registries` map
+points at `./node_modules/@marquee-ui/ui/r/{name}.json`) -> two `shadcn add` runs:
+
+```
+✔ Created 2 files:                 ✔ Created 1 file:
+  - src/lib/utils.ts                 - src/components/ui/pagination.tsx
+  - src/components/ui/breadcrumb.tsx ℹ Skipped 1 file: (files might be identical…)
+                                       - src/lib/utils.ts
+```
+
+The bytes, both items:
+
+```
+breadcrumb: installed bytes 6801, target components/ui/breadcrumb.tsx
+  installed === r/breadcrumb.json content: True
+  installed === packages/ui/src/breadcrumb.tsx: True      sha256 c4a8f5cb3fd9 (all three)
+pagination: installed bytes 4954, target components/ui/pagination.tsx
+  installed === r/pagination.json content: True
+  installed === packages/ui/src/pagination.tsx: True      sha256 b4c4c38e6766 (all three)
+packed r/registry.json === repo registry.json: True   (14 items)
+```
+
+⚠️ **What `shadcn add` does to a consumer's existing `lib/utils.ts`, measured** - a
+refinement of DL7's MED-2, which said only that the file is re-created beside every
+item. Three cases, run in the bare project:
+
+| the consumer's `src/lib/utils.ts` | a plain `shadcn add`                                                                                                                           | with `--overwrite` |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| absent                            | created (`Created 2 files`)                                                                                                                    | created            |
+| present and IDENTICAL             | silently skipped (`files might be identical`)                                                                                                  | rewritten          |
+| present and DIFFERENT             | **prompts** `The file utils.ts already exists. Would you like to overwrite? (y/N)`, and with no TTY the file is left untouched (md5 unchanged) | clobbered          |
+
+So the consuming product's declared exclusion - its own `cn` is a plain join, on
+purpose - survives a plain `shadcn add`, and the `git checkout --` DL7 prescribes is
+a belt rather than the load-bearing part. `--overwrite` is the flag that would break
+it, and re-adding an item that has not changed needs exactly that flag.
+
+### Decisions
+
+1. **Both families ship as a MOVE, so the a1 rename table is the whole design.** [V]
+   13 upstream class strings were read out of the consuming product with `git show`
+   into a SECOND fixture (`upstream-nav-classes.json`) beside a2's, at its own commit:
+   a fixture's only check is the commit it records, and one `commit` field cannot be
+   honest about two different reads. `fidelity.test.tsx` applies the table and
+   compares the SET, so a mistake in the TABLE reddens too.
+2. **The ARIA contracts are read out of the consumer as well, not typed here.** [V]
+   The landmark names, the test id and the per-link label template live in the same
+   fixture's `contracts` map, and `nav-consumption.test.tsx` asserts the parts against
+   them. For a moved part an accessible name is as much a consumer contract as a
+   pixel, and measurement 5 is what a typo there costs.
+3. **The one-line rule ships as TWO item parts, never as a prop.** [V]
+   `BreadcrumbItem` cannot shrink; `BreadcrumbPageItem` is the only one that can. A
+   `shrinkable` flag would move the decision to every call site, where applying it to
+   three steps out of four is invisible - and the rule is a tap-target decision
+   (UIA-12 upstream), not a look. Compose, do not configure (rule 1).
+4. **The pager's nav drops the upstream `mt-2` and carries no class of its own.** [V]
+   The gap between a pager and whatever it pages is the page's composition; a part
+   that decides its own outer margin has decided its relationship to a sibling it does
+   not own. Declared as a departure with its reason, so the ledger says the pixel
+   moved to the caller rather than vanishing, and the consumption passes
+   `className="mt-2"` at nine call sites for a zero-pixel move.
+5. **No `cva` in either family.** [V] `cva` is for visual axes, and neither part has an
+   axis with a second value: one size, one tone, one geometry. `isActive` is not an
+   axis either - it is one fact with two halves (the ink and the announcement), which
+   is why it is a boolean on the link rather than a variant, and why the part writes
+   `aria-current` AFTER the caller's props so the two cannot be separated. `Input` and
+   `Card` are the precedent; the class strings stay module-private.
+6. **The landmark names are DEFAULTS, and `aria-label` is destructured rather than
+   spread.** [V] A caller who passes none still gets a named landmark - an unnamed
+   `nav` is a real a11y defect on a page with more than one - and a caller who passes
+   their own wins, including `aria-label={undefined}` not being able to blank it by
+   accident.
+7. **`BreadcrumbEllipsis`, `PaginationPrevious` and `PaginationNext` are NOT shipped.**
+   [V] YAGNI beats shadcn-name parity here: no consumer renders any of them, each
+   would need an icon or a word this library has no vocabulary for (`Previous`/`Next`
+   is COPY, and copy is the product's), and a part nobody composes is a part whose
+   stories, floor and fidelity nothing checks. `PaginationEllipsis` IS shipped,
+   because the gap dot in the window is exactly it (the audit's own row for
+   `/browse/games` says so).
+8. **The separator stays inside the item it precedes.** [V] Measurement 4: one flex
+   child per step, which is what the `shrink-0` rule was measured against, and the
+   glyph inside the item's text, which is what the consumer's leading-`·` strip reads.
+   shadcn's sibling `<li role="presentation">` is the shape that was not taken.
+9. **The per-link name stays with the caller.** [V] A page link reading "2" announces
+   "2"; the consuming product labels every one `Page N` and its e2e resolves by that
+   whole phrase. The part will not guess a name out of its child, because a guessed
+   label is one that disagrees with the copy around it.
+10. **The `count · owner` byline the audit files under `Breadcrumb` is NOT a
+    breadcrumb.** [V] Read at the base: `app/[username]/likes/page.tsx:59-71` is a
+    `<header>` with an `h1` and a `<p class="font-mono text-sm text-text-secondary">`
+    reading `{total} games · <Link>{owner}</Link>`. The middot there joins two FACTS
+    (a count and an attribution); a trail's middot separates two LEVELS, and there is
+    no step you are standing on. Wrapping it in a `nav[aria-label="Breadcrumb"]` would
+    announce a navigation landmark holding one link to a profile and put
+    `aria-current="page"` on a count. What those four pages actually share is a
+    duplicated HEADER - the audit's own words, "typed out four times with nothing
+    shared but the class string" - which is a thepile component to extract, not a
+    library part; the only piece here it would reuse is `Label tone="micro"` for the
+    mono caption. Recorded for Ankit to overrule.
+11. **`min-h-11` and `min-w-11`, not `min-h-hit`.** [V] Measurement 1. The house token
+    and the upstream spelling resolve to the same 44px, and the consumer's instrument
+    greps the string; a moved part keeps the spelling its consumer reads. If that ever
+    reverses, the rename table is where the entry goes, and the fidelity suite is what
+    fails first.
+12. **The consuming product's own instruments are automated in this repo.** [V]
+    `nav-consumption.test.tsx` restates the six unit assertions, the three testid
+    probes and the pager e2e resolution against the real parts, because DL7's HIGH-1
+    was exactly a moved role re-resolving a consumer's probe onto the wrong element and
+    it was found by hand. Two of the six are class rails (the consumer's own comments
+    say so) and the properties behind them are measured in resolved declarations
+    instead; what this file measures is RESOLUTION.
+
+### thepile inputs
+
+What the consumption half needs when `0.1.1` publishes, in one list. Nothing here was
+done: the consuming repo was read only.
+
+- `breadcrumb` and `pagination` go into `CONSUMED` in `scripts/marquee-drift.test.ts`
+  (with `switch`, from the Switch's own checklist), and the NON-consumed list in the
+  same file - which pins the set exactly - loses them. ⚠️ That test also names
+  `accordion, badge, card, separator, utils` as the deliberate remainder, so the
+  `0.1.1` bump and both list edits land in ONE commit or the arm is red between them.
+- **`components/game/Breadcrumb.tsx` is deleted** and its markup becomes the parts, in
+  the shape at the top of this section. Three things the CALL SITE
+  (`app/game/[slug]/page.tsx:522`) must now pass, because they are the component's
+  today and the library's parts do not know them:
+  - `data-testid="breadcrumb"` on `<Breadcrumb>` (it spreads props). `e2e/seo.spec.ts:371`
+    hit-tests the two links inside it, `e2e/a11y.spec.ts:450` EXCLUDES the trail's genre
+    link from a tap-theft sweep by `a.closest('[data-testid="breadcrumb"]')`, and
+    `e2e/mobile-390.spec.ts:883` walks UP from it to the shell. All three need the id on
+    an ancestor of the links; the landmark is that ancestor.
+  - nothing for the landmark's name: the part defaults to `"Breadcrumb"`, which is what
+    `components/game/Breadcrumb.test.tsx`'s first assertion resolves by. Passing it
+    again is harmless and passing a DIFFERENT one reddens that test.
+  - the crumb loop picks `BreadcrumbPageItem` for `crumb.path === null` and
+    `BreadcrumbItem` otherwise, and puts `<BreadcrumbSeparator />` inside the item for
+    `index > 0`. Both halves are the UIA-12 invariant and the leading-`·` strip.
+- **`components/game/Breadcrumb.test.tsx` survives unchanged.** All six of its
+  assertions are run against the real parts here (`nav-consumption.test.tsx`), so the
+  consumption should not need to touch it; if it does, that is a finding rather than a
+  chore. ⚠️ Its test 5 greps `min-h-11` and its test 6 greps `shrink-0` - the two
+  spellings measurement 1 and decision 11 are about.
+- **`components/hubs/HubPagination.tsx` keeps its file and its props, as a thin
+  wrapper**, or the nine call sites each gain three things. Recommended: keep the
+  wrapper, because it owns exactly what the library deliberately does not - the
+  `pageWindow` call, the `return null` on an empty window, `className="mt-2"`, the
+  `aria-label={`Page ${p}`}` per link and the gap test `p - pages[i-1] > 1` - and its
+  body becomes the parts. That keeps `e2e/hubs.spec.ts:565`'s two resolutions
+  (`{ name: "Pages" }` then `{ name: "Page 2", exact: true }`) and the nine call sites
+  byte-identical. ⚠️ If the wrapper is dropped instead, all nine sites must pass the
+  margin and the labels, and `e2e/hubs.spec.ts:565` is the test that fails first.
+- ⚠️ **The pager's nav loses its `mt-2` unless the wrapper passes it** (decision 4).
+  That is an 8px move on nine routes and it is the only pixel in this slice that is not
+  zero by construction.
+- ⚠️ **`aria-current` on a page link comes from `isActive`, and a caller's own
+  `aria-current` is dropped** (decision 5). The upstream call passes
+  `aria-current={p === current ? "page" : undefined}`; that becomes
+  `isActive={p === current}`.
+- `shadcn add` writes `src/lib/utils.ts` beside each item. Measured in the pipeline
+  section above: identical is skipped, DIFFERENT prompts and leaves the file alone with
+  no TTY, and only `--overwrite` clobbers it - so thepile's declared `utils` exclusion
+  is safe, and the `git checkout -- apps/web/src/lib/utils.ts` DL7 prescribes is a
+  belt, not the mechanism.
+- ⚠️ **thepile's `cn` is a plain JOIN**, so a class a call site passes does not beat the
+  part's own (DL7 MED-3). Nothing in these two families relies on a merge: the parts'
+  strings and the classes the call sites pass do not collide (`mt-2` against a nav with
+  no class, and nothing else).
+- `e2e/shots/manifest.ts:1013` and the other two exclusions naming `HubPagination` are
+  prose and stay as they are; `docs/design-audit.md`'s 19 `should use` cells are the
+  backlog those rows came from and are `DESIGN-LIB-f`'s, route by route.
+- Two behaviours the consumption GAINS, both from `asChild`: a step and a page link
+  become the consumer's router `Link` wearing a part, rather than a part rendering an
+  anchor, and the library never learns about the router.
+
+### Consumers
+
+Both runs of the scan (`9c40f3ad` in place of `origin/next`, over `packages/**` and
+`registry.json`), the script in `$BATCH_SCRATCH/s2/consumer-scan.sh`.
+
+**Run 1, before any code** (`consumer-scan.1.txt`): the diff was empty, so scans 1-3
+printed nothing; scan 4 enumerated the declared lists and counters a twelfth and
+thirteenth family must enter, which is what the run was for:
+
+```
+packages/ui/test/registry.test.ts:60:  it("declares the eleven part families plus the one shared lib"
+packages/ui/test/registry.test.ts:143:    expect(checked).toBe(11);
+packages/ui/test/registry.test.ts:211:    expect(compared).toBe(13);
+packages/ui/test/stories.test.tsx:57:const DECLARED_PLAYS = 30;
+packages/ui/test/stories.test.tsx:58:const DECLARED_STORIES = 51;
+packages/ui/test/stories.test.tsx:91:    expect(storySuiteNames()).toHaveLength(11);
+AGENTS.md:51 · README.md:19 · README.md:24 · packages/ui/package.json:4 · fidelity.test.tsx:19
+```
+
+All nine moved, and `README.md`/`fidelity.test.tsx` also carry "Six of the eleven …
+were lifted out", which became EIGHT of the thirteen.
+
+⚠️ That run also corrected the scan itself: with `set -eu` the script exits after scan
+1 (a `git grep` with no hits returns 1), so scans 2-4 printed NOTHING and the empty
+output was not evidence of anything. It runs under `set -u` now, and the finding is the
+same shape as DL7's pathspec correction: a scan whose silence is indistinguishable
+between "no consumers" and "did not run" is not an instrument.
+
+**Run 2, at the commit point** (`consumer-scan.2.txt`): **20 exported names** - the
+twelve parts, two `*Props` types and six story exports. Every reader of every one of
+them is inside this slice's own files (`index.ts`, the two sources, the two story
+files, `fidelity.test.tsx`, `nav-consumption.test.tsx`, `tailwind-compile.test.tsx`,
+`registry.json`, `r/*.json`) plus `README.md` for the two family names, which this
+diff updates. Two hits outside them, both prose rather than consumption: `Window`
+matched a comment in `switch.stories.tsx` and a line of this document (jsdom's
+`PointerEvent … not of type Window`), and `Trail` matched only this slice's own files.
+
+Scan 2 printed nothing, which is the expected answer here rather than a silence: the
+library owns no router, so a `*Path`/`*Href` helper appearing in this diff would itself
+be the finding.
+
+Scan 3 named nine files, each attributed to the touched file it names:
+`source-files.ts` (both new sources and both new stories - the declared walk),
+`fidelity.test.tsx`, `nav-consumption.test.tsx` and `extract-upstream-nav.mjs` (the
+new fixture), `story-suites.ts` (`stories.test.tsx`, `tailwind-compile.test.tsx`),
+`registry.test.ts` (`registry.json`, `r/registry.json`, `packages/ui/package.json`),
+`upstream-nav-classes.json`, and two prose references - `extract-upstream.mjs`'s
+docblock naming `fidelity.test.tsx` and `switch-drawing.test.tsx`'s naming
+`tailwind-compile.test.tsx`. Nothing behavioural outside this slice.
+
+**0 CROSS, 0 UNOWNED**, 20 names NEW between the two runs (run 1 ran against an empty
+diff by construction). The batch's other stream is in a different repository.
