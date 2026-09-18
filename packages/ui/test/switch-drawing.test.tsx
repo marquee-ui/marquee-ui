@@ -246,6 +246,28 @@ describe("one drawing, two hosts", () => {
       expect(selectors.get(token)?.join(" ")).toContain(".group\\/switch");
     }
   });
+
+  it("dims the whole row when either host is disabled, by the same amount", () => {
+    // The consumer contract's own requirement, and the reason it is on the ROOT:
+    // the native host's input has no chrome left to dim (`opacity-0`), and the
+    // button host's drawing is inside the button, so dimming the row dims the
+    // track with it. Both spellings are read off the rendered root and compared
+    // by what they DECLARE - a treatment added to one host and not the other
+    // reddens here rather than on somebody's screen.
+    const parts = drawing();
+    const self = parts.root.filter((token) => token.startsWith("disabled:"));
+    const host = parts.root.filter((token) => token.startsWith("has-disabled:"));
+    expect(self.length, "the root has no disabled treatment of its own").toBeGreaterThan(0);
+    expect(host.length, "the root has no disabled treatment for a disabled descendant").toBe(
+      self.length,
+    );
+    expect(host.map((token) => rule(token)).sort()).toEqual(
+      self.map((token) => rule(token)).sort(),
+    );
+    // …and the descendant spelling really is the `:has()` one, so it can reach a
+    // control the root is not.
+    for (const token of host) expect(selectors.get(token)?.join(" ")).toContain(":has(:disabled)");
+  });
 });
 
 describe("the drawing follows the state, in a real cascade", () => {
