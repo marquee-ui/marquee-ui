@@ -1,0 +1,30 @@
+{
+  "$generated": "node packages/ui/test/fixtures/extract-upstream-nav.mjs <reference-repo> <commit>",
+  "$note": "Regenerate against the reference repository; the suite cannot verify these.",
+  "commit": "f00ce14ab35f5d4e053debeaf35ba9103143cdaa",
+  "files": [
+    "apps/web/src/components/game/Breadcrumb.tsx",
+    "apps/web/src/components/hubs/HubPagination.tsx"
+  ],
+  "classes": {
+    "breadcrumb.currentItem": "flex min-w-0 items-center",
+    "breadcrumb.item": "flex shrink-0 items-center",
+    "breadcrumb.link": "inline-flex min-h-11 items-center underline underline-offset-2 hover:text-text",
+    "breadcrumb.list": "flex items-center text-sm text-text-secondary",
+    "breadcrumb.page": "truncate text-text",
+    "breadcrumb.separator": "px-2 text-text-muted",
+    "pagination.content": "flex flex-wrap items-center justify-center gap-2",
+    "pagination.ellipsis": "text-text-muted",
+    "pagination.item": "flex items-center gap-2",
+    "pagination.link": "flex min-h-11 min-w-11 items-center justify-center rounded-md border-2 px-3 font-mono text-sm transition-colors",
+    "pagination.linkCurrent": "border-accent text-text",
+    "pagination.linkOther": "border-line-strong text-text-secondary hover:border-accent hover:text-text",
+    "pagination.nav": "mt-2"
+  },
+  "contracts": {
+    "breadcrumb.navLabel": "Breadcrumb",
+    "breadcrumb.testId": "breadcrumb",
+    "pagination.linkLabel": "Page ${p}",
+    "pagination.navLabel": "Pages"
+  }
+}
