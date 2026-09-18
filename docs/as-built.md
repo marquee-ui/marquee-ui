@@ -1255,6 +1255,14 @@ What the consumption half needs when `0.1.1` publishes, in one list:
 
 - `switch` goes into `CONSUMED` in `scripts/marquee-drift.test.ts`, and
   `components/ui/switch.tsx` arrives by `shadcn add` like the other six.
+  ⚠️ Two things that command does that the six never warned about (DL7 layer 2, MED-2 and
+  LOW-9): `shadcn add` also re-creates `src/lib/utils.ts` beside every item (this section's
+  own pipeline proof printed `Created 2 files`), and thepile's `lib/utils.ts` is a DECLARED
+  EXCLUSION whose `cn` is a plain join on purpose - so `git checkout -- apps/web/src/lib/utils.ts`
+  before running the drift test, whose "adopt the copy and drop this entry" message names the
+  wrong remedy for this cause (thepile's copy of the message now says so). And that test pins
+  the NON-consumed set exactly, so the 0.1.1 bump and the `CONSUMED` edit land in ONE commit,
+  or the arm is red between them.
 - **`ContentSettings.tsx`**: the row becomes `<Switch>` itself - it is already a
   `button[role="switch"]` with `aria-checked`, `disabled` and an `aria-label`, so
   the row's own classes (`w-full justify-between rounded-md border-2 …`) pass
@@ -1274,6 +1282,12 @@ What the consumption half needs when `0.1.1` publishes, in one list:
   `<span className="relative shrink-0">` goes: the thumb is inside the track now,
   which is what makes the two rows the same drawing (UNVERIFIED 5 - they are 2px
   apart today).
+  ⚠️ And the label passes `w-full` (DL7 layer 2, MED-3, proved): the part's root is
+  `inline-flex`, thepile's `cn` is a plain join that keeps both it and the host's `flex`, and
+  the stylesheet's later rule (`inline-flex`) wins, so without a width the label shrinks to
+  fit and `justify-between` has nothing to distribute. In this repo's Storybook tailwind-merge
+  drops the conflict; in thepile every conflicting class a host passes resolves the opposite
+  way from what a story shows.
 - `switch-styles.ts` and `switch-styles.test.ts` are DELETED. Everything the test
   asserted survives, in the library: the platform-driven state (by the compiled
   selector AND by a cascade), the two hosts changing the same properties by the
@@ -1284,10 +1298,14 @@ What the consumption half needs when `0.1.1` publishes, in one list:
   spells a track of its own - stop being assertions and become true by
   construction: there is ONE track string and ONE thumb string, carrying both
   triggers, and a host that hand-typed a pill would not be using the part at all.
-- `e2e/mobile-390.spec.ts`'s thumb-move arm stays TRUE and unchanged: same 44x24
-  track, same 20px of travel, same `aria-checked` under it. It is also now the only
-  instrument in either repo that can see the thumb move, so it should not be
-  weakened.
+- `e2e/mobile-390.spec.ts`'s thumb-move arm keeps its GEOMETRY (same 44x24 track, same
+  20px of travel, same `aria-checked` under it) and had lost its RESOLUTION: it found the
+  switch by `[role="switch"]`, first in document order, and decision 6 puts that role on the
+  push row's checkbox, which renders first (DL7 layer 2, HIGH-1, proved with the real parts
+  against thepile's probe lines: track, thumb and `aria-checked` all read null). thepile's
+  probe now resolves by identity (`[role="switch"][aria-label="Show adult game covers"]`),
+  and the consumption keeps it so. It is also now the only instrument in either repo that can
+  see the thumb move, so it should not be weakened.
 - `selected-contrast.test.tsx`'s comment about the switch's ink stays true: the
   off thumb is `--muted` (4.53:1 on the track) and the on fill `--primary`.
 - Two behaviours the consumption GAINS, and should be looked at on a device: the
