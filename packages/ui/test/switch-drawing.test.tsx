@@ -291,8 +291,14 @@ describe("the drawing follows the state, in a real cascade", () => {
        *  the two sides are compared with whitespace collapsed. */
       const same = (a: string, b: string) =>
         expect(a.replace(/\s+/g, "")).toBe(b.replace(/\s+/g, ""));
-      const declares = (name: string, property: string) =>
-        new RegExp(`(?:^|[;\\s])${property}\\s*:\\s*([^;]+)`).exec(rule(name))![1]!.trim();
+      /** What the compiled sheet declares for one utility. Says WHICH utility
+       *  vanished: without this the red is a type complaint about `null`, which
+       *  names nothing and proves nothing (found by running the mutation). */
+      const declares = (name: string, property: string) => {
+        const match = new RegExp(`(?:^|[;\\s])${property}\\s*:\\s*([^;]+)`).exec(rule(name));
+        expect(match, `${name} declares no ${property} in the compiled sheet`).not.toBeNull();
+        return match![1]!.trim();
+      };
 
       // OFF, and positively: the off fill IS painted, so a sheet jsdom failed to
       // apply cannot read as "no travel".
