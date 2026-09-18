@@ -23,10 +23,21 @@ import { cn } from "@/lib/utils";
  * every call site instead, where half-applying it is invisible.
  *
  * ⚠️ THE SEPARATOR LIVES INSIDE THE ITEM IT PRECEDES, and that is not shadcn's
- * shape (a sibling `<li role="presentation">`). Measured against the consumer's
- * own instrument: it reads each list item's text and strips a leading `·`, so a
- * separator as its own item puts FIVE items in a three-step trail. One `·` per
- * step but the first, hidden from the accessibility tree, is the whole rule.
+ * shape (a sibling `<li role="presentation" aria-hidden>`). Two reasons, one of
+ * them measured:
+ *   - the upstream row is a flex container with ONE child per step, and the
+ *     one-line rule is a tap-target decision expressed as `shrink-0` on those
+ *     children. shadcn's shape makes a three-step trail five flex children, two
+ *     of which no rule here has ever been measured against;
+ *   - the item's own TEXT then carries the glyph, which is what the consumer's
+ *     trail-order test reads (it strips a leading `·` off each item). Measured on
+ *     this runner: shadcn's hidden sibling leaves the items reading
+ *     `["a", "b"]` and this shape leaves them reading `["a", "·b"]` - the strip
+ *     exists for the second.
+ * ⚠️ AND THE ITEM COUNT IS NOT WHAT CATCHES IT. A separator `<li>` that is
+ * `aria-hidden` (shadcn's) or nested inside an item (measured: no `listitem`
+ * role at all) is not counted either way, so a test that counts items cannot
+ * tell the shapes apart. It is the item's text that can.
  *
  * ⚠️ `min-h-11`, NOT the house's `min-h-hit`. The same 44px either way, and the
  * spelling the consumer's own floor test greps for; the rename table carries no

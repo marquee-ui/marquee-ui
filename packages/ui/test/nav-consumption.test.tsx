@@ -149,11 +149,18 @@ describe("the contracts the consumer's instruments resolve by", () => {
   });
 
   /**
-   * `Breadcrumb.test.tsx`, test 4, and the one that decides the separator's
-   * SHAPE. The consumer strips a leading `·` off each list item's text, so the
-   * separator has to live INSIDE the item it precedes. shadcn's breadcrumb makes
-   * it a sibling `<li role="presentation">` instead, which would put five items
-   * in this list and redden that test by two extra rows.
+   * `Breadcrumb.test.tsx`, test 4: one list item per STEP, in trail order, with a
+   * leading `·` stripped off each.
+   *
+   * ⚠️ MEASURED, AND IT CORRECTS WHAT THIS FILE FIRST CLAIMED. The item COUNT
+   * cannot tell the separator's shapes apart: a separator `<li>` nested inside an
+   * item has no `listitem` role at all, and shadcn's sibling
+   * `<li role="presentation" aria-hidden>` is excluded from the tree, so both
+   * leave three items in a three-step trail. What the strip in that assertion
+   * actually tells you is that the glyph is expected INSIDE the item's text - so
+   * the second assertion here is the one that holds the shape, and a separator
+   * moved out of its item reddens it (measured: the items then read
+   * `["Start", "A section", …]` with no glyph at all).
    */
   it("renders the steps in trail order, as one list", () => {
     render(<Trail />);
@@ -162,6 +169,13 @@ describe("the contracts the consumer's instruments resolve by", () => {
       "Start",
       "A section",
       "The page you are on",
+    ]);
+    // The glyph is part of the item's text, which is the shape the consumer's
+    // strip is written for, and every step but the first has one.
+    expect(items.map((li) => li.textContent)).toEqual([
+      "Start",
+      "·A section",
+      "·The page you are on",
     ]);
   });
 
