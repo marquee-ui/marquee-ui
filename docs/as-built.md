@@ -1394,7 +1394,8 @@ was read only, with `git show`, at commit `f00ce14a`.
 
 No new dependency: `@radix-ui/react-slot` was already here, no Radix primitive exists
 for either family, and the house glyph is the middot `·` as text, so no icon package.
-`pnpm test` goes from **290 tests in 19 files to 342 in 20** (base measured at
+`pnpm test` goes from **290 tests in 19 files to 344 in 20** (342 at `c6cd0c2b`; the layer-1
+fix `59d54f1` added two, and the gate line below says 344; base measured at
 `9c40f3ad`: `pnpm verify` exit 0 in 13.81 s, `Test Files 19 passed (19)`,
 `Tests 290 passed (290)`).
 
@@ -1727,10 +1728,19 @@ done: the consuming repo was read only.
   same file - which pins the set exactly - loses them. ⚠️ That test also names
   `accordion, badge, card, separator, utils` as the deliberate remainder, so the
   `0.1.1` bump and both list edits land in ONE commit or the arm is red between them.
-- **`components/game/Breadcrumb.tsx` is deleted** and its markup becomes the parts, in
-  the shape at the top of this section. Three things the CALL SITE
-  (`app/game/[slug]/page.tsx:522`) must now pass, because they are the component's
-  today and the library's parts do not know them:
+- **`components/game/Breadcrumb.tsx` KEEPS its file and its `crumbs` prop as a thin
+  wrapper over the parts**, the same shape as `HubPagination` below and for the same
+  reason: it owns what the parts deliberately do not - the `Crumb` loop, the S45b rule its
+  docblock records (the visible trail and the `BreadcrumbList` node come from ONE
+  `breadcrumbFor` call), and `data-testid="breadcrumb"` - and its body becomes the parts
+  in the shape at the top of this section. The call site (`app/game/[slug]/page.tsx:522`)
+  stays byte-identical. ⚠️ DL8 layer 2, HIGH-1: the first draft of this list DELETED the
+  file two bullets above a promise that `Breadcrumb.test.tsx` "survives unchanged" - a test
+  whose line 4 imports `./Breadcrumb` and whose six cases render `<Breadcrumb crumbs>`;
+  deleting the file would have typechecked red and, resolved the loud way, moved all six
+  assertions out of thepile's gate into a repo it never runs. The wrapper is what makes both
+  halves true. Three things the WRAPPER carries, because they are the component's today and
+  the library's parts do not know them:
   - `data-testid="breadcrumb"` on `<Breadcrumb>` (it spreads props). `e2e/seo.spec.ts:371`
     hit-tests the two links inside it, `e2e/a11y.spec.ts:450` EXCLUDES the trail's genre
     link from a tap-theft sweep by `a.closest('[data-testid="breadcrumb"]')`, and
@@ -1748,7 +1758,8 @@ done: the consuming repo was read only.
   chore. ⚠️ Its test 5 greps `min-h-11` and its test 6 greps `shrink-0` - the two
   spellings measurement 1 and decision 11 are about.
 - **`components/hubs/HubPagination.tsx` keeps its file and its props, as a thin
-  wrapper**, or the nine call sites each gain three things. Recommended: keep the
+  wrapper**, or the nine call sites each gain three things. Recommended (and, after HIGH-1
+  above, the SAME shape as the breadcrumb's): keep the
   wrapper, because it owns exactly what the library deliberately does not - the
   `pageWindow` call, the `return null` on an empty window, `className="mt-2"`, the
   `aria-label={`Page ${p}`}` per link and the gap test `p - pages[i-1] > 1` - and its
@@ -1758,7 +1769,15 @@ done: the consuming repo was read only.
   margin and the labels, and `e2e/hubs.spec.ts:565` is the test that fails first.
 - ⚠️ **The pager's nav loses its `mt-2` unless the wrapper passes it** (decision 4).
   That is an 8px move on nine routes and it is the only pixel in this slice that is not
-  zero by construction.
+  zero by construction. ⚠️ DL8 layer 2, MED-3: no instrument on either side measures that
+  margin - the library's arm is the inverse (the part carries no class), `e2e/hubs.spec.ts`
+  resolves by name and never measures a box, and the shots manifest captures no `/[n]` page
+  and no page-1 pager for series, studios or releases (they do not paginate on the seed).
+  With the wrapper the margin is ONE site (`className="mt-2"` on the nav, exactly as today)
+  and the drift test's byte identity says the part adds none; the nine-site gap exists only
+  on the drop-the-wrapper path, which this list does not recommend. If that path is taken
+  anyway, `e2e/hubs.spec.ts` needs a box arm first (the pager's `nav` at 1280 on
+  `/platform/pc` starts 8px below the listing's last row).
 - ⚠️ **`aria-current` on a page link comes from `isActive`** (decision 5). The upstream
   call passes `aria-current={p === current ? "page" : undefined}`; that becomes
   `isActive={p === current}` and the attribute is **deleted from the `Link`**. Passing
