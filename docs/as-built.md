@@ -1951,3 +1951,15 @@ the falsy-label fallback reverted to a default parameter
 a contracts key deleted (the file throws by name); `min-h-11` removed after the regex
 anchor (`gives every tappable step the 44px floor`, `breadcrumb.link`, both floor arms);
 and the separator's `aria-hidden` removed (the consumption test AND the `Trail` play).
+
+### The gate
+
+One run, at `13ca059a`, detached with a sentinel in `$BATCH_SCRATCH/s2/`:
+`pnpm verify` **exit 0** in **15.67 s** (11:41:27 IST, 2026-09-18), the runner's own
+lines being `All matched files use Prettier code style!`, both packages'
+`typecheck: Done`, `✔ Building registry.`,
+`└ Storybook build completed successfully` and
+`Test Files 20 passed (20)` / `Tests 344 passed (344)` (from 19 / 290 at the base).
+`git status --short` was empty afterwards, so the committed `packages/ui/r` is what
+`build:registry` produces. No push, no publish, no version bump: the freeze holds and
+both families ride the post-freeze `0.1.1` with the Switch.
