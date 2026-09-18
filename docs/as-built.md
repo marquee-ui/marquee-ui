@@ -1383,7 +1383,7 @@ was read only, with `git show`, at commit `f00ce14a`.
 | `packages/ui/src/pagination.tsx`                      | five parts - `Pagination`, `PaginationContent`, `PaginationItem`, `PaginationEllipsis`, `PaginationLink` (4,954 B)                                                                                                             |
 | `packages/ui/stories/breadcrumb.stories.tsx`          | 3 stories, 2 with a `play`                                                                                                                                                                                                     |
 | `packages/ui/stories/pagination.stories.tsx`          | 3 stories, 3 with a `play`                                                                                                                                                                                                     |
-| `packages/ui/test/nav-consumption.test.tsx`           | 13 tests: the consuming product's own six unit assertions, its three `data-testid` probes and its pager e2e resolution, run against the real parts                                                                             |
+| `packages/ui/test/nav-consumption.test.tsx`           | 15 tests: the consuming product's own six unit assertions, its three `data-testid` probes and its pager e2e resolution, run against the real parts                                                                             |
 | `packages/ui/test/fixtures/extract-upstream-nav.mjs`  | the second upstream extractor: 13 class strings and 4 ARIA contracts, read with `git show`, markers checked for uniqueness                                                                                                     |
 | `packages/ui/test/fixtures/upstream-nav-classes.json` | its output, recording the commit it was read at                                                                                                                                                                                |
 | `packages/ui/test/fidelity.test.tsx`                  | the nav half: 12 cases over 13 fixture rows, the `cn` no-op loop over the same 12, a coverage anchor, the dropped-margin test, one DROP departure, and the stale-rename check now reading both fixtures (86 tests in the file) |
@@ -1665,8 +1665,13 @@ it, and re-adding an item that has not changed needs exactly that flag.
    axis with a second value: one size, one tone, one geometry. `isActive` is not an
    axis either - it is one fact with two halves (the ink and the announcement), which
    is why it is a boolean on the link rather than a variant, and why the part writes
-   `aria-current` AFTER the caller's props so the two cannot be separated. `Input` and
-   `Card` are the precedent; the class strings stay module-private.
+   `aria-current` AFTER the caller's props: one passed to the PART cannot land without
+   the border that belongs with it. ⚠️ **And that is as far as it reaches** (layer 1,
+   HIGH-1, reproduced): Radix's `Slot` merges the CHILD's props over the slot's, so
+   under `asChild` an `aria-current` on the child wins and the two halves can still be
+   split. That is `asChild`'s own contract rather than a defect to fight with
+   `cloneElement`, so it is pinned by a test and stated to the host instead of denied.
+   `Input` and `Card` are the precedent; the class strings stay module-private.
 6. **The landmark names are DEFAULTS, and `aria-label` is destructured rather than
    spread.** [V] A caller who passes none still gets a named landmark - an unnamed
    `nav` is a real a11y defect on a page with more than one - and a caller who passes
@@ -1754,10 +1759,15 @@ done: the consuming repo was read only.
 - ⚠️ **The pager's nav loses its `mt-2` unless the wrapper passes it** (decision 4).
   That is an 8px move on nine routes and it is the only pixel in this slice that is not
   zero by construction.
-- ⚠️ **`aria-current` on a page link comes from `isActive`, and a caller's own
-  `aria-current` is dropped** (decision 5). The upstream call passes
-  `aria-current={p === current ? "page" : undefined}`; that becomes
-  `isActive={p === current}`.
+- ⚠️ **`aria-current` on a page link comes from `isActive`** (decision 5). The upstream
+  call passes `aria-current={p === current ? "page" : undefined}`; that becomes
+  `isActive={p === current}` and the attribute is **deleted from the `Link`**. Passing
+  it to `PaginationLink` is harmless (the part overrides it); leaving it ON THE CHILD
+  is not - the child's wins, and the link is then announced as current while drawn as
+  any other page. Same for `aria-label`: it goes on the `PaginationLink`, not on the
+  `Link` inside it, or `e2e/hubs.spec.ts:565` resolves nothing and times out at 30s.
+  Both measured at layer 1 (HIGH-1, MED-1) and pinned by `lets a child's own attributes
+win under asChild`.
 - `shadcn add` writes `src/lib/utils.ts` beside each item. Measured in the pipeline
   section above: identical is skipped, DIFFERENT prompts and leaves the file alone with
   no TTY, and only `--overwrite` clobbers it - so thepile's declared `utils` exclusion
