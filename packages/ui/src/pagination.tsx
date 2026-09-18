@@ -18,10 +18,17 @@ import { cn } from "@/lib/utils";
  * which is why the consumer labels every one of them "Page 2" and resolves them
  * by that whole phrase; the part writes no `aria-label` of its own, because the
  * only thing it knows is the child, and guessing a name from a child is how a
- * label ends up disagreeing with the copy around it.
+ * label ends up disagreeing with the copy around it. ⚠️ Under `asChild` the name
+ * a caller puts on the CHILD wins over the one they pass to this part - Radix's
+ * `Slot` merges the child's props over the slot's, measured - so the label goes on
+ * one of the two, not on both.
  *
- * ⚠️ `min-h-11 min-w-11`, both axes, and NOT the house's `min-h-hit`: the same
- * 44px, and the spelling the consumer's tests read.
+ * ⚠️ `min-h-11 min-w-11`, both axes, and NOT the house's `min-h-hit`. They resolve
+ * to the same 44px; the reason this part keeps the upstream spelling is FIDELITY -
+ * the rename table carries no entry for either, so `min-h-hit` reddens
+ * `fidelity > pagination.linkCurrent` and `linkOther` (layer 1, LOW-4: the
+ * "the consumer's tests grep the literal" argument is substantiated for the trail
+ * and not for this part, so it is not the argument used here).
  */
 
 /** The consumer's own landmark name, and a default a caller can rename. */
@@ -45,14 +52,15 @@ const linkOtherClass =
  * margin is the caller's `className` rather than a margin this part decides about
  * a sibling it does not own.
  *
- * `aria-label` is destructured rather than spread, so a caller who passes none
- * still gets a named landmark and one who passes their own wins.
+ * `aria-label` is destructured rather than spread, so a caller who passes their own
+ * wins and one who passes none still gets a named landmark. `||` rather than a
+ * default parameter, because a default fires only on `undefined`: measured at
+ * layer 1 (LOW-2), `aria-label={labelFromSomewhere || ""}` - an ordinary React
+ * shape - otherwise ships an UNNAMED navigation landmark, which is the defect the
+ * default is here to prevent.
  */
-export function Pagination({
-  "aria-label": ariaLabel = NAV_LABEL,
-  ...props
-}: ComponentProps<"nav">) {
-  return <nav data-slot="pagination" aria-label={ariaLabel} {...props} />;
+export function Pagination({ "aria-label": ariaLabel, ...props }: ComponentProps<"nav">) {
+  return <nav data-slot="pagination" aria-label={ariaLabel || NAV_LABEL} {...props} />;
 }
 
 /** The row of pages. Wraps rather than scrolls: every page stays reachable. */
@@ -94,10 +102,17 @@ export type PaginationLinkProps = ComponentProps<"a"> & {
   /**
    * The page you are on: its ink AND its announcement, from one prop.
    *
-   * ⚠️ It is written AFTER the caller's props on purpose. `aria-current` and the
-   * current page's border are two halves of one fact, and a caller who could set
-   * one without the other could ship a link announced as current while drawn as
-   * any other page - the disagreement this single prop exists to make impossible.
+   * ⚠️ It is written AFTER the caller's props on purpose, so an `aria-current`
+   * passed to THIS part cannot land without the ink that belongs with it:
+   * the attribute and the border are two halves of one fact.
+   *
+   * ⚠️ AND THAT IS AS FAR AS IT REACHES, measured at layer 1 rather than assumed:
+   * Radix's `Slot` merges the CHILD's props over the slot's, so under `asChild` an
+   * `aria-current` written on the child wins and a link can still be announced as
+   * current while drawn as any other page. That is `asChild`'s own contract - the
+   * caller's element is the caller's - so the rule for a host is: pass `isActive`,
+   * and do not also write `aria-current` on the child.
+   * `test/nav-consumption.test.tsx` pins both halves.
    */
   isActive?: boolean;
 };

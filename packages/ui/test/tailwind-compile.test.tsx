@@ -265,7 +265,13 @@ describe("every interactive element clears the 44px tap floor", () => {
           let best = 0;
           for (const token of tokens) {
             const body = rule(token);
-            for (const declaration of body.matchAll(/(?:min-height|height)\s*:\s*([^;]+)/g)) {
+            // Anchored: unanchored, `height` also matches inside `line-height:` and
+            // `max-height:`, and every one of this package's controls carries a
+            // `text-*` utility that emits a line-height (layer 1, LOW-3 - latent
+            // rather than active, and this is the fix it named).
+            for (const declaration of body.matchAll(
+              /(?:^|[;\s])(?:min-height|height)\s*:\s*([^;]+)/g,
+            )) {
               const px = lengthPx(declaration[1]!, vars);
               if (px !== null && px > best) best = px;
             }

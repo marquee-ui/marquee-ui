@@ -63,19 +63,19 @@ const linkClass =
 const pageClass = "truncate text-foreground";
 
 /**
- * The landmark. `aria-label` is destructured rather than spread so that a caller
- * who passes none still gets a NAMED landmark, and one who passes their own wins;
- * the name is a contract a consumer's tests resolve by, and the default is the
- * one its markup already used.
+ * The landmark. A caller who passes their own `aria-label` wins and one who passes
+ * none still gets a NAMED landmark; the name is a contract a consumer's tests
+ * resolve by, and the default is the one its markup already used.
+ *
+ * `||` rather than a default parameter, because a default fires only on
+ * `undefined`: measured at layer 1 (LOW-2), `aria-label={value || ""}` otherwise
+ * ships an UNNAMED navigation landmark, which is the defect the default prevents.
  *
  * No class of its own: the nav is the landmark, and an empty `class=""` on every
  * consumer's trail would be a lie about the element.
  */
-export function Breadcrumb({
-  "aria-label": ariaLabel = NAV_LABEL,
-  ...props
-}: ComponentProps<"nav">) {
-  return <nav data-slot="breadcrumb" aria-label={ariaLabel} {...props} />;
+export function Breadcrumb({ "aria-label": ariaLabel, ...props }: ComponentProps<"nav">) {
+  return <nav data-slot="breadcrumb" aria-label={ariaLabel || NAV_LABEL} {...props} />;
 }
 
 /** The trail itself. `ol`, because the order of a trail IS its meaning. */
@@ -126,6 +126,10 @@ export type BreadcrumbLinkProps = ComponentProps<"a"> & {
    * Render the caller's child instead of an `<a>`, keeping the classes and every
    * other prop. This is how a router's link wears a step: the library owns no
    * router, so the consumer's own `Link` composes in without the part knowing it.
+   *
+   * ⚠️ Radix's `Slot` merges the CHILD's props over this part's, measured, so an
+   * attribute written on the child wins over the same one passed here. Write each
+   * of them in one place.
    */
   asChild?: boolean;
 };

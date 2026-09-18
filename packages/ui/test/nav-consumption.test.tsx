@@ -45,12 +45,29 @@ import {
  * What this file measures is RESOLUTION: which element each probe lands on.
  */
 
-const NAV_LABEL = upstreamNav.contracts["breadcrumb.navLabel"];
-const TEST_ID = upstreamNav.contracts["breadcrumb.testId"];
-const PAGER_LABEL = upstreamNav.contracts["pagination.navLabel"];
+/**
+ * One ARIA contract out of the fixture, or a throw.
+ *
+ * ⚠️ NOT a plain index, and the reason is measured (layer 1, MED-2): an absent key
+ * reads as `undefined`, and `getByRole("navigation", { name: undefined })` drops
+ * the name filter ENTIRELY - it then matches any navigation landmark. Three tests
+ * whose whole subject is the landmark's name went green that way, with only the
+ * anchor below catching it. A throw makes the degradation impossible rather than
+ * merely caught.
+ */
+function contract(key: keyof typeof upstreamNav.contracts): string {
+  const value: string | undefined = upstreamNav.contracts[key];
+  if (typeof value !== "string" || value === "") {
+    throw new Error(`upstream-nav-classes.json has no contract for ${key}`);
+  }
+  return value;
+}
+
+const NAV_LABEL = contract("breadcrumb.navLabel");
+const TEST_ID = contract("breadcrumb.testId");
+const PAGER_LABEL = contract("pagination.navLabel");
 /** The consumer builds its per-link name from a template: `Page ${p}`. */
-const pageLabel = (page: number) =>
-  upstreamNav.contracts["pagination.linkLabel"].replace("${p}", String(page));
+const pageLabel = (page: number) => contract("pagination.linkLabel").replace("${p}", String(page));
 
 type Crumb = { name: string; path: string | null };
 
@@ -304,10 +321,9 @@ describe("the contracts the consumer's instruments resolve by", () => {
   });
 
   /**
-   * One prop decides the ink AND the announcement, so they cannot disagree - the
-   * Switch's rule in a second shape. A caller's `aria-current` does not survive,
-   * deliberately: a link announced as current while drawn as any other page is
-   * the exact disagreement `isActive` exists to prevent.
+   * One prop decides the ink AND the announcement for everything the PART writes:
+   * an `aria-current` passed to `PaginationLink` itself does not survive, so it
+   * cannot land without the border that belongs with it.
    */
   it("derives the current page's announcement from the same prop as its ink", () => {
     render(
@@ -323,5 +339,55 @@ describe("the contracts the consumer's instruments resolve by", () => {
     );
     const link = screen.getByRole("link", { name: pageLabel(1) });
     expect(link.hasAttribute("aria-current")).toBe(false);
+  });
+
+  /**
+   * …AND EXACTLY HOW FAR THAT REACHES, which is the half a docblock here first got
+   * wrong (layer 1, HIGH-1 and MED-1, both reproduced before this test was
+   * written). Radix's `Slot` merges the CHILD's props over the slot's, so under
+   * `asChild` - the branch a real app uses, because its router's link is the child
+   * - an `aria-current` or an `aria-label` written on that child WINS over the one
+   * this part or its caller passes. It is `asChild`'s own contract, and it is
+   * pinned here rather than promised away: a host passes `isActive` and writes
+   * neither attribute on its child.
+   */
+  it("lets a child's own attributes win under asChild, which is the caller's to get right", () => {
+    render(
+      <PaginationLink asChild isActive={false} aria-label={pageLabel(2)}>
+        <a href="/2" aria-current="page" aria-label="Go to two">
+          2
+        </a>
+      </PaginationLink>,
+    );
+    const link = screen.getByRole("link", { name: "Go to two" });
+    // The child's name won, so the call site's phrase resolves nothing - which is
+    // what a consumer resolving by `Page 2` would experience as a timeout.
+    expect(screen.queryByRole("link", { name: pageLabel(2) })).toBeNull();
+    // …and the announcement is the child's while the ink is `isActive`'s: the one
+    // way the two halves can still disagree, named rather than denied.
+    expect(link).toHaveAttribute("aria-current", "page");
+    expect(link.className).toContain("border-border-strong");
+    expect(link.className).not.toContain("border-primary text-foreground");
+  });
+
+  /**
+   * A default parameter fires only on `undefined`, so an empty string used to pass
+   * straight through and ship an UNNAMED navigation landmark (layer 1, LOW-2,
+   * reproduced). Both landmarks fall back on any falsy label.
+   */
+  it("never ships an unnamed landmark, whatever falsy label a caller computes", () => {
+    render(
+      <Breadcrumb aria-label="">
+        <BreadcrumbList />
+      </Breadcrumb>,
+    );
+    expect(screen.getByRole("navigation", { name: NAV_LABEL })).toBeInTheDocument();
+    cleanup();
+    render(
+      <Pagination aria-label="">
+        <PaginationContent />
+      </Pagination>,
+    );
+    expect(screen.getByRole("navigation", { name: PAGER_LABEL })).toBeInTheDocument();
   });
 });

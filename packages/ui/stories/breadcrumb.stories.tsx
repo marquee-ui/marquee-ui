@@ -62,6 +62,10 @@ export const Trail: Story = {
     await expect(separators).toHaveLength(2);
     await expect(items[1]).toContainElement(separators[0] as HTMLElement);
     await expect(items[2]).toContainElement(separators[1] as HTMLElement);
+    // Punctuation, not a step: a middot read aloud between every step is noise.
+    for (const separator of separators) {
+      await expect(separator).toHaveAttribute("aria-hidden", "true");
+    }
   },
 };
 
