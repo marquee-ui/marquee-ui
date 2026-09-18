@@ -839,8 +839,11 @@ was changed: it was read only, at commit `06cbb192`.
 | the stated count                              | `AGENTS.md`, `README.md` and `packages/ui/package.json`'s description say eleven part families                                                                                                                  |
 
 No new dependency: `@radix-ui/react-slot` was already here for `asChild`, and
-nothing else was needed. `pnpm test` goes from 267 tests in 18 files to **283 in
-19** (+9 for the drawing suite, +7 story renders).
+nothing else was needed. `pnpm test` goes from 267 tests in 18 files to **290 in
+19** (+13 for the drawing suite, +9 story renders, +1 for the suite's own
+`switch: has stories`). A new test helper, `packages/ui/test/helpers/story-suites.ts`,
+is the single suites map both `stories.test.tsx` and `tailwind-compile.test.tsx`
+now read (layer 1, MED-2).
 
 The shape, in one line each:
 
@@ -899,16 +902,30 @@ make, and it is the defect class the consuming repo's own layer 1 found in the
 strings this part replaces (a trigger rewritten to `group-hover:` left their
 source test 4/4 green).
 
-**4. `:has()` is not supported by jsdom 30's cascade.** Measured directly: a rule
-`:is(:where(.group):has(:checked) *)` applies in NEITHER state, and
-`element.matches()` on the same selector returns false, while the identical rule
-written against `[aria-checked="true"]` follows the attribute exactly.
-`input.matches(":checked")` is true from the property, but the STYLE path needs
-the attribute. **So the native host's on-state is proved from the stylesheet (the
-selector it compiles to, and the declarations it carries, asserted equal to the
-button host's) and never in a rendered DOM.** Both hosts' behaviour is proved -
-the checkbox toggles from a click on the row, and its value reaches a `FormData` -
-but the drawing's response to it is not, in this repo, at this jsdom.
+**4. jsdom 30 DOES support `:has(:checked)` in the cascade - what it does not do
+is invalidate a computed style it has already handed out.** This entry said the
+opposite for one day, and the correction is the measurement that matters. The
+first probe read a computed value, set `input.checked = true` (a property, which
+does not reflect to the attribute), read again, and saw no change - which is
+indistinguishable from "the selector is unsupported" and was recorded as such.
+Layer 1 ran the discriminator this slice had not: reading AFTER the click without
+a read before it, the same compiled selector applies, and so does
+`:has(:disabled)`. Both are observable against the REAL compiled sheet and the
+real stories:
+
+```
+OFF  track bg = var(--overlay)      thumb translate = none
+ON   track bg = var(--primary)      thumb --tw-translate-x = calc(var(--spacing)*5)
+ON   root opacity (input disabled)  = 50%
+```
+
+So the native host's state IS observable in a rendered DOM here, and it is now
+observed: `draws the NATIVE host from the checkbox's own state` reads the two
+states from two RENDERS (`NativeCheckbox` and `NativeCheckboxOn`) rather than
+from one element toggled in place, which sidesteps the stale-cache trap entirely
+and needs no nudge. The click half - that a click on the row really does check
+the box - is the `NativeCheckbox` play. **What genuinely cannot be observed here
+is still only layout** (measurement 2).
 
 **5. What Tailwind compiles each trigger to** (run against the real emitted
 tokens sheet, and again inside the bare consumer):
@@ -1006,7 +1023,12 @@ orders it that way (a2 D9); the bootstrap instruction in the brief did not.
 
 Run in the COMMITTED tree (`4a58893`, then `af6ee6e` for the two that came after
 the instrument was improved), landing confirmed by `grep` before the run was read,
-reverted with `git checkout --`, `git status --short` empty after each.
+reverted with `git checkout --`, `git status --short` empty after each. Two of them
+were re-run at `d6e2289`, after the layer-1 fixes restructured the cascade suite
+and changed the part: the travel arithmetic still reddens
+(`expected 20 to be 24`), and the root's named group still reddens BOTH cascade
+tests now instead of one (`expected 'var(--overlay)' to be 'var(--primary)'`,
+twice).
 
 <!-- prettier-ignore-start -->
 
@@ -1030,6 +1052,90 @@ cascade test's helper threw `TypeError: Cannot read properties of null` instead 
 naming the utility that had vanished, which is a red that proves nothing, so it
 now says `<utility> declares no <property> in the compiled sheet` and the mutation
 was re-run against the committed fix.
+
+## Layer 1 (reviewer, detached worktree of f64d1089, slot r6)
+
+| file                                                                                         | test                                                                                                                                                                    | mutation applied                                                                                                     | red / GREEN                                                               | what it asserts now                                                                                                                           |
+| -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/switch.tsx` → `test/switch-drawing.test.tsx`, `test/registry.test.ts`                   | travels exactly the width the track leaves it; changes the same properties by the same amounts; sets the travel only while the control is on; carries the CURRENT bytes | **M-A** delete `group-aria-checked/switch:translate-x-5` from `thumbClass`                                           | **red 4** (`expected null to be 20`)                                      | —                                                                                                                                             |
+| `src/switch.tsx` → `test/switch-drawing.test.tsx`                                            | travels exactly …; sets the travel only while the control is on                                                                                                         | **M-B** `translate-x-5` → `translate-x-4` on both triggers                                                           | **red 2**                                                                 | —                                                                                                                                             |
+| `src/switch.tsx` → `test/switch-drawing.test.tsx`, `test/tailwind-compile.test.tsx`          | sets the travel only while the control is on; compiles every one of them                                                                                                | **M-C** root group renamed `group/switch` → `group/switchx`, track/thumb class names byte-identical                  | **red 2** (`expected 'var(--overlay)' to be 'var(--primary)'`)            | the cascade test is the ONLY switch-drawing test that saw it: the other 3 class-name tests stayed green                                       |
+| same                                                                                         | same                                                                                                                                                                    | **M-AF** root group renamed `group/switch` → `group` (still a real utility)                                          | **red 2**, same two, same message                                         | confirms M-C was not a fluke of an uncompilable name                                                                                          |
+| `src/switch.tsx`                                                                             | (nothing)                                                                                                                                                               | **M-D** delete `relative` from `trackClass` — the thumb's positioning context                                        | **GREEN 86**                                                              | **FINDING.** Nothing observes that the thumb is positioned against the TRACK.                                                                 |
+| `src/switch.tsx`                                                                             | (nothing)                                                                                                                                                               | **M-E** delete `relative` from `switchClass` — the overlay input's positioning context                               | **GREEN 86**                                                              | **FINDING.** Nothing observes that `absolute inset-0` resolves against the row.                                                               |
+| `src/switch.tsx` → `test/switch-drawing.test.tsx`, `test/tailwind-compile.test.tsx`          | puts the tap floor on the row; measures every one of them at or above the floor                                                                                         | **M-F** delete `min-h-hit` from `switchClass`                                                                        | **red 2**                                                                 | —                                                                                                                                             |
+| same                                                                                         | same                                                                                                                                                                    | **M-G** delete `min-h-hit` from `nativeInputClass`                                                                   | **red 2**                                                                 | —                                                                                                                                             |
+| `src/switch.tsx`                                                                             | (nothing)                                                                                                                                                               | **M-H** delete `opacity-0` from `nativeInputClass`                                                                   | **GREEN 86**                                                              | **FINDING.** A visible native checkbox painted on top of the drawing is green.                                                                |
+| `src/switch.tsx` → `test/stories.test.tsx`                                                   | switch/Off; switch/Disabled; runs all 29 play functions                                                                                                                 | **M-I** delete `role="switch"` from the button host                                                                  | **red 3** (`Unable to find an accessible element with the role "switch"`) | —                                                                                                                                             |
+| `src/switch.tsx` → `test/stories.test.tsx`                                                   | switch/NativeCheckbox; switch/InAForm; runs all 29 play functions                                                                                                       | **M-J** delete `role="switch"` from `SwitchInput`                                                                    | **red 3**                                                                 | —                                                                                                                                             |
+| `src/switch.tsx` → `test/switch-drawing.test.tsx`                                            | gives each trigger a selector only its own host can satisfy                                                                                                             | **M-K** strip EVERY `group-aria-checked/switch:` and `group-has-checked/switch:` token from track + thumb            | **red 3, but this test stayed GREEN**                                     | **FINDING.** All three of its loops iterate `triggered(...)`; with no on-state classes they run zero times and it passes asserting nothing.   |
+| `src/switch.tsx` → `test/switch-drawing.test.tsx`                                            | dims the whole row when either host is disabled                                                                                                                         | **M-L** delete `disabled:cursor-not-allowed disabled:opacity-50`                                                     | **red 1** (`the root has no disabled treatment of its own`)               | —                                                                                                                                             |
+| same                                                                                         | same                                                                                                                                                                    | **M-M** delete both `has-disabled:` spellings                                                                        | **red 1** (`expected +0 to be 2`)                                         | —                                                                                                                                             |
+| `src/switch.tsx`                                                                             | (nothing)                                                                                                                                                               | **M-N** `type={type ?? "button"}` → `type={type}`                                                                    | **GREEN 62**                                                              | **FINDING.** The button host's form-submit guard has no story that puts it in a `<form>`.                                                     |
+| `src/switch.tsx` → `test/stories.test.tsx`                                                   | switch/NativeCheckbox; switch/InAForm                                                                                                                                   | **M-O** `asChild` ignored (`if (false && asChild)`)                                                                  | **red 3** (`Found multiple elements with the role "switch"`)              | —                                                                                                                                             |
+| `src/switch.tsx`                                                                             | (nothing)                                                                                                                                                               | **M-P** the `asChild` branch drops `className={classes}` entirely                                                    | **GREEN 86**                                                              | **FINDING (HIGH).** The label host's `group/switch`, `min-h-hit`, `relative`, focus ring and both disabled spellings are asserted by nothing. |
+| `src/switch.tsx`                                                                             | (nothing)                                                                                                                                                               | **M-Q** delete `pointer-events-none` from `thumbClass`                                                               | **GREEN 71**                                                              | benign (a click on a child span reaches the button / is forwarded by the label); noted, not a finding                                         |
+| `src/switch.tsx` → `test/stories.test.tsx`                                                   | switch/NativeCheckbox; switch/InAForm                                                                                                                                   | **M-Y** `type="checkbox"` → `type="text"`                                                                            | **red 3**                                                                 | —                                                                                                                                             |
+| `stories/switch.stories.tsx` → `test/stories.test.tsx`                                       | switch/Off (`toContainElement`); runs all 29 play functions                                                                                                             | **M-R** `drawing` rewritten so `SwitchThumb` is a SIBLING of `SwitchTrack`                                           | **red 2**                                                                 | —                                                                                                                                             |
+| `stories/switch.stories.tsx` → `test/stories.test.tsx`                                       | runs all 29 play functions                                                                                                                                              | **M-S** delete `Off`'s `play`                                                                                        | **red 1** (`expected … to have a length of 29 but got 28`)                | —                                                                                                                                             |
+| `stories/switch.stories.tsx` → `test/stories.test.tsx`                                       | covers all eleven part families, with every story counted                                                                                                               | **M-T** delete the `On` story                                                                                        | **red 1** (`… to have a length of 49 but got 48`)                         | —                                                                                                                                             |
+| `stories/switch.stories.tsx` → `test/stories.test.tsx`, `test/switch-drawing.test.tsx`       | switch/Off; sets the travel only while the control is on                                                                                                                | **M-AB** `aria-checked={on}` → `aria-checked={false}` (a trigger that cannot fire)                                   | **red 3** (`expected 'false' to be 'true'`)                               | —                                                                                                                                             |
+| `registry.json` → `test/registry.test.ts`                                                    | 7 of the 14                                                                                                                                                             | **M-U** delete the `switch` item from `registry.json`                                                                | **red 7**                                                                 | —                                                                                                                                             |
+| `packages/ui/r/switch.json` → `test/registry.test.ts`                                        | carries the CURRENT bytes of every source it ships                                                                                                                      | **M-V** one class edited inside the committed `content`                                                              | **red 1** (`switch: packages/ui/src/switch.tsx is stale`)                 | —                                                                                                                                             |
+| `packages/tokens/test/helpers/source-files.ts` → brand-guard, literal-guard, source-coverage | 3 tests + 2 whole files                                                                                                                                                 | **M-AC** delete `packages/ui/src/switch.tsx` from `PUBLISHED_SOURCE_FILES`                                           | **red**, 3 files                                                          | —                                                                                                                                             |
+| same                                                                                         | brand-guard, source-coverage                                                                                                                                            | **M-AD** delete `packages/ui/stories/switch.stories.tsx` from `STORY_FILES`                                          | **red**, 2 files                                                          | —                                                                                                                                             |
+| `src/switch.tsx` → `packages/tokens/test/literal-guard.test.ts`                              | finds no literal colour …                                                                                                                                               | **M-AE** plant `[color:#ff00ff]` in `thumbClass`                                                                     | **red 1**                                                                 | the two tokens guards really do reach the new files                                                                                           |
+| `test/tailwind-compile.test.tsx`                                                             | (nothing)                                                                                                                                                               | **M-AG** delete `switch: switchPart` from BOTH suite maps and the import                                             | **GREEN 100**                                                             | **FINDING.** The new part can leave the compile check and the 44px floor check silently.                                                      |
+| `test/stories.test.tsx`                                                                      | (nothing)                                                                                                                                                               | **M-AH** delete the switch from the import, `SUITES`, the hardcoded family list and both counters (`29→25`, `49→42`) | **GREEN 99**                                                              | **FINDING.** All 7 stories and all 4 plays stop running with no anchor anywhere.                                                              |
+
+(31 mutations, 22 red, 9 GREEN. The reviewer's own scope note: this repo has no
+e2e layer and no build-served artefact, so there is no `OWED:` row; `pnpm build`
+ran before every measurement because `packages/tokens/dist` is gitignored output
+that four test files read.)
+
+### Acting on the layer-1 findings (fixes at `d6e2289`)
+
+Every GREEN row is closed by a change, and every change was re-reddened by
+re-running the reviewer's own mutation against the fix.
+
+| row                                                                                    | what changed                                                                                                                                                                                                                 | the red it now produces                                                                         |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **M-P** (HIGH-1: the `asChild` branch drops `className` -> 86 green)                   | the native host is now observed in a rendered cascade: `draws the NATIVE host from the checkbox's own state` reads both states from two renders, and `positions the drawing and the overlay…` reads the row's own `position` | `expected 'var(--overlay)' to be 'var(--primary)'` and `expected 'static' to be 'relative'`     |
+| **M-D** (HIGH-2: `relative` off the track -> 86 green)                                 | the same positions test reads the track's computed `position`                                                                                                                                                                | `expected 'static' to be 'relative'`                                                            |
+| **M-E** (HIGH-2: `relative` off the row -> 86 green)                                   | …and the row's                                                                                                                                                                                                               | `expected 'static' to be 'relative'`                                                            |
+| **M-H** (MED-4: `opacity-0` off the overlay -> 86 green)                               | the native-host test reads the input's computed `opacity`, compared against what the sheet declares for `opacity-0` rather than a retyped `"0"`                                                                              | `expected '1' to be '0%'`                                                                       |
+| **M-K** (MED-3: the selector test asserted nothing -> stayed green)                    | that test anchors its own subject before looping, and checks all FOUR trigger/element combinations instead of two                                                                                                            | `track: no aria-driven on-state: expected 0 to be greater than 0`                               |
+| **M-N** (MED-5: the `type="button"` guard had no form -> 62 green)                     | a `ButtonInAForm` story whose play clicks the switch and watches for a submit that must not come, plus a `type` assertion in the new bare-`Switch` test                                                                      | `expect(element).toHaveTextContent()` on the submit counter, and `expected null to be 'button'` |
+| **M-AG / M-AH** (MED-2: a part can leave both suite maps silently -> 100 and 99 green) | one `packages/ui/test/helpers/story-suites.ts` serves both files, and `stories.test.tsx` checks its keys against the story FILES on disk                                                                                     | `expected [ Array(10) ] to deeply equal [ Array(11) ]`                                          |
+| **M-Q** (`pointer-events-none`, benign)                                                | left as it is: a click on the thumb reaches the button by bubbling and the label by forwarding, so the class is belt-and-braces. Recorded here so it is not re-run                                                           | -                                                                                               |
+
+Two findings were code defects rather than missing tests, and both are fixed in
+the part:
+
+- **HIGH-3**: `role="switch"` requires `aria-checked`, and nothing wrote or
+  demanded one. The button branch now writes `aria-checked={ariaChecked ?? false}` -
+  not state, just what "off" is spelled as - and
+  `announces off, and draws off, when the caller writes no state at all` pins it.
+  Removing the default reddens with `expected null to be 'false'`.
+- **HIGH-4**: `<Switch asChild aria-checked>` on a `<label>` lit the pill fully ON
+  over an unchecked box while the row announced nothing - the exact disagreement
+  the part's docblock claimed to make impossible. The `asChild` branch now STRIPS
+  `aria-checked` (as it already refused to spread `role` and `type`), and
+  `will not draw a state the row does not announce` pins it. Putting the attribute
+  back reddens with `expected 'true' to be null`.
+
+Recorded rather than fixed:
+
+- **LOW-3, the forced-colors focus indicator.** `focus-visible:outline-none` plus a
+  `box-shadow` ring leaves no focus indicator under `forced-colors: active`, and
+  this part adds a second instance of the house spelling (`has-focus-visible:`).
+  It is `accordion.tsx:42` byte for byte, so it is a library-level decision (an
+  `outline: 2px solid transparent` companion, or a `forced-colors` media rule in
+  the tokens sheet) and not one part's to take unilaterally. **Flagged to the
+  orchestrator.**
+- **The overlay input covers the row's text**, so the native host's row has no text
+  selection and cannot carry a second interactive element. Inherent to the pattern
+  and now stated in the part's docblock rather than discovered by a consumer.
 
 ### The pipeline, end to end
 
@@ -1117,11 +1223,20 @@ import line is rewritten and the copy differs by exactly those two bytes.
    Two buttons here already dim at 50 and this part is new rather than moved, so the
    fidelity rule ("the tokens change name, the pixels do not") does not bind it. The
    consumption dims its settings switch 10% less than today; nothing else moves.
-9. **The stated part count was updated where the package DESCRIBES itself**
-   (`AGENTS.md`, `README.md`, `packages/ui/package.json`), and deliberately NOT in
-   `label.tsx`'s "rather than as an eleventh part (D10)", which records a2's decision
-   at the time it was taken - and whose bytes are frozen by the consuming repo's
-   drift test, so a comment edit there is a re-sync that buys nothing.
+9. **The button branch writes `aria-checked="false"` when the caller writes
+   nothing, and the `asChild` branch strips `aria-checked` entirely.** [V] Taken
+   at layer 1 (HIGH-3, HIGH-4). The first is not state - `role="switch"` REQUIRES
+   the attribute, so a missing one is a violation and a permanently-off drawing,
+   and "off" is what a switch is until told otherwise. The second makes the part's
+   central promise a property of the PART rather than of its stories: an
+   `aria-checked` on a `<label>` announces nothing and would light the pill anyway.
+   Both refusals are the same shape as `Button`'s `asChild` branch refusing to
+   write `type`.
+10. **The stated part count was updated where the package DESCRIBES itself**
+    (`AGENTS.md`, `README.md`, `packages/ui/package.json`), and deliberately NOT in
+    `label.tsx`'s "rather than as an eleventh part (D10)", which records a2's decision
+    at the time it was taken - and whose bytes are frozen by the consuming repo's
+    drift test, so a comment edit there is a re-sync that buys nothing.
 
 ### thepile inputs
 
@@ -1138,6 +1253,10 @@ What the consumption half needs when `0.1.1` publishes, in one list:
   switch by exactly those ids. `min-h-hit`, `group` and the disabled treatment come
   from the part now and should be deleted from the row's own string; the `hover:`
   and the box are the page's and stay.
+- ⚠️ **`ContentSettings.tsx` keeps passing `aria-checked={on}`** (it has real
+  state); a host that passes none is drawn and announced OFF rather than silently
+  broken. ⚠️ **`PushSettings.tsx` must NOT pass `aria-checked`** - the `asChild`
+  branch drops it, deliberately, and the checkbox is the state.
 - **`PushSettings.tsx`**: `<Switch asChild><label …>` with `<SwitchInput>` in place
   of the bare `<input className={`peer ${SWITCH_TRACK_CHECKED}`}>`, and the same
   `<SwitchTrack><SwitchThumb/></SwitchTrack>` after it. The wrapping
@@ -1200,6 +1319,14 @@ starting a comment, not a consumer. Scan 3 named `AGENTS.md`,
 
 **0 CROSS, 0 UNOWNED**, 12 names NEW between the two runs (the first ran against an
 empty diff by construction). The batch's other stream is in a different repository.
+
+**Run 3, after the layer-1 fixes** (`consumer-scan.3.txt`): four names more -
+`NativeCheckboxOn` and `ButtonInAForm` (stories), and `STORY_SUITES` /
+`storySuiteNames` from the new `packages/ui/test/helpers/story-suites.ts`. The two
+readers of the shared map are exactly the two test files that used to keep their
+own copies (`stories.test.tsx`, `tailwind-compile.test.tsx`), which is the point of
+it. Scan 3 gained `packages/ui/test/switch-drawing.test.tsx` (it now names the
+story file it renders). Still **0 CROSS, 0 UNOWNED**.
 
 ⚠️ A blind spot worth carrying: scan 3's stem arm looks for `./<stem>"` and
 `../<stem>"` and so does NOT see `import * as x from "../stories/switch.stories.js"`,
