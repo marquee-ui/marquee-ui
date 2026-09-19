@@ -2683,15 +2683,15 @@ so a later stream can re-run it rather than trust the number.
 **1. The gap this family closes, in three numbers.** The product announces its
 errors and associates almost none of them.
 
-| what                                                         | command                                                                                                                 | count  |
-| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ------ |
-| field messages, `p[role="alert"]` carrying `text-danger`     | `git grep -n 'role="alert"' $T -- 'apps/web/src/**/*.tsx' \| command grep -v '\.test\.' \| command grep -c text-danger` | **30** |
-| …of those, carrying an `id` at all                           | the same, then `command grep -c ' id='`                                                                                 | **1**  |
-| `aria-describedby` / `aria-invalid` lines, non-test          | `git grep -n -E 'aria-describedby\|aria-invalid' $T -- 'apps/web/src/**/*.tsx' \| command grep -v '\.test\.'`           | **15** |
-| …of those, real field wiring rather than a Radix suppression | read, not counted: 8 are `<SheetContent aria-describedby={undefined}>` and 2 pass a `describedBy` prop through          | **5**  |
-| `htmlFor=` ATTRIBUTES, non-test                              | `git grep -h -o -E 'htmlFor=[{"]' $T -- 'apps/web/src/**/*.tsx' \| command wc -l`                                       | **14** |
-| …of those, a hand-typed string LITERAL                       | `git grep -h -o -E 'htmlFor="[^"]+"' $T -- …`; the other 3 are `SLIDER_ID`, `TagInput`'s `id`, `ReportSheet`'s `id`     | **11** |
-| `aria-invalid` anywhere in the product                       | one line, `app/pile/page.tsx:115`                                                                                       | **1**  |
+| what                                                         | command                                                                                                                                                                  | count                 |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------- |
+| field messages, `p[role="alert"]` carrying `text-danger`     | `git grep -n 'role="alert"' $T -- 'apps/web/src/**/*.tsx' \| command grep -v '\.test\.' \| command grep -c text-danger`                                                  | **30**                |
+| …of those, carrying an `id` at all                           | the same, then `command grep -c ' id='`                                                                                                                                  | **1**                 |
+| `aria-describedby` / `aria-invalid` lines, non-test          | `git grep -n -E 'aria-describedby\|aria-invalid' $T -- 'apps/web/src/**/*.tsx' \| command grep -v '\.test\.'`                                                            | **15**                |
+| …of those, real field wiring rather than a Radix suppression | read, not counted: 9 are `<SheetContent aria-describedby={undefined}>` and 2 pass a `describedBy` prop through (layer 2 LOW-1, batch DL10: the first count said 8, so 5) | **4**, across 3 sites |
+| `htmlFor=` ATTRIBUTES, non-test                              | `git grep -h -o -E 'htmlFor=[{"]' $T -- 'apps/web/src/**/*.tsx' \| command wc -l`                                                                                        | **14**                |
+| …of those, a hand-typed string LITERAL                       | `git grep -h -o -E 'htmlFor="[^"]+"' $T -- …`; the other 3 are `SLIDER_ID`, `TagInput`'s `id`, `ReportSheet`'s `id`                                                      | **11**                |
+| `aria-invalid` anywhere in the product                       | one line, `app/pile/page.tsx:115`                                                                                                                                        | **1**                 |
 
 ⚠️ The first draft of this table said **15** `htmlFor` and **12** literals, from
 `git grep -n 'htmlFor' … | grep -v '\.test\.'` - which counts LINES, and the
@@ -3141,12 +3141,24 @@ command beside any count.
   a form, not after.
 - ⚠️ **No call site may put `id`, `aria-describedby` or `aria-invalid` on the
   control itself.**
-  `FormControl` throws (decision 6). Three product sites would hit it today if
-  wrapped naively: `pile/page.tsx:103` (`id="pile-input"`),
-  `comments/CommentForm.tsx:72` (`id="comment-body"`) and
-  `DeveloperSettings.tsx:141` (`id="token-name"`), plus the eight `LogForm` fields
-  at `:650-903` that pair `htmlFor` with a literal id. Each drops its hand-typed
-  id and lets the item generate one.
+  `FormControl` throws (decision 6). Enumerated by the REFUSAL PREDICATE (all three
+  attributes), not by `id` alone (layer 2 HIGH-1, batch DL10: the first draft listed
+  three `id` sites and omitted the two sites the checklist most invites). At `e66bc793`
+  the sites that would hit it if wrapped naively are: by `id`, `pile/page.tsx:103`
+  (`id="pile-input"`), `comments/CommentForm.tsx:71` (`id="comment-body"`),
+  `DeveloperSettings.tsx:144` (`id="token-name"`), `log/LogForm.tsx:705`
+  (`<TagInput id="log-tags">`, a ninth `LogForm` id that pairs no `htmlFor`) and the
+  eight `LogForm` fields at `:650-903` that pair `htmlFor` with a literal id; by
+  `aria-describedby`, `onboarding/OnboardingForm.tsx:98`
+  (`aria-describedby="username-hint"` on the input, the bullet above) and
+  `profile/FacePicker.tsx:373` (`aria-describedby={confirming ? "face-confirm" : undefined}`
+  on the button: `undefined` passes, then the FIRST tap that arms the confirm makes it
+  a string and `FormControl` throws on re-render, so a wrapped button takes the route
+  down in the one state it exists for). Each drops its hand-typed attribute and lets
+  the item generate one; a conditional description moves onto `FormDescription`. No
+  product site sets `aria-invalid` on a control today. Verify with
+  `git grep -n -E 'aria-describedby=|aria-invalid=| id="' -- '<the file>'` at the base
+  before wrapping any of them.
 - **Two behaviours the consumption GAINS**: 29 messages become reachable from the
   field that produced them, which is the actual accessibility change; and a form
   rendered twice on one page stops being a source of duplicate ids, because
@@ -3418,3 +3430,16 @@ being `All matched files use Prettier code style!`, both packages'
 `Test Files 22 passed (22)` / `Tests 405 passed (405)` - the same counts as
 before, which is the point: inverting a guard's shape added no test and changed no
 behaviour. `git status --short` empty before and after.
+
+### Reconciler closures (batch DL10, layer 2)
+
+Docs-only, on the library's `next` after the stream's head `847aa578`. HIGH-1: the
+consumption checklist's refusal bullet now enumerates by the refusal predicate and
+names `OnboardingForm.tsx:98`, `FacePicker.tsx:373` and `LogForm.tsx:705`. LOW-1: the
+real-wiring count is 4 across 3 sites (9 Radix suppressions, not 8). LOW-2: the
+`CommentForm` and `DeveloperSettings` line numbers were the neighbouring lines (`:71`
+and `:144`, not `:72` and `:141`). LOW-3: the record's last stated gate was at
+`368a4484`; the stream's head `847aa578` (one docs commit later) also ran `pnpm verify`
+exit 0, `22 passed (22)` / `405 passed (405)`, recorded in its report and not here until
+now. This closure commit is docs; `pnpm exec prettier --check docs/as-built.md` is its
+check.
