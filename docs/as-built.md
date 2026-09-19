@@ -3325,6 +3325,14 @@ base `8c9d31a`, whose own `pnpm verify` was measured green first).
 `git status --short` was empty afterwards, so the committed `packages/ui/r` is
 exactly what `build:registry` produces.
 
+⚠️ Docs commits followed that run, this section among them, so the gated tree
+and the branch head differ by `docs/as-built.md` alone. Rather than quote a run
+that predates the head, `pnpm verify` was run AGAIN, in full, on the final
+commit - the same exit 0 and the same 22 / 405 - because this gate takes 23
+seconds and an unverified head is not worth saving them. Nothing outside `docs/`
+changed between the two, and `docs/` is read by `prettier --check` and by no
+test: `source-files.ts` walks `packages/*/src` and `packages/*/stories` only.
+
 No push, no publish, no version bump: the freeze holds, and this family rides
 the post-freeze `0.1.1` with the Switch, the two navigation families and
 `Alert` - a FIVE-item bump.
