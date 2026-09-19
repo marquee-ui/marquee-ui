@@ -63,6 +63,12 @@ describe("two fields on one page cannot collide", () => {
 
     // …and so does each item's description and message.
     const described = controls.map(describedIds);
+    // ⚠️ ANCHOR THE COUNT FIRST. Everything below loops over `described`, so a
+    // `describedIds` that returned nothing - or a fixture that stopped
+    // composing the two describable parts - made all of it vacuous and left
+    // this test green (layer 1, run twice). The valid field names its
+    // description; the invalid one names its description AND its message.
+    expect(described.map((list) => list.length)).toEqual([1, 2]);
     expect(new Set(described.flat()).size).toBe(described.flat().length);
     for (const [i, list] of described.entries()) {
       for (const id of list) {
@@ -167,7 +173,17 @@ describe("a part outside its item fails loudly", () => {
   it("renders all four without throwing once they are inside one", () => {
     // The positive anchor for the block above: without it, a `render` that threw
     // for some unrelated reason would satisfy every case.
-    expect(() => render(field({ label: "Email", invalid: true }))).not.toThrow();
+    //
+    // ⚠️ `not.toThrow()` ALONE IS NOT THAT ANCHOR. It passed against
+    // `render(<div />)` and against a fixture carrying two of the four parts
+    // (layer 1, both run), because it observes nothing that rendered. So the
+    // four slots are counted.
+    const { container } = render(field({ label: "Email", invalid: true }));
+    expect(
+      ["form-item", "form-label", "form-control", "form-description", "form-message"].map(
+        (slot) => container.querySelectorAll(`[data-slot="${slot}"]`).length,
+      ),
+    ).toEqual([1, 1, 1, 1, 1]);
   });
 });
 
@@ -180,6 +196,11 @@ describe("the two inks this family names are inks the presets measure", () => {
 
   it("names them, and the instrument can tell a covered role from an uncovered one", () => {
     // Anchor both ways, or a list that always returned true would pass.
+    // ⚠️ And anchor the LIST: emptying `inks` left this green, because the
+    // positive half was carried entirely by the literal (layer 1, run). Two is
+    // the number of inks this family paints, and the arm below reads them back
+    // off the rendered parts rather than off this list.
+    expect(inks).toHaveLength(2);
     expect((BODY_INK_ROLES as readonly string[]).includes("primary")).toBe(false);
     expect((BODY_INK_ROLES as readonly string[]).includes("brand")).toBe(false);
     for (const ink of inks) {

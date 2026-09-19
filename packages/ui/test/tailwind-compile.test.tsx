@@ -619,40 +619,39 @@ describe("the field's stack and its two inks, in resolved declarations", () => {
     expect(declaredValues(control, "border-width").length).toBeGreaterThan(0);
   });
 
-  it("decides no width, no outer margin and no tap floor", () => {
-    // The field is a stack in someone else's column (the nav families' decision
-    // 4, `Alert`'s decision 6), and the 44px floor is the CONTROL's - `Input`
-    // carries it, and the package's own floor guard measures it through these
-    // stories. Every spelling, because `declaredValues` anchors its property
-    // name and `mx-auto` went straight through a shorter list (Alert layer 1).
-    const classes = item("Default");
-    const LAYOUT = [
-      "min-height",
-      "height",
-      "width",
-      "min-width",
-      "max-width",
-      "inline-size",
-      "max-inline-size",
-      "margin",
-      "margin-top",
-      "margin-bottom",
-      "margin-left",
-      "margin-right",
-      "margin-inline",
-      "margin-inline-start",
-      "margin-inline-end",
-      "margin-block",
-      "margin-block-start",
-      "margin-block-end",
-      "padding",
-      "border-width",
-    ];
-    for (const property of LAYOUT) {
-      expect(declaredValues(classes, property), property).toEqual([]);
+  it("declares exactly the properties the stack needs, and nothing else", () => {
+    // ⚠️ A BLACKLIST OF PROPERTIES CANNOT BE COMPLETE, and this arm was one.
+    // It named twenty - every width, every margin spelling, `padding`,
+    // `border-width` - and `px-3`, `py-2`, `border-t-2` and `max-h-40` all went
+    // straight through it, each one run (layer 1, MED-3). `Alert`'s equivalent
+    // arm has the same hole and was where the list was copied from.
+    //
+    // So it is a WHITELIST: every property the item's classes declare, as a
+    // SET, compared to the set the stack needs. A field is a column in someone
+    // else's layout (the nav families' decision 4, `Alert`'s decision 6) and
+    // the 44px floor is the CONTROL's, so anything else the item started
+    // declaring - a box, a width, a margin, a height - reddens here without
+    // anyone having had to think of its spelling first.
+    const declared = new Set<string>();
+    for (const token of item("Default")) {
+      for (const match of rule(token).matchAll(/(?:^|[;\s])([a-z-]+)\s*:/g)) {
+        declared.add(match[1]!);
+      }
     }
-    // The instrument's own positive, in the same shape.
-    expect(declaredValues(classes, "gap")).not.toEqual([]);
+    // The anchor: the set is read off a real compiled stylesheet, so an empty
+    // one would mean the instrument found nothing rather than that the item
+    // declares nothing.
+    expect(declared.size).toBeGreaterThan(3);
+    // Five, not four: `flex` -> display, `flex-col` -> flex-direction,
+    // `gap-1` -> gap, and `text-sm` emits BOTH `font-size` and `line-height`,
+    // which is Tailwind's type scale carrying its own leading.
+    expect([...declared].sort()).toEqual([
+      "display",
+      "flex-direction",
+      "font-size",
+      "gap",
+      "line-height",
+    ]);
   });
 });
 
