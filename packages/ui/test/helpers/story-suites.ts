@@ -7,6 +7,7 @@ import * as badge from "../../stories/badge.stories.js";
 import * as breadcrumb from "../../stories/breadcrumb.stories.js";
 import * as button from "../../stories/button.stories.js";
 import * as card from "../../stories/card.stories.js";
+import * as form from "../../stories/form.stories.js";
 import * as input from "../../stories/input.stories.js";
 import * as label from "../../stories/label.stories.js";
 import * as pagination from "../../stories/pagination.stories.js";
@@ -34,6 +35,7 @@ export const STORY_SUITES = {
   breadcrumb,
   button,
   card,
+  form,
   input,
   label,
   pagination,

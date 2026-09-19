@@ -1,0 +1,145 @@
+import { BODY_INK_ROLES } from "@marquee-ui/tokens";
+import { cleanup, render } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
+
+import { FormControl, FormDescription, FormItem, FormLabel, FormMessage } from "@/form";
+import { Input } from "@/input";
+
+/**
+ * The three properties of this family that a STORY cannot state.
+ *
+ * The stories assert the wiring one field at a time, which is what a call site
+ * looks like. These are the claims that only exist ACROSS renders or ACROSS the
+ * contract: that two fields on one page cannot collide, that a part used outside
+ * its item fails loudly rather than drawing a dead label, and that the two inks
+ * this family names are inks the presets actually measure.
+ */
+
+afterEach(cleanup);
+
+const describedIds = (control: Element): string[] =>
+  (control.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean);
+
+function field(props: { invalid?: boolean; label: string }) {
+  return (
+    <FormItem invalid={props.invalid}>
+      <FormLabel>{props.label}</FormLabel>
+      <FormControl>
+        <Input />
+      </FormControl>
+      <FormDescription>Anything you like.</FormDescription>
+      <FormMessage>That is not it.</FormMessage>
+    </FormItem>
+  );
+}
+
+describe("two fields on one page cannot collide", () => {
+  it("gives every item its own id, and every part of an item the same one", () => {
+    const { container } = render(
+      <form>
+        {field({ label: "Email" })}
+        {field({ label: "Password", invalid: true })}
+      </form>,
+    );
+
+    const controls = [...container.querySelectorAll("input")];
+    const labels = [...container.querySelectorAll<HTMLLabelElement>('[data-slot="form-label"]')];
+    expect(controls).toHaveLength(2);
+    expect(labels).toHaveLength(2);
+
+    // The anchor: every id is a real, non-empty string, so the uniqueness
+    // assertion below cannot pass by comparing two empty ones. This is the defect
+    // the family exists to remove - the consuming product's twelve `htmlFor`
+    // attributes are hand-typed literals, which is exactly what collides when a
+    // form is rendered twice on one page.
+    const ids = controls.map((c) => c.id);
+    for (const id of ids) expect(id).not.toBe("");
+    expect(new Set(ids).size).toBe(2);
+
+    // Each label points at ITS OWN control, not at whichever came first.
+    for (const [i, label] of labels.entries()) {
+      expect(label.htmlFor).toBe(ids[i]);
+    }
+
+    // …and so does each item's description and message.
+    const described = controls.map(describedIds);
+    expect(new Set(described.flat()).size).toBe(described.flat().length);
+    for (const [i, list] of described.entries()) {
+      for (const id of list) {
+        const target = container.ownerDocument.getElementById(id);
+        expect(target, `${id} resolves`).not.toBeNull();
+        expect(controls[i]!.closest('[data-slot="form-item"]')).toContainElement(target);
+      }
+    }
+  });
+
+  it("names the message only on the field that is invalid", () => {
+    const { container } = render(
+      <form>
+        {field({ label: "Email" })}
+        {field({ label: "Password", invalid: true })}
+      </form>,
+    );
+    const [valid, invalid] = [...container.querySelectorAll("input")];
+    expect(describedIds(valid!)).toHaveLength(1);
+    expect(describedIds(invalid!)).toHaveLength(2);
+    expect(valid!.getAttribute("aria-invalid")).toBeNull();
+    expect(invalid!.getAttribute("aria-invalid")).toBe("true");
+    // Exactly one live region on a page holding two fields.
+    expect(container.querySelectorAll('[role="alert"]')).toHaveLength(1);
+  });
+});
+
+describe("a part outside its item fails loudly", () => {
+  // Silence here is the defect: a label pointing at nothing and a control with no
+  // ARIA at all is precisely the state this family was written to replace, and it
+  // looks completely normal on screen.
+  it.each([
+    ["FormLabel", <FormLabel key="l">Email</FormLabel>],
+    [
+      "FormControl",
+      <FormControl key="c">
+        <Input />
+      </FormControl>,
+    ],
+    ["FormDescription", <FormDescription key="d">Hint.</FormDescription>],
+    ["FormMessage", <FormMessage key="m">Wrong.</FormMessage>],
+  ])("%s throws when it is not inside a FormItem", (name, element) => {
+    expect(() => render(element)).toThrow(`<${name}> must be rendered inside a <FormItem>.`);
+  });
+
+  it("renders all four without throwing once they are inside one", () => {
+    // The positive anchor for the block above: without it, a `render` that threw
+    // for some unrelated reason would satisfy every case.
+    expect(() => render(field({ label: "Email", invalid: true }))).not.toThrow();
+  });
+});
+
+describe("the two inks this family names are inks the presets measure", () => {
+  // `Alert`'s rule, applied to a family with no `cva`: a class like `text-brand`
+  // or `text-primary` compiles exactly as well and is measured against no ground
+  // by anything, so a part may only paint in a role that is already inside the
+  // presets' 4.5:1 ink-on-ground check. Imported rather than retyped.
+  const inks = ["muted", "destructive"] as const;
+
+  it("names them, and the instrument can tell a covered role from an uncovered one", () => {
+    // Anchor both ways, or a list that always returned true would pass.
+    expect((BODY_INK_ROLES as readonly string[]).includes("primary")).toBe(false);
+    expect((BODY_INK_ROLES as readonly string[]).includes("brand")).toBe(false);
+    for (const ink of inks) {
+      expect((BODY_INK_ROLES as readonly string[]).includes(ink), ink).toBe(true);
+    }
+  });
+
+  it("paints the description and the message in exactly those two", () => {
+    // Read off the rendered parts, so a part that quietly changed its ink to an
+    // unmeasured role reddens here rather than in a list nobody updated.
+    const { container } = render(field({ label: "Email", invalid: true }));
+    const painted = (slot: string) =>
+      (container.querySelector(`[data-slot="${slot}"]`)?.getAttribute("class") ?? "")
+        .split(/\s+/)
+        .filter((c) => c.startsWith("text-"));
+    expect(painted("form-description")).toEqual(["text-muted"]);
+    expect(painted("form-message")).toEqual(["text-destructive"]);
+  });
+});

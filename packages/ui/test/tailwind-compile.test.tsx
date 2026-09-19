@@ -543,6 +543,112 @@ describe("the notice's tone, in resolved declarations", () => {
 });
 
 /**
+ * THE FIELD'S DRAWING, IN RESOLVED DECLARATIONS.
+ *
+ * This family is the WIRING, so its four classes are the half no `play` can see:
+ * jsdom lays nothing out, and `className.toContain("gap-1")` cannot say what a
+ * gutter is in pixels or whether an ink is the role's own variable or a copy of
+ * it. The wiring itself is asserted by the stories, which resolve every id the
+ * control names back to the element carrying it.
+ */
+describe("the field's stack and its two inks, in resolved declarations", () => {
+  const form = () => STORY_SUITES.form;
+  const item = (story: string) => slotTokens(form(), story, '[data-slot="form-item"]');
+
+  it("found the classes to measure, and a sheet that can answer about them", () => {
+    // Anchors, positive and negative: a story that compiled to nothing and a
+    // property nothing declares read the same without both of these.
+    const classes = item("Default");
+    expect(classes.length).toBeGreaterThan(2);
+    expect(declaredValues(classes, "display")).not.toEqual([]);
+    expect(declaredValues(classes, "border-collapse")).toEqual([]);
+  });
+
+  it("is the 4px-grid column the docblock says it is", () => {
+    // `gap-1` and not the consuming product's `gap-1.5`: 6px is off the house's
+    // 4px spacing grid, which AGENTS.md names as skeleton. In pixels, so a
+    // silent move to another step is a number that changes rather than a class
+    // name that still reads plausibly.
+    const vars = rootVars();
+    const classes = item("Default");
+    expect(declaredValues(classes, "display")).toEqual(["flex"]);
+    expect(declaredValues(classes, "flex-direction")).toEqual(["column"]);
+    expect(declaredValues(classes, "gap").map((v) => lengthPx(v, vars))).toEqual([4]);
+  });
+
+  it("owns the type size, and the control overrides it with the 16px floor", () => {
+    const vars = rootVars();
+    // The item carries the size once, for the label, the description and the
+    // message together - `Alert`'s arrangement with the two axes swapped.
+    expect(declaredValues(item("Default"), "font-size").map((v) => lengthPx(v, vars))).toEqual([
+      14,
+    ]);
+    // …and the control must NOT inherit it: anything under 16px makes iOS Safari
+    // zoom the viewport on focus and never zoom back, which is why `Input`
+    // declares `text-base` on itself. Read off the rendered control, not typed.
+    const control = slotTokens(form(), "Default", "input");
+    expect(declaredValues(control, "font-size").map((v) => lengthPx(v, vars))).toEqual([16]);
+  });
+
+  it("resolves the description's and the message's ink to the role's own variable", () => {
+    const description = slotTokens(form(), "Described", '[data-slot="form-description"]');
+    expect(declaredValues(description, "color")).toEqual(["var(--muted)"]);
+    const message = slotTokens(form(), "Invalid", '[data-slot="form-message"]');
+    expect(declaredValues(message, "color")).toEqual(["var(--destructive)"]);
+    // Neither declares a size of its own: the item owns that (the arm above).
+    expect(declaredValues(description, "font-size")).toEqual([]);
+    expect(declaredValues(message, "font-size")).toEqual([]);
+  });
+
+  it("puts no drawing at all on the control slot", () => {
+    // `FormControl` is a pure `Slot`: it renders the caller's element and adds
+    // attributes. If it ever grew a class, the caller's own control would start
+    // wearing a box it did not ask for - and the SAME element carries both class
+    // lists, so this reads the rendered input's `data-slot` to prove the slot
+    // really is the control before asserting about it.
+    const control = slotTokens(form(), "Default", '[data-slot="form-control"]');
+    expect(control).toEqual(slotTokens(form(), "Default", "input"));
+    expect(declaredValues(control, "border-width").length).toBeGreaterThan(0);
+  });
+
+  it("decides no width, no outer margin and no tap floor", () => {
+    // The field is a stack in someone else's column (the nav families' decision
+    // 4, `Alert`'s decision 6), and the 44px floor is the CONTROL's - `Input`
+    // carries it, and the package's own floor guard measures it through these
+    // stories. Every spelling, because `declaredValues` anchors its property
+    // name and `mx-auto` went straight through a shorter list (Alert layer 1).
+    const classes = item("Default");
+    const LAYOUT = [
+      "min-height",
+      "height",
+      "width",
+      "min-width",
+      "max-width",
+      "inline-size",
+      "max-inline-size",
+      "margin",
+      "margin-top",
+      "margin-bottom",
+      "margin-left",
+      "margin-right",
+      "margin-inline",
+      "margin-inline-start",
+      "margin-inline-end",
+      "margin-block",
+      "margin-block-start",
+      "margin-block-end",
+      "padding",
+      "border-width",
+    ];
+    for (const property of LAYOUT) {
+      expect(declaredValues(classes, property), property).toEqual([]);
+    }
+    // The instrument's own positive, in the same shape.
+    expect(declaredValues(classes, "gap")).not.toEqual([]);
+  });
+});
+
+/**
  * The utilities a CONSUMER calls that no part in this package renders.
  *
  * A design system's contract is not only what its own components use. The consuming

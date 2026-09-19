@@ -20,6 +20,14 @@ export {
 } from "./breadcrumb.js";
 export { Button, buttonVariants, type ButtonProps } from "./button.js";
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card.js";
+export {
+  FormControl,
+  FormDescription,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  type FormItemProps,
+} from "./form.js";
 export { Input, inputClass } from "./input.js";
 export { Label, labelVariants, type LabelProps } from "./label.js";
 export {
