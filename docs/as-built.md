@@ -2486,6 +2486,14 @@ after the move, before anything new was added).
 empty diff by construction). The batch's other streams are in a different
 repository, and nothing in this one was edited outside this slice's own surface.
 
+**Run 3, after the layer-1 fixes** (`consumer-scan.3.txt`): **15 names**, one more -
+`ALERT_TONES`, the tone table exported as data to close HIGH-2. Its readers are the
+part itself and the two test files that now derive their tables from it, which is
+the whole point of it. That run is also what caught the one thing the fixes left
+crooked: the symbol was exported from `alert.tsx` but missing from
+`packages/ui/src/index.ts`, so the registry COPY and the package's public surface
+disagreed about it. Added, and the suite re-run.
+
 ⚠️ The blind spot the Switch recorded still applies and still needed reading rather
 than scanning: scan 3's stem arm looks for `./<stem>"` and `../<stem>"`, so it does
 NOT see `import * as alert from "../../stories/alert.stories.js"`, which is how
@@ -2582,3 +2590,16 @@ bind, and every property the rail would pin is read from the compiled stylesheet
 instead - including, now, the flex column that was the one gap.
 
 ### The gate
+
+One run, at `8f5dbcf`, detached with a sentinel in `$BATCH_SCRATCH/s2/`:
+`pnpm verify` **exit 0** in 22s (07:56:30 -> 07:56:52 IST, 2026-09-19), the runner's
+own lines being `All matched files use Prettier code style!`, both packages'
+`typecheck: Done`, `✔ Building registry.`,
+`└  Storybook build completed successfully` and
+`Test Files 21 passed (21)` / `Tests 365 passed (365)` (from 20 / 344 at the base).
+`git status --short` was empty afterwards, so the committed `packages/ui/r` is what
+`build:registry` produces. One further commit followed the gate - `ALERT_TONES`
+added to `packages/ui/src/index.ts`, found by the third consumer scan - and
+`pnpm lint`, `pnpm typecheck` and `pnpm test` (21 / 365) were re-run green on it.
+No push, no publish, no version bump: the freeze holds and this family rides the
+post-freeze `0.1.1` with the Switch and the two navigation families.
