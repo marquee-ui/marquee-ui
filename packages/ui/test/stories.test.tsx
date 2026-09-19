@@ -53,6 +53,18 @@ afterEach(cleanup);
  * `Story.runPlay` left the run at 226 passed. So the plays are COUNTED, from the
  * story objects before the run and from inside the run, and the two totals are
  * pinned to the number of `play:` functions in `stories/`.
+ *
+ * ⚠️ WHAT THAT BUYS, EXACTLY, BECAUSE THE SENTENCE ABOVE OVERSTATES IT (layer 1
+ * of the Form family, MED-4, both cases run at `75c254d9`). The counters DO
+ * catch `composeStories` no longer ATTACHING `play`: `withPlay` collapses, the
+ * early `return` keeps `ran` empty, and both counter assertions fail - proved by
+ * renaming the `typeof Story.play` read, which reddens
+ * `runs all 48 play functions`. They do NOT catch the CALL below being renamed
+ * or deleted while the reads stay: `ran.push(id)` records that the next line was
+ * reached, not that the call did anything, so the suite stays green with every
+ * play a no-op. No self-counting mechanism inside a file can defend that file
+ * against being edited to lie about itself; what closes it is review of this
+ * file's diff, which is why it is said here rather than left implied.
  */
 const DECLARED_PLAYS = 48;
 const DECLARED_STORIES = 74;

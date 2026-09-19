@@ -96,6 +96,184 @@ describe("two fields on one page cannot collide", () => {
   });
 });
 
+describe("a wrapped part is still the field's part", () => {
+  // The control's id and the label's `htmlFor` travel by CONTEXT, so they have
+  // always worked at any depth. The description and the message are found by
+  // walking the item's children, and that walk used to stop at one level - so
+  // wrapping THOSE silently dropped the association while everything else kept
+  // working, which is the opposite of what a call site would guess (layer 1,
+  // MED-1). Nothing composed a wrapped part in either direction before this.
+  const described = (container: HTMLElement) =>
+    describedIds(container.querySelector("input")!).map(
+      (id) =>
+        container.ownerDocument.getElementById(id)?.getAttribute("data-slot") ?? `DANGLING:${id}`,
+    );
+
+  it("finds a description and a message inside a fragment", () => {
+    const { container } = render(
+      <FormItem invalid>
+        <FormLabel>Email</FormLabel>
+        <FormControl>
+          <Input />
+        </FormControl>
+        <>
+          <FormDescription>Hint.</FormDescription>
+          <FormMessage>Wrong.</FormMessage>
+        </>
+      </FormItem>,
+    );
+    expect(described(container)).toEqual(["form-description", "form-message"]);
+  });
+
+  it("finds them inside a plain element wrapper, and the control too", () => {
+    const { container } = render(
+      <FormItem invalid>
+        <FormLabel>Email</FormLabel>
+        <div className="relative">
+          <FormControl>
+            <Input />
+          </FormControl>
+        </div>
+        <div>
+          <FormDescription>Hint.</FormDescription>
+          <FormMessage>Wrong.</FormMessage>
+        </div>
+      </FormItem>,
+    );
+    expect(described(container)).toEqual(["form-description", "form-message"]);
+    // The wrapped control still gets the label, which is the half that was never
+    // broken - asserted so the two halves stay symmetric.
+    expect(container.querySelector("label")!.getAttribute("for")).toBe(
+      container.querySelector("input")!.id,
+    );
+  });
+
+  it("still names nothing when there is genuinely nothing to name", () => {
+    // The negative anchor for the two above: the walk finds parts because they
+    // are there, not because it says yes to everything.
+    const { container } = render(
+      <FormItem invalid>
+        <FormLabel>Email</FormLabel>
+        <FormControl>
+          <Input />
+        </FormControl>
+        <div>
+          <p>Not a part.</p>
+        </div>
+      </FormItem>,
+    );
+    expect(container.querySelector("input")!.getAttribute("aria-describedby")).toBeNull();
+  });
+});
+
+describe("an item holds one of each part, or it says so", () => {
+  // An item owns exactly one `useId`, so a second part of any kind wears an id
+  // the first already has (layer 1, MED-2): two descriptions put a duplicate id
+  // in the document and announce only the first; two controls give two inputs
+  // the SAME id and leave the second unlabelled.
+  it.each([
+    ["FormDescription", <FormDescription key="d">Two.</FormDescription>],
+    ["FormMessage", <FormMessage key="m">Two.</FormMessage>],
+    ["FormLabel", <FormLabel key="l">Two</FormLabel>],
+  ])("refuses a second <%s>", (name, extra) => {
+    expect(() =>
+      render(
+        <FormItem invalid>
+          <FormLabel>Email</FormLabel>
+          <FormControl>
+            <Input />
+          </FormControl>
+          <FormDescription>One.</FormDescription>
+          <FormMessage>One.</FormMessage>
+          {extra}
+        </FormItem>,
+      ),
+    ).toThrow(`<FormItem> holds 2 <${name}> parts`);
+  });
+
+  it("refuses a second <FormControl>, which is the case that duplicates an input id", () => {
+    expect(() =>
+      render(
+        <FormItem>
+          <FormLabel>Range</FormLabel>
+          <FormControl>
+            <Input placeholder="min" />
+          </FormControl>
+          <FormControl>
+            <Input placeholder="max" />
+          </FormControl>
+        </FormItem>,
+      ),
+    ).toThrow("<FormItem> holds 2 <FormControl> parts");
+  });
+
+  it("refuses an item with no control at all, whose label points at nothing", () => {
+    expect(() =>
+      render(
+        <FormItem invalid>
+          <FormLabel>Email</FormLabel>
+          <FormMessage>Wrong.</FormMessage>
+        </FormItem>,
+      ),
+    ).toThrow("must hold exactly one <FormControl>");
+  });
+
+  it("accepts the full five-part field, so the arity rule is not just a refusal", () => {
+    // The positive anchor: an item that threw for everything would satisfy every
+    // case above.
+    expect(() =>
+      render(
+        <FormItem invalid>
+          <FormLabel>Email</FormLabel>
+          <FormControl>
+            <Input />
+          </FormControl>
+          <FormDescription>One.</FormDescription>
+          <FormMessage>One.</FormMessage>
+        </FormItem>,
+      ),
+    ).not.toThrow();
+  });
+});
+
+describe("the parts refuse what the field itself writes", () => {
+  it("refuses <FormLabel asChild>, which would put `for` on something that is not a label", () => {
+    // `Label`'s own docblock says asChild exists to DROP the for/id semantics
+    // "that would be a lie on a heading"; through FormLabel it was forced back
+    // on and produced `<span … for="…">` (layer 1, LOW-2).
+    expect(() =>
+      render(
+        <FormItem>
+          <FormLabel asChild>
+            <span>Email</span>
+          </FormLabel>
+          <FormControl>
+            <Input />
+          </FormControl>
+        </FormItem>,
+      ),
+    ).toThrow("<FormLabel asChild> would put `for` on an element that is not a label");
+  });
+
+  it.each(["id", "aria-invalid"])(
+    "refuses %s on FormControl itself, rather than accepting and overwriting it",
+    (owned) => {
+      // They used to be accepted and silently overwritten, which is the opposite
+      // policy to the child-side throw for no stated reason (layer 1, LOW-4).
+      expect(() =>
+        render(
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl {...{ [owned]: "mine" }}>
+              <Input />
+            </FormControl>
+          </FormItem>,
+        ),
+      ).toThrow(`<FormControl> does not take "${owned}"`);
+    },
+  );
+});
+
 describe("a caller's own aria-describedby is kept, and the child cannot clobber it", () => {
   it("keeps the caller's id in front of the family's, and both still resolve", () => {
     // The wiring is written AFTER this part's own props so it cannot be silently

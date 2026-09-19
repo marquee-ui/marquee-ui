@@ -15,8 +15,9 @@ import { cn } from "@/lib/utils";
  * library at all - its forms are plain `<form>`s with server actions - and the
  * measurement that decided every part of this file is what its fields do TODAY:
  * 30 error messages, of which exactly ONE carries an `id` and is named by its
- * field's `aria-describedby`; 15 `htmlFor` attributes, twelve of them pointing
- * at a hand-typed literal id; and one single `aria-invalid` in the whole tree.
+ * field's `aria-describedby`; **14** `htmlFor` attributes, **11** of them
+ * pointing at a hand-typed string literal and 3 at a variable; and one single
+ * `aria-invalid` in the whole tree.
  * Every other field wraps its control in the `<label>` and associates nothing.
  * So the gap this closes is not a look, it is that a person who tabs back to a
  * field that just failed is told nothing about why.
@@ -81,20 +82,35 @@ function useFormField(part: string): FormFieldContextValue {
   return field;
 }
 
+type PartCounts = { label: number; control: number; description: number; message: number };
+
 /**
- * Which optional parts the caller composed, read off the item's own children at
- * render. One level deep and by component identity, which is what makes
- * `{error && <FormMessage>…}` work without a second prop.
+ * How many of each part the caller composed, read off the item's own children at
+ * render. That is what makes `{error && <FormMessage>…}` work without a second
+ * prop: it tracks what is actually rendered, not what was declared.
+ *
+ * ⚠️ IT WALKS THE WHOLE ELEMENT TREE, not one level, and the shallow version was
+ * a real defect (layer 1, MED-1, reproduced). The control's id and the label's
+ * `htmlFor` travel by CONTEXT and so work at any depth - wrapping a control in a
+ * `<div className="relative">` for an icon is an ordinary thing to do - and a
+ * one-level walk made the description and the message the only parts that broke
+ * when wrapped, silently and in the direction nobody would guess: the field
+ * marked invalid, the error on screen with a live region, and the control
+ * described by nothing. A part is not descended INTO: its children are content.
+ *
+ * The one arrangement it still cannot see is a component that renders a part
+ * from its own internals rather than receiving it as a child. That is the limit
+ * of anything render-time, and it is why the throws below exist.
  */
-function composedParts(children: ReactNode): { description: boolean; message: boolean } {
-  let description = false;
-  let message = false;
+function countParts(children: ReactNode, counts: PartCounts): void {
   for (const child of Children.toArray(children)) {
-    if (!isValidElement(child)) continue;
-    if (child.type === FormDescription) description = true;
-    else if (child.type === FormMessage) message = true;
+    if (!isValidElement<{ children?: ReactNode }>(child)) continue;
+    if (child.type === FormLabel) counts.label += 1;
+    else if (child.type === FormControl) counts.control += 1;
+    else if (child.type === FormDescription) counts.description += 1;
+    else if (child.type === FormMessage) counts.message += 1;
+    else countParts(child.props.children, counts);
   }
-  return { description, message };
 }
 
 export type FormItemProps = ComponentProps<"div"> & {
@@ -117,8 +133,13 @@ export type FormItemProps = ComponentProps<"div"> & {
  * fidelity rule (the Switch's decision 8), so this is a 2px decision, not a
  * regression - and a call site that wants the old gutter says `gap-1.5`.
  *
- * `text-sm` sits on the ITEM and the parts carry only their INK, which is
- * `Alert`'s arrangement with the two axes swapped. The control is the one child
+ * `text-sm` sits on the ITEM and the DESCRIPTION and the MESSAGE carry only
+ * their ink, which is `Alert`'s arrangement with the two axes swapped. Not the
+ * label: it composes `Label`, whose tones are a size AND an ink (`text-sm
+ * text-foreground-2`, or `text-3xs` under `micro`), and that is `Label`'s
+ * contract rather than this family's to restate (layer 1, LOW-1 - the first
+ * draft of this sentence said "the parts", which the label disobeys). The
+ * duplicate `text-sm` resolves to the same value. The control is the one child
  * that must NOT inherit it: `Input` carries `text-base` on itself, which is the
  * 16px floor that stops iOS Safari zooming on focus and never zooming back.
  */
@@ -126,9 +147,35 @@ export function FormItem({ className, invalid = false, children, ...props }: For
   const id = useId();
   const descriptionId = `${id}-description`;
   const messageId = `${id}-message`;
-  const composed = composedParts(children);
+  const counts: PartCounts = { label: 0, control: 0, description: 0, message: 0 };
+  countParts(children, counts);
+
+  // ⚠️ ONE OF EACH, ENFORCED. An item owns exactly one `useId`, so a second part
+  // of any kind wears an id the first one already has: two `<FormDescription>`s
+  // put a duplicate id in the document and announce only the first, and two
+  // `<FormControl>`s give two inputs the SAME id and leave the second one
+  // unlabelled (layer 1, MED-2, both reproduced). And an item with no control
+  // renders a label whose `for` resolves to nothing (LOW-3) - which is the very
+  // thing `useFormField`'s throw is written against, one level down. This family
+  // refuses a child that brings its own id; being silent about a composition
+  // that manufactures a duplicate was the same defect with better manners.
+  for (const [part, count] of Object.entries(counts) as [keyof PartCounts, number][]) {
+    if (count > 1) {
+      throw new Error(
+        `<FormItem> holds ${count} <Form${part[0]!.toUpperCase()}${part.slice(1)}> parts: it owns ` +
+          `one id, so a second would duplicate it. Use one, or a second <FormItem>.`,
+      );
+    }
+  }
+  if (counts.control !== 1) {
+    throw new Error(
+      "<FormItem> must hold exactly one <FormControl>: without it the label's `for` points at " +
+        "nothing. A group of controls is a fieldset, not a field.",
+    );
+  }
+
   const describedBy =
-    [composed.description ? descriptionId : null, invalid && composed.message ? messageId : null]
+    [counts.description ? descriptionId : null, invalid && counts.message ? messageId : null]
       .filter((part): part is string => part !== null)
       .join(" ") || undefined;
 
@@ -155,9 +202,23 @@ export function FormItem({ className, invalid = false, children, ...props }: For
  * `htmlFor` is written AFTER the caller's props, so it cannot be overridden.
  * Pointing a label at something other than the control it wraps is not a thing
  * a caller needs and is a thing they can do by accident.
+ *
+ * ⚠️ AND `asChild` IS REFUSED HERE, though `Label` offers it. `Label`'s own
+ * docblock says `asChild` exists to keep the type treatment and DROP the
+ * `for`/`id` semantics "that would be a lie on a heading" - and this part
+ * writes `htmlFor` unconditionally, so through it `asChild` put `for` on a
+ * `<span>`, which is an invalid attribute and a dead association (layer 1,
+ * LOW-2, reproduced). A caller who wants the label's look on something that is
+ * not a label wants `<Label asChild>` directly, outside the field.
  */
 export function FormLabel({ className, ...props }: LabelProps) {
   const field = useFormField("FormLabel");
+  if (props.asChild === true) {
+    throw new Error(
+      "<FormLabel asChild> would put `for` on an element that is not a label, which is the lie " +
+        "<Label asChild> exists to avoid. Use <Label asChild> outside the field.",
+    );
+  }
   return (
     <Label data-slot="form-label" className={className} {...props} htmlFor={field.controlId} />
   );
@@ -184,7 +245,14 @@ export function FormLabel({ className, ...props }: LabelProps) {
  * `aria-invalid` on the child cannot dangle, but it can disagree with the item -
  * a control announced invalid inside a field that renders no message and
  * describes nothing - so the rule is one rule rather than two thirds of one.
- * All three belong on `FormControl`, and the message says so.
+ *
+ * ⚠️ AND THE SAME TWO ARE REFUSED ON THIS PART'S OWN PROPS. They used to be
+ * accepted and then silently overwritten, which is the opposite policy to the
+ * child-side throw for no reason anyone stated (layer 1, LOW-4:
+ * `<FormControl id="mine" aria-invalid>` came out with the generated id and no
+ * `aria-invalid` at all). `aria-describedby` is the one exception and it is an
+ * exception on purpose: it MERGES, in front of the family's ids, because a
+ * caller pointing at a second description is a real thing to want.
  */
 export function FormControl({
   "aria-describedby": ariaDescribedBy,
@@ -192,6 +260,14 @@ export function FormControl({
   ...props
 }: ComponentProps<typeof Slot>) {
   const field = useFormField("FormControl");
+  for (const owned of ["id", "aria-invalid"] as const) {
+    if (props[owned] !== undefined) {
+      throw new Error(
+        `<FormControl> does not take "${owned}": the field writes it. ` +
+          `Use <FormItem invalid> for the state, and let the id be generated.`,
+      );
+    }
+  }
   const child = Children.only(children);
   if (
     isValidElement<{ id?: unknown; "aria-describedby"?: unknown; "aria-invalid"?: unknown }>(child)

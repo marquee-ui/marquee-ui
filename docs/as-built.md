@@ -2688,9 +2688,19 @@ errors and associates almost none of them.
 | …of those, carrying an `id` at all                           | the same, then `command grep -c ' id='`                                                                                 | **1**  |
 | `aria-describedby` / `aria-invalid` lines, non-test          | `git grep -n -E 'aria-describedby\|aria-invalid' $T -- 'apps/web/src/**/*.tsx' \| command grep -v '\.test\.'`           | **15** |
 | …of those, real field wiring rather than a Radix suppression | read, not counted: 8 are `<SheetContent aria-describedby={undefined}>` and 2 pass a `describedBy` prop through          | **5**  |
-| `htmlFor`, non-test                                          | `git grep -n 'htmlFor' $T -- 'apps/web/src/**/*.tsx' \| command grep -v '\.test\.'`                                     | **15** |
-| …of those, pointing at a HAND-TYPED literal id               | read: only `SLIDER_ID`, `TagInput`'s `id` and `ReportSheet`'s `id` are variables                                        | **12** |
+| `htmlFor=` ATTRIBUTES, non-test                              | `git grep -h -o -E 'htmlFor=[{"]' $T -- 'apps/web/src/**/*.tsx' \| command wc -l`                                       | **14** |
+| …of those, a hand-typed string LITERAL                       | `git grep -h -o -E 'htmlFor="[^"]+"' $T -- …`; the other 3 are `SLIDER_ID`, `TagInput`'s `id`, `ReportSheet`'s `id`     | **11** |
 | `aria-invalid` anywhere in the product                       | one line, `app/pile/page.tsx:115`                                                                                       | **1**  |
+
+⚠️ The first draft of this table said **15** `htmlFor` and **12** literals, from
+`git grep -n 'htmlFor' … | grep -v '\.test\.'` - which counts LINES, and the
+fifteenth is a COMMENT at `ImportPreview.tsx:314` mentioning `<label htmlFor>`.
+Layer 1 could not reproduce 15 and was right; the rows above grep the ATTRIBUTE
+rather than the word. The two entries in this table that are CLASSIFICATIONS
+rather than greps - "field message" and, in measurement 2, "field wrapper" - are
+marked as such, because a classification cannot carry a command: the reproducible
+raw numbers beside them are 37 non-test `role="alert"` occurrences and, tree-wide,
+75 bare `gap-1` against 39 `gap-1.5`.
 
 So the single field in the whole product with a complete association is
 `pile/page.tsx:98-127`, and it is hand-written: `id="pile-input"`,
