@@ -33,6 +33,19 @@ import { cn } from "@/lib/utils";
  * `asChild` on the root is for the single-sentence notice that wants to stay a
  * `<p>`. Do not use it with `<AlertDescription>` inside: a `<p>` inside a `<p>`
  * is not a nesting the parser keeps.
+ *
+ * ⚠️ TWO DEPARTURES A CALL SITE PAYS FOR, said here because a silent one
+ * instructs the next reader:
+ *
+ * - A tone's line and ink are ONE role, so "a destructive line with body ink" is
+ *   not spellable as a tone. It exists in the wild - a sign-out notice that is
+ *   serious but is a whole paragraph to READ - and the answer is a `className` on
+ *   the part or on the description, which the `WithAction` story shows. A tone
+ *   that split the two would let a red box carry green ink, which is the thing
+ *   the pairing exists to stop.
+ * - The box caps no width, so three of the five notices this was derived from
+ *   have to re-add their own `max-w-*`. That is the point of the decision, and it
+ *   is also three call sites that will look bare until they do.
  */
 
 /**
@@ -47,16 +60,26 @@ import { cn } from "@/lib/utils";
  * The LINE owes no such floor: the notice's meaning is its sentence, never its
  * border, which is why the house's own `--border` sits below 3:1 on purpose.
  */
+/**
+ * The tone table, exported as DATA rather than buried in the `cva` call.
+ *
+ * `cva` closes over its config and exposes nothing, so a test that wants to check
+ * the table has to retype it - and a retyped list of five covers exactly the five
+ * someone remembered, which is how a SIXTH tone with a disagreeing line, an ink
+ * outside the contrast matrix and no story went green through both of this
+ * family's tables (layer 1, HIGH-2, reproduced). Exported, both tables are derived
+ * from this one and a new tone cannot enter unmeasured.
+ */
+export const ALERT_TONES = {
+  default: "border-border text-foreground-2",
+  destructive: "border-destructive text-destructive",
+  success: "border-success text-success",
+  warning: "border-warning text-warning",
+  info: "border-info text-info",
+} as const;
+
 export const alertVariants = cva("flex flex-col gap-2 rounded-md border-2 p-3 text-sm", {
-  variants: {
-    tone: {
-      default: "border-border text-foreground-2",
-      destructive: "border-destructive text-destructive",
-      success: "border-success text-success",
-      warning: "border-warning text-warning",
-      info: "border-info text-info",
-    },
-  },
+  variants: { tone: ALERT_TONES },
   defaultVariants: { tone: "default" },
 });
 

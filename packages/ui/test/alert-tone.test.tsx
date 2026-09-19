@@ -1,6 +1,6 @@
 import { BODY_INK_ROLES } from "@marquee-ui/tokens";
 import { describe, expect, it } from "vitest";
-import { alertVariants } from "@/alert";
+import { ALERT_TONES, alertVariants } from "@/alert";
 
 /**
  * THE TONE TABLE, HELD TO THE ROLE CONTRACT.
@@ -19,32 +19,46 @@ import { alertVariants } from "@/alert";
  * of the implementation asserting itself.
  */
 
-const TONES = ["default", "destructive", "success", "warning", "info"] as const;
+/**
+ * DERIVED from the part's own table, never retyped (layer 1, HIGH-2). A retyped
+ * list of five covers exactly the five someone remembered: a SIXTH tone with a
+ * disagreeing line, an ink outside the matrix and no story entered neither loop
+ * and the whole suite stayed green. `SHIPPED_TONES` below is the one place the
+ * axis is stated as a fact, and it is compared to the table rather than used in
+ * its place.
+ */
+const TONES = Object.keys(ALERT_TONES) as (keyof typeof ALERT_TONES)[];
 
-const classesFor = (tone: (typeof TONES)[number]) =>
+/** The axis this family ships, stated once. A sixth member has to come through here. */
+const SHIPPED_TONES = ["default", "destructive", "success", "warning", "info"];
+
+const classesFor = (tone: keyof typeof ALERT_TONES) =>
   alertVariants({ tone }).split(/\s+/).filter(Boolean);
 
 /** Classes every tone carries: the drawing that is not the tone. */
 const base = TONES.map(classesFor).reduce((a, b) => a.filter((c) => b.includes(c)));
 
 /** What ONE tone adds on top of that. */
-const deltaFor = (tone: (typeof TONES)[number]) =>
+const deltaFor = (tone: keyof typeof ALERT_TONES) =>
   classesFor(tone).filter((c) => !base.includes(c));
 
 const suffix = (token: string, prefix: string) =>
   token.startsWith(prefix) ? token.slice(prefix.length) : null;
 
 describe("the alert's tone axis", () => {
-  it("has a real base and a real delta to measure", () => {
+  it("has a real base and a real delta to measure, over the whole shipped axis", () => {
     // Anchor: with an empty base every class would read as a tone, and with an
     // empty delta every assertion below would pass by having nothing to check.
     expect(base).toContain("border-2");
     expect(base).toContain("text-sm");
     expect(base).not.toContain("border-border");
     for (const tone of TONES) expect(deltaFor(tone), tone).toHaveLength(2);
+    // …and the loops below run over the table the PART ships, so a sixth tone
+    // cannot arrive without being named here first.
+    expect(TONES).toEqual(SHIPPED_TONES);
   });
 
-  it("ships exactly the five tones, and nothing decides structure", () => {
+  it("lets a tone move colour and nothing else, and no two tones are the same", () => {
     // A tone is a VISUAL axis (rule 1): it may move colour and nothing else.
     for (const tone of TONES) {
       for (const token of deltaFor(tone)) {

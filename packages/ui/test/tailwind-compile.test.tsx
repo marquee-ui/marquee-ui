@@ -7,6 +7,7 @@ import { composeStories } from "@storybook/react-vite";
 import type { ReactElement } from "react";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { ALERT_TONES } from "@/alert";
 import { STORY_SUITES } from "./helpers/story-suites.js";
 
 /**
@@ -445,7 +446,7 @@ describe("the notice's tone, in resolved declarations", () => {
     ["Info", "--info", "--info"],
   ];
 
-  it("found the classes to measure, and a sheet that can answer about them", () => {
+  it("measures every tone the part ships, and can answer about them", () => {
     // Anchors, positive and negative in the same shapes as the claims: a tone that
     // compiled to nothing and a property nothing declares are indistinguishable
     // from each other without these two.
@@ -453,6 +454,11 @@ describe("the notice's tone, in resolved declarations", () => {
     expect(classes.length).toBeGreaterThan(4);
     expect(declaredValues(classes, "border-color")).not.toEqual([]);
     expect(declaredValues(classes, "border-collapse")).toEqual([]);
+    // …and the table below is not a hand-typed list that tolerates zero rows:
+    // emptying it left this file byte-identically green, and a SIXTH tone in the
+    // part reached neither of this family's two tables (layer 1, MED-2, HIGH-2).
+    // Both are now read off `ALERT_TONES`, so a new tone needs a STORY here.
+    expect(TONES.map(([story]) => story.toLowerCase())).toEqual(Object.keys(ALERT_TONES));
   });
 
   it("resolves every tone's line AND ink to the role's own variable", () => {
@@ -483,15 +489,56 @@ describe("the notice's tone, in resolved declarations", () => {
     expect(declaredValues(title, "font-weight")).not.toEqual([]);
   });
 
+  it("is the flex column both docblocks say it is", () => {
+    // Load-bearing, not decoration: the column is the reason there is no
+    // `AlertAction` part (a control inside a notice stacks under the prose by
+    // being a child) and the owner of the gutter between the parts. Deleting
+    // `flex flex-col gap-2` left the WHOLE suite green - jsdom lays nothing out,
+    // so nothing else here can see it (layer 1, MED-3).
+    const vars = rootVars();
+    const classes = box("Default");
+    expect(declaredValues(classes, "display")).toEqual(["flex"]);
+    expect(declaredValues(classes, "flex-direction")).toEqual(["column"]);
+    expect(declaredValues(classes, "gap").map((v) => lengthPx(v, vars))).toEqual([8]);
+  });
+
   it("decides no width, no outer margin and no tap floor", () => {
     const classes = box("Default");
     // A notice is not a control, so it carries no floor - and the moment one holds
     // a control, that control owes the floor, which the package's own floor guard
     // measures through the WithAction story.
-    expect(declaredValues(classes, "min-height")).toEqual([]);
-    expect(declaredValues(classes, "max-width")).toEqual([]);
-    expect(declaredValues(classes, "margin")).toEqual([]);
-    expect(declaredValues(classes, "margin-top")).toEqual([]);
+    //
+    // Every SPELLING, not two of them: `declaredValues` anchors its property name,
+    // so `margin: 0` and `margin-inline: auto` are different reads and `mx-auto` -
+    // the single most likely accidental addition to a notice box - went straight
+    // through a list that named only `margin` and `margin-top` (layer 1, MED-1).
+    const LAYOUT = [
+      "min-height",
+      "height",
+      "width",
+      "min-width",
+      "max-width",
+      "inline-size",
+      "max-inline-size",
+      "margin",
+      "margin-top",
+      "margin-bottom",
+      "margin-left",
+      "margin-right",
+      "margin-inline",
+      "margin-inline-start",
+      "margin-inline-end",
+      "margin-block",
+      "margin-block-start",
+      "margin-block-end",
+    ];
+    for (const property of LAYOUT) {
+      expect(declaredValues(classes, property), property).toEqual([]);
+    }
+    // The instrument's own positive, in the same shape: it CAN see a property the
+    // box really declares, so the empty reads above are a fact and not a spelling
+    // nothing looks for.
+    expect(declaredValues(classes, "padding")).not.toEqual([]);
   });
 });
 

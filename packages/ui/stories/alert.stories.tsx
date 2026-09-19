@@ -78,55 +78,76 @@ export const Announced: Story = {
 };
 
 /**
- * The default, and the reason it is the default: two notices, one that announces
- * itself and one that was on the page all along. The announced one is the anchor -
- * without it, "no live region here" would pass against a query that had rotted.
+ * The default, and the reason it is the default: three notices, one that
+ * announces itself and two that were on the page all along - one of them
+ * `destructive`, so a tone that tried to decide the role has something to
+ * decide it ON.
+ *
+ * `render` rather than `args.children`: with children the story renders INSIDE
+ * `meta.component`, which drew a notice wrapping two notices - the shape a
+ * consumer copies (layer 1, MED-4).
  */
 export const NotALiveRegion: Story = {
-  args: {
-    children: (
-      <>
-        <Alert role="status">The import finished.</Alert>
-        <Alert>Ratings are yours and never leave this account.</Alert>
-      </>
-    ),
-  },
+  render: () => (
+    <>
+      <Alert role="status">The import finished.</Alert>
+      <Alert>Ratings are yours and never leave this account.</Alert>
+      <Alert tone="destructive">That account is scheduled for deletion.</Alert>
+    </>
+  ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    const boxes = [...canvasElement.querySelectorAll('[data-slot="alert"]')];
+    await expect(boxes).toHaveLength(3);
+    // The anchor: the one notice that WAS given a role is announced, so a query
+    // that had rotted would fail here rather than pass the two below.
     await expect(canvas.getAllByRole("status")).toHaveLength(1);
     await expect(canvas.getByRole("status")).toHaveTextContent("The import finished.");
-    // The second box exists and is simply not announced.
-    await expect(canvas.getByText(/never leave this account/)).toBeInTheDocument();
     await expect(canvas.queryByRole("alert")).toBeNull();
+    // …and the part writes NEITHER spelling of a live region on the two it was
+    // not asked to. A tone-conditional `role` and a blanket `aria-live` both left
+    // the whole gate green against a count alone (layer 1, HIGH-1), and
+    // `aria-live` needs no role at all, so it has to be read as an attribute.
+    for (const quiet of boxes.slice(1)) {
+      await expect(quiet.getAttribute("role")).toBeNull();
+      await expect(quiet.getAttribute("aria-live")).toBeNull();
+      await expect(quiet.getAttribute("aria-atomic")).toBeNull();
+    }
   },
 };
 
 /**
  * The action is a CHILD, not a part: the box is a flex column, so the control
  * stacks under the prose. The caller owes it the 44px floor, which `Button` has.
+ *
+ * ⚠️ This is the one story carrying a real product's shape, and it shows the
+ * departure the part's docblock names: a destructive LINE with body INK is not a
+ * tone, so the ink comes back on the description at the call site.
  */
+const keepPressed = fn();
+
 export const WithAction: Story = {
-  args: {
-    tone: "destructive",
-    role: "status",
-    children: (
-      <>
-        <AlertDescription className="text-foreground">
-          This account is scheduled for deletion. Nothing has been deleted yet.
-        </AlertDescription>
-        <Button variant="secondary" onClick={fn()}>
-          Keep my account
-        </Button>
-      </>
-    ),
-  },
+  render: () => (
+    <Alert tone="destructive" role="status">
+      <AlertDescription className="text-foreground">
+        This account is scheduled for deletion. Nothing has been deleted yet.
+      </AlertDescription>
+      <Button variant="secondary" onClick={keepPressed}>
+        Keep my account
+      </Button>
+    </Alert>
+  ),
   play: async ({ canvasElement }) => {
+    keepPressed.mockClear();
     const canvas = within(canvasElement);
     const action = canvas.getByRole("button", { name: "Keep my account" });
     await expect(canvasElement.querySelector('[data-slot="alert"]')).toContainElement(action);
+    // A control inside the notice is reachable and wired - the half a count of
+    // elements cannot make. The previous assertion here (that the notice did not
+    // close) held with the click DELETED, because nothing here can close (layer 1,
+    // LOW-1).
     await userEvent.click(action);
-    // The notice does not close itself: it has no state and no owner to tell.
-    await expect(canvas.getByRole("button", { name: "Keep my account" })).toBeInTheDocument();
+    await expect(keepPressed).toHaveBeenCalledTimes(1);
   },
 };
 
