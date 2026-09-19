@@ -2819,8 +2819,8 @@ is not what the audit rows asked for, and it is not this slice's. Nothing ships.
 
 ### Guards, each proved by running its reddening mutation
 
-22 mutations, run against the COMMITTED tree (`143331dc`, and the four that
-postdate the fix at `75c254d9`), each one asserted to have LANDED before the run
+23 mutations, run against the COMMITTED tree (`143331dc`, the four that
+postdate the fix at `75c254d9` and one at `02bb0815`), each one asserted to have LANDED before the run
 was read (new text present and, where it is a replacement, the old text gone, or
 the runner throws), each reverted with `git checkout --` with `git status --short`
 asserted empty afterwards, per mutation. Runner `$BATCH_SCRATCH/s2/mutate.py`,
@@ -2859,6 +2859,7 @@ reds that NAME the mutated property.
 | the control slot carries no drawing | `className="rounded-md border-2"` added to the `Slot` | `form.tsx` | `puts no drawing at all on the control slot` — ⚠️ see below, this row is the FIX, not the first run |
 | a child cannot take the id | `"id"` removed from the refused list | `form.tsx` | `refuses a child that sets its own id, rather than losing the wiring to it` |
 | a child cannot take the describedby | `"aria-describedby"` removed from the refused list | `form.tsx` | `refuses a child that sets its own aria-describedby…` |
+| a child cannot take the invalid flag | `"aria-invalid"` removed from the refused list | `form.tsx` | `refuses a child that sets its own aria-invalid…` |
 | a caller's own describedby is kept | the merge replaced by `field.describedBy` | `form.tsx` | `keeps the caller's id in front of the family's, and both still resolve` |
 | a part cannot leave the shared suites map | `form` deleted from `STORY_SUITES` | `story-suites.ts` | SIXTEEN: `covers all fifteen part families` plus all six declaration arms, which stop finding anything to measure |
 | a source cannot leave the declared walk | `packages/ui/src/form.tsx` deleted from `PUBLISHED_SOURCE_FILES` | `source-files.ts` | THREE whole FILES (`brand-guard`, `literal-guard`, `source-coverage`), all naming `walks exactly the published set, by path` |
@@ -2885,9 +2886,12 @@ caller-merge test with `aria-describedby` on the CHILD rather than on
 `aria-describedby` does not merge, it REPLACES - and a child's own `id` would
 replace the generated one and leave the label's `for` pointing at an element that
 does not exist. A broken label, invisible on screen, in the one part whose whole
-job is that association. `FormControl` now throws on both, naming `FormControl` as
-where they belong, and the two refusals are rows in the table. Fixed at
-`75c254d9`.
+job is that association. `FormControl` now throws on all THREE attributes it writes,
+naming `FormControl` as where they belong, and the three refusals are rows in
+the table. Fixed at `75c254d9`; `aria-invalid` was added to the list at
+`02bb0815` on the weaker argument, stated in the test: it cannot dangle, but it
+can announce a control invalid inside a field that renders no message and
+describes nothing, and one rule is easier to keep than two thirds of one.
 
 ### The pipeline, end to end
 
@@ -2985,8 +2989,9 @@ control alongside the invented `text-not-a-role`.
    would make live regions out of hints) cannot reach a part that renders nothing
    until the field is invalid. It is a DEFAULT, not a lock - written before the
    caller's props, so a genuinely polite message can say `role="status"`.
-6. **`FormControl` is a pure `Slot`, and it REFUSES a child carrying `id` or
-   `aria-describedby`.** [V] Taken after the mutation pass, not designed in.
+6. **`FormControl` is a pure `Slot`, and it REFUSES a child carrying any of the
+   three attributes it writes.** [V] Taken after the mutation pass, not designed
+   in.
    `Slot` gives the child precedence, so those two spellings replace the wiring
    instead of merging with it, and the `id` case is a label pointing at nothing
    with no symptom on screen. Both belong on `FormControl`, where the describedby
@@ -3101,7 +3106,8 @@ command beside any count.
   button points at by `aria-describedby`. Its control is a `<button>`, not a
   field, so it is a `FormControl` host only if the consumption wants it to be -
   and `FormControl` will accept a `<button>`, it slots anything.
-- ⚠️ **No call site may put `id` or `aria-describedby` on the control itself.**
+- ⚠️ **No call site may put `id`, `aria-describedby` or `aria-invalid` on the
+  control itself.**
   `FormControl` throws (decision 6). Three product sites would hit it today if
   wrapped naively: `pile/page.tsx:103` (`id="pile-input"`),
   `comments/CommentForm.tsx:72` (`id="comment-body"`) and
