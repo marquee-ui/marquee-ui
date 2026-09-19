@@ -43,6 +43,7 @@ export const PUBLISHED_SOURCE_FILES = [
   "packages/tokens/src/skeleton.ts",
   "packages/tokens/src/tokens.ts",
   "packages/ui/src/accordion.tsx",
+  "packages/ui/src/alert.tsx",
   "packages/ui/src/badge.tsx",
   "packages/ui/src/breadcrumb.tsx",
   "packages/ui/src/button.tsx",
@@ -70,6 +71,7 @@ export const PUBLISHED_SOURCE_FILES = [
  */
 export const STORY_FILES = [
   "packages/ui/stories/accordion.stories.tsx",
+  "packages/ui/stories/alert.stories.tsx",
   "packages/ui/stories/badge.stories.tsx",
   "packages/ui/stories/breadcrumb.stories.tsx",
   "packages/ui/stories/button.stories.tsx",

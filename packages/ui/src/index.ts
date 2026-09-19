@@ -1,4 +1,5 @@
 export { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./accordion.js";
+export { Alert, AlertDescription, AlertTitle, alertVariants, type AlertProps } from "./alert.js";
 export { Badge, badgeVariants, type BadgeProps } from "./badge.js";
 export {
   Breadcrumb,

@@ -247,6 +247,40 @@ function lengthPx(value: string, vars: Map<string, string>): number | null {
     : Number(a) * Number(c) * (b === "rem" ? 16 : 1);
 }
 
+/**
+ * The class list shared by every element a selector matches in one story - and
+ * a throw if they disagree, so a read is never "whichever came first". The
+ * selector is spelled out rather than built from a slot name because the pager
+ * draws two kinds of link and the state must not be able to change a floor.
+ */
+function slotTokens(module: object, storyName: string, selector: string): string[] {
+  const found = storiesOf(module).find(([name]) => name === storyName);
+  if (!found) throw new Error(`no story named ${storyName}`);
+  const Story = found[1];
+  const { container } = render(<Story />);
+  const elements = [...container.querySelectorAll(selector)];
+  if (elements.length === 0) throw new Error(`${storyName} renders no ${selector}`);
+  const lists = elements.map((element) => element.getAttribute("class") ?? "");
+  if (new Set(lists).size !== 1) {
+    throw new Error(`${storyName}: ${selector} matched elements wearing different classes`);
+  }
+  cleanup();
+  return lists[0]!.split(/\s+/).filter(Boolean);
+}
+
+/** Every value the compiled sheet declares for one property across a class list. */
+function declaredValues(classes: readonly string[], property: string): string[] {
+  const out: string[] = [];
+  for (const token of classes) {
+    for (const match of rule(token).matchAll(
+      new RegExp(`(?:^|[;\\s])${property}\\s*:\\s*([^;]+)`, "g"),
+    )) {
+      out.push(match[1]!.trim());
+    }
+  }
+  return out;
+}
+
 describe("every interactive element clears the 44px tap floor", () => {
   const offenders: string[] = [];
   const checked: string[] = [];
@@ -322,40 +356,6 @@ describe("every interactive element clears the 44px tap floor", () => {
  * why `fixtures/compile.css` names its sources.
  */
 describe("the trail's one line and the pager's two axes, in resolved declarations", () => {
-  /**
-   * The class list shared by every element a selector matches in one story - and
-   * a throw if they disagree, so a read is never "whichever came first". The
-   * selector is spelled out rather than built from a slot name because the pager
-   * draws two kinds of link and the state must not be able to change a floor.
-   */
-  function slotTokens(module: object, storyName: string, selector: string): string[] {
-    const found = storiesOf(module).find(([name]) => name === storyName);
-    if (!found) throw new Error(`no story named ${storyName}`);
-    const Story = found[1];
-    const { container } = render(<Story />);
-    const elements = [...container.querySelectorAll(selector)];
-    if (elements.length === 0) throw new Error(`${storyName} renders no ${selector}`);
-    const lists = elements.map((element) => element.getAttribute("class") ?? "");
-    if (new Set(lists).size !== 1) {
-      throw new Error(`${storyName}: ${selector} matched elements wearing different classes`);
-    }
-    cleanup();
-    return lists[0]!.split(/\s+/).filter(Boolean);
-  }
-
-  /** Every value the compiled sheet declares for one property across a class list. */
-  function declaredValues(classes: readonly string[], property: string): string[] {
-    const out: string[] = [];
-    for (const token of classes) {
-      for (const match of rule(token).matchAll(
-        new RegExp(`(?:^|[;\\s])${property}\\s*:\\s*([^;]+)`, "g"),
-      )) {
-        out.push(match[1]!.trim());
-      }
-    }
-    return out;
-  }
-
   const crumb = () => STORY_SUITES.breadcrumb;
   const pager = () => STORY_SUITES.pagination;
 
@@ -415,6 +415,83 @@ describe("the trail's one line and the pager's two axes, in resolved declaration
         `${what}: min-width`,
       ).toEqual([TAP_FLOOR_PX]);
     }
+  });
+});
+
+/**
+ * THE NOTICE'S TONE, AND THE THREE THINGS IT DELIBERATELY DOES NOT DECIDE.
+ *
+ * A tone is the whole design of this family, and `className.toContain("border-destructive")`
+ * cannot see any of it: the utility could compile to nothing, it could resolve to a
+ * variable no preset declares, and jsdom would render the same DOM either way. What
+ * follows reads the DECLARATIONS out of the compiled sheet, tone by tone, off
+ * RENDERED stories - so a name typed into this file can never conjure the rule it
+ * then asserts.
+ *
+ * The negative half matters as much: the part caps no width, sets no outer margin
+ * and carries no tap floor, and every one of those is a thing a well-meaning edit
+ * adds without noticing that it has taken a layout decision away from the page.
+ */
+describe("the notice's tone, in resolved declarations", () => {
+  const alert = () => STORY_SUITES.alert;
+  const box = (story: string) => slotTokens(alert(), story, '[data-slot="alert"]');
+
+  /** Story -> the role its line and its ink must both resolve to. */
+  const TONES: readonly [story: string, line: string, ink: string][] = [
+    ["Default", "--border", "--foreground-2"],
+    ["Destructive", "--destructive", "--destructive"],
+    ["Success", "--success", "--success"],
+    ["Warning", "--warning", "--warning"],
+    ["Info", "--info", "--info"],
+  ];
+
+  it("found the classes to measure, and a sheet that can answer about them", () => {
+    // Anchors, positive and negative in the same shapes as the claims: a tone that
+    // compiled to nothing and a property nothing declares are indistinguishable
+    // from each other without these two.
+    const classes = box("Default");
+    expect(classes.length).toBeGreaterThan(4);
+    expect(declaredValues(classes, "border-color")).not.toEqual([]);
+    expect(declaredValues(classes, "border-collapse")).toEqual([]);
+  });
+
+  it("resolves every tone's line AND ink to the role's own variable", () => {
+    for (const [story, line, ink] of TONES) {
+      const classes = box(story);
+      expect(declaredValues(classes, "border-color"), `${story}: line`).toEqual([`var(${line})`]);
+      expect(declaredValues(classes, "color"), `${story}: ink`).toEqual([`var(${ink})`]);
+    }
+  });
+
+  it("draws the house line weight and the house radius, in pixels", () => {
+    const vars = rootVars();
+    const classes = box("Default");
+    expect(declaredValues(classes, "border-width").map((v) => lengthPx(v, vars))).toEqual([2]);
+    expect(declaredValues(classes, "padding").map((v) => lengthPx(v, vars))).toEqual([12]);
+    expect(declaredValues(classes, "border-radius")).toEqual(["var(--radius-md)"]);
+  });
+
+  it("lets the tone reach the prose: the description declares no ink of its own", () => {
+    const description = slotTokens(alert(), "Default", '[data-slot="alert-description"]');
+    // The box HAS an ink (asserted above), and this element does not - which is
+    // what makes a destructive notice destructive all the way down.
+    expect(declaredValues(box("Default"), "color")).toEqual(["var(--foreground-2)"]);
+    expect(declaredValues(description, "color")).toEqual([]);
+    // The headline is a weight, never a second colour that could disagree.
+    const title = slotTokens(alert(), "Default", '[data-slot="alert-title"]');
+    expect(declaredValues(title, "color")).toEqual([]);
+    expect(declaredValues(title, "font-weight")).not.toEqual([]);
+  });
+
+  it("decides no width, no outer margin and no tap floor", () => {
+    const classes = box("Default");
+    // A notice is not a control, so it carries no floor - and the moment one holds
+    // a control, that control owes the floor, which the package's own floor guard
+    // measures through the WithAction story.
+    expect(declaredValues(classes, "min-height")).toEqual([]);
+    expect(declaredValues(classes, "max-width")).toEqual([]);
+    expect(declaredValues(classes, "margin")).toEqual([]);
+    expect(declaredValues(classes, "margin-top")).toEqual([]);
   });
 });
 
