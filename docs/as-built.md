@@ -3312,3 +3312,36 @@ Two things the reviewer noted that are deliberate and stay:
   `Children.only`, which throws for anything that is not a single element. Left:
   it is the type narrowing that lets `child.props` be read without a cast, so
   removing it would trade a dead branch for an assertion.
+
+### The gate
+
+One run, at `96950d9`, detached with a sentinel in `$BATCH_SCRATCH/s2/`:
+`pnpm verify` **exit 0** in 23s (11:19:42 -> 11:20:05 IST, 2026-09-19), the
+runner's own lines being `All matched files use Prettier code style!`, both
+packages' `typecheck: Done`, `✔ Building registry.`,
+`└ Storybook build completed successfully` and
+`Test Files 22 passed (22)` / `Tests 405 passed (405)` (from 21 / 365 at the
+base `8c9d31a`, whose own `pnpm verify` was measured green first).
+`git status --short` was empty afterwards, so the committed `packages/ui/r` is
+exactly what `build:registry` produces.
+
+No push, no publish, no version bump: the freeze holds, and this family rides
+the post-freeze `0.1.1` with the Switch, the two navigation families and
+`Alert` - a FIVE-item bump.
+
+### Consumers, run 3
+
+After the layer-1 fixes (`consumer-scan.3.txt`, at `96950d9`): **the same 14
+exported names**, unchanged. Everything the fixes added is module-private -
+`countParts`, the `PartCounts` type and the five refusals all live inside
+`form.tsx` and none is exported - so the package's public surface is identical
+to run 2's, which is the shape a bug-fix pass should have. Scan 3's list is
+unchanged too. Still **0 CROSS, 0 UNOWNED**.
+
+One name this scan structurally CANNOT see, recorded because layer 1 found it by
+reading (LOW-7): **`inputClass`**. The diff CONSUMES it rather than exporting it,
+and scan 1 only enumerates what a diff ADDS to the exported surface. It now pins
+the control slot's class list exactly, so a change to `input.tsx` reddens an arm
+titled for the `Form` family. That is the coupling doing its job - the slot must
+add nothing - but it is a cross-family edge, and the next person to touch `Input`
+should read this line rather than hunt a `Form` regression.
