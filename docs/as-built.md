@@ -2619,3 +2619,561 @@ added to `packages/ui/src/index.ts`, found by the third consumer scan - and
 `pnpm lint`, `pnpm typecheck` and `pnpm test` (21 / 365) were re-run green on it.
 No push, no publish, no version bump: the freeze holds and this family rides the
 post-freeze `0.1.1` with the Switch and the two navigation families.
+
+## DESIGN-LIB-d: Form (2026-09-19)
+
+Scope: the fourth §3-d addition, and the THIRD NEW family (the Switch's and
+`Alert`'s shape): nothing was lifted, so the fidelity fixture does not bind and
+the drawing is DERIVED and recorded below. Nothing was published, nothing was
+pushed (the Actions-minutes freeze), no version was bumped, and nothing in the
+consuming repo was changed: it was read only, at commit `e66bc793`.
+
+The family is the WIRING, not a look. Its four classes are trivial; the reason it
+exists is three attributes the consuming product almost never writes.
+
+### What shipped
+
+| file                                         | what                                                                                                                                                                  |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/ui/src/form.tsx`                   | five parts - `FormItem`, `FormLabel`, `FormControl`, `FormDescription`, `FormMessage` - one `useId`, no `cva` (12,026 B)                                              |
+| `packages/ui/stories/form.stories.tsx`       | 8 stories, all 8 carrying a `play`                                                                                                                                    |
+| `packages/ui/test/form-wiring.test.tsx`      | 9 tests: the claims that exist across renders or across the contract, which a one-field story cannot state                                                            |
+| `packages/ui/test/tailwind-compile.test.tsx` | 6 new tests in resolved declarations, appended; the hoisted helpers were reused, not copied                                                                           |
+| `registry.json` + `packages/ui/r/form.json`  | the `form` item, `target` `components/ui/form.tsx`, and the registry's FIRST cross-item dependency (`@marquee/label`)                                                 |
+| `packages/ui/src/index.ts`                   | the five parts and `FormItemProps`                                                                                                                                    |
+| the declared lists                           | both lists in `packages/tokens/test/helpers/source-files.ts`, `story-suites.ts`, `stories.test.tsx`'s two counts, `registry.test.ts`'s item list and its two counters |
+| the stated count                             | `AGENTS.md`, `README.md`, `packages/ui/package.json` and `fidelity.test.tsx`'s docblock say fifteen part families                                                     |
+
+No new dependency: `@radix-ui/react-slot` was already here and `@radix-ui/react-label`
+arrives through the `label` item the new one now depends on. `pnpm test` goes from
+**21 files / 365 tests** at the base (`8c9d31a`, `pnpm verify` exit 0, measured
+first) to **22 / 392**, which is +27: **+12** in the new
+`form-wiring.test.tsx` (measured, `pnpm exec vitest run` on the file alone - the
+two `it.each` blocks expand to 4 and 2), **+9** in `stories.test.tsx` (8 story
+renders plus the suite's own `form: has stories`) and **+6** in
+`tailwind-compile.test.tsx`'s new describe block.
+
+The shape, in one line each:
+
+```tsx
+// the 29-of-30 case: a label, a control, and a message that is not there yet
+<FormItem invalid={!!error}>
+  <FormLabel>Email</FormLabel>
+  <FormControl><Input type="email" autoComplete="email" /></FormControl>
+  <FormMessage>{error}</FormMessage>
+</FormItem>
+
+// a standing hint, wired only because it was composed
+<FormItem>
+  <FormLabel tone="micro">Add a comment</FormLabel>
+  <FormControl><textarea className="min-h-hit …" /></FormControl>
+  <FormDescription>Markdown is not supported.</FormDescription>
+</FormItem>
+
+// a second description the caller owns goes on FormControl, never on the child
+<FormControl aria-describedby="shared-note"><Input /></FormControl>
+```
+
+### Measurements, and what they corrected
+
+All read with `git show` at the thepile base `e66bc793`; every command is quoted
+so a later stream can re-run it rather than trust the number.
+
+**1. The gap this family closes, in three numbers.** The product announces its
+errors and associates almost none of them.
+
+| what                                                         | command                                                                                                                 | count  |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ------ |
+| field messages, `p[role="alert"]` carrying `text-danger`     | `git grep -n 'role="alert"' $T -- 'apps/web/src/**/*.tsx' \| command grep -v '\.test\.' \| command grep -c text-danger` | **30** |
+| …of those, carrying an `id` at all                           | the same, then `command grep -c ' id='`                                                                                 | **1**  |
+| `aria-describedby` / `aria-invalid` lines, non-test          | `git grep -n -E 'aria-describedby\|aria-invalid' $T -- 'apps/web/src/**/*.tsx' \| command grep -v '\.test\.'`           | **15** |
+| …of those, real field wiring rather than a Radix suppression | read, not counted: 8 are `<SheetContent aria-describedby={undefined}>` and 2 pass a `describedBy` prop through          | **5**  |
+| `htmlFor`, non-test                                          | `git grep -n 'htmlFor' $T -- 'apps/web/src/**/*.tsx' \| command grep -v '\.test\.'`                                     | **15** |
+| …of those, pointing at a HAND-TYPED literal id               | read: only `SLIDER_ID`, `TagInput`'s `id` and `ReportSheet`'s `id` are variables                                        | **12** |
+| `aria-invalid` anywhere in the product                       | one line, `app/pile/page.tsx:115`                                                                                       | **1**  |
+
+So the single field in the whole product with a complete association is
+`pile/page.tsx:98-127`, and it is hand-written: `id="pile-input"`,
+`aria-describedby={problem ? "pile-problem" : "pile-hint"}`,
+`aria-invalid={problem ? true : undefined}`. Every other field either wraps its
+control in the `<label>` (which buys the name and nothing else) or points a
+hand-typed `htmlFor` at a hand-typed `id`. The other 29 messages are announced
+and are not reachable from the control that produced them.
+
+**2. The drawing, derived from twelve field wrappers.**
+`git grep -h -o -E '<label className="[^"]*"' $T -- 'apps/web/src/**/*.tsx' | sort | uniq -c`:
+
+| wrapper                                                                                   | count |
+| ----------------------------------------------------------------------------------------- | ----- |
+| `<label className="flex flex-col gap-1.5">`                                               | 6     |
+| `<label className="flex flex-col gap-1 text-sm text-text-secondary">`                     | 5     |
+| `<label className="flex flex-col gap-1 text-xs text-text-muted">`                         | 1     |
+| (the five `flex min-h-hit items-center justify-between` rows are switch rows, not fields) | 5+1   |
+
+A 6/6 tie between `gap-1.5` and `gap-1`, so it is not broken by majority. It is
+broken by the SKELETON: 6px is off the house's 4px spacing grid, which
+`AGENTS.md` names as a thing no preset may move, and the package's whole existing
+gap vocabulary is `gap-1` / `gap-2` / `gap-3` (`command grep -rn -oE 'gap-[0-9.]+'
+packages/ui/src` -> 2 / 4 / 7, no other value). `CardHeader`'s `gap-1` is the
+precedent for a label-and-prose pair. A NEW family is not held to the fidelity
+rule (the Switch's decision 8), so this is a 2px decision on six call sites and
+not a regression; a caller that wants the old gutter writes `gap-1.5`.
+
+`text-sm` sits on the ITEM, which is what 5 of the 12 wrappers already do
+(`text-sm` on the label element itself), and the parts carry only their INK -
+`Alert`'s arrangement with the two axes swapped. The message is `text-sm` at 21
+of its 30 sites and `text-xs` at 9, so the majority is on the item and the nine
+pay a `className`.
+
+**3. `text-muted` and `text-destructive` are both already measured.** Both are in
+`BODY_INK_ROLES`, so both are inside the presets' 4.5:1 ink-on-ground check on
+every ground in both presets. `form-wiring.test.tsx` holds the family to that by
+importing the list rather than retyping it, with `primary` and `brand` as the
+negative anchors - the point `Alert`'s tone suite makes, applied to a family with
+no `cva` to read a table out of.
+
+**4. THE MEASUREMENT THAT DECIDED THE CONTRACT: a dangling `aria-describedby` is
+an axe finding at CRITICAL impact.** shadcn's `form.tsx` names the description id
+unconditionally and the message id when invalid. Run here against axe-core 4.12.1
+(`$BATCH_SCRATCH/s2/axe-describedby-probe.mjs`, jsdom, three DOMs):
+
+| the control's `aria-describedby`        | axe violations | axe incomplete                         |
+| --------------------------------------- | -------------- | -------------------------------------- |
+| names one id, which resolves            | none           | none                                   |
+| names one id, which resolves to nothing | none           | **`aria-valid-attr-value` (critical)** |
+| names two, one resolving and one not    | none           | none                                   |
+
+So the bad case is precisely "a field with no description, while it is valid" -
+which is 29 of the product's 30 fields, almost all of the time - and the bad case
+disappears the moment ONE named id resolves. That is why this family names an id
+only when the element carrying it is rendered, and why `FormMessage` renders on
+`invalid` rather than on having children: the attribute and the element cannot
+then disagree in either direction.
+
+⚠️ Read the row above for exactly what it says. axe reports it as INCOMPLETE
+("needs review"), not as a violation, so a gate that asserts only on `violations`
+would not go red on it. The impact it carries is `critical` and the DOM is wrong
+either way; the claim here is not that any gate catches it today.
+
+**5. The message's role is decided the OPPOSITE way from `Alert`'s, and the
+evidence is one-sided.** All 30 of the product's field messages write
+`role="alert"`; none writes `role="status"` or nothing. Its own testing doctrine
+names the case in `docs/03-testing.md`: "A live region (`role="alert"` for errors,
+`aria-live` for quiet updates) wraps anything that changes after a user action
+without moving focus - form errors, …". And the argument that kept the role OFF
+`Alert` - that six of its eight boxed notices are on the page from the start, so a
+default role would make live regions out of hints - cannot reach this part, which
+renders nothing at all until the field is invalid. 22 component test files and 2
+e2e specs resolve one of those messages by `getByRole("alert")`
+(`git grep -l -E 'ByRole\("alert"' $T -- 'apps/web/src/**' 'e2e/**'` -> **24
+files**), so a part that dropped the role would redden 24 files at the
+consumption for nothing.
+
+**The ambiguity the brief asked about, answered in a render.** A screen holding an
+`Alert` AND a `FormMessage`: `getByRole("alert")` resolves the FORM MESSAGE and
+only it. `Alert` writes no role (DL9 decision 1) and no boxed notice in the
+product passes `role="alert"` - re-swept at this base, three elements carry a role
+within four lines of a `border-2` className (`login/page.tsx:53`,
+`settings/steam/page.tsx:66`, `DangerZone.tsx:91`) and all three are `status`.
+The two parts therefore fit together rather than competing, and the
+`BesideANotice` story pins it with both on screen at once.
+
+**6. A live region inserted with its text is unreliably announced - and that rule
+does NOT reach this part.** The product records it twice, in comments citing
+A11Y-2 and WCAG 4.1.3 (`ProfileEditForm.tsx:112-121`, `FacePicker.tsx:400-402`):
+"ALWAYS RENDERED and empty until there is something to say, because a live region
+inserted together with its text is unreliably announced." It was tempting to make
+`FormMessage` always-rendered on that authority and call it a fix for 30 sites.
+It is not one: both of the product's always-rendered regions are `role="status"`,
+i.e. POLITE, which is where the pre-existing-region rule bites. `role="alert"` is
+specified as an assertive live region and its insertion is what AT act on, so the
+30 conditional messages are not defective and always-rendering them would buy
+nothing and cost a 4px gap under every field in the product. Recorded because the
+first draft of this record claimed the fix.
+
+### The Table measurement, and the answer
+
+**No `Table` family ships.** The audit's six rows do not resolve to tabular data,
+and three of them are already the right element.
+
+The product has no table semantics at all. At `e66bc793`,
+`git grep -n -E '<table|<thead|<tbody|<th |role="table"|role="grid"|role="row"|role="cell"|role="columnheader"' $T -- 'apps/web/src/**/*.tsx'`
+prints **nothing**. Row by row:
+
+| audit row                                                    | what it actually is                                                                                                                                                                                                 | wants `<table>`?                                                                                                                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `transparency/page.tsx:228-270`                              | `TunableTable` is a `<div>` of `TunableRow`s; each row is a live value, a label, the engine's key and a hand-written PROSE sentence with an optional caveat, and it is `flex-col` under 640 and `sm:flex-row` above | No. One entity per row, prose in the second column, and a layout that COLLAPSES to a stack - which a table cannot do. It is named `Table` and is a list of paragraphs |
+| `game/[slug]/page.tsx:757`                                   | already a `<dl>` with `<dt>`/`<dd>` in a 2-column grid                                                                                                                                                              | No. Already correct                                                                                                                                                   |
+| `admin/reports/page.tsx:85`                                  | already a `<dl>` with `<dt>`/`<dd>`                                                                                                                                                                                 | No. Already correct                                                                                                                                                   |
+| `members/**`'s cells (`MemberRow.tsx`)                       | already a `<dl>`, and its own docblock calls the counts "DATA CELLS"; it is deliberately STATIC so the card's stretched-link overlay keeps the tap                                                                  | No. Already correct, and a grid role would change hit-testing                                                                                                         |
+| `developers/page.tsx:116-121`                                | a `<ul>` of `<li>`, each a `<code>` path and a prose summary                                                                                                                                                        | No. A list whose second column is prose about the first                                                                                                               |
+| `settings/**`'s token list (`DeveloperSettings.tsx:200-224`) | a `<ul>` of `<li>` rows, each carrying a real `<button>` (Revoke)                                                                                                                                                   | No. Interactive rows, not cells                                                                                                                                       |
+
+So the six rows resolve to **a `dl`-shaped family or to nothing**, and three of
+them are already drawing `<dl>` by hand, and the tree holds **13 `<dl>`
+openings across 8 non-test files** (`git grep -h -o '<dl' $T -- 'apps/web/src/**/*.tsx' | command wc -l`;
+`-l` then `command grep -vc '\.test\.'` for the files). A `DescriptionList` / data-cell family is therefore a real candidate for a
+later slice - the game page's Details treatment is quoted by `MemberRow` in its
+own comment, so the pattern is already being copied - but it is NOT a `Table`, it
+is not what the audit rows asked for, and it is not this slice's. Nothing ships.
+
+### Guards, each proved by running its reddening mutation
+
+22 mutations, run against the COMMITTED tree (`143331dc`, and the four that
+postdate the fix at `75c254d9`), each one asserted to have LANDED before the run
+was read (new text present and, where it is a replacement, the old text gone, or
+the runner throws), each reverted with `git checkout --` with `git status --short`
+asserted empty afterwards, per mutation. Runner `$BATCH_SCRATCH/s2/mutate.py`,
+inputs `mutations-{a,b,c}.json`, logs in `$BATCH_SCRATCH/s2/mutations/`.
+
+⚠️ **THE FIRST PASS OF ALL THIRTEEN SOURCE MUTATIONS PROVED NOTHING, AND LOOKED
+LIKE IT HAD.** The runner called `pnpm exec vitest run --reporter=basic`; this
+vitest cannot load that reporter, so every run died at startup with exit 1 and
+zero tests collected, and the runner reported thirteen guards as reddened. A
+failure that proves nothing is indistinguishable from one that proves something.
+The runner now asserts the output contains `Test Files` - i.e. that a run
+happened at all - before it will count a red, and every row below is from the
+re-run.
+
+⚠️ Read one thing into every SOURCE row: **it also reddens `carries the CURRENT
+bytes of every source it ships`**, because `packages/ui/r` was not rebuilt. That
+is the registry guard doing its job; it is omitted from the table, which lists the
+reds that NAME the mutated property.
+
+<!-- prettier-ignore-start -->
+
+| guard | mutation | landed | the red it produced |
+| --- | --- | --- | --- |
+| an id is named only when its element rendered | describedBy names `descriptionId` unconditionally | `form.tsx` | `form/Default` and `form/Invalid`, both with `aria-describedby names "…-description", which resolves to nothing`, plus the play counter |
+| the control is marked invalid | `aria-invalid` line deleted | `form.tsx` | `form/Invalid`, `form/DescribedAndInvalid` and `names the message only on the field that is invalid` |
+| the label reaches the control | `htmlFor` dropped from `FormLabel` | `form.tsx` | EIGHTEEN, incl. all six field stories on `getByLabelText` and `gives every item its own id…` |
+| the message is a live region | `role="alert"` dropped | `form.tsx` | `form/Invalid`, `form/BesideANotice` and `names the message only on the field that is invalid` |
+| the message renders iff invalid | `if (!field.invalid) return null` deleted | `form.tsx` | `form/ValidWithMessageComposed` and `names the message only on the field that is invalid` |
+| the item's gutter is the 4px grid | `gap-1` -> `gap-2` | `form.tsx` | `is the 4px-grid column the docblock says it is`, `expected [ 8 ] to deeply equal [ 4 ]` |
+| the item owns the type size | `text-sm` dropped from the item | `form.tsx` | `owns the type size, and the control overrides it with the 16px floor` |
+| the description's ink is a measured role | `text-muted` -> `text-foreground-2` | `form.tsx` | TWO: `paints the description and the message in exactly those two` and `resolves the description's and the message's ink to the role's own variable` |
+| the field decides no width | `max-w-content` added to the item | `form.tsx` | `decides no width, no outer margin and no tap floor` |
+| two fields cannot collide | `useId()` replaced by the constant `"field"` | `form.tsx` | `gives every item its own id, and every part of an item the same one` |
+| a part outside its item fails loudly | the throw replaced by an empty field object | `form.tsx` | FOUR, one per part: `FormLabel/FormControl/FormDescription/FormMessage throws when it is not inside a FormItem` |
+| the wiring outranks the caller's props | `{...props}` moved after the wiring, caller's describedby restored | `form.tsx` | SIXTEEN, every field story |
+| the control slot carries no drawing | `className="rounded-md border-2"` added to the `Slot` | `form.tsx` | `puts no drawing at all on the control slot` — ⚠️ see below, this row is the FIX, not the first run |
+| a child cannot take the id | `"id"` removed from the refused list | `form.tsx` | `refuses a child that sets its own id, rather than losing the wiring to it` |
+| a child cannot take the describedby | `"aria-describedby"` removed from the refused list | `form.tsx` | `refuses a child that sets its own aria-describedby…` |
+| a caller's own describedby is kept | the merge replaced by `field.describedBy` | `form.tsx` | `keeps the caller's id in front of the family's, and both still resolve` |
+| a part cannot leave the shared suites map | `form` deleted from `STORY_SUITES` | `story-suites.ts` | SIXTEEN: `covers all fifteen part families` plus all six declaration arms, which stop finding anything to measure |
+| a source cannot leave the declared walk | `packages/ui/src/form.tsx` deleted from `PUBLISHED_SOURCE_FILES` | `source-files.ts` | THREE whole FILES (`brand-guard`, `literal-guard`, `source-coverage`), all naming `walks exactly the published set, by path` |
+| a story cannot stop being one | `export const Disabled` -> `const Disabled` | `form.stories.tsx` | `covers all fifteen part families…` and the play counter |
+| a control inside a field still owes the floor | the textarea story's `min-h-hit` deleted | `form.stories.tsx` | the package's own floor guard, `measures every one of them at or above the floor` |
+| the item declares its registry dependency | `@marquee/label` dropped from the item | `registry.json` | THREE: `resolves every registry dependency inside this registry`, `carries the title, description and both dependency lists…`, `ships an INDEX that is the root registry, byte for byte` |
+| the registry's item list is exact | `"form"` deleted from `registry.test.ts`'s list | `registry.test.ts` | `declares the fifteen part families plus the one shared lib` |
+
+<!-- prettier-ignore-end -->
+
+**One guard could not fail, and the mutation is what found it.** `puts no drawing
+at all on the control slot` was written as
+`expect(slotTokens(…, '[data-slot="form-control"]')).toEqual(slotTokens(…, "input"))`.
+`Slot` MERGES its className into the child's and its `data-slot` REPLACES the
+child's, so both selectors resolve the SAME element and the assertion compared a
+class list to itself. It stayed green with `rounded-md border-2` added to the
+slot. It now compares against `Input`'s own exported `inputClass`, and the re-run
+is the row above.
+
+**And chasing that one turned up a real defect in the part.** Writing the
+caller-merge test with `aria-describedby` on the CHILD rather than on
+`<FormControl>` produced `expected [ 'shared-note' ] to have a length of 2 but got
+1`: Radix `Slot` gives the child's props precedence, so a child's own
+`aria-describedby` does not merge, it REPLACES - and a child's own `id` would
+replace the generated one and leave the label's `for` pointing at an element that
+does not exist. A broken label, invisible on screen, in the one part whose whole
+job is that association. `FormControl` now throws on both, naming `FormControl` as
+where they belong, and the two refusals are rows in the table. Fixed at
+`75c254d9`.
+
+### The pipeline, end to end
+
+`pnpm pack` in both packages (`prepack` is `pnpm -w build:registry && git diff
+--exit-code -- r`, so packing at all is the evidence that `r/` is committed and
+current) -> `marquee-ui-ui-0.1.0.tgz` **48,237 B** (38,315 at `Alert`, 34,383 at
+the nav families, 26,396 at the Switch) and `marquee-ui-tokens-0.1.0.tgz` 99,608 B
+-> `npm install` of both into a bare project (`package.json`, a `tsconfig.json`,
+and a `components.json` whose `registries` map points at
+`./node_modules/@marquee-ui/ui/r/{name}.json`) ->
+`shadcn add ./node_modules/@marquee-ui/ui/r/form.json`:
+
+```
+✔ Created 3 files:
+  - src/lib/utils.ts
+  - src/components/ui/label.tsx
+  - src/components/ui/form.tsx
+```
+
+**Three files, not two, and that is the thing this run existed to prove.** This is
+the registry's first CROSS-ITEM dependency: `form` declares `@marquee/label` and
+the CLI resolved it through the same `registries` map and installed `label.tsx`
+beside it. The bytes:
+
+```
+form:  installed bytes 12026, target components/ui/form.tsx
+  installed === r/form.json content: True
+  installed === packages/ui/src/form.tsx: True       sha256 0fedf076a420 (all three)
+label: installed bytes 1539, target components/ui/label.tsx
+  installed === r/label.json content: True
+  installed === packages/ui/src/label.tsx: True      sha256 75fed6913ca9 (all three)
+packed r/registry.json === repo registry.json: True  (16 items)
+npm deps the two items asked for, and that landed:
+  @radix-ui/react-label@^2.1.15, @radix-ui/react-slot@^1.3.3,
+  class-variance-authority@^0.7.1, clsx@^2.1.1, tailwind-merge@^3.7.0
+```
+
+⚠️ **The cross-part import is RELATIVE on purpose, and this run is why.** The
+installed copy carries `import { Label } from "./label";` unchanged, and `./label`
+resolves to the file the CLI put beside it. The house spelling `@/label` would
+have shipped verbatim into the consumer, where `@/` is the app's own `src` and
+nothing resolves it: `shadcn` rewrites `@/lib/utils` because `components.json`
+names that alias, and it has no reason to touch any other `@/` path. Relative is
+the one spelling correct in BOTH trees, and `moduleResolution: "Bundler"` in this
+repo and in a Next app both take it extensionless.
+
+Then the installed copy compiled in the bare project's own Tailwind 4 against the
+published `@marquee-ui/tokens/tokens.css`, `@source "./components"` so the only
+candidates are the two installed files:
+
+```
+gap-1             gap: var(--spacing)
+text-sm           font-size: var(--text-sm); line-height: …
+text-muted        color: var(--muted)
+text-destructive  color: var(--destructive)
+flex-col          flex-direction: column
+```
+
+Both inks resolve to the ROLE variable in the consumer, not to a copy. Three
+utilities are deliberately ABSENT there - `min-h-hit`, `border-2`, `rounded-md` -
+because they are `Input`'s and `Input` was not installed, which is the negative
+control alongside the invented `text-not-a-role`.
+
+### Decisions
+
+1. **The family is the WIRING; the drawing is incidental.** [V] Measurement 1: the
+   product announces 30 errors and associates one. So the parts exist to carry
+   `htmlFor`, `id`, `aria-describedby` and `aria-invalid`, and every test here
+   resolves an id back to the element carrying it rather than asserting the
+   attribute is present.
+2. **`aria-describedby` names ONLY the ids whose elements rendered.** [V] The one
+   real departure from shadcn's contract, and measurement 4 is the reason rather
+   than taste: upstream's unconditional description id leaves every valid field
+   with no description carrying a reference that resolves to nothing, which axe
+   reports at critical impact, and that is 29 of the product's 30 fields almost
+   all of the time.
+3. **Composition is detected by reading the item's own `children`, not by a second
+   prop and not by an effect.** [V] An effect (Radix's own `Form` does this) does
+   not run on the server, so a server-rendered error would ship its HTML with no
+   wiring and acquire it at hydration - and one of the product's two forms with
+   real wiring is a server component with a `method="get"` form that needs no JS
+   at all. A second boolean prop has a footgun the other way: forgetting it leaves
+   a description drawn and unannounced, silently. Reading `children` tracks what
+   actually rendered, including `{hint && <FormDescription>…}`. Its cost is stated
+   in the docblock and it is the family's one call-site rule: the parts are DIRECT
+   children.
+4. **`FormMessage` renders iff `invalid`, not iff it has children.** [V] It is
+   what makes decision 2 safe in both directions: whenever `aria-describedby`
+   names the message id, the element is in the document, and whenever it does not,
+   there is nothing on screen to point at. The caller drives the prop and the
+   text from one `error`.
+5. **`FormMessage` writes `role="alert"`; `Alert` writes no role.** [V]
+   Measurement 5: 30 of 30, the product's own testing doctrine names form errors
+   as the case, and the argument that kept the role off `Alert` (a default role
+   would make live regions out of hints) cannot reach a part that renders nothing
+   until the field is invalid. It is a DEFAULT, not a lock - written before the
+   caller's props, so a genuinely polite message can say `role="status"`.
+6. **`FormControl` is a pure `Slot`, and it REFUSES a child carrying `id` or
+   `aria-describedby`.** [V] Taken after the mutation pass, not designed in.
+   `Slot` gives the child precedence, so those two spellings replace the wiring
+   instead of merging with it, and the `id` case is a label pointing at nothing
+   with no symptom on screen. Both belong on `FormControl`, where the describedby
+   merges in front of the family's ids, and the error message says so. This is
+   the Switch's decision 9 in a different costume: the part's central promise has
+   to be a property of the PART.
+7. **No `Form` root and no `FormField`.** [V] The consuming product's forms are
+   plain `<form>`s with server actions, and the context this family needs is
+   per-FIELD. A `<form>` with a class would be a part that only re-declares a
+   class, which is the `AlertAction` that was not written (rule 1).
+8. **No `cva`.** [V] There is no visual axis with a second value: one size, one
+   ink per part. The Switch's decision 5 and `Input`/`Card`'s precedent. It is
+   also why the ink check here reads the rendered class list instead of a tone
+   table - there is no table to import.
+9. **`FormLabel` composes `Label`, which makes this the registry's first
+   cross-item dependency.** [V] The brief's instruction and shadcn's own shape.
+   The alternative is re-drawing `Label`'s string in a second place, which is
+   exactly what the library exists to stop. The import is RELATIVE (`./label`),
+   which the pipeline section proves is the only spelling correct in both trees.
+10. **The item's gutter is `gap-1`, not the product's `gap-1.5`.** [V]
+    Measurement 2: a 6/6 tie broken by the 4px spacing grid, which is skeleton,
+    and by the package having no off-grid gap anywhere. Six call sites move 2px.
+11. **A part used outside a `FormItem` throws.** [V] The quiet version is a label
+    with no `for` and a control with no ARIA - which is the state this family was
+    written to replace, and it looks entirely normal on screen.
+12. **The stated part count was updated where the package DESCRIBES itself**
+    (`AGENTS.md`, `README.md`, `packages/ui/package.json`) and in
+    `fidelity.test.tsx`'s docblock, whose "Eight of the fifteen" is a live ratio.
+    `fidelity.test.tsx`'s `NEW_PARTS` table is NOT touched: a new family is not
+    fidelity-asserted, which is `Alert`'s closure and stands here too.
+
+### thepile inputs
+
+What the consumption half needs when `0.1.1` publishes, in one list. Nothing here
+was done: the consuming repo was read only, at `e66bc793`, and **every bullet was
+checked against that tree with `git show` before it was written**, with the
+command beside any count.
+
+- `form` goes into `CONSUMED` in `scripts/marquee-drift.test.ts`, and
+  `components/ui/form.tsx` arrives by `shadcn add`. ⚠️ **That test pins BOTH
+  lists exactly**, read at `e66bc793`: `CONSUMED` is
+  `["button", "input", "label", "sheet", "toast", "ribbon"]` and the arm right
+  under it asserts the complement is exactly
+  `["accordion", "badge", "card", "separator", "utils"]`, with `toEqual` and not
+  a subset matcher. So five new items in the shipped index redden that arm the
+  moment `0.1.1` lands, whether or not anyone consumes them - the bump and both
+  list edits are ONE commit, or the arm is red between them. ⚠️ **And this is now a FIVE-item bump**:
+  `switch`, `breadcrumb`, `pagination`, `alert` and `form`. Whoever takes the bump
+  edits both lists once, for all five. ⚠️ `shadcn add form.json` writes **three**
+  files, not two: `lib/utils.ts`, `label.tsx` AND `form.tsx`, because `form`
+  depends on the `label` item. thepile's `lib/utils.ts` is a DECLARED EXCLUSION
+  whose `cn` is a plain join on purpose, so `git checkout -- apps/web/src/lib/utils.ts`
+  after the add - and `components/ui/label.tsx` is ALREADY CONSUMED, so the add
+  will rewrite it with the identical registry bytes and that is a no-op only if
+  the consumed copy is current.
+- ⚠️ **`form-styles.test.ts` is the instrument to keep green, and this family does
+  not touch it.** Read at the base: it pins `inputClass`, `primaryButtonClass`,
+  `secondaryButtonClass`, `dangerButtonClass(true|false)` and `microLabelClass` to
+  be EXACTLY what the registry copies produce (`inputClass` from
+  `components/ui/input`, the rest from `buttonVariants` / `labelVariants`), plus
+  the rename table resolving to the same literals, plus `form-styles.ts` having no
+  imports at all. A `Form` family survives it untouched **because `FormLabel`
+  composes `Label` and `FormControl` adds no class**: neither `labelVariants` nor
+  `inputClass` changes, so all six pinned strings are byte-identical. The one
+  thing that would break it is a consumption that re-draws a label or a field
+  inside the new parts instead of passing `<Input>` / `<Label>` through.
+  ⚠️ **The brief's note that `git grep -l 'form-styles' -- apps/web/src scripts`
+  prints FOUR files is WRONG.** Re-run at `e66bc793` it prints **42**
+  (`git grep -l 'form-styles' $T -- apps/web/src scripts | command wc -l`); on the
+  main clone's stale working tree it prints 40. Neither is four. The number
+  matters because it is how big the blast radius of a change to that module is.
+- **The 30 bare messages become `<FormMessage>`**, and the wrapper `<label>`
+  becomes `<FormItem>` + `<FormLabel>` + `<FormControl>`. Two things move with
+  each: `role="alert"` comes from the part now and should be DELETED from the call
+  site (leaving it is harmless - it is written before the caller's props - but it
+  is then stated twice), and `text-sm` comes from the item, so the **nine** sites
+  at `text-xs` (`PushSettings:271`, `AddGameRow:133`, `AddToListSheet:116`,
+  `ListForm:118`, `ListItemsEditor:116`, `ListManage:111`, `ListProgress:277`,
+  `GameActions:536`, `RankInTierSheet:125`) must pass `className="text-xs"` on the
+  item or nine messages grow 2px.
+- ⚠️ **The 24 files that resolve a message by role must keep resolving one.**
+  `git grep -l -E 'ByRole\("alert"' $T -- 'apps/web/src/**' 'e2e/**'` -> 22
+  component test files (`LoginForm`, `ContentSettings`, `DeveloperSettings`,
+  `PushSettings`, `ImportPreview`, `VolatilityBanner`, `AddGameRow`,
+  `AddToListSheet`, `ListForm`, `ListItemsEditor`, `ListManage`, `ListProgress`,
+  `LogModal`, `DiaryEntryCard`, `PlayForm`, `AboutMeGrid`, `FacePicker`,
+  `FavoritesPicker`, `ProfileEditForm`, `GameActions`, `RankInTierSheet`,
+  `TierEditor`) plus `e2e/outbox.spec.ts` and `e2e/pile-card.spec.ts`. They all
+  survive: the part writes the same role on the same kind of element. ⚠️ The one
+  to read before touching is `VolatilityBanner.test.tsx:83-90`, which asserts
+  `queryByRole("alert")` is NULL - it is a boxed notice, not a field message, and
+  nothing in this family goes near it.
+- **`app/pile/page.tsx:98-127` is the one field that already has the whole
+  contract**, hand-written, and it is the natural first consumption: `id`,
+  `aria-describedby` switching between `pile-problem` and `pile-hint`, and
+  `aria-invalid`. Taken, it becomes `<FormItem invalid={!!problem}>` with a
+  `<FormDescription>` and a `<FormMessage>`, and the generated ids replace
+  `"pile-input"` / `"pile-problem"` / `"pile-hint"`. ⚠️ **It is a SERVER
+  component** - no `"use client"`, a `method="get"` form - which is why the
+  invalid state is a prop and not an effect (decision 3). ⚠️ And its hint carries
+  `max-w-prose` (DESKTOP-1's fix: without it the hint set 1216px at 1280), which
+  the part does NOT supply: the description must keep it as a `className`.
+- **`app/onboarding/OnboardingForm.tsx:98,103`**: its `username-hint` is an
+  ALWAYS-RENDERED `<span role="status">` that is empty until the check answers,
+  and it carries `min-h-[1.25rem]` to stop the form jumping. Both stay the
+  caller's: `<FormDescription role="status" className="min-h-[1.25rem] text-xs">`.
+  The part writes no role on a description precisely so this site keeps working
+  (measurement 6).
+- **`components/profile/FacePicker.tsx:373,395,405`** is the same shape twice over
+  and is the one site where the two parts meet: a bare `role="alert"` message at
+  `:395` AND an always-rendered `role="status"` description at `:405` that the
+  button points at by `aria-describedby`. Its control is a `<button>`, not a
+  field, so it is a `FormControl` host only if the consumption wants it to be -
+  and `FormControl` will accept a `<button>`, it slots anything.
+- ⚠️ **No call site may put `id` or `aria-describedby` on the control itself.**
+  `FormControl` throws (decision 6). Three product sites would hit it today if
+  wrapped naively: `pile/page.tsx:103` (`id="pile-input"`),
+  `comments/CommentForm.tsx:72` (`id="comment-body"`) and
+  `DeveloperSettings.tsx:141` (`id="token-name"`), plus the eight `LogForm` fields
+  at `:650-903` that pair `htmlFor` with a literal id. Each drops its hand-typed
+  id and lets the item generate one.
+- **Two behaviours the consumption GAINS**: 29 messages become reachable from the
+  field that produced them, which is the actual accessibility change; and a form
+  rendered twice on one page stops being a source of duplicate ids, because
+  `useId` replaces twelve hand-typed literals.
+- **What it does NOT gain, and should not be sold as**: the messages are already
+  announced. This does not fix "the error is not read out" - it fixes "you cannot
+  get from the field to the error".
+
+### Consumers
+
+Both runs of the scan (`8c9d31a` in place of `origin/next`, over `packages/**`
+and `registry.json`), the script in `$BATCH_SCRATCH/s2/consumer-scan.sh`. The
+shell `grep` here is a ugrep wrapper, so every arm that becomes a verdict uses
+`command grep` or `git grep -F`.
+
+**Run 1, before any code** (`consumer-scan.1.txt`): the diff was empty, so scans
+1-3 printed nothing; scan 4 is what the run was for - the declared lists and
+counters a fifteenth family has to enter, read off the tree rather than off the
+brief:
+
+```
+AGENTS.md:51 the fourteen part families · README.md:19,24 · packages/ui/package.json:4
+packages/ui/test/fidelity.test.tsx:36    Eight of the fourteen part families
+packages/ui/test/fidelity.test.tsx:685   expect(slots).toHaveLength(14)
+packages/ui/test/registry.test.ts:60     declares the fourteen part families plus the one shared lib
+packages/ui/test/registry.test.ts:146    expect(checked).toBe(14)
+packages/ui/test/registry.test.ts:214    expect(compared).toBe(16)
+packages/ui/test/stories.test.tsx:57     const DECLARED_PLAYS = 40
+packages/ui/test/stories.test.tsx:58     const DECLARED_STORIES = 66
+packages/ui/test/stories.test.tsx:91     expect(storySuiteNames()).toHaveLength(14)
+```
+
+That run found **one counter the brief did not name**:
+`fidelity.test.tsx:685`'s `expect(slots).toHaveLength(14)`. It was read before
+being moved, and it is deliberately NOT moved: `NEW_PARTS` is the table of slots
+LIFTED out of the consuming product, a new family is not fidelity-asserted, and
+`Alert` is absent from it for the same reason. The seven that did move went to
+15 / 15 / 16 / 17 / 48 / 74 / 15, and each was proved load-bearing by a mutation
+rather than assumed - rows 17 through 22 of the guard table.
+
+**Run 2, at the commit point** (`consumer-scan.2.txt`): **14 exported names** -
+the five parts, `FormItemProps`, and the eight story exports. Every reader of
+every one of them is inside this slice's own files (`form.tsx`, `index.ts`,
+`form.stories.tsx`, `form-wiring.test.tsx`, `tailwind-compile.test.tsx`,
+`registry.json`). Five names collide with story exports in OTHER story files
+(`Default`, `Disabled`, `Described`, `Invalid`, `Textarea`) and one with a `cva`
+key in `button.tsx`; a story module is its own namespace and a variant key is not
+an export, so none of those is a consumer. The `Described` hit inside `form.tsx`
+is the substring in `ariaDescribedBy`, not a reader.
+
+Scan 2 printed the one new item, its path and its target. Scan 3 named
+`source-files.ts`, `story-suites.ts`, `registry.test.ts`, `fidelity.test.tsx`,
+`alert-tone.test.tsx`, `nav-consumption.test.tsx`, `switch-drawing.test.tsx` and
+`fixtures/extract-upstream.mjs` - all read. The only one this diff changes the
+behaviour of is `tailwind-compile.test.tsx`, and the change is ADDITIVE: a new
+describe block appended at the end, with the two hoisted helpers (`slotTokens`,
+`declaredValues`) REUSED and not copied, and not one line of the nav or alert
+arms touched. That is `Alert`'s decision 10 collecting its dividend - the second
+family to need those helpers paid nothing.
+
+**0 CROSS, 0 UNOWNED**, 14 names NEW between the two runs (the first ran against
+an empty diff by construction). The batch's other streams are in a different
+repository, and nothing in this one was edited outside this slice's own surface.
+
+⚠️ The blind spot the Switch and `Alert` both recorded still applies: scan 3's
+stem arm looks for `./<stem>"` and `../<stem>"`, so it does NOT see
+`import * as form from "../../stories/form.stories.js"`, which is how
+`story-suites.ts` reaches a new story file. Scan 4 - the declared lists - is what
+covers it, which is why that arm exists.
