@@ -1982,3 +1982,512 @@ lines being `All matched files use Prettier code style!`, both packages'
 `git status --short` was empty afterwards, so the committed `packages/ui/r` is what
 `build:registry` produces. No push, no publish, no version bump: the freeze holds and
 both families ride the post-freeze `0.1.1` with the Switch.
+
+## DESIGN-LIB-d: Alert (2026-09-19)
+
+Scope: the third §3-d addition, and the second NEW family (the Switch's shape, not
+the nav families'): nothing was lifted, so the fidelity fixture does not bind and
+the house drawing is DERIVED and recorded below. Nothing was published, nothing was
+pushed (the Actions-minutes freeze), no version was bumped, and nothing in the
+consuming repo was changed: it was read only, at commit `d6675756`.
+
+### What shipped
+
+| file                                         | what                                                                                                                                                                  |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/ui/src/alert.tsx`                  | three parts - `Alert`, `AlertTitle`, `AlertDescription` - one `cva` tone axis, and no state (4,269 B)                                                                 |
+| `packages/ui/stories/alert.stories.tsx`      | 9 stories, 5 of them carrying a `play`                                                                                                                                |
+| `packages/ui/test/alert-tone.test.tsx`       | 5 tests: the tone table held to the presets' own ink-on-ground matrix                                                                                                 |
+| `packages/ui/test/tailwind-compile.test.tsx` | 5 new tests in resolved declarations, and two helpers HOISTED to module scope so a second family reads declarations without a second copy                             |
+| `registry.json` + `packages/ui/r/alert.json` | the `alert` item, `target` `components/ui/alert.tsx`, `@marquee/utils` as its registry dependency                                                                     |
+| `packages/ui/src/index.ts`                   | the three parts, `alertVariants` and `AlertProps`                                                                                                                     |
+| the declared lists                           | both lists in `packages/tokens/test/helpers/source-files.ts`, `story-suites.ts`, `stories.test.tsx`'s two counts, `registry.test.ts`'s item list and its two counters |
+| the stated count                             | `AGENTS.md`, `README.md`, `packages/ui/package.json` and `fidelity.test.tsx`'s docblock say fourteen part families                                                    |
+
+No new dependency: `@radix-ui/react-slot` (for `asChild`) and
+`class-variance-authority` (for the tone axis) were both already here, and the
+registry item declares the same two `Badge` does. `pnpm test` goes from **20 files /
+344 tests** at the base (`c472dd16`, `pnpm verify` exit 0, measured first) to **21 /
+364**: +5 for the tone suite, +5 for the declaration arms, +9 story renders and +1
+for the suite's own `alert: has stories`.
+
+The shape, in one line each:
+
+```tsx
+// the notice with a headline: the box's ink reaches both parts
+<Alert tone="destructive">
+  <AlertTitle>We could not confirm that account</AlertTitle>
+  <AlertDescription>Nothing was changed.</AlertDescription>
+</Alert>
+
+// the notice that ARRIVES: the role is the caller's, always
+<Alert role="status">That link has expired.</Alert>
+
+// the action is a CHILD, because the box is a flex column
+<Alert tone="destructive" role="status">
+  <AlertDescription className="text-foreground">Scheduled for deletion.</AlertDescription>
+  <Button variant="secondary" onClick={keep}>Keep my account</Button>
+</Alert>
+
+// the single-sentence notice that wants to stay a paragraph
+<Alert asChild><p role="status">We will not guess, so every game comes in unplayed.</p></Alert>
+```
+
+### Measurements, and what they corrected
+
+**1. The drawing, derived from eight boxed notices rather than from shadcn.** Read
+with `git show` at `d6675756`, every boxed notice the consuming product draws:
+
+| site                                           | the box                                                                     | line          | ink                          |
+| ---------------------------------------------- | --------------------------------------------------------------------------- | ------------- | ---------------------------- |
+| `settings/steam/page.tsx:66-70` (tone ternary) | `rounded-md border-2 p-3 text-sm` + `role="status"`                         | danger / line | danger / secondary           |
+| `settings/steam/page.tsx:282`                  | `max-w-content rounded-md border-2 border-line p-3 text-sm`                 | line          | secondary                    |
+| `settings/steam/page.tsx:328` (`Fix`)          | the same string                                                             | line          | secondary                    |
+| `settings/steam/ImportPreview.tsx:141`         | the same string                                                             | line          | secondary                    |
+| `settings/DangerZone.tsx:90`                   | `flex max-w-content flex-col gap-3 rounded-md border-2 p-4`, holds a Button | danger        | `text-text` on the inner `p` |
+| `settings/DangerZone.tsx:113`                  | the same, holds an input and a button                                       | line-strong   | secondary                    |
+| `app/login/page.tsx:52-54`                     | `rounded-md border-2 p-3 text-sm` + `role="status"`                         | danger        | secondary                    |
+| `components/game/VolatilityBanner.tsx:42`      | `mt-4 rounded-md border-2 bg-black/50 px-3 py-2 text-sm leading-snug`       | line-strong   | white                        |
+
+The invariant across all eight is `rounded-md border-2 … text-sm` and nothing else.
+`p-3` is six of the eight (`px-3 py-2` counted with them); `p-4` is the two that
+STACK. So the part is the stack at the majority padding: `flex flex-col gap-2
+rounded-md border-2 p-3 text-sm`. `gap-2` is the one value between the house's two
+(`CardHeader`'s `gap-1` for a title/description pair and `Card`'s `gap-3` between
+regions), because this family has no header/content split and one gap has to serve
+both. Everything else in that table is the PAGE's: `max-w-content` on four of them
+is a column decision, `mt-4` on the banner is a margin, and `bg-black/50` is a
+literal this package may not ship at all (rule 2).
+
+**2. The tone axis is LIFTED, both branches, from the only site that has one.**
+`settings/steam/page.tsx:68` is already a ternary:
+`notice.tone === "bad" ? "border-danger text-danger" : "border-line text-text-secondary"`.
+Through a1's rename table that is exactly `destructive: "border-destructive
+text-destructive"` and `default: "border-border text-foreground-2"`, which is the
+table this part ships, extended to the three remaining status roles. The line and
+the ink move TOGETHER because that ternary moves them together; the two sites that
+want a danger line with neutral ink (`login/page.tsx:54`, `DangerZone.tsx:90`) pay
+one `className` each, which is where a deliberate softening belongs.
+
+**3. `warning` and `info` cost nothing to ship, and that is measured rather than
+argued.** All four status roles are already in `BODY_INK_ROLES`, so the presets'
+own build check has always measured them against every ground. Run here
+(`contrastMatrix`, `$BATCH_SCRATCH/s2/contrast-probe.ts`), ink on ground, floor 4.5:
+
+| ink         | arcade: background / surface / raised / overlay | light: background / surface / raised / overlay |
+| ----------- | ----------------------------------------------- | ---------------------------------------------- |
+| destructive | 6.41 / 6.03 / 5.61 / **5.02**                   | 5.91 / 6.26 / 6.45 / 6.54                      |
+| success     | 11.33 / 10.65 / 9.92 / 8.86                     | 5.84 / 6.17 / 6.36 / 6.45                      |
+| warning     | 11.19 / 10.53 / 9.80 / 8.76                     | 6.45 / 6.82 / 7.03 / 7.13                      |
+| info        | 12.25 / 11.52 / 10.73 / 9.58                    | 6.30 / 6.66 / 6.87 / 6.96                      |
+
+The tightest pair in the whole table is `destructive` on `overlay` at 5.02, which
+clears. So a five-tone table is not a guess about future consumers: it is the four
+roles the contract already publishes and already checks, plus the neutral. What a
+tone may NOT be is a role outside that matrix - `text-brand` and `text-primary`
+compile exactly as well and are measured by nothing - which is what
+`alert-tone.test.tsx` holds the table to, by importing `BODY_INK_ROLES` rather than
+retyping it.
+
+The LINE owes no floor and deliberately so: the notice's meaning is its sentence,
+never its border, and the house's own `--border` sits at 1.82:1 on `background`
+(the Switch's measurement 6, row 4) as a decision. WCAG 1.4.11 reaches a graphic
+that is the SOLE carrier of information, and a box around a sentence never is.
+
+**4. Which utility wins when a consumer passes a second one - measured, because
+the reference consumer's `cn` is a plain JOIN.** Tailwind 4 emits utilities in its
+own theme order, not in source order (proved by reversing the candidate list and by
+compiling the pair alone: `$BATCH_SCRATCH/s2/order-probe/`). The order that matters:
+
+```
+ 3  border-border          border-color: var(--border)
+ 4  border-border-strong   border-color: var(--border-strong)
+11  text-destructive       color: var(--destructive)
+12  text-foreground-2      color: var(--foreground-2)
+```
+
+Both overrides the consumption actually needs therefore WIN under a plain join:
+`className="border-border-strong"` beats the part's `border-border`, and
+`className="text-foreground-2"` beats a `destructive` tone's ink. In this repo
+tailwind-merge resolves the same two the same way, so a story shows what a call
+site gets. This is DL7's MED-3 asked in the other direction and answered.
+
+**5. The bare `p[role=alert].text-sm.text-danger` is a FORM MESSAGE, and the
+evidence is in a file that renders both.** `ImportPreview.tsx` has the boxed notice
+at `:141` and a bare message at `:238`, and `ImportPreview.test.tsx:327,342` resolve
+the BARE one by `getByRole("alert")`. The bare form is seven call sites
+(`LoginForm.tsx:113,169`, `ContentSettings.tsx:99`, `DeveloperSettings.tsx:112,228`,
+`DangerZone.tsx:96,140`) plus that one, and shares with a notice only `text-sm`: no
+border, no radius, no padding, no box. Making it an `Alert` would put a box around
+every field error on eight surfaces - a visible redesign, not a move - and would
+make `getByRole("alert")` ambiguous in any render that holds both. It is a future
+`Form` family's, which is the orchestrator's read, now with the measurement.
+
+**6. A thepile instrument already asserts this part's central decision, and it was
+not in the brief.** `VolatilityBanner.test.tsx:83-90`, "is a plain explanation: no
+alert role, no icon, nothing to dismiss", runs `expect(screen.queryByRole("alert"))
+.toBeNull()` with a comment recording it as S31 decision 2. A library `Alert` that
+wrote `role="alert"` by default would redden that test at the consumption, on a
+notice whose whole design is that it is NOT a hazard sign. Independent evidence for
+decision 2, found by reading the 37 role-resolving files rather than by reasoning.
+
+### Every UNVERIFIED claim in the brief, measured
+
+1. **"at the thepile base 21 files resolve a notice by `getByRole("alert"|"status")`"** -
+   WRONG, and the brief flagged the second half of it. Measured at `d6675756`:
+   `git grep -l -E 'ByRole\("(alert|status)"' -- 'apps/web/src/**' 'e2e/**'` returns
+   **37 files**, not 21. Of those 37, the ones that resolve a BOXED notice are
+   **one**: `app/login/page.test.tsx:82`. Every other boxed notice is resolved by a
+   `data-testid`, not by a role, and every other `ByRole("alert"|"status")` in the 37
+   resolves a bare form message, a toast, a sheet's own status line or a live count.
+   The enumeration is the checklist below; 21 was neither the file count nor the
+   boxed-notice count.
+2. **"`Dialog` / `AlertDialog`, measured FIRST and built only if the measurement says
+   so"** - measured, and it says no. The next section is the whole answer.
+3. **The orchestrator's audit counts** (`Dialog` 6, `AlertDialog` 2, `Alert` 7,
+   `Sheet` 1, counted at `fe02e183`) - re-counted at `d6675756` with the same
+   command: **identical**. Read them as ROUTES, not mentions: `-c` counts matching
+   lines, one row per route, and `/lists/[id]` is in both the `Dialog` and the
+   `AlertDialog` count.
+4. **"the orchestrator counted TEN non-test importers of `components/ui/sheet`"** -
+   re-counted at `d6675756`: **10**, listed in the next section.
+5. **"`DiscardGuard.tsx:62`, `ListManage.tsx`, by hand"** as the `role="alertdialog"`
+   set - INCOMPLETE. There are **three** source sites, not two: the third is
+   `LogForm.tsx:938`, and it is the one that most looks like this family (see the
+   next section).
+6. **"`cva` for the tone axis only"** and **"the roles exist: `destructive`,
+   `success`, `warning`, `info`"** - confirmed, and the roles are not merely present:
+   all four are in `BODY_INK_ROLES`, so all four are already inside the contrast
+   check. Measurement 3.
+7. **"the 44px floor does not apply to a non-interactive `Alert`"** - confirmed by
+   the instrument rather than by reading it: `tailwind-compile.test.tsx`'s floor
+   guard selects `button, a[href], input, select, textarea, [role="button"]`, and an
+   `Alert` renders none of them, so it is exempt by construction. The `WithAction`
+   story puts a real `Button` inside one, which DOES reach that guard - proved by
+   replacing it with a bare `<button className="text-sm">`, which produced
+   `measures every one of them at or above the floor: expected [ Array(1) ] to deeply equal []`.
+
+### The Dialog / AlertDialog measurement, and the answer
+
+**No `Dialog` family and no `AlertDialog` family ships.** The audit's six `Dialog`
+rows and two `AlertDialog` rows resolve to `Sheet` and `SheetContent
+role="alertdialog"`, which already exist. Measured at `d6675756`:
+
+- **Every modal in the product is a `Sheet`.** Ten non-test importers of
+  `components/ui/sheet"`: `lists/AddToListSheet`, `lists/ListManage`,
+  `lists/YourLists`, `log/LogModal`, `play/DiaryEntryCard`,
+  `profile/ProfileOverflowMenu`, `pwa/IOSInstallSheet`, `reports/ReportSheet`,
+  `shell/LogSheet`, `tiers/RankInTierSheet`. And there is no other modal mechanism
+  at all: `git grep -E '<dialog|showModal|createPortal' -- 'apps/web/src/**'` returns
+  two hits, both `components/ui/toast.tsx`. No native dialog, no second portal.
+- **There is no centred-at-every-width dialog to serve.** `SheetContent` is a bottom
+  sheet below 768 and a centred dialog from `md:` up, which is the shape every one
+  of those ten wants.
+- **Row by row.** `/lists/[id]`'s `Dialog` (the edit) and `AlertDialog` (the delete
+  confirm) are `ListManage.tsx`, already a `Sheet` twice, one of them already
+  `<SheetContent role="alertdialog">` at `:154`. The five `Dialog for ReportFlag`
+  rows are `ReportFlag.tsx:19-20,123`, which dynamically imports `ReportSheet` - a
+  `Sheet`. The remaining three are PROPOSALS for things that are not modals today:
+  `ShareDoor.tsx` is a plain `<button>`, `AboutMeGrid.tsx` is an inline editor, and
+  `/settings`'s `AlertDialog` row is `DangerZone.tsx:113`, an inline boxed panel -
+  i.e. an **`Alert` with a form inside**, which is this family. Each is a redesign
+  for `DESIGN-LIB-f`, and each would be a `Sheet` when taken, because the product has
+  ONE modal shape and shipping a second would give it two.
+- **The two non-Sheet `role="alertdialog"` sites are not dialogs, and a dialog
+  family would break them.** `DiscardGuard.tsx:62` (`DiscardConfirm`) and
+  `LogForm.tsx:938` (the duplicate-day confirm) are rendered INSIDE a still-mounted
+  sheet, deliberately, and both docblocks say why: "rendered OVER a still-mounted
+  form. Unmounting the form to show this would destroy the very draft the guard
+  exists to protect", and "Save's own slot, not an overlay: the draft behind it is
+  what the question is about". A Radix `AlertDialog` portals to the body and mounts
+  a second focus trap inside the first, which is exactly what those two exist to
+  avoid. They are not a gap; they are a shape a dialog family would be wrong for.
+  ⚠️ `LogForm.tsx:938`'s box is `flex flex-col gap-2 border-2 border-line-strong
+bg-raised p-3` - an `Alert` wearing `role="alertdialog"`, drawing-wise, and now
+  composable as one. That is an observation for `DESIGN-LIB-f`, not a promise: it
+  takes focus and answers a question, which is more than this family claims.
+
+A second `@radix-ui/react-dialog`-based family was therefore never reached, and no
+second Radix dialog dependency was considered.
+
+### Guards, each proved by running its reddening mutation
+
+Run in the COMMITTED tree (`9dae9e8`, and the one that came after the rename at
+`b623409`), each landing asserted by the runner BEFORE the run was read (the new
+text present AND the old text gone, or it throws), each reverted with
+`git checkout --` and `git status --short` empty afterwards - also asserted, per
+mutation. The runner is `$BATCH_SCRATCH/s2/mutate.py`, the inputs are
+`mutations-{a,b,c}.json`, the logs are in `$BATCH_SCRATCH/s2/mutations/`.
+
+⚠️ Read one thing into every SOURCE row below: **it also reddens `carries the
+CURRENT bytes of every source it ships`**, because `packages/ui/r` was not rebuilt.
+That is the registry guard doing its job and it is omitted from the table, which
+lists the reds that NAME the mutated property. Row 14 is that guard on its own.
+
+<!-- prettier-ignore-start -->
+
+| guard | mutation | landed | the red it produced |
+| --- | --- | --- | --- |
+| the tone moves the line and the ink together | `destructive` ink -> `text-foreground-2` | `alert.tsx` | TWO: `moves the line and the ink together…` with `destructive: line destructive with ink foreground-2: expected false to be true`, and `resolves every tone's line AND ink…` with `Destructive: ink: expected [ 'var(--foreground-2)' ] to deeply equal [ 'var(--destructive)' ]` |
+| a tone's ink is a role the contrast check covers | `success` ink -> `text-primary` | `alert.tsx` | THREE, the first naming it: `tone inks outside the 4.5:1 ink-on-ground matrix: expected [ [ 'success', 'primary' ] ] to deeply equal []` |
+| the house line weight | `border-2` -> `border-4` | `alert.tsx` | `draws the house line weight and the house radius, in pixels` with `expected [ 4 ] to deeply equal [ 2 ]` |
+| the part decides no width | `max-w-content` added to the base | `alert.tsx` | `decides no width, no outer margin and no tap floor` with `expected [ 'var(--content-max)' ] to deeply equal []` |
+| the tone reaches the prose | `AlertDescription` given `text-foreground-2` | `alert.tsx` | `lets the tone reach the prose AND the headline…` with `expected [ 'var(--foreground-2)' ] to deeply equal []` |
+| the headline is a weight, not a second colour | `AlertTitle` given `text-foreground` | `alert.tsx` | the same test, `expected [ 'var(--foreground)' ] to deeply equal []` |
+| the part writes no live region | `role="status"` added to `Alert` | `alert.tsx` | TWO: `alert/NotALiveRegion` and the play counter |
+| `asChild` really slots | `asChild ? Slot : "div"` -> `"div"` | `alert.tsx` | TWO: `alert/AsChildParagraph` and the play counter |
+| the headline stays out of the heading outline | `AlertTitle`'s `div` -> `h3` | `alert.tsx` | TWO: `alert/Default` and the play counter |
+| a part cannot leave the shared suites map | `alert` deleted from `STORY_SUITES` | `story-suites.ts` | SEVEN: `covers all fourteen part families` with `expected [ 'accordion', 'badge', …(11) ] to deeply equal [ Array(14) ]`, the play counter, and all five declaration arms, which stop finding anything to measure |
+| a source cannot leave the declared walk | `packages/ui/src/alert.tsx` deleted from `PUBLISHED_SOURCE_FILES` | `source-files.ts` | TWO whole FILES, both naming it: `source walk does not match the declared set … Unexpected: [packages/ui/src/alert.tsx]` |
+| a story cannot stop being one | `export const Warning` -> `const Warning` | `alert.stories.tsx` | `covers all fourteen part families…` with `expected […(64)] to have a length of 66 but got 65` |
+| a control inside a notice still owes the floor | the `WithAction` story's `Button` -> a bare `<button className="text-sm">` | `alert.stories.tsx` | the package's own floor guard, `measures every one of them at or above the floor`, with `expected [ Array(1) ] to deeply equal []` |
+| the registry cannot ship stale bytes | `border-border` -> `border-border-strong`, `r/` not rebuilt | `alert.tsx` | `carries the CURRENT bytes of every source it ships` with `alert: packages/ui/src/alert.tsx is stale` |
+
+<!-- prettier-ignore-end -->
+
+Two things the mutations changed or recorded:
+
+- One red UNDER-NAMED what it covered. `lets the tone reach the prose: the
+description declares no ink of its own` also asserts the TITLE's ink, and the
+  title mutation reddened it with a message about `var(--foreground)` under a name
+  that said "description". Renamed to `lets the tone reach the prose AND the
+headline: neither declares an ink`, committed at `b623409`, and the mutation
+  re-run against the rename.
+- Mutation 10's secondary red proves nothing by name: with `alert` gone from the
+  suites map, the five declaration arms die with
+  `TypeError: Cannot destructure property 'default' of 'storiesImport' as it is undefined`
+  rather than saying which suite vanished. The red that PROVES the guard is
+  `covers all fourteen part families`, in `stories.test.tsx`, and it names it
+  exactly. Recorded rather than fixed: the fix belongs in the shared `slotTokens`
+  helper, which the nav families' four arms share, and narrowing it for one family
+  would leave the other four with the same shape.
+
+### The pipeline, end to end
+
+`pnpm pack` in both packages (`prepack` is `pnpm -w build:registry && git
+diff --exit-code -- r`, so packing at all is the evidence that `r/` is committed and
+current) -> `marquee-ui-ui-0.1.0.tgz` **38,315 B** (34,383 B at the nav families,
+26,396 at the Switch) and `marquee-ui-tokens-0.1.0.tgz` 99,608 B -> `npm install` of
+both into a bare project (`package.json`, a `tsconfig.json`, and a `components.json`
+whose `registries` map points at `./node_modules/@marquee-ui/ui/r/{name}.json`) ->
+`shadcn add ./node_modules/@marquee-ui/ui/r/alert.json`:
+
+```
+✔ Created 2 files:
+  - src/lib/utils.ts
+  - src/components/ui/alert.tsx
+```
+
+The bytes:
+
+```
+alert: installed bytes 4269, target components/ui/alert.tsx
+  installed === r/alert.json content: True
+  installed === packages/ui/src/alert.tsx: True      sha256 09304d0943aa (all three)
+packed r/registry.json === repo registry.json: True   (15 items)
+npm deps the item asked for, and that landed: @radix-ui/react-slot@^1.3.3, class-variance-authority@^0.7.1
+```
+
+Then the installed copy compiled in the bare project's own Tailwind 4 against the
+published `@marquee-ui/tokens/tokens.css`, with `@source "./components"` so the only
+candidates are the installed file itself: **all eighteen utilities present**,
+including every tone's pair, with
+`.border-warning { border-color: var(--warning) }` and
+`.text-info { color: var(--info) }` resolving to the role variables rather than to
+copies, and a deliberately absent name (`border-not-a-role`) absent.
+
+### Decisions
+
+1. **The role is the CALLER's, and the part writes none.** [V] `status` (polite) and
+   `alert` (assertive) are semantics, not a look, and the same drawing carries both
+   in the wild. Measured: of the eight boxed notices in the consuming product, two
+   carry `role="status"` and six carry no role at all, so a part that wrote one by
+   default would add six live regions to pages that render a hint at load - and
+   `VolatilityBanner.test.tsx:83` asserts `queryByRole("alert")` is null on exactly
+   such a notice, by a decision of its own. The tone cannot decide it either:
+   announcing is about WHEN a notice arrives, not what colour it is, so a
+   `destructive` box rendered with the page is not assertive and a `default` one
+   that appears after an action is worth announcing. Tone-to-role would be wrong in
+   both directions. `NotALiveRegion` pins it, with a role'd sibling as the anchor.
+2. **The tone moves the line AND the ink together, to the SAME role.** [V]
+   Measurement 2: lifted from the one site in the product that has a tone axis,
+   both branches. A red box with green ink is then unspellable. `default` is the
+   only asymmetric member (the house line with the house body ink), because there
+   is no "neutral" status role and there should not be.
+3. **Five tones, which is the four STATUS roles plus the neutral.** [V]
+   Measurement 3: every one is already in the presets' ink-on-ground matrix, so
+   this is not a guess about future consumers - it is the set the contract already
+   publishes and already checks. `Badge`'s four are the precedent for a tone table
+   wider than one consumer's use, and unlike a PART an unused tone costs one line
+   and one story, with no floor, no fidelity and no registry item. `primary` is
+   deliberately absent: it is not a status, and `info` is the neutral-positive.
+4. **`AlertTitle` and `AlertDescription` declare no ink.** [V] The tone reaches the
+   prose, which is what makes a destructive notice destructive all the way down,
+   and the headline is a WEIGHT (`font-semibold`, the accordion trigger's) rather
+   than a second colour that could disagree with the tone. `CardContent` is the
+   precedent for a part that names a slot and carries nothing.
+5. **`AlertTitle` is a `<div>`, not a heading.** [V] A notice is not a section, and
+   a heading here enters every screen reader's document map and the page outline.
+   No consumer renders one; `asChild` can be added to the title the day one
+   composes a notice that really is a section.
+6. **The part caps no width, sets no outer margin and carries no tap floor.** [V]
+   The nav families' decision 4 applied again: a part that caps its own line length
+   has decided the column it sits in. Four of the eight notices carry
+   `max-w-content` and one carries `mt-4`; all five are the page's. The floor is
+   `Badge`'s rule - a notice is not a control, and the moment it holds one the
+   CALLER owes that control the floor, which `Button` already has.
+7. **The action is a CHILD, and there is no `AlertAction`.** [V] The box is a flex
+   column, so a `<Button>` inside it stacks under the prose, which is exactly
+   `DangerZone.tsx:90`. `ToastAction` exists because it does something - it
+   dismisses the toast it lives in - and an alert has no state to change, so a twin
+   here would be a part that only re-declares a class. Rule 1: composition.
+8. **`asChild` on the root, and on neither of the other two.** [V] The
+   single-sentence notice in the consuming product is a `<p role="status">`, and
+   `asChild` keeps it one; the title and the description have no host a caller has
+   been measured to want. ⚠️ Not both at once: `<AlertDescription>` inside an
+   `asChild` `<p>` is a `<p>` inside a `<p>`, which the parser does not keep. Said
+   in the docblock and in the story.
+9. **`alertVariants` is exported; the class strings are not otherwise reachable.**
+   [V] The three `cva` parts (`Button`, `Badge`, `Label`) all export their variants
+   function, and `alert-tone.test.tsx` needs it to hold the table to the role
+   contract. The Switch kept its strings private because it has no `cva` at all,
+   which is the same rule and not a different one.
+10. **The two declaration helpers in `tailwind-compile.test.tsx` were HOISTED, not
+    copied.** [V] `slotTokens` and `declaredValues` lived inside the nav families'
+    describe; a second family needed them, and a second copy is how two maps
+    disagree (the Switch's layer-1 MED-2 is exactly that defect). The move is pure:
+    the block was dedented and relocated above the floor guard, with no edit to its
+    body, and the nav arms were re-run green before anything was added.
+11. **The stated part count was updated where the package DESCRIBES itself**
+    (`AGENTS.md`, `README.md`, `packages/ui/package.json`) and in
+    `fidelity.test.tsx`'s docblock, whose "Eight of the thirteen" is a live ratio
+    rather than a record of a past decision - the Switch's decision 10 distinction.
+
+### thepile inputs
+
+What the consumption half needs when `0.1.1` publishes, in one list. Nothing here
+was done: the consuming repo was read only, at `d6675756`, and every bullet below
+was checked against that tree with `git show` before it was written.
+
+- `alert` goes into `CONSUMED` in `scripts/marquee-drift.test.ts`, and
+  `components/ui/alert.tsx` arrives by `shadcn add`. ⚠️ **That test pins the
+  NON-consumed set exactly** - at `d6675756` it is `accordion, badge, card,
+separator, utils` - so the `0.1.1` bump and the list edits land in ONE commit, or
+  the arm is red between them. ⚠️ **And this is now a FOUR-item bump**: `switch`,
+  `breadcrumb`, `pagination` and `alert` all publish in `0.1.1`, and each of the
+  three earlier checklists says the same thing about the same two lists. Whoever
+  takes the bump edits both lists once, for all four.
+- **`settings/steam/page.tsx:64-74`**: `<Alert role="status" tone={notice.tone === "bad" ? "destructive" : "default"} data-testid="steam-link-notice">{notice.message}</Alert>`.
+  Zero pixels move: measurement 2 is that ternary. Keep `role="status"` (the part
+  writes none) and keep the testid - `e2e/steam-import.spec.ts:309` resolves it by
+  `getByTestId`, not by role.
+- **`settings/steam/page.tsx:282` and `:328` (`Fix`), and
+  `settings/steam/ImportPreview.tsx:141`**: `<Alert className="max-w-content">`,
+  default tone, no role (they have none today). The `max-w-content` is the page's
+  now (decision 6) and must be passed, or the line length changes on three notices.
+  `Fix` keeps its `testId` prop; `e2e/steam-import.spec.ts` resolves
+  `steam-library-private`, and `ImportPreview.test.tsx` and that spec resolve
+  `steam-cooldown`.
+- **`settings/DangerZone.tsx:90`**: `<Alert tone="destructive" className="max-w-content gap-3">` holding
+  `<AlertDescription role="status" className="text-foreground">` and the existing
+  `<Button>`. Three classes are the caller's here and each has a reason: the width
+  (decision 6), the `gap-3` (the part's gap is 2, so a stacking notice that wants
+  the old 12px says so), and the `text-foreground` (the tone's ink is destructive,
+  this paragraph is `text-text` today). ⚠️ `role="status"` stays on the inner
+  paragraph, where it is today, not on the box.
+- **`settings/DangerZone.tsx:113`**: `<Alert className="max-w-content gap-3 border-border-strong">`.
+  Measurement 4 is why that last class works: Tailwind emits `border-border-strong`
+  AFTER `border-border`, so it wins even though thepile's `cn` is a plain JOIN and
+  merges nothing. Without it the panel's line goes from `--border-strong` to
+  `--border`, which is the one visible change in this list if it is forgotten.
+- **`components/game/VolatilityBanner.tsx:42`**: `<Alert className="mt-4 border-border-strong bg-black/50 px-3 py-2 leading-snug text-white" data-testid="volatility-banner">`,
+  keeping the inner `<span className="block max-w-prose">`. Four of those are the
+  page's by decision 6 and one, `bg-black/50`, is a literal the library may not ship
+  at all (rule 2) - it is the art backdrop's scrim and belongs to the page.
+  ⚠️ **It must NOT be given a role.** `VolatilityBanner.test.tsx:83-90` asserts
+  `queryByRole("alert")` is null, `queryByRole("button")` is null and there is no
+  `svg`, and its comment records that as S31 decision 2. The part writes none, so
+  the test survives untouched - that is measurement 6 and it is the strongest
+  single reason for decision 1.
+- **`app/login/page.tsx:52-56`**: `<Alert role="status" tone="destructive" className="text-foreground-2">`.
+  ⚠️ The `className` is load-bearing and measurement 4 is why it works: this notice
+  has a danger LINE and secondary INK, the tone gives it both in destructive, and
+  `text-foreground-2` compiles after `text-destructive` so the caller's wins under a
+  plain join. Without it `login/page.test.tsx:82` still passes (it reads text, not
+  colour) and the sentence turns red - a pixel no instrument on either side would
+  catch.
+- **The bare `p[role="alert"].text-sm.text-danger` stays exactly as it is**, at all
+  eight sites (`LoginForm.tsx:113,169`, `ContentSettings.tsx:99`,
+  `DeveloperSettings.tsx:112,228`, `DangerZone.tsx:96,140`,
+  `ImportPreview.tsx:238`). It is a form message, not a notice (measurement 5), and
+  wrapping it would box every field error and make `getByRole("alert")` ambiguous
+  wherever a render holds both. A future `Form` family's.
+- **The one role-resolved boxed notice in the whole product is
+  `app/login/page.test.tsx:82`** (`getByRole("status")` →
+  `/scheduled for deletion/i`). It survives unchanged as long as the consumption
+  keeps `role="status"` on that box, which the bullet above does. Every other boxed
+  notice is resolved by `data-testid`: `steam-link-notice`, `steam-playtime-hidden`,
+  `steam-library-private`, `steam-cooldown`, `volatility-banner` - all five keep
+  their id on the `<Alert>` itself, which spreads props.
+  Swept mechanically rather than by eye: exactly **two** elements in
+  `apps/web/src/**/*.tsx` carry a `role` within four lines of a `className`
+  containing `border-2`, and they are those two - both `status`, **zero `alert`**.
+  So the remaining 36 of the 37 `ByRole("alert"|"status")` files resolve something
+  that is NOT a boxed notice, and nothing in them is this family's business.
+- `shadcn add` writes `src/lib/utils.ts` beside each item; the nav families'
+  pipeline section measured all three cases, and thepile's declared `utils`
+  exclusion survives a plain add (only `--overwrite` clobbers it).
+- Two behaviours the consumption GAINS: every boxed notice becomes one string in one
+  place, so a ninth cannot be drawn slightly differently by hand; and a notice may
+  now be `success`, `warning` or `info` without anyone inventing a class - the
+  colours are the contract's and are already measured against both presets.
+
+### Consumers
+
+Both runs of the scan (`c472dd16` in place of `origin/next`, over `packages/**` and
+`registry.json`), the script in `$BATCH_SCRATCH/s2/consumer-scan.sh`. The shell
+`grep` here is a ugrep wrapper, so every arm that becomes a verdict uses
+`command grep` or `git grep -F`.
+
+**Run 1, before any code** (`consumer-scan.1.txt`): the diff was empty, so scans 1-3
+printed nothing; scan 4 is what the run was for - the declared lists and counters a
+fourteenth family has to enter, read off the tree rather than off the brief:
+
+```
+AGENTS.md:51 the thirteen part families · README.md:19,24 · packages/ui/package.json:4
+packages/ui/test/fidelity.test.tsx:36   Eight of the thirteen part families
+packages/ui/test/registry.test.ts:60    declares the thirteen part families plus the one shared lib
+packages/ui/test/registry.test.ts:145   expect(checked).toBe(13)
+packages/ui/test/registry.test.ts:213   expect(compared).toBe(15)
+packages/ui/test/stories.test.tsx:57    const DECLARED_PLAYS = 35
+packages/ui/test/stories.test.tsx:58    const DECLARED_STORIES = 57
+packages/ui/test/stories.test.tsx:91    expect(storySuiteNames()).toHaveLength(13)
+```
+
+All eight moved in this diff (to 40 / 66 / 14 / 14 / 16), and each one was PROVED
+to be load-bearing by a mutation rather than assumed: the suites map, the declared
+walk and the story export are rows 10, 11 and 12 of the guard table.
+
+**Run 2, at the commit point** (`consumer-scan.2.txt`): **14 exported names** - the
+three parts, `alertVariants`, `AlertProps`, and the nine story exports. Every reader
+of every one of them is inside this slice's own files (`alert.tsx`, `index.ts`,
+`alert.stories.tsx`, `alert-tone.test.tsx`, `registry.json`). Six names collide with
+story exports in OTHER story files (`Default`, `Destructive`, `Success`, `Warning`,
+`Info`, `WithAction`) and one with a `cva` key in `button.tsx`; a story module is its
+own namespace and a variant key is not an export, so none of those is a consumer.
+Scan 2 (route/registry contracts) printed the one new item and its target. Scan 3
+named `source-files.ts`, `story-suites.ts`, `registry.test.ts`, `fidelity.test.tsx`
+and `nav-consumption.test.tsx` / `switch-drawing.test.tsx` - all read, and the only
+one this diff CHANGES the behaviour of is `tailwind-compile.test.tsx`, whose two
+hoisted helpers the nav arms share (decision 10; those four arms were re-run green
+after the move, before anything new was added).
+
+**0 CROSS, 0 UNOWNED**, 14 names NEW between the two runs (the first ran against an
+empty diff by construction). The batch's other streams are in a different
+repository, and nothing in this one was edited outside this slice's own surface.
+
+⚠️ The blind spot the Switch recorded still applies and still needed reading rather
+than scanning: scan 3's stem arm looks for `./<stem>"` and `../<stem>"`, so it does
+NOT see `import * as alert from "../../stories/alert.stories.js"`, which is how
+`story-suites.ts` reaches a new story file. Scan 4 - the declared lists - is what
+covers it here, which is why that arm exists.
