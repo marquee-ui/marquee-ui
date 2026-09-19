@@ -2388,14 +2388,23 @@ separator, utils` - so the `0.1.1` bump and the list edits land in ONE commit, o
   `Fix` keeps its `testId` prop; `e2e/steam-import.spec.ts` resolves
   `steam-library-private`, and `ImportPreview.test.tsx` and that spec resolve
   `steam-cooldown`.
-- **`settings/DangerZone.tsx:90`**: `<Alert tone="destructive" className="max-w-content gap-3">` holding
+- **`settings/DangerZone.tsx:90`**: `<Alert tone="destructive" className="max-w-content gap-3 p-4">` holding
   `<AlertDescription role="status" className="text-foreground">` and the existing
-  `<Button>`. Three classes are the caller's here and each has a reason: the width
+  `<Button>`. Four classes are the caller's here and each has a reason: the width
   (decision 6), the `gap-3` (the part's gap is 2, so a stacking notice that wants
-  the old 12px says so), and the `text-foreground` (the tone's ink is destructive,
+  the old 12px says so), the `p-4` (the part's base is `p-3`, six of the eight
+  derived notices; these two panels are the `p-4` pair measurement 4 counted, and
+  the first draft of this list dropped it, so both would have shrunk 4px a side:
+  DL9 layer 2, HIGH-1), and the `text-foreground` (the tone's ink is destructive,
   this paragraph is `text-text` today). ⚠️ `role="status"` stays on the inner
   paragraph, where it is today, not on the box.
-- **`settings/DangerZone.tsx:113`**: `<Alert className="max-w-content gap-3 border-border-strong">`.
+- **`settings/DangerZone.tsx:113`**: `<Alert className="max-w-content gap-3 p-4 border-border-strong">`
+  (the `p-4` for the reason the bullet above gives). ⚠️ `e2e/mobile-390.spec.ts:1852-1854`
+  resolves THIS panel by `section` → `div.rounded-md` and measures its right edge;
+  it survives because `Alert` without `asChild` renders a `div` carrying `rounded-md`,
+  and it would resolve `null` under `asChild` (the helper's `box(null)` is `NaN` and
+  the arm then drops silently, its own comment says), so `asChild` stays off here
+  (DL9 layer 2, LOW-3).
   Measurement 4 is why that last class works: Tailwind emits `border-border-strong`
   AFTER `border-border`, so it wins even though thepile's `cn` is a plain JOIN and
   merges nothing. Without it the panel's line goes from `--border-strong` to
@@ -2427,11 +2436,18 @@ separator, utils` - so the `0.1.1` bump and the list edits land in ONE commit, o
   `/scheduled for deletion/i`). It survives unchanged as long as the consumption
   keeps `role="status"` on that box, which the bullet above does. Every other boxed
   notice is resolved by `data-testid`: `steam-link-notice`, `steam-playtime-hidden`,
-  `steam-library-private`, `steam-cooldown`, `volatility-banner` - all five keep
-  their id on the `<Alert>` itself, which spreads props.
-  Swept mechanically rather than by eye: exactly **two** elements in
+  `steam-library-private`, `steam-cooldown`, `volatility-banner` - four keep
+  their id on the `<Alert>` itself, which spreads props, and `steam-playtime-hidden`
+  STAYS on the wrapper `div` at `steam/page.tsx:281` that holds the notice AND the
+  import form beside it: `e2e/steam-import.spec.ts:267` resolves the whole screen
+  through that id, and moving it onto the notice would re-scope the locator to one
+  paragraph (DL9 layer 2, MED-2).
+  Swept mechanically rather than by eye: exactly **three** elements in
   `apps/web/src/**/*.tsx` carry a `role` within four lines of a `className`
-  containing `border-2`, and they are those two - both `status`, **zero `alert`**.
+  containing `border-2` - `login/page.tsx:53`, `settings/steam/page.tsx:66` and
+  `DangerZone.tsx:91`, the inner paragraph one line under the `:90` box, which the
+  first count missed (DL9 layer 2 re-ran the sweep, LOW-2) - all `status`,
+  **zero `alert`**.
   So the remaining 36 of the 37 `ByRole("alert"|"status")` files resolve something
   that is NOT a boxed notice, and nothing in them is this family's business.
 - `shadcn add` writes `src/lib/utils.ts` beside each item; the nav families'
