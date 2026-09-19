@@ -172,14 +172,19 @@ export function FormLabel({ className, ...props }: LabelProps) {
  * caller's own `aria-describedby` is not dropped though - passed HERE it is
  * kept, in front of the family's ids.
  *
- * ⚠️ AND IT IS REFUSED ON THE CHILD, LOUDLY, WHICH IS NOT UPSTREAM'S BEHAVIOUR.
- * `Slot` gives the CHILD's props precedence over the slot's, so
+ * ⚠️ AND ALL THREE ARE REFUSED ON THE CHILD, LOUDLY, WHICH IS NOT UPSTREAM'S
+ * BEHAVIOUR. `Slot` gives the CHILD's props precedence over the slot's, so
  * `<FormControl><Input id="email" /></FormControl>` silently keeps the child's
  * id and leaves the label's `for` pointing at an element that does not exist -
  * a broken label, invisible on screen, in the one part whose whole job is that
  * association. Measured, not reasoned: a child carrying `aria-describedby` was
- * observed winning outright, which is what turned this into a throw. Both
- * attributes belong on `FormControl`, and the message says so.
+ * observed winning outright, which is what turned this into a throw.
+ *
+ * The list is the three attributes this part WRITES, and it is exactly those:
+ * `aria-invalid` on the child cannot dangle, but it can disagree with the item -
+ * a control announced invalid inside a field that renders no message and
+ * describes nothing - so the rule is one rule rather than two thirds of one.
+ * All three belong on `FormControl`, and the message says so.
  */
 export function FormControl({
   "aria-describedby": ariaDescribedBy,
@@ -188,8 +193,10 @@ export function FormControl({
 }: ComponentProps<typeof Slot>) {
   const field = useFormField("FormControl");
   const child = Children.only(children);
-  if (isValidElement<{ id?: unknown; "aria-describedby"?: unknown }>(child)) {
-    for (const owned of ["id", "aria-describedby"] as const) {
+  if (
+    isValidElement<{ id?: unknown; "aria-describedby"?: unknown; "aria-invalid"?: unknown }>(child)
+  ) {
+    for (const owned of ["id", "aria-describedby", "aria-invalid"] as const) {
       if (child.props[owned] !== undefined) {
         throw new Error(
           `<FormControl>'s child must not set "${owned}": Slot gives the child precedence, so it ` +

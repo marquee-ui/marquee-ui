@@ -122,13 +122,16 @@ describe("a caller's own aria-describedby is kept, and the child cannot clobber 
     );
   });
 
-  it.each(["id", "aria-describedby"])(
+  it.each(["id", "aria-describedby", "aria-invalid"])(
     "refuses a child that sets its own %s, rather than losing the wiring to it",
     (owned) => {
       // `Slot` gives the CHILD precedence, so this spelling does not merge - it
       // REPLACES. Found by writing the merge test with the attribute on the
       // child and watching the family's own id vanish from the result, which is
       // a label pointing at nothing and nothing on screen to show for it.
+      // `aria-invalid` is here for the weaker reason: it cannot dangle, but it
+      // can announce a control invalid inside a field that renders no message
+      // and describes nothing, which is the same disagreement one step quieter.
       expect(() =>
         render(
           <FormItem>
