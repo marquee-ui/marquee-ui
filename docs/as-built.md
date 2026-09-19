@@ -3357,3 +3357,64 @@ the control slot's class list exactly, so a change to `input.tsx` reddens an arm
 titled for the `Form` family. That is the coupling doing its job - the slot must
 add nothing - but it is a cross-family edge, and the next person to touch `Input`
 should read this line rather than hunt a `Form` regression.
+
+### Post-report: the Alert arm
+
+⚠️ **This section and the commit it describes are UNREVIEWED by layer 1**, which
+ran at `75c254d9` and reported before any of it existed. Everything above in this
+slice's record stands as reviewed; this does not.
+
+The stream's report closed with a REQUEST rather than an edit: `Alert`'s own
+`decides no width, no outer margin and no tap floor` carried the same `LAYOUT`
+blacklist the `Form` family copied from it, and the same "Every SPELLING, not two
+of them" comment, and layer 1 had PROVED that list incomplete. The orchestrator
+granted the request back, on the ground that the library repo is this stream's
+whole fence for the batch, no other stream touches it, and the arm is a test
+instrument with no product effect - so leaving a hole that has been proved is
+shipping it on purpose.
+
+**What changed** (`368a4484`, `packages/ui/test/tailwind-compile.test.tsx`, one
+file, no source touched): the eighteen-property blacklist became a WHITELIST of
+the eleven properties the notice box declares, in the shape the `Form` arm took at
+`de2acaa`. Each of the eleven is derivable from the box's own class string rather
+than transcribed from a run - `flex` gives display, `flex-col` flex-direction,
+`gap-2` gap, `rounded-md` border-radius, `border-2` border-width plus the
+border-style Tailwind emits with it, `p-3` padding, `text-sm` font-size and
+line-height, and the default tone's `border-border` / `text-foreground-2`
+border-color and color. The arm keeps its NAME, because the name is still exactly
+what it proves and two records point at it. The comment now says what the arm
+does and why the blacklist could not work: a blacklist refuses only what someone
+predicted, a whitelist refuses everything nobody authorised.
+
+**The reddening, run.** Five mutations to `packages/ui/src/alert.tsx`, applied to
+the committed tree, each asserted to have LANDED before the run was read and each
+reverted with `git status --short` empty afterwards
+(`$BATCH_SCRATCH/s2/mutations-h.json`, logs beside it). The four that layer 1
+proved the old list let through, and `mx-auto` as a regression check on the one it
+did catch:
+
+| mutation to the notice box | old blacklist | now                                             |
+| -------------------------- | ------------- | ----------------------------------------------- |
+| `px-3`                     | GREEN         | red - `decides no width…`, `+ "padding-inline"` |
+| `py-2`                     | GREEN         | red - the same arm, `+ "padding-block"`         |
+| `border-t-2`               | GREEN         | red - the same arm, `+ "border-top-width"`      |
+| `max-h-40`                 | GREEN         | red - the same arm, `+ "max-height"`            |
+| `mx-auto`                  | red           | red - still                                     |
+
+The red, in full, for the first: `expected [ 'border-color', …(11) ] to deeply
+equal [ 'border-color', …(10) ]`, with `+ "padding-inline"` as the difference -
+which names the property, not merely the arm. (Every source row also reddens
+`carries the CURRENT bytes of every source it ships`, because `packages/ui/r` was
+not rebuilt; that is the registry guard and it is omitted here as it is from the
+table above.)
+
+That takes the slice's mutation runs from 37 to **42**.
+
+**The gate**, re-run in full at `368a4484`, detached with a sentinel: `pnpm verify`
+**exit 0** in 12s (11:27:49 -> 11:28:01 IST, 2026-09-19), the runner's own lines
+being `All matched files use Prettier code style!`, both packages'
+`typecheck: Done`, `✔ Building registry.`,
+`└ Storybook build completed successfully` and
+`Test Files 22 passed (22)` / `Tests 405 passed (405)` - the same counts as
+before, which is the point: inverting a guard's shape added no test and changed no
+behaviour. `git status --short` empty before and after.
