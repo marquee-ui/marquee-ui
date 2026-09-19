@@ -8,6 +8,7 @@ import type { ReactElement } from "react";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { ALERT_TONES } from "@/alert";
+import { inputClass } from "@/input";
 import { STORY_SUITES } from "./helpers/story-suites.js";
 
 /**
@@ -602,12 +603,19 @@ describe("the field's stack and its two inks, in resolved declarations", () => {
 
   it("puts no drawing at all on the control slot", () => {
     // `FormControl` is a pure `Slot`: it renders the caller's element and adds
-    // attributes. If it ever grew a class, the caller's own control would start
-    // wearing a box it did not ask for - and the SAME element carries both class
-    // lists, so this reads the rendered input's `data-slot` to prove the slot
-    // really is the control before asserting about it.
+    // attributes to it. If it ever grew a class, every control taken by the slot
+    // would start wearing a box it did not ask for.
+    //
+    // ⚠️ THE OBVIOUS SPELLING OF THIS CANNOT FAIL. `Slot` MERGES its className
+    // into the child's and its `data-slot` replaces the child's, so the slot and
+    // the control are ONE element and `[data-slot="form-control"]` and `input`
+    // select it twice - comparing them is a tautology, and it stayed green with
+    // `className="rounded-md border-2"` added to the slot (mutation 12, run).
+    // What can fail is the list being exactly `Input`'s own.
     const control = slotTokens(form(), "Default", '[data-slot="form-control"]');
-    expect(control).toEqual(slotTokens(form(), "Default", "input"));
+    expect(control).toEqual(inputClass.split(" "));
+    // The positive anchor: this really is the drawn control, so the equality
+    // above is a statement about a rendered element and not about two empties.
     expect(declaredValues(control, "border-width").length).toBeGreaterThan(0);
   });
 

@@ -90,6 +90,59 @@ describe("two fields on one page cannot collide", () => {
   });
 });
 
+describe("a caller's own aria-describedby is kept, and the child cannot clobber it", () => {
+  it("keeps the caller's id in front of the family's, and both still resolve", () => {
+    // The wiring is written AFTER this part's own props so it cannot be silently
+    // overridden - and the cost of that ordering would be DROPPING a second
+    // description a caller legitimately wants, which is why it is merged rather
+    // than replaced. No story passes one, so it is stated here or it is untested.
+    const { container } = render(
+      <div>
+        <p id="shared-note">Everything here is public.</p>
+        <FormItem invalid>
+          <FormLabel>Email</FormLabel>
+          <FormControl aria-describedby="shared-note">
+            <Input />
+          </FormControl>
+          <FormMessage>That is not it.</FormMessage>
+        </FormItem>
+      </div>,
+    );
+    const control = container.querySelector("input")!;
+    const ids = describedIds(control);
+    expect(ids[0]).toBe("shared-note");
+    expect(ids).toHaveLength(2);
+    // Every one of them resolves - which is the property, not the count.
+    for (const id of ids) {
+      expect(container.ownerDocument.getElementById(id), id).not.toBeNull();
+    }
+    expect(container.ownerDocument.getElementById(ids[1]!)).toHaveAttribute(
+      "data-slot",
+      "form-message",
+    );
+  });
+
+  it.each(["id", "aria-describedby"])(
+    "refuses a child that sets its own %s, rather than losing the wiring to it",
+    (owned) => {
+      // `Slot` gives the CHILD precedence, so this spelling does not merge - it
+      // REPLACES. Found by writing the merge test with the attribute on the
+      // child and watching the family's own id vanish from the result, which is
+      // a label pointing at nothing and nothing on screen to show for it.
+      expect(() =>
+        render(
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl>
+              <Input {...{ [owned]: "mine" }} />
+            </FormControl>
+          </FormItem>,
+        ),
+      ).toThrow(`<FormControl>'s child must not set "${owned}"`);
+    },
+  );
+});
+
 describe("a part outside its item fails loudly", () => {
   // Silence here is the defect: a label pointing at nothing and a control with no
   // ARIA at all is precisely the state this family was written to replace, and it
