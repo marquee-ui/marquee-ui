@@ -504,42 +504,52 @@ describe("the notice's tone, in resolved declarations", () => {
   });
 
   it("decides no width, no outer margin and no tap floor", () => {
-    const classes = box("Default");
     // A notice is not a control, so it carries no floor - and the moment one holds
     // a control, that control owes the floor, which the package's own floor guard
-    // measures through the WithAction story.
+    // measures through the WithAction story. It caps no width and sets no outer
+    // margin either: both are the page's (decision 6).
     //
-    // Every SPELLING, not two of them: `declaredValues` anchors its property name,
-    // so `margin: 0` and `margin-inline: auto` are different reads and `mx-auto` -
-    // the single most likely accidental addition to a notice box - went straight
-    // through a list that named only `margin` and `margin-top` (layer 1, MED-1).
-    const LAYOUT = [
-      "min-height",
-      "height",
-      "width",
-      "min-width",
-      "max-width",
-      "inline-size",
-      "max-inline-size",
-      "margin",
-      "margin-top",
-      "margin-bottom",
-      "margin-left",
-      "margin-right",
-      "margin-inline",
-      "margin-inline-start",
-      "margin-inline-end",
-      "margin-block",
-      "margin-block-start",
-      "margin-block-end",
-    ];
-    for (const property of LAYOUT) {
-      expect(declaredValues(classes, property), property).toEqual([]);
+    // ⚠️ THIS WAS A BLACKLIST OF EIGHTEEN PROPERTIES AND IT SAID "Every SPELLING",
+    // AND IT WAS NOT. It grew a spelling at a time - `margin-inline` after
+    // `mx-auto` went through a list naming only `margin` and `margin-top` (Alert
+    // layer 1, MED-1) - which is the shape of a list that is one unlucky utility
+    // behind, permanently. The `Form` family copied it and layer 1 proved the
+    // hole with four utilities in one pass: `px-3`, `py-2`, `border-t-2` and
+    // `max-h-40` all left the arm GREEN (DL10, MED-3), because `padding-inline`,
+    // `padding-block`, `border-top-width` and `max-height` were not names anyone
+    // had thought to add.
+    //
+    // So it is a WHITELIST now: every property the box's classes declare, as a
+    // SET. A blacklist can only refuse what someone predicted; a whitelist
+    // refuses everything nobody authorised, which is the actual claim - "the
+    // notice decides nothing about its place in the page".
+    const declared = new Set<string>();
+    for (const token of box("Default")) {
+      for (const match of rule(token).matchAll(/(?:^|[;\s])([a-z-]+)\s*:/g)) {
+        declared.add(match[1]!);
+      }
     }
-    // The instrument's own positive, in the same shape: it CAN see a property the
-    // box really declares, so the empty reads above are a fact and not a spelling
-    // nothing looks for.
-    expect(declaredValues(classes, "padding")).not.toEqual([]);
+    // The anchor: read off a real compiled stylesheet, so an empty set would mean
+    // the instrument found nothing rather than that the box declares nothing.
+    expect(declared.size).toBeGreaterThan(8);
+    // Eleven, and every one is the box's own string: `flex` -> display,
+    // `flex-col` -> flex-direction, `gap-2` -> gap, `rounded-md` -> border-radius,
+    // `border-2` -> border-width AND the border-style Tailwind emits with it,
+    // `p-3` -> padding, `text-sm` -> font-size and line-height, and the default
+    // tone's `border-border` / `text-foreground-2` -> border-color and color.
+    expect([...declared].sort()).toEqual([
+      "border-color",
+      "border-radius",
+      "border-style",
+      "border-width",
+      "color",
+      "display",
+      "flex-direction",
+      "font-size",
+      "gap",
+      "line-height",
+      "padding",
+    ]);
   });
 });
 
