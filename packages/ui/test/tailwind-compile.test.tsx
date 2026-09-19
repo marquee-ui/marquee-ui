@@ -471,7 +471,7 @@ describe("the notice's tone, in resolved declarations", () => {
     expect(declaredValues(classes, "border-radius")).toEqual(["var(--radius-md)"]);
   });
 
-  it("lets the tone reach the prose: the description declares no ink of its own", () => {
+  it("lets the tone reach the prose AND the headline: neither declares an ink", () => {
     const description = slotTokens(alert(), "Default", '[data-slot="alert-description"]');
     // The box HAS an ink (asserted above), and this element does not - which is
     // what makes a destructive notice destructive all the way down.
