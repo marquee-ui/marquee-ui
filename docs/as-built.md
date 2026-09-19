@@ -2830,8 +2830,12 @@ is not what the audit rows asked for, and it is not this slice's. Nothing ships.
 
 ### Guards, each proved by running its reddening mutation
 
-29 mutations, run against the COMMITTED tree (`143331dc`, the four that
-postdate the fix at `75c254d9`, one at `02bb0815` and six at `de2acaa`), each one asserted to have LANDED before the run
+**37 mutation runs** in all - 30 numbered guard mutations, which is the table
+below with three of its rows carrying three runs each, plus 7 re-runs that
+verified the layer-1 fixes (`L1a`-`L1g`, the reviewer's own collapses turned
+back on the fixed tests plus the play-counter claim). Run against the COMMITTED
+tree (`143331dc`, the four that postdate the fix at `75c254d9`, one at
+`02bb0815` and six at `de2acaa`), each one asserted to have LANDED before the run
 was read (new text present and, where it is a replacement, the old text gone, or
 the runner throws), each reverted with `git checkout --` with `git status --short`
 asserted empty afterwards, per mutation. Runner `$BATCH_SCRATCH/s2/mutate.py`,
@@ -3215,9 +3219,9 @@ covers it, which is why that arm exists.
 
 ## Layer 1 (reviewer, detached worktree of 75c254d9, slot r6)
 
-Ten findings: **1 HIGH** (already closed, independently, before the report
-landed), **4 MED**, **8 LOW** (the reviewer's LOW-8 is three collapse facts with
-no defect behind them). Its full report is `$BATCH_SCRATCH/r6/report.md`. Its
+Thirteen findings: **1 HIGH** (already closed, independently, before the report
+landed), **4 MED** and **8 LOW** (its LOW-8 is three collapse facts with no
+defect behind them, counted as one). Its full report is `$BATCH_SCRATCH/r6/report.md`. Its
 baseline on the committed head was `pnpm build` exit 0, `pnpm lint` exit 0,
 `pnpm typecheck` exit 0, `vitest run` 22 files / 392 tests, exit 0.
 
