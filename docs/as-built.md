@@ -2916,7 +2916,7 @@ describes nothing, and one rule is easier to keep than two thirds of one.
 
 `pnpm pack` in both packages (`prepack` is `pnpm -w build:registry && git diff
 --exit-code -- r`, so packing at all is the evidence that `r/` is committed and
-current) -> `marquee-ui-ui-0.1.0.tgz` **48,237 B** (38,315 at `Alert`, 34,383 at
+current) -> `marquee-ui-ui-0.1.0.tgz` **51,909 B** (38,315 at `Alert`, 34,383 at
 the nav families, 26,396 at the Switch) and `marquee-ui-tokens-0.1.0.tgz` 99,608 B
 -> `npm install` of both into a bare project (`package.json`, a `tsconfig.json`,
 and a `components.json` whose `registries` map points at
@@ -2935,13 +2935,16 @@ the registry's first CROSS-ITEM dependency: `form` declares `@marquee/label` and
 the CLI resolved it through the same `registries` map and installed `label.tsx`
 beside it. The bytes:
 
+Re-run at the final head, AFTER the layer-1 fixes, so these are the bytes that
+ship rather than the bytes that were reviewed:
+
 ```
-form:  installed bytes 12026, target components/ui/form.tsx
-  installed === r/form.json content: True
-  installed === packages/ui/src/form.tsx: True       sha256 0fedf076a420 (all three)
+form:  installed bytes 16782, target components/ui/form.tsx
+  installed === r/form.json content === packages/ui/src/form.tsx: True
+                                                    sha256 fd1e611a6e04 (all three)
 label: installed bytes 1539, target components/ui/label.tsx
-  installed === r/label.json content: True
-  installed === packages/ui/src/label.tsx: True      sha256 75fed6913ca9 (all three)
+  installed === r/label.json content === packages/ui/src/label.tsx: True
+                                                    sha256 75fed6913ca9 (all three)
 packed r/registry.json === repo registry.json: True  (16 items)
 npm deps the two items asked for, and that landed:
   @radix-ui/react-label@^2.1.15, @radix-ui/react-slot@^1.3.3,
