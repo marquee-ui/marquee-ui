@@ -3614,26 +3614,27 @@ and that is the reconciler's grep, not this stream's edit.
 
 ### What shipped
 
-| file                                                    | what                                                                                                                                                                                       |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `packages/ui/src/description-list.tsx`                  | four parts - `DescriptionList`, `DescriptionItem`, `DescriptionTerm`, `DescriptionDetails` - two `cva` axes, no `asChild`, no context beyond two markers (14,515 B)                        |
-| `packages/ui/stories/description-list.stories.tsx`      | 6 stories, all 6 carrying a `play`                                                                                                                                                         |
-| `packages/ui/test/description-list-structure.test.tsx`  | 22 tests: the refusals and the axis pairs, which one composition cannot state                                                                                                              |
-| `packages/ui/test/tailwind-compile.test.tsx`            | 8 new tests in resolved declarations, appended; `slotTokens` / `declaredValues` / `rootVars` / `lengthPx` reused, not copied                                                               |
-| `registry.json` + `packages/ui/r/description-list.json` | the `description-list` item, `target` `components/ui/description-list.tsx`, one npm dep (`class-variance-authority`) and one registry dep (`@marquee/utils`)                               |
-| `packages/ui/src/index.ts`                              | the four parts, the two `cva` functions and four Props types                                                                                                                               |
-| the declared lists                                      | both lists in `packages/tokens/test/helpers/source-files.ts`, `story-suites.ts`, `stories.test.tsx`'s two counts and its suite length, `registry.test.ts`'s item list and its two counters |
-| the stated count                                        | `AGENTS.md`, `README.md`, `packages/ui/package.json` and `fidelity.test.tsx`'s docblock say sixteen part families                                                                          |
+| file                                                    | what                                                                                                                                                                                               |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/ui/src/description-list.tsx`                  | four parts - `DescriptionList`, `DescriptionItem`, `DescriptionTerm`, `DescriptionDetails` - two `cva` axes, no `asChild`, no context beyond two markers (20,324 B after layer 1; 14,515 B before) |
+| `packages/ui/stories/description-list.stories.tsx`      | 6 stories, all 6 carrying a `play`                                                                                                                                                                 |
+| `packages/ui/test/description-list-structure.test.tsx`  | 22 tests: the refusals and the axis pairs, which one composition cannot state                                                                                                                      |
+| `packages/ui/test/tailwind-compile.test.tsx`            | 8 new tests in resolved declarations, appended; `slotTokens` / `declaredValues` / `rootVars` / `lengthPx` reused, not copied                                                                       |
+| `registry.json` + `packages/ui/r/description-list.json` | the `description-list` item, `target` `components/ui/description-list.tsx`, one npm dep (`class-variance-authority`) and one registry dep (`@marquee/utils`)                                       |
+| `packages/ui/src/index.ts`                              | the four parts, the two `cva` functions and four Props types                                                                                                                                       |
+| the declared lists                                      | both lists in `packages/tokens/test/helpers/source-files.ts`, `story-suites.ts`, `stories.test.tsx`'s two counts and its suite length, `registry.test.ts`'s item list and its two counters         |
+| the stated count                                        | `AGENTS.md`, `README.md`, `packages/ui/package.json` and `fidelity.test.tsx`'s docblock say sixteen part families                                                                                  |
 
 No new dependency: `class-variance-authority` was already here and no Radix
 primitive is involved at all - this is the first family since `Card` with no
 `@radix-ui/*` dependency of any kind, which is a consequence of decision 3 rather
 than a goal. `pnpm test` goes from **22 files / 405 tests** at the base
-(`b2e24fd3`, `pnpm verify` measured green first) to **23 / 442**, which is +37,
-each measured by running the file alone: **+22** in the new
+(`b2e24fd3`, `pnpm verify` measured green first) to **23 / 453**, which is +48,
+each measured by running the file alone: **+33** in the new
 `description-list-structure.test.tsx`, **+7** in `stories.test.tsx` (6 story
 renders plus the suite's own `description-list: has stories`) and **+8** in
-`tailwind-compile.test.tsx`'s new describe block.
+`tailwind-compile.test.tsx`'s new describe block. It was 442 at the reviewed head
+`41f243a6`; the eleven tests the layer-1 fixes brought are the difference.
 
 `fidelity.test.tsx:685`'s `expect(slots).toHaveLength(14)` is deliberately NOT
 moved, and neither is its `NEW_PARTS` table: that is the set of slots LIFTED out
@@ -3867,8 +3868,8 @@ mutation that gives it something to find.
 `pnpm pack` in both packages (`prepack` is
 `pnpm -w build:registry && git diff --exit-code -- r`, so packing at all is the
 evidence that `r/` is committed and current) -> `marquee-ui-ui-0.1.0.tgz`
-**62,046 B** (51,909 at `Form`, 38,315 at `Alert`, 26,396 at the Switch) and
-`marquee-ui-tokens-0.1.0.tgz` 99,608 B, unchanged -> `npm install` of both into a
+**65,759 B** (62,046 before the layer-1 fixes; 51,909 at `Form`, 38,315 at `Alert`,
+26,396 at the Switch) and `marquee-ui-tokens-0.1.0.tgz` 99,608 B, unchanged -> `npm install` of both into a
 bare project (`package.json`, `tsconfig.json` with `@/*` -> `./src/*`, an
 `app.css`, and a `components.json` whose `registries` map points at
 `./node_modules/@marquee-ui/ui/r/{name}.json`) ->
@@ -3883,10 +3884,13 @@ bare project (`package.json`, `tsconfig.json` with `@/*` -> `./src/*`, an
 Two, not three: unlike `form`, this item declares no cross-item dependency beyond
 `@marquee/utils`.
 
+Re-run at the final head, AFTER the layer-1 fixes, so these are the bytes that ship
+rather than the bytes that were reviewed (`$BATCH_SCRATCH/s2/pipeline/bare3`):
+
 ```
-description-list: installed bytes 14515, target components/ui/description-list.tsx
+description-list: installed bytes 20324, target components/ui/description-list.tsx
   installed === r/description-list.json content === packages/ui/src/description-list.tsx: True
-                                                    sha256 dedc02c548cf (all three)
+                                                    sha256 5833910d8e09 (all three)
 utils: installed bytes 1649, target lib/utils.ts
   installed === r/utils.json content === packages/ui/src/lib/utils.ts: True
                                                     sha256 78a6fb4e43d8 (all three)
@@ -3894,6 +3898,12 @@ packed r/registry.json === repo registry.json: True  (17 items)
 npm deps the item asked for, and that landed:
   class-variance-authority@^0.7.1, clsx@^2.1.1, tailwind-merge@^3.7.0
 ```
+
+14,515 B at the reviewed head, 20,324 B here: the eleven fixes are five guards and
+two docblocks that state WHY each one exists, and the reviewer's own words are why
+that is spent rather than saved - both HIGHs were compositions "axe-core 4.12.1 rates
+`serious` / WCAG 1.3.1, one of them reachable by the most ordinary React conditional
+there is."
 
 ⚠️ **The first run of this proof FAILED, and the finding is about the consumer's
 `components.json`, not the registry.** The installed copy came back 2 bytes larger
