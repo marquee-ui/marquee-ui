@@ -4618,3 +4618,67 @@ The run above was re-taken AFTER this section was written, so the gated tree IS 
 
 No push, no `npm publish`, no git tag: the freeze holds. The tag `ui@0.1.1` is the publish's act and
 is Ankit's to make; thepile's `vendor/` tarball exists only until he does.
+
+## DESIGN-LIB-d-choice: the choice controls (2026-09-20)
+
+Batch DL13, stream s2, branch `s/design-lib-d-choice` from `next` @ `f5df7fb9`. Three parts, in
+the order the brief set them: DL11 layer 2's **LOW-6** first, then the two families MEASURED
+before either was built, then what shipped. Nothing was published, nothing was pushed (the
+Actions-minutes freeze), no version was bumped, and the consuming repository was read only, at
+`50f8a22c`.
+
+### LOW-6: the list's mixed-content guard, widened
+
+Recorded, not closed, by batch DL11's layer 2: `DescriptionList` refused only a bare `dt`/`dd` at
+list level, so an INTRINSIC non-item child between the groups - an `<hr />`, a `<span>` of prose -
+rendered an invalid `<dl>` in silence.
+
+**The rule is axe's own, read rather than recalled** (`axe-core@4.12.1`,
+`node_modules/.pnpm/axe-core@4.12.1/node_modules/axe-core/axe.js:25875-25905`, `onlyDlitemsEvaluate`):
+it first flattens every child that is a `DIV` with a null role into that div's OWN children, then
+pushes any remaining `nodeType === 1` child that `_isVisibleToScreenReaders` and whose tag is not
+`DT`/`DD` (or that carries an explicit role outside `['definition','term','list']`) onto `badNodes`.
+`only-dlitems` is impact `serious`, and its own pass message names the allowed set:
+`"dl element only has direct children that are allowed inside; <dt>, <dd>, or <div> elements"`.
+
+So the widening is bounded by that evaluator rather than by taste. Refused now: every intrinsic
+element at list level except `div`, `script` and `template`. `div` is the content model's other
+legal form and is the one axe flattens; `script` and `template` are the "optionally intermixed"
+script-supporting elements both forms admit, and axe skips them because neither is exposed to a
+screen reader (the same reason `DescriptionItem` already skips them). A COMPONENT child is still
+not refused, which is decision 11 unchanged: three product sites factor a group into a component.
+
+Test-first, and the red was run and read before the code moved:
+
+```
+ FAIL  |ui| packages/ui/test/description-list-structure.test.tsx > the list refuses the one child
+   it can know is wrong > refuses an intrinsic element between the groups, which axe calls only-dlitems
+AssertionError: expected [Function] to throw an error
+ ❯ packages/ui/test/description-list-structure.test.tsx:255:9
+ Test Files  1 failed (1)
+      Tests  1 failed | 34 passed (35)
+```
+
+Two tests, not one: the refusal (`<hr>`, `<span>`, `<p>`) and the BOUND stated positively - a
+hand-written `<div>` wrapper and a `<template>` at list level still render - so the widening cannot
+creep into the three shapes axe passes. The suite goes 453 -> 455.
+
+### The RadioGroup measurement, and the answer
+
+### The Checkbox measurement, and the answer
+
+### What shipped
+
+### Measurements, and what they corrected
+
+### Guards, each proved by running its reddening mutation
+
+### The pipeline, end to end
+
+### Decisions
+
+### thepile inputs
+
+### Consumers
+
+### The gate

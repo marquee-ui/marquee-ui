@@ -235,6 +235,50 @@ describe("the list refuses the one child it can know is wrong", () => {
     }
   });
 
+  it("refuses an intrinsic element between the groups, which axe calls only-dlitems", () => {
+    // DL11 layer 2, LOW-6. A `<div>` child is flattened by axe and is the other
+    // legal form of the content model, so it stays allowed; anything else
+    // intrinsic and visible - an `<hr>` between groups, a `<span>` of prose - is
+    // a badNode in axe-core 4.12.1's `onlyDlitemsEvaluate`, impact `serious`,
+    // and it is knowable here from `typeof child.type === "string"`.
+    for (const stray of [<hr key="hr" />, <span key="s">and</span>, <p key="p">why</p>]) {
+      expect(() =>
+        render(
+          <DescriptionList>
+            <DescriptionItem>
+              <DescriptionTerm>Developer</DescriptionTerm>
+              <DescriptionDetails>Studio Nine</DescriptionDetails>
+            </DescriptionItem>
+            {stray}
+          </DescriptionList>,
+        ),
+      ).toThrow("a dl's children are its groups");
+      cleanup();
+    }
+  });
+
+  it("leaves the OTHER legal shapes alone: a div wrapper, and the script-supporting pair", () => {
+    // The bound, stated positively so the widening above cannot creep. A roleless
+    // `<div>` is what axe flattens and what the content model's second form is
+    // made of; `<script>` and `<template>` are the "optionally intermixed"
+    // elements, and axe skips both because neither is exposed to a screen reader.
+    render(
+      <DescriptionList>
+        <DescriptionItem>
+          <DescriptionTerm>Developer</DescriptionTerm>
+          <DescriptionDetails>Studio Nine</DescriptionDetails>
+        </DescriptionItem>
+        <div data-testid="hand-written">
+          <dt>Publisher</dt>
+          <dd>Studio Ten</dd>
+        </div>
+        <template data-testid="tpl" />
+      </DescriptionList>,
+    );
+    expect(screen.getByTestId("hand-written").tagName).toBe("DIV");
+    expect(screen.getByTestId("tpl").tagName).toBe("TEMPLATE");
+  });
+
   it("does NOT refuse a component child, because three product sites are exactly that", () => {
     // `Ledger`'s `Cell`, `ScoreBlock`'s `RawFigure`, `reckoning`'s `Fact`. A
     // component is not an element, so it leaves nothing between the `dl` and its

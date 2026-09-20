@@ -230,6 +230,16 @@ export const descriptionTermVariants = cva("", {
   defaultVariants: { tone: "micro" },
 });
 
+/**
+ * The only intrinsic elements a `dl` may hold beside its groups, and the set is
+ * the content model's rather than this family's taste: `div` is the wrapper form
+ * itself (and is what axe's `only-dlitems` flattens rather than flags), `script`
+ * and `template` are the script-supporting elements both forms admit. `dt` and
+ * `dd` are absent on purpose - they are legal in the OTHER form, so they get the
+ * mixing message instead of this one.
+ */
+const LIST_LEVEL_INTRINSICS: ReadonlySet<string> = new Set(["div", "script", "template"]);
+
 export type DescriptionListProps = ComponentProps<"dl">;
 
 /**
@@ -238,12 +248,25 @@ export type DescriptionListProps = ComponentProps<"dl">;
  *
  * Mixing the two content-model forms in one list is invalid, and this family
  * only offers the `<div>` form, so a `dt` or `dd` straight inside the list is
- * always the mixing error. Anything else is NOT refused here, and that is
- * deliberate: three of the eight product sites factor a group into a component
- * (`Ledger`'s `Cell`, `ScoreBlock`'s `RawFigure`, `reckoning`'s `Fact`), and a
- * component is not an element - refusing an unrecognised child type would reject
- * all three while proving nothing. What those components render is checked where
- * it can be: inside `<DescriptionItem>`.
+ * always the mixing error.
+ *
+ * ⚠️ AND EVERY OTHER INTRINSIC ELEMENT IS REFUSED TOO (DL11 layer 2, LOW-6),
+ * because an element between the groups is knowable from `typeof child.type ===
+ * "string"` and axe-core 4.12.1 reports it: `onlyDlitemsEvaluate` flattens a
+ * ROLELESS `<div>` child into its own children and then pushes any remaining
+ * visible element whose tag is not `DT`/`DD` onto `badNodes` - an `<hr>` between
+ * groups, a `<span>` of prose - as `only-dlitems`, impact `serious`. So the three
+ * shapes left alone are exactly the three that check passes: a `<div>`, which is
+ * the content model's other legal form and the one axe flattens, and `<script>` /
+ * `<template>`, the "optionally intermixed" script-supporting elements, which axe
+ * skips because neither is exposed to a screen reader.
+ *
+ * A COMPONENT child is still not refused, and that is the bound: three of the
+ * eight product sites factor a group into a component (`Ledger`'s `Cell`,
+ * `ScoreBlock`'s `RawFigure`, `reckoning`'s `Fact`), and a component is not an
+ * element - refusing an unrecognised child TYPE would reject all three while
+ * proving nothing. What those components render is checked where it can be:
+ * inside `<DescriptionItem>`.
  */
 export function DescriptionList({ className, children, ...props }: DescriptionListProps) {
   refuseAsChild(props, "DescriptionList", "dl");
@@ -256,6 +279,7 @@ export function DescriptionList({ className, children, ...props }: DescriptionLi
     );
   }
   for (const child of elements) {
+    if (typeof child.type !== "string") continue;
     if (child.type === "dt" || child.type === "dd") {
       // ⚠️ The message says what was CHECKED, not what was inferred (layer 1,
       // LOW-2): this fires on a bare `dt`/`dd` here whether or not the list also
@@ -268,6 +292,13 @@ export function DescriptionList({ className, children, ...props }: DescriptionLi
         `<DescriptionList> holds a bare <${child.type}>: this family draws the <div>-wrapper form ` +
           `of a dl's group, and the two forms may not be mixed in one list. Wrap the pair in ` +
           `<DescriptionItem>.`,
+      );
+    }
+    if (!LIST_LEVEL_INTRINSICS.has(child.type)) {
+      throw new Error(
+        `<DescriptionList> holds a <${child.type}>: a dl's children are its groups, and any other ` +
+          `element between them is an axe "only-dlitems" failure (impact serious). Put it inside ` +
+          `<DescriptionDetails>, or move it outside the list.`,
       );
     }
   }
