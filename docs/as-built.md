@@ -3763,8 +3763,14 @@ composing it looked obviously right. Two measurements say no:
 | what does `Label` cost a server page? | `@radix-ui/react-label@2.1.15`'s `dist/index.mjs` opens `"use client"` (`head -2`), and 7 of the 8 `<dl>` sites are server components (`head -1 \| grep -c 'use client'` -> 1, `ImportPreview.tsx`) | a static cell would buy a client boundary for four utilities                                                                              |
 
 `DescriptionTerm` therefore states the treatment itself, in the muted ink, and the
-one utility of difference is asserted rather than left as prose
-(`does NOT reuse Label's micro tone, and the difference is the ink`).
+difference is asserted rather than left as prose
+(`does NOT reuse Label's micro tone, and the difference is the ink`). ⚠️ Writing that
+arm properly - it did not import `labelVariants` at first, which is layer 1's MED-3.2 -
+showed the two sets differ by TWO members, not one: the colour AND the tracking,
+because `labelVariants.micro` still carries the literal `tracking-[0.14em]` where this
+family uses the named `tracking-label`. The colour is this family's decision; the
+tracking is `Label`'s to fix, it is a CONSUMED behaviour this batch, and it is the one
+REQUEST this slice returns rather than an edit.
 
 **5. `asChild` on the detail is the composition the family must REFUSE, and the
 brief's own citation says so.** The row asks for "`asChild` where a `dd` carries a
@@ -3984,9 +3990,11 @@ that mentions it. `text-not-a-role` and `border-2` are the controls that hold.
    shipped a wrong colour once. Mutually exclusive variant strings cannot do it.
 7. **The term's `micro` tone is the DEFAULT, and it is not `Label`'s.** [V]
    Measurement 4: 6 of 8 terms are micro-caps, so `micro` defaults where `Label`'s
-   is opt-in; and `labelVariants.micro` differs in one utility, the ink, which is
-   wrong at 5 of the 6 - plus `@radix-ui/react-label` is a client module against 7
-   server-component sites. The difference is an assertion, not a sentence.
+   is opt-in; and `labelVariants.micro` differs in the INK, which is wrong at 5 of the
+   6 - plus `@radix-ui/react-label` is a client module against 7 server-component
+   sites. The difference is an assertion, not a sentence, and the assertion is what
+   corrected this decision's own first wording: the two sets differ by TWO members, the
+   colour and the tracking (`Label` carries a `tracking-[0.14em]` literal), not by one.
 8. **`plain` declares nothing at all.** [V] The two non-micro terms disagree with
    each other, so there is no second treatment to name; an empty variant lets each
    pass its own single `text-*` with nothing to fight. It is the one shape that
