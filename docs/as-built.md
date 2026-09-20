@@ -3443,3 +3443,171 @@ and `:144`, not `:72` and `:141`). LOW-3: the record's last stated gate was at
 exit 0, `22 passed (22)` / `405 passed (405)`, recorded in its report and not here until
 now. This closure commit is docs; `pnpm exec prettier --check docs/as-built.md` is its
 check.
+
+## DESIGN-LIB-d: DescriptionList (2026-09-20)
+
+Scope: the fifth §3-d addition, and the FOURTH NEW family (the Switch's, `Alert`'s
+and `Form`'s shape): nothing was lifted, so the fidelity fixture does not bind and
+the drawing is DERIVED and recorded below. Nothing was published, nothing was
+pushed (the Actions-minutes freeze), no version was bumped, and nothing in the
+consuming repo was changed: it was read only, at commit `f8385c6d`.
+
+Two families were MEASURED FIRST and neither ships. Their tables come before the
+one that does, because they are what chose it.
+
+The family that ships is the CONTENT MODEL, not a look. HTML fixes all four of its
+elements, which is why it has no `asChild` anywhere - and the one composition the
+brief asked for is the one the product's own record says is a WCAG failure.
+
+### The ToggleGroup measurement, and the answer
+
+**No `ToggleGroup` family ships.** Its six audit rows are all NAVIGATION, and
+Radix's part is a radio group or a toolbar. Adopting it at any of the six would
+trade a link for a radio.
+
+The audit's count reproduces at the thepile base `f8385c6d`
+(`awk -F'|' '{print $4}' docs/design-audit.md | command grep -c -w ToggleGroup`
+-> **6**; `ScrollArea` 6, `Tabs` 5, `Avatar` 5).
+
+**First, what Radix's part actually renders**, measured rather than recalled:
+`@radix-ui/react-toggle-group@1.1.19` + `react@19.3.0` under jsdom 29.1.1,
+`$BATCH_SCRATCH/s2/radix-probe/probe.mjs`, output in
+`$BATCH_SCRATCH/s2/radix-dom-probe.txt`:
+
+| composed as                                  | the root                               | each item                                                                                              |
+| -------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `type="single"`, `Item asChild` + `<a href>` | `<div role="radiogroup" tabindex="0">` | `<a href="…" type="button" role="radio" aria-checked="true" tabindex="-1" data-radix-collection-item>` |
+| `type="single"`, default items               | `<div role="radiogroup" tabindex="0">` | `<button type="button" role="radio" aria-checked>`                                                     |
+| `type="multiple"`                            | `<div role="toolbar" tabindex="0">`    | `<button type="button" aria-pressed data-state>`                                                       |
+
+⚠️ **The brief's reading of Radix is wrong in the direction that matters.** It says
+"a `role="group"` of `aria-pressed` buttons". Neither `role="group"` nor
+`aria-pressed` appears under `type="single"`, which is the type the audit prescribes
+by name at `:376` and `:385`: it is `role="radiogroup"` + `role="radio"` +
+`aria-checked`. `aria-pressed` arrives only with `type="multiple"`, whose root is
+`role="toolbar"`. The correction makes the verdict stronger, not weaker: a radio is
+a narrower claim than a toggle, and it is a worse fit for a link.
+
+Three further measured facts (`$BATCH_SCRATCH/s2/radix-togglegroup-keyboard.txt`):
+
+- **The items are not tab stops.** After mount every item is `tabindex="-1"` and the
+  ROOT is `tabindex="0"`; the active item becomes `tabindex="0"` only once focus
+  enters the group. So a row of six sort links collapses to one tab stop reached by
+  arrow keys.
+- **A caller's `aria-current` survives and sits BESIDE the radio state.** Passing
+  `aria-current="true"` on the `asChild` anchor produced
+  `role="radio" aria-checked="true" aria-current="true"` on one element: two state
+  models on one control, saying "this option is checked" and "this is the current
+  page".
+- **Navigation still works.** The click is not cancelled (`defaultPrevented` false
+  at the anchor's own listener, and jsdom then logged
+  `Not implemented: navigation to another Document`, which is the default action
+  running). That is the one thing the part does not break.
+
+Row by row, read at the thepile base:
+
+| audit row                                                                                | what it actually is                                                                                                                                                                                                                                                                                                           | wants the part?                                                                  |
+| ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `:333` `/backlog`, three chip rows (`Shelf.tsx:62,84,104`)                               | three `<nav aria-label="Sort"/"Outcome"/"Paused">` of `next/link`, `aria-current={… ? "true" : undefined}`, each `href` a different URL                                                                                                                                                                                       | No. Each chip is a distinct URL and the state IS the current page                |
+| `:340` `/browse`, eight path chips (`browse/page.tsx:141-153`)                           | `<nav aria-label="More ways to browse"><ul>` of eight `<li><Link>`; **no selected state of any kind** - no `aria-current`, no active class                                                                                                                                                                                    | No. There is no state to model: a toggle group over eight links would invent one |
+| `:341` `/browse/games`, `FacetRow` + `FilterBar`'s `Chip`                                | `<nav aria-labelledby>` of `Chip` = `<Link aria-current={active ? "true" : undefined}>`; `FilterBar.tsx:18-26` states the subtree's rule: "**a crawler that does not run scripts has to be able to walk this, which rules out a button-driven control**", and "there is no client URL-state layer anywhere in this app today" | No, and this is the row that makes it a house rule rather than a preference      |
+| `:368` `/studios`, the A-Z strip (`studios/page.tsx:102-115`)                            | `<nav aria-label="Studios by letter"><ul>` of `<Link>`; **no selected state**, and a letter with nothing behind it is deliberately not a link at all                                                                                                                                                                          | No. Same as `/browse`                                                            |
+| `:376` `/[username]/[shelf]`, `SortChips` (+ `DoorTab`, where the audit asks for `Tabs`) | `SortChips.tsx:37-52` is `<nav aria-label="Sort">` of `<Link aria-current>`; `Door.tsx:70-76`'s docblock already decided this case in code: "`aria-current` rather than `aria-selected`, **because this is a set of links and not a `tablist`: the selected one IS the current page**"                                        | No. The house decision is recorded in the source, with its reason                |
+| `:385` `/[username]/reviews`, `SortChips`                                                | the same component, second mount                                                                                                                                                                                                                                                                                              | No. Same                                                                         |
+
+So: **6 of 6 are anchors whose selected state is the current URL.** Two of the six
+carry no state at all. The tree's own split is measured, not asserted -
+`git grep -n -E 'aria-pressed=' $T -- 'apps/web/src/**/*.tsx' | command grep -v '\.test\.'`
+prints **12 lines in 10 files**, and every one of them is a real toggle (a like
+heart, Follow, a reorder switch, a face-set picker, the tier dealer); the same grep
+for `aria-current=` prints **19 lines**, of which **3** are not attributes at all
+(`FacetRow.tsx:63` a `querySelector`, `HubTabs.tsx:27` a docblock, `TierEditor.tsx:463`
+a JSX comment), leaving **16**. The product already knows the difference.
+
+**And the counter-example was looked for, outside the six rows.** The one site in the
+tree whose semantics are toggle-shaped is `TierEditor.tsx:469-485`: a `role="group"`
+holding two `aria-pressed` buttons for Board / Deal mode. It is not an audit row, and
+Radix cannot draw it either - its own comment at `:459-465` explains why it is
+`aria-pressed` and not `aria-current="page"` ("no page changes") and not
+`role="tablist"` ("which owes roving arrow keys and `aria-controls`"), and the pair is
+mutually exclusive, which Radix spells `type="single"`, i.e. `role="radiogroup"`, not
+`role="group"` + `aria-pressed`. `type="multiple"` would permit both on and both off.
+So even the one candidate wants neither of the part's two shapes. Nothing ships.
+
+### The ScrollArea measurement, and the answer
+
+**No `ScrollArea` family ships.** Radix's part hides the native scrollbar with the
+byte-for-byte content of the house's own `rail-bar` utility and then draws its own
+in the space - and the house rule, in Ankit's words in `globals.css`, is that there
+is no bar at any width. Below the bar, three further blockers each independently
+disqualify it at a named site.
+
+**What Radix's part renders**, measured the same way
+(`@radix-ui/react-scroll-area@1.2.18`):
+
+```
+<div style="position: relative; --radix-scroll-area-corner-width: 0px; …">
+  <style> [data-radix-scroll-area-viewport]{scrollbar-width:none;-ms-overflow-style:none;…}
+          [data-radix-scroll-area-viewport]::-webkit-scrollbar{display:none}
+  <div data-radix-scroll-area-viewport style="overflow-x: scroll; overflow-y: hidden;">
+    <div style="min-width: 100%; display: table;">
+      …content
+  <div data-orientation="horizontal" data-state="visible" style="position: absolute; bottom: 0; …">
+```
+
+Set that `<style>` beside `globals.css:431-436`:
+
+```css
+@utility rail-bar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+```
+
+Both halves, for the reason both records give independently: Chromium and Firefox
+honour `scrollbar-width`, WebKit honours the pseudo-element. **Radix's part already
+implements the house rule and then undoes it**, which is the answer to the brief's
+question in one line: the only consumer that wants exactly this part's semantics is
+one that wants the drawn bar, and the house has none.
+
+And composing no `ScrollAreaScrollbar` is not the way out, because that is not a
+cosmetic choice:
+
+```
+=== ScrollArea with no Scrollbar part composed ===
+  <div data-radix-scroll-area-viewport style="overflow-x: hidden; overflow-y: hidden;">
+```
+
+Structural, not a jsdom layout artefact - the source says so. `dist/index.mjs:121-122`
+is `overflowX: context.scrollbarXEnabled ? "scroll" : "hidden"`, and `:151-158` is
+the `ScrollAreaScrollbar`'s own mount effect calling `onScrollbarXEnabledChange(true)`.
+**The viewport scrolls on an axis if and only if a scrollbar for that axis is
+mounted.** So the part either draws the bar the house hides, or it stops scrolling.
+
+Row by row:
+
+| audit row                                               | what it actually is                                                                                                                                                                                                                                                                                    | wants the part?                                                                                                                                                                                                |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `:333` `/backlog`, `ShelfSwitcher.tsx:40`               | `-mx-4 overflow-x-auto px-4 py-2 md:mx-0 md:px-0`, and MOBILE-1 measured the row at **347px inside 358** after the `px-3`->`px-2` fix: its own comment says "there is no edge-fade affordance here and no scroll-into-view on mount: **nothing scrolls**"                                              | No. The measured answer at this site is that it is not a scroller                                                                                                                                              |
+| `:341` `/browse/games`, `FacetRow.tsx:96`               | `overflow-x-auto overscroll-contain` + a `mask-image` right-edge fade + `[scrollbar-width:none] [&::-webkit-scrollbar]:hidden`, and **`md:overflow-x-visible`**: from `md` the row WRAPS and stops being a scroller                                                                                    | No, twice. The fade is the affordance the house rule leaves it, and Radix writes `overflow` as an INLINE STYLE, which no `md:` variant can override                                                            |
+| `:343` `/developers`, `page.tsx:59`                     | a `<pre className="overflow-x-auto …">` holding one curl line                                                                                                                                                                                                                                          | No. A `<pre>` is already the element; wrapping it adds a `display:table` div between the code and its box                                                                                                      |
+| `:386` `/[username]/tier/[slug]`, `TierRow.tsx:60`      | `flex snap-x gap-2 overflow-x-auto pb-1 [scroll-padding-inline-start:1rem] md:gap-2.5 **md:overflow-x-visible** md:pb-0`, five times over                                                                                                                                                              | No. Same inline-style blocker, plus the strip's children are `snap-x` items and Radix inserts a `min-width:100%; display:table` wrapper between the scroller and them                                          |
+| `:394` `/home`, `Section.tsx:108`'s `RAIL` + `Rail.tsx` | `rail-bar flex snap-x gap-3 overflow-x-auto …` on a `<ul>` in a SERVER component, and `Rail.tsx:15-21` finds that scroller **by id rather than by a ref**, as a stated budget decision: "a ref would put a client boundary around the `<ul>`, which would drag twelve server-rendered cards across it" | No, and this is the most expensive row. Radix's part IS the client boundary that decision exists to avoid, on both `/` and `/home`, which `perf-budgets.json` budgets equal "precisely so they cannot diverge" |
+| `:401` `/tiers/new`, `PoolBuilder.tsx:191`              | `flex max-h-[50dvh] flex-col gap-1 overflow-y-auto overscroll-contain`, the result list of a hand-built combobox                                                                                                                                                                                       | No. The audit's own answer for this row is `Command`, not `ScrollArea`: the defect is the missing combobox semantics, and the scroller is the one part of it that already works                                |
+
+The house rule's blast radius, re-measured:
+`git grep -n -E 'overflow-x-auto|overflow-auto|overflow-y-auto' $T -- 'apps/web/src/**/*.tsx' | command grep -v '\.test\.'`
+-> **18 lines in 15 files** (the brief's number reproduces; DL10's 16 was by a
+pattern it did not record). Of those, `git grep -n -oE 'md:overflow-[a-z-]+'` finds
+**3** (`FacetRow.tsx:96`, `TierRow.tsx:60`, `TierRow.tsx:249`) that turn the scroller
+OFF from `md` up through a Tailwind variant, which an inline `style` cannot lose to.
+And `docs/03-testing.md:95-98` requires `overflow-*-auto` AND `overscroll-contain`
+on every scrollable region that is not in a sheet - a rule written about the native
+property. Nothing ships.
+
+⚠️ Neither verdict is "Radix is wrong". Both parts are correct implementations of
+semantics this product does not have: it has no pressed-state option group over
+navigation, and no drawn scrollbar. The audit's twelve cells are what should move,
+and that is the reconciler's grep, not this stream's edit.
