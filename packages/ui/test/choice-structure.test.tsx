@@ -128,6 +128,65 @@ describe("the group's accessible name", () => {
   });
 });
 
+describe("an empty name is no name, and a role of the caller's is refused", () => {
+  const item = (
+    <RadioGroupItem>
+      <RadioGroupInput value="ads" />
+      <span>Ads</span>
+    </RadioGroupItem>
+  );
+
+  it("refuses an EMPTY aria-label, which is how an untitled group arrives", () => {
+    // layer 1, MED-1: `aria-label={group.title}` with an untitled set passes a
+    // present attribute that names nothing, and the screen reader says "group".
+    for (const label of ["", "   "]) {
+      expect(() => render(<RadioGroup aria-label={label}>{item}</RadioGroup>)).toThrow(
+        "<RadioGroup> needs an accessible name",
+      );
+      cleanup();
+    }
+  });
+
+  it("takes a <legend>, which is the fieldset shape its own props docblock advertises", () => {
+    // layer 1, MED-2: the docblock offers a `<fieldset>` host and the first
+    // edition threw on the native named group. The name is read back with the
+    // same instrument every other arm here uses.
+    render(
+      <RadioGroup asChild>
+        <fieldset>
+          <legend>Which rule does it break?</legend>
+          {item}
+        </fieldset>
+      </RadioGroup>,
+    );
+    const group = screen.getByRole("radiogroup", { name: "Which rule does it break?" });
+    expect(group.tagName).toBe("FIELDSET");
+  });
+
+  it("refuses a role, on the part and on an asChild child", () => {
+    // layer 1, MED-3: `Slot` gives the child's props precedence, so
+    // `<RadioGroup asChild><ul role="list">` rendered a named LIST of radios that
+    // belong to no group - with the name refusal satisfied and nothing else to see.
+    expect(() =>
+      render(
+        <RadioGroup aria-label="Rules" role="group">
+          {item}
+        </RadioGroup>,
+      ),
+    ).toThrow('<RadioGroup> writes role="radiogroup" itself');
+    cleanup();
+    expect(() =>
+      render(
+        <RadioGroup asChild>
+          <ul role="list" aria-label="Rules">
+            {item}
+          </ul>
+        </RadioGroup>,
+      ),
+    ).toThrow('<RadioGroup> writes role="radiogroup" itself');
+  });
+});
+
 describe("the group owns the shared name, and that is why it is a part", () => {
   const group = (label: string, name?: string) => (
     <RadioGroup aria-label={label} name={name}>
@@ -196,6 +255,16 @@ describe("the group owns the shared name, and that is why it is a part", () => {
   it("throws outside a group rather than rendering an ungrouped radio", () => {
     expect(() => render(<RadioGroupInput value="ads" />)).toThrow(
       "<RadioGroupInput> must be rendered inside a <RadioGroup>",
+    );
+  });
+
+  it("and the CHECKBOX's input throws outside its row for the same kind of reason", () => {
+    // layer 1, LOW-2: decision 11 keeps the drawing parts context-free because
+    // their failure is visible - an unlit box. An orphan input is the other kind:
+    // `absolute inset-0 opacity-0` with no accessible name, over whichever
+    // ancestor happens to be positioned.
+    expect(() => render(<CheckboxInput />)).toThrow(
+      "<CheckboxInput> must be rendered inside a <Checkbox>",
     );
   });
 });

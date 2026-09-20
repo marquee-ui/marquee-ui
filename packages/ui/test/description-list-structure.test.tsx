@@ -279,6 +279,56 @@ describe("the list refuses the one child it can know is wrong", () => {
     expect(screen.getByTestId("tpl").tagName).toBe("TEMPLATE");
   });
 
+  it("flattens a hand-written div one level, because axe's only-dlitems does", () => {
+    // layer 1, MED-4. `onlyDlitemsEvaluate` replaces every ROLELESS `<div>` child
+    // with that div's own children before it collects badNodes, so
+    // `<div><hr /></div>` at list level is the same `serious` failure as a bare
+    // `<hr />` - and the first edition of this guard read the direct child's tag
+    // and stopped there.
+    for (const stray of [<hr key="hr" />, <span key="s">and</span>]) {
+      expect(() =>
+        render(
+          <DescriptionList>
+            <DescriptionItem>
+              <DescriptionTerm>Developer</DescriptionTerm>
+              <DescriptionDetails>Studio Nine</DescriptionDetails>
+            </DescriptionItem>
+            <div>{stray}</div>
+          </DescriptionList>,
+        ),
+      ).toThrow("axe flattens");
+      cleanup();
+    }
+  });
+
+  it("is a deliberate SUPERSET of what axe flags, not a copy of it", () => {
+    // layer 1, MED-4's other half: the first edition's docblock said "exactly the
+    // three that check passes", and axe exempts two shapes this refuses -
+    // `ALLOWED_ROLES = ['definition','term','list']` lets a `role="term"` through,
+    // and `_isVisibleToScreenReaders` skips a hidden one. Neither is a legal child
+    // of a `dl`, so both are refused here, and the difference is pinned rather
+    // than left to a sentence.
+    for (const stray of [
+      <span key="r" role="term">
+        Publisher
+      </span>,
+      <span key="h" hidden />,
+    ]) {
+      expect(() =>
+        render(
+          <DescriptionList>
+            <DescriptionItem>
+              <DescriptionTerm>Developer</DescriptionTerm>
+              <DescriptionDetails>Studio Nine</DescriptionDetails>
+            </DescriptionItem>
+            {stray}
+          </DescriptionList>,
+        ),
+      ).toThrow("a dl's children are its groups");
+      cleanup();
+    }
+  });
+
   it("does NOT refuse a component child, because three product sites are exactly that", () => {
     // `Ledger`'s `Cell`, `ScoreBlock`'s `RawFigure`, `reckoning`'s `Fact`. A
     // component is not an element, so it leaves nothing between the `dl` and its

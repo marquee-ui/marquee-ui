@@ -82,9 +82,18 @@ export async function loadCompiledSheet(): Promise<CompiledSheet> {
       .trim();
     const plain = /^(-?\d*\.?\d+)(px|rem)$/.exec(resolved);
     if (plain) return Number(plain[1]) * (plain[2] === "rem" ? 16 : 1);
-    const scaled = /^calc\(\s*(-?\d*\.?\d+)(px|rem)\s*\*\s*(-?\d*\.?\d+)\s*\)$/.exec(resolved);
+    // BOTH operand orders, because `tailwind-compile.test.tsx`'s copy of this
+    // resolver handles both and a module that handles one would lose a shape the
+    // day that file moves onto this one (layer 1, LOW-3; latent today - nothing
+    // the choice families read is written the second way).
+    const scaled =
+      /^calc\(\s*(-?\d*\.?\d+)(px|rem)\s*\*\s*(-?\d*\.?\d+)\s*\)$/.exec(resolved) ??
+      /^calc\(\s*(-?\d*\.?\d+)\s*\*\s*(-?\d*\.?\d+)(px|rem)\s*\)$/.exec(resolved);
     if (!scaled) return null;
-    return Number(scaled[1]) * Number(scaled[3]) * (scaled[2] === "rem" ? 16 : 1);
+    const [a, b, c] = [scaled[1]!, scaled[2]!, scaled[3]!];
+    return /^\d/.test(b)
+      ? Number(a) * Number(b) * (c === "rem" ? 16 : 1)
+      : Number(a) * Number(c) * (b === "rem" ? 16 : 1);
   };
 
   const declaredValues = (classes: readonly string[], property: string): string[] => {

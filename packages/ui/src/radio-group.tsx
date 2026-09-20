@@ -53,17 +53,61 @@ type GroupContext = { readonly name: string };
 
 const RadioGroupContext = createContext<GroupContext | null>(null);
 
-/** The accessible name, wherever the caller put it: on the part, or on an `asChild` child. */
+/**
+ * The accessible name, wherever the caller put it: on the part, on an `asChild`
+ * child, or - when that child is a `<fieldset>` - in its `<legend>`.
+ *
+ * ⚠️ A NON-EMPTY STRING, not a present attribute (layer 1, MED-1, proved):
+ * `aria-label=""` satisfied the first edition and names nothing, and
+ * `aria-label={group.title}` with an untitled group is exactly how that arrives.
+ * What cannot be checked at render is a `aria-labelledby` pointing at an id that
+ * does not exist - the element is not in a document yet - so that one is a real
+ * hole and is said out loud rather than implied away.
+ *
+ * ⚠️ AND THE `<legend>` ARM IS NOT A COURTESY (layer 1, MED-2): the props docblock
+ * advertises a `<fieldset>` host, and `<fieldset><legend>` is the native named
+ * group. Measured with this package's own naming instrument - the
+ * `dom-accessibility-api` that every `getByRole(…, { name })` here runs on -
+ * `<fieldset role="radiogroup"><legend>X</legend>` resolves as named `X`, so the
+ * first edition threw on a group that IS named.
+ */
 function hasAccessibleName(props: object, children: ReactNode, asChild: boolean): boolean {
+  const filled = (value: unknown): boolean => typeof value === "string" && value.trim() !== "";
   const named = (candidate: object): boolean =>
-    ("aria-label" in candidate &&
-      (candidate as { "aria-label"?: unknown })["aria-label"] !== undefined) ||
-    ("aria-labelledby" in candidate &&
-      (candidate as { "aria-labelledby"?: unknown })["aria-labelledby"] !== undefined);
+    filled((candidate as { "aria-label"?: unknown })["aria-label"]) ||
+    filled((candidate as { "aria-labelledby"?: unknown })["aria-labelledby"]);
   if (named(props)) return true;
   if (!asChild) return false;
   const child = Children.only(children);
-  return isValidElement<object>(child) && named(child.props);
+  if (!isValidElement<{ children?: ReactNode }>(child)) return false;
+  if (named(child.props)) return true;
+  if (child.type !== "fieldset") return false;
+  return Children.toArray(child.props.children).some(
+    (grand) => isValidElement(grand) && grand.type === "legend",
+  );
+}
+
+/**
+ * The role is the part's, in both branches.
+ *
+ * ⚠️ `Slot` gives the CHILD's props precedence, so `<RadioGroup asChild><ul role="list">`
+ * rendered a named LIST of radios with no group at all, and the name refusal above
+ * passed it because the `aria-label` was there (layer 1, MED-3, proved). A caller's
+ * `role` on the part itself wins the same way, because every part in this package
+ * spreads the caller's props last. Both are refused, which is `DescriptionList`'s
+ * `refuseRole` in a different costume.
+ */
+function refuseRole(props: object, children: ReactNode, asChild: boolean): void {
+  const carries = (candidate: object): boolean =>
+    "role" in candidate && (candidate as { role?: unknown }).role !== undefined;
+  const child = asChild ? Children.only(children) : null;
+  if (carries(props) || (isValidElement<object>(child) && carries(child.props))) {
+    throw new Error(
+      '<RadioGroup> writes role="radiogroup" itself and does not take a "role": a role here ' +
+        "replaces the group - a list of radios that belong to nothing - while every other " +
+        "attribute still looks right. Remove it, or use a plain element.",
+    );
+  }
 }
 
 const rowClass =
@@ -131,12 +175,14 @@ export function RadioGroup({
   ...props
 }: RadioGroupProps) {
   const generated = useId();
+  refuseRole(props, children, asChild);
   if (!hasAccessibleName(props, children, asChild)) {
     throw new Error(
-      "<RadioGroup> needs an accessible name: pass aria-label, or aria-labelledby pointing at the " +
-        "heading above it. A radiogroup takes its name from the author only, so without one it is " +
-        "announced as an unnamed group - and neither axe nor this package can see that from the DOM " +
-        "(axe-core 4.12.1 has accessibleNameRequired: false for the role).",
+      "<RadioGroup> needs an accessible name: pass a non-empty aria-label, or aria-labelledby " +
+        "pointing at the heading above it, or use a <fieldset> with a <legend> through asChild. " +
+        "A radiogroup takes its name from the author only, so without one it is announced as an " +
+        "unnamed group - and neither axe nor this package can see that from the DOM (axe-core " +
+        "4.12.1 has accessibleNameRequired: false for the role).",
     );
   }
   const Host = asChild ? Slot : "div";

@@ -1,3 +1,4 @@
+import { createContext, useContext } from "react";
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
@@ -90,6 +91,18 @@ const boxClass =
 const indicatorClass =
   "pointer-events-none absolute size-4 stroke-primary-foreground opacity-0 group-has-checked/checkbox:opacity-100";
 
+/**
+ * The row's marker, and the ONE part that demands it is the input.
+ *
+ * ⚠️ The drawing parts deliberately do NOT (decision 11): a `CheckboxBox` outside a
+ * row renders an unlit box that can never light, which is visible in the workbench
+ * on the first click. An orphan `CheckboxInput` is the other kind - an invisible,
+ * `absolute inset-0` control with no accessible name, absorbing pointer events over
+ * whatever ancestor happens to be positioned (layer 1, LOW-2, proved). That is the
+ * failure this package throws for, and `RadioGroupInput` already did.
+ */
+const CheckboxContext = createContext<true | null>(null);
+
 function refuseAsChild(props: object, part: string, element: string): void {
   if ("asChild" in props && (props as { asChild?: unknown }).asChild !== undefined) {
     throw new Error(
@@ -104,13 +117,24 @@ export type CheckboxProps = ComponentProps<"label">;
 
 export function Checkbox({ className, ...props }: CheckboxProps) {
   refuseAsChild(props, "Checkbox", "label");
-  return <label data-slot="checkbox" className={cn(rowClass, className)} {...props} />;
+  return (
+    <CheckboxContext.Provider value={true}>
+      <label data-slot="checkbox" className={cn(rowClass, className)} {...props} />
+    </CheckboxContext.Provider>
+  );
 }
 
 export type CheckboxInputProps = Omit<ComponentProps<"input">, "type">;
 
 /** The real control. `type` is fixed, because a part that could be a radio is not this part. */
 export function CheckboxInput({ className, ...props }: CheckboxInputProps) {
+  if (useContext(CheckboxContext) === null) {
+    throw new Error(
+      "<CheckboxInput> must be rendered inside a <Checkbox>: it is an invisible overlay that takes " +
+        "its 44px hit box and its accessible name from that row, so on its own it is an unnamed " +
+        "control covering whichever ancestor happens to be positioned.",
+    );
+  }
   return (
     <input
       data-slot="checkbox-input"

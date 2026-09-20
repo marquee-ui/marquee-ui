@@ -133,7 +133,7 @@ function refuseAsChild(props: object, part: string, element: string): void {
  * reading `DT,DD` - so a structural assertion, including the consuming product's
  * own `expect([...cell.children].map((c) => c.tagName)).toEqual(["DT","DD"])`,
  * still passes - while the computed `term` / `definition` roles are gone and axe's
- * `only-dlitems` check reports it (`validRoles: ['definition','term','listitem']`).
+ * `only-dlitems` check reports it (`ALLOWED_ROLES = ['definition','term','list']`).
  * A guard nothing structural can see has to be a refusal.
  *
  * It is NOT refused on the list or the item: `aria-live` belongs on the list (the
@@ -255,11 +255,23 @@ export type DescriptionListProps = ComponentProps<"dl">;
  * "string"` and axe-core 4.12.1 reports it: `onlyDlitemsEvaluate` flattens a
  * ROLELESS `<div>` child into its own children and then pushes any remaining
  * visible element whose tag is not `DT`/`DD` onto `badNodes` - an `<hr>` between
- * groups, a `<span>` of prose - as `only-dlitems`, impact `serious`. So the three
- * shapes left alone are exactly the three that check passes: a `<div>`, which is
- * the content model's other legal form and the one axe flattens, and `<script>` /
- * `<template>`, the "optionally intermixed" script-supporting elements, which axe
- * skips because neither is exposed to a screen reader.
+ * groups, a `<span>` of prose - as `only-dlitems`, impact `serious`. The three
+ * intrinsics left alone are a `<div>`, which is the content model's other legal
+ * form and the one axe flattens, and `<script>` / `<template>`, the "optionally
+ * intermixed" script-supporting elements.
+ *
+ * ⚠️ AND THE FLATTEN IS COPIED, ONE LEVEL, because axe's is: a raw
+ * `<div><hr /></div>` at list level is the SAME `only-dlitems` failure, and the
+ * first edition of this guard read the direct child's tag and stopped (layer 1,
+ * MED-4, proved). A raw `<div>` here may hold `dt`, `dd` and the script-supporting
+ * pair, and nothing else intrinsic.
+ *
+ * ⚠️ WHAT THIS IS NOT is "exactly what axe flags" - the first edition said that and
+ * it was false in both directions. It is a deliberate SUPERSET, bounded by HTML's
+ * content model rather than by the checker: `<span role="term">` (axe exempts it,
+ * `ALLOWED_ROLES`) and `<span hidden>` (axe skips what a screen reader cannot see)
+ * are both refused here, because neither is a legal child of a `dl` whatever a
+ * checker makes of it.
  *
  * A COMPONENT child is still not refused, and that is the bound: three of the
  * eight product sites factor a group into a component (`Ledger`'s `Cell`,
@@ -300,6 +312,19 @@ export function DescriptionList({ className, children, ...props }: DescriptionLi
           `element between them is an axe "only-dlitems" failure (impact serious). Put it inside ` +
           `<DescriptionDetails>, or move it outside the list.`,
       );
+    }
+    // The flatten, one level, exactly as `onlyDlitemsEvaluate` does it.
+    if (child.type === "div") {
+      for (const inner of walked(child.props.children).elements) {
+        if (typeof inner.type !== "string") continue;
+        if (inner.type === "dt" || inner.type === "dd") continue;
+        if (inner.type === "script" || inner.type === "template") continue;
+        throw new Error(
+          `<DescriptionList> holds a hand-written <div> containing a <${inner.type}>: axe flattens ` +
+            `a roleless div into the list and then reads that element, so this is the same ` +
+            `"only-dlitems" failure. A group holds a term and its detail. Use <DescriptionItem>.`,
+        );
+      }
     }
   }
   return (

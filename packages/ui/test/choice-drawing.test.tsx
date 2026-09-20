@@ -78,6 +78,10 @@ describe("the choice controls' geometry, in resolved pixels", () => {
     expect(box.get("checkbox-box")!.length).toBeGreaterThan(5);
     expect(sheet.rootVars().get("--hit-min")).toBe("44px");
     expect(sheet.lengthPx("calc(var(--spacing) * 11)")).toBe(44);
+    // BOTH operand orders resolve, which is the shape `tailwind-compile.test.tsx`'s
+    // own copy of this resolver handles and the module has to keep (layer 1, LOW-3).
+    expect(sheet.lengthPx("calc(0.25rem * 6)")).toBe(24);
+    expect(sheet.lengthPx("calc(6 * 0.25rem)")).toBe(24);
     expect(sheet.lengthPx("auto")).toBeNull();
   });
 
@@ -100,6 +104,32 @@ describe("the choice controls' geometry, in resolved pixels", () => {
       expect(sheet.declared(drawn, "width"), `${name}: the drawing's width`).toBe(24);
       expect(sheet.declared(drawn, "height"), `${name}: the drawing's height`).toBe(24);
       expect(sheet.declared(drawn, "border-width"), `${name}: the drawing's edge`).toBe(2);
+    }
+  });
+
+  it("makes the input COVER the row, which is the claim the floor rests on", () => {
+    // ⚠️ LAYER 1's HIGH-1, and it is the finding this arm exists for: the floor
+    // guard reads `min-height`/`height` and NOTHING else, so an input that keeps
+    // `min-h-hit` and loses `inset-0` measures 44px tall and about 13px wide - the
+    // UA checkbox's intrinsic size - and every play still passes, because the row
+    // is a `<label>` and forwards the click. That is the "hope about label
+    // click-forwarding" this family's docblock says it does not rely on. So the
+    // covering itself is read, out of the compiled sheet, in both families.
+    for (const [name, classes] of [
+      ["checkbox", slots(checkbox.Default, CHECKBOX_SLOTS).get("checkbox-input")!],
+      ["radio", slots(radio.Default, RADIO_SLOTS).get("radio-group-input")!],
+    ] as const) {
+      expect(sheet.declaredValues(classes, "position"), `${name}: position`).toEqual(["absolute"]);
+      // `inset-0` emits the SHORTHAND (`inset: calc(var(--spacing) * 0)`), not four
+      // longhands - read rather than assumed, after the first draft of this arm
+      // asked for `inset-block-start` and got null from every class.
+      const inset = sheet.declaredValues(classes, "inset");
+      expect(inset, `${name}: inset`).toHaveLength(1);
+      expect(sheet.lengthPx(inset[0]!), `${name}: inset resolves to`).toBe(0);
+      // …and invisible rather than absent: `opacity-0`, never `hidden` or
+      // `sr-only`, or it stops being focusable or stops being 44px.
+      expect(sheet.declaredValues(classes, "opacity"), `${name}: opacity`).toEqual(["0%"]);
+      expect(sheet.declaredValues(classes, "display"), `${name}: display`).toEqual([]);
     }
   });
 
