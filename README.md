@@ -58,7 +58,8 @@ The components speak only in role utilities, so the consuming app has to import
 MIT (see `LICENSE`). That covers the code, the tokens and the presets. It does not cover, and
 this repository does not contain, the name "thepile", its wordmark or any product string of the
 application that is its reference consumer; `NOTICE` says so and a guard test enforces it. The
-bundled fonts are SIL OFL 1.1. Packages stay `"private": true` until their first publish.
+bundled fonts are SIL OFL 1.1. Both packages have been public on npm since `0.1.0` (2026-09-15);
+only the repository root stays `"private": true`.
 
 ## Working in this repo
 

@@ -4590,6 +4590,8 @@ lines only) and is the orchestrator's to place: `README.md:61` still says
 and `packages/tokens` both dropped `private` at `ed7f34c` and `0.1.0` of each is resolvable from the
 registry (thepile's `pnpm-lock.yaml` carries a `sha512` `resolution.integrity` for both, not a
 `file:` link). Only the repo root is still `"private": true`. One line, one batch, somebody's fence.
+CLOSED by the DL12 reconciler at the merge head: `README.md:61` now says both packages are public since
+`0.1.0` and only the root is private (layer 2 LOW-6).
 
 ### The two a3 follow-ups this bump does NOT do [V]
 
