@@ -7,11 +7,13 @@ import * as badge from "../../stories/badge.stories.js";
 import * as breadcrumb from "../../stories/breadcrumb.stories.js";
 import * as button from "../../stories/button.stories.js";
 import * as card from "../../stories/card.stories.js";
+import * as checkbox from "../../stories/checkbox.stories.js";
 import * as descriptionList from "../../stories/description-list.stories.js";
 import * as form from "../../stories/form.stories.js";
 import * as input from "../../stories/input.stories.js";
 import * as label from "../../stories/label.stories.js";
 import * as pagination from "../../stories/pagination.stories.js";
+import * as radioGroup from "../../stories/radio-group.stories.js";
 import * as ribbon from "../../stories/ribbon.stories.js";
 import * as separator from "../../stories/separator.stories.js";
 import * as sheet from "../../stories/sheet.stories.js";
@@ -36,11 +38,13 @@ export const STORY_SUITES = {
   breadcrumb,
   button,
   card,
+  checkbox,
   "description-list": descriptionList,
   form,
   input,
   label,
   pagination,
+  "radio-group": radioGroup,
   ribbon,
   separator,
   sheet,

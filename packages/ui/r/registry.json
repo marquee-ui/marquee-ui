@@ -106,6 +106,35 @@
       ]
     },
     {
+      "name": "checkbox",
+      "type": "registry:ui",
+      "title": "Checkbox",
+      "description": "A yes/no as parts: a 44px label row, a native checkbox drawn as an invisible overlay on it, and a box whose mark is painted by the platform's own :checked.",
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/checkbox.tsx"
+        }
+      ]
+    },
+    {
+      "name": "radio-group",
+      "type": "registry:ui",
+      "title": "Radio Group",
+      "description": "One choice out of several, as parts: the group owns the shared name, each row is a 44px label over a native radio, and the roving tab stop and the arrow keys come from the platform.",
+      "dependencies": ["@radix-ui/react-slot@^1.3.3"],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/radio-group.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/radio-group.tsx"
+        }
+      ]
+    },
+    {
       "name": "alert",
       "type": "registry:ui",
       "title": "Alert",
