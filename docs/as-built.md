@@ -4411,3 +4411,27 @@ grep for the SHIPPED family's consumers is not just the three above:
 `Ledger:223`. Naming the shipped family's cells and not only the refused ones is
 DL10's MED-1, where that batch grepped only the refused family and left the shipped
 one's consumers unnamed.
+
+### The gate
+
+One run, at `2fe27d71`, in the FOREGROUND (this gate is 13 seconds; the detached
+sentinel shape the thepile streams use buys nothing here and slot 2 has no stack to
+contend for): `pnpm verify` **exit 0** in 13s (07:26:13 -> 07:26:26 IST, 2026-09-20),
+the runner's own lines being `All matched files use Prettier code style!`, both
+packages' `typecheck: Done`, `✔ Building registry.`,
+`└ Storybook build completed successfully` and
+`Test Files 23 passed (23)` / `Tests 453 passed (453)` - from 22 / 405 at the base
+`b2e24fd3`, whose own `pnpm verify` was measured green first, before anything was
+touched. `git status --short` was empty before and after, so the committed
+`packages/ui/r` is exactly what `build:registry` produces.
+
+⚠️ One docs commit follows that run - this section - so the gated tree and the branch
+head differ by `docs/as-built.md` alone. `docs/` is read by `prettier --check` and by
+no test (`source-files.ts` walks `packages/*/src` and `packages/*/stories` only), and
+`pnpm exec prettier --check docs/as-built.md` passes at the head. Unlike DL10 I have
+NOT re-run the whole gate for the docs commit, and say so here rather than quote a run
+that postdates it.
+
+No push, no publish, no version bump: the freeze holds, and this family rides the
+post-freeze `0.1.1` with the Switch, the two navigation families, `Alert` and `Form` -
+a SIX-item bump.
