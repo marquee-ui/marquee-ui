@@ -159,9 +159,9 @@ function refuseRole(props: object, part: string, element: string): void {
  * `gap-1` is the 4px grid `AGENTS.md` names as skeleton, and `FormItem` took the
  * same value against the same off-grid alternative.
  *
- * `inline` is the other 2 (`ScoreBlock:227` is
- * `flex flex-wrap items-baseline gap-x-2 gap-y-0.5`, `admin/reports:85` is
- * `flex gap-2 break-words`). `items-baseline` comes from the first, where a
+ * `inline` is the other 2 (`ScoreBlock:87`, the `RawFigure` wrapper, is
+ * `flex flex-wrap items-baseline gap-x-2 gap-y-0.5`; `admin/reports:87` is
+ * `flex gap-2 break-words`; the `<dl>`s themselves open at `:227` and `:85`). `items-baseline` comes from the first, where a
  * micro-caps label sits beside a display figure and the baselines are the whole
  * point; `flex-wrap` likewise. The gap is `gap-2`: the two sites agree on 8px
  * across, and the 2px down is off the 4px grid, so the skeleton breaks that tie

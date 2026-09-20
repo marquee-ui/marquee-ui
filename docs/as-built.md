@@ -4084,6 +4084,18 @@ tracking-[0.08em]`, `md:` variants, then one size at `xl`), every one of them
   three are the shots-visible changes of a consumption and they are NOT zero-diff.**
   A consumption slice owes a prediction and a capture, not a claim that nothing
   moves.
+- ⚠️ **And the ITEM's layout axis moves geometry at five of the eight sites, on at
+  least six filmed screens** (batch DL11 layer 2, MED-1; the data is measurement 2's
+  table, the enumeration was missing). `stack` is `flex flex-col gap-1`, and four of
+  the six stack sites are block-flow wrappers with NO row gap (`game/[slug]:769`,
+  `MemberRow`'s `CELL`, `ImportPreview:215,221`, `Ledger`'s `Cell`), so each gains 4px
+  between `dt` and `dd`; `RawFigure:87` is `gap-x-2 gap-y-0.5` where `inline` is
+  `gap-2`, so 2px becomes 8px down. Only `transparency:462` and `Fact:108` already
+  write `flex flex-col gap-1`. "The other four get the same result from block flow"
+  above is true of the DIRECTION and false of the gap. The prediction a consumption
+  owes is therefore the term's ink and tracking AND these gaps, and the shots it names
+  before the run include `members`, `members-signed-in`, `game`, `game-distribution`,
+  `profile` and `settings-steam`.
 - ⚠️ **The testids all live on the parts' own props and pass through `{...props}`,
   so every one keeps resolving.** Measured, by the exact testid rather than the
   substring (`git grep -l -E '(data-testid="X"|getByTestId\("X"\)|\[data-testid="X"\])' $T -- 'apps/web/src/**' 'e2e/**' 'scripts/**'`):
@@ -4130,8 +4142,8 @@ packages/ui/src/description-list.tsx` -> **9** throw sites for **8** refusals (t
     before wrapping, not after.
   - (3), (4) and (5): all eight sites are one `dt` then one `dd`, checked in
     measurement 2's table, so none trips. ⚠️ But (3) and (4) are RUNTIME conditions
-    (layer 1, MED-5): the product's two conditional groups - `reckoning:202-212` and
-    `ScoreBlock:231` - are safe only because both guards are `!== null` or object
+    (layer 1, MED-5): the product's SIX conditional groups (`reckoning:202-212` holds four,
+    `ScoreBlock:231` two; DL11 layer 2 LOW-4) are safe only because both guards are `!== null` or object
     truthiness. A guard that is a bare NUMBER is the same edge as (7).
   - (6): none of the eight has a bare `dt`/`dd` as a direct child of its `<dl>`; all
     eight wrap. ⚠️ And the guard is BOUNDED: a component at list level that returns a
@@ -4443,3 +4455,20 @@ that postdates it.
 No push, no publish, no version bump: the freeze holds, and this family rides the
 post-freeze `0.1.1` with the Switch, the two navigation families, `Alert` and `Form` -
 a SIX-item bump.
+
+### Reconciler closures (batch DL11, layer 2)
+
+Layer 2 (max, both repositories, concurrent with thepile's merged gate) read this record against the
+eight sites and the parts. Closed here, by the reconciler: **MED-1**, the consumption checklist's
+shots-visible list enumerated by the term's treatment and omitted the item's layout axis (the bullet
+above, under "thepile inputs"); **LOW-3**, the source docblock in `description-list.tsx` cited the
+`<dl>` lines (`ScoreBlock:227`, `admin/reports:85`) for wrapper classes that live at `:87` in both
+files, corrected (a comment, re-gated by the library's `pnpm verify` at the closure head); **LOW-4**,
+"two conditional groups" was six, corrected above. **Recorded, not closed** (the next library
+stream's first item): **LOW-6**, the list's mixed-content guard refuses only a bare `dt`/`dd` at list
+level; an INTRINSIC non-item child (`typeof child.type === "string"`, an `<hr />` or a `<span>`
+between groups) is knowably invalid and is exactly what axe's `only-dlitems` reports, so the guard
+can widen to every intrinsic element that is not `dt`/`dd`, with a reddening test that renders an
+`<hr />` inside a list. Layer 2's HIGH-1 was thepile's (two audit cells for the same `MemberRow`
+`<dl>` on the followers/following routes still prescribing a `Separator` inside the list; closed in
+thepile's audit).
