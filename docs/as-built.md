@@ -5256,6 +5256,17 @@ nothing there can consume an item that is not in a published bump, this batch's 
 stream consumes the Switch rather than these, and the two families' names appear nowhere
 in that tree at `50f8a22c` except as audit prescriptions. That is said rather than assumed.
 
+**Run 3, after the layer-1 fixes** (`consumer-scan.3.txt`): **one name more, and it is not
+a name.** `X` appears because `entry-point.test.ts`'s own docblock says
+"Every `export function X` / `export const X` in one published source file", and the scan
+reads added lines rather than a parsed module. Nothing else moved: the layer-1 fixes added
+no export (`refuseRole` and `CheckboxContext` are module-private, and the new test file
+exports nothing). Scan 3 gained `checkbox.tsx`, `radio-group.tsx` and `entry-point.test.ts`
+
+- the two parts now name `choice-drawing.test.tsx` in their docblocks, which is the same
+  reverse-reference shape as `breadcrumb.tsx` naming `fidelity.test.tsx`. Still **0 CROSS, 0
+  UNOWNED**.
+
 ⚠️ The blind spot every previous family recorded still applies: scan 3's stem arm looks
 for `./<stem>"` and `../<stem>"`, so it does not see
 `import * as checkbox from "../../stories/checkbox.stories.js"`, which is how
@@ -5427,9 +5438,9 @@ so that arm is a no-op here; saying so is better than omitting it.
 One run, at the branch head, detached with a sentinel in `$BATCH_SCRATCH/s2/` as the
 thepile streams do (this gate is under half a minute and contends with nothing, so the
 shape is habit rather than need): `pnpm verify` **exit 0**, read from `verify.exit` and not
-from an appended echo. Twice, both at 2026-09-20: 23:14:51 -> 23:15:07 IST at `8a68e3a`,
-and 23:15:37 -> 23:16:00 IST at `282c8bc5`, this section's own commit. Identical exit and
-identical lines:
+from an appended echo. Three times on 2026-09-20 - 23:14:51 -> 23:15:07 IST at `8a68e3a`,
+23:15:37 -> 23:16:00 IST at `282c8bc5`, and once more at the FINAL head after this record
+was finished - with the same exit and the same lines every time:
 `All matched files use Prettier code style!`, both packages' `typecheck: Done`,
 `✔ Building registry.`, `└ Storybook build completed successfully`, and
 `Test Files 26 passed (26)` / `Tests 504 passed (504)` - from 23 / 453 at the base
@@ -5440,13 +5451,13 @@ knowing before anyone reads a base run as a finding).
 `git status --short` was empty before and after, so the committed `packages/ui/r` is
 exactly what `build:registry` produces at this head.
 
-⚠️ It was run TWICE on purpose, and the second time after this section was written, so the
-gated tree is the branch head rather than one docs commit behind it. That is affordable
-here and it is not in the thepile streams: twenty-three seconds against twenty-five
-minutes. The only commit after the second run is the one that corrects this paragraph's own
-numbers to that run's - `docs/` is read by `prettier --check` and by no test
-(`source-files.ts` walks `packages/*/src` and `packages/*/stories` only), and
-`pnpm exec prettier --check docs/as-built.md` passes at the head.
+⚠️ It was re-run on purpose rather than once, and the last time AFTER this record was
+finished, so the gated tree is the branch head and not one docs commit behind it. That is
+affordable here and it is not in the thepile streams: twenty-three seconds against
+twenty-five minutes. Nothing but this file has moved between the runs - `docs/` is read by
+`prettier --check` and by no test (`source-files.ts` walks `packages/*/src` and
+`packages/*/stories` only) - and the stream's report carries the final run's own wall
+clock, which is the one number a record cannot state about a run that postdates it.
 
 No push, no `npm publish`, no git tag, no version bump: the freeze holds, and these two
 families ride the post-freeze bump with the six already waiting - which makes it an
