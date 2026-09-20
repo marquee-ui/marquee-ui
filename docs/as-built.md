@@ -5098,15 +5098,32 @@ What the consumption half needs when these two publish (decision 13: with the ne
 every bullet was checked against that tree with `git show` / `git grep` before it was
 written, with the command beside any count.
 
+**Before any of it, the role-string scan** (layer 2 MED-3; thepile's `stream.md` §3 carries it as
+scan 4 since DL13): every part here computes a role, and a spec or test that resolves a control by
+`getByRole("<role>")` or `[role="<role>"]` consumes the role a swap adds, removes or DISPLACES,
+which no symbol, path or route scan can see. Per implicit role a site loses and per role a part
+writes: `git grep -n 'getByRole("<role>"' -- e2e apps packages` and
+`git grep -n '\[role="<role>"\]' -- e2e apps packages`. The computed roles, stated because the
+package answers the question both ways: `CheckboxInput` is `input[type="checkbox"]` and writes NO
+role (implicit `checkbox`, unchanged from every site it replaces); `RadioGroupInput` is
+`input[type="radio"]` and writes NO role (implicit `radio`; the face grid's `button` becomes
+`radio`, the [V] below); `RadioGroup` writes `role="radiogroup"`; `SwitchInput`, by contrast,
+writes `role="switch"` over a checkbox, which is what broke `e2e/push.spec.ts`'s four `checkbox`
+locators in DL13.
+
 **Both families, once.** `checkbox` and `radio-group` go into `CONSUMED` in
-`scripts/marquee-drift.test.ts`, and the two files arrive by `shadcn add`. ⚠️ That test
-pins BOTH lists exactly: at `50f8a22c` `CONSUMED` is
-`["button", "input", "label", "sheet", "toast", "ribbon"]` (`:56`) and the arm at `:107`
-asserts the complement is exactly `["accordion", "alert", "badge", "breadcrumb", "card",
-"description-list", "form", "pagination", "separator", "switch", "utils"]` - eleven names,
-which is the vendored `0.1.1`'s seventeen items minus the six consumed. So the moment a
-bump carries these two, that arm is red until both lists move, and the bump and the list
-edits are ONE commit. ⚠️ `shadcn add` also writes `lib/utils.ts`, and thepile's copy is a
+`scripts/marquee-drift.test.ts`, and the two files arrive by `shadcn add`. ⚠️ That test pins
+THREE things, and this paragraph is restated at thepile's DL13 merge head `5e4d961b` (layer 2
+HIGH-1: the first edition described the test at `50f8a22c`, which the sibling stream rewrote
+the same batch): `CONSUMED` (`:56`) is SEVEN names, `switch` included, and the consumption
+makes it nine; the exact complement (`:123`) is TEN names, `accordion, alert, badge, breadcrumb,
+card, description-list, form, pagination, separator, utils`, and it does NOT move at the bump
+(nineteen index items minus nine consumed is the same ten), so editing it is what reddens the
+arm; and the arm at `:210-240` pins a PER-ITEM map of each consumed item's declared runtime
+dependencies (`byItem`, DL12 layer 2 MED-4's fix), which gains `checkbox: []` and
+`radio-group: ["@radix-ui/react-slot"]` with no `apps/web/package.json` edit, because `:20`
+already declares the slot. The bump and those two edits are ONE commit, or the `CONSUMED` arm
+is red between them. ⚠️ `shadcn add` also writes `lib/utils.ts`, and thepile's copy is a
 DECLARED EXCLUSION whose `cn` is a plain join on purpose, so `git checkout --
 apps/web/src/lib/utils.ts` after the add.
 
@@ -5191,7 +5208,7 @@ and should be deleted from the row's own string.
 - **Not this family**: `ShelfPicker.tsx:85` and `:105`, `GameActions.tsx:427` +
   `ShelfSlot.tsx:28` (decision 2), and `FacePicker.tsx:299-315`'s style strip, which the
   audit answers with `Tabs`.
-- ⚠️ **The e2e suite's `getByRole("radio")` - about 55 lines across 20 spec files - resolves
+- ⚠️ **The e2e suite's `getByRole("radio")` - 51 lines across 21 spec files (layer 2 re-measured; the first edition said about 55 across 20) - resolves
   ONLY those refused sites**, so a consumption of this family cannot break any of them, and
   a green suite is not evidence that the report sheet's radios still work. `ReportFlag.test.tsx`
   and `e2e/reports.spec.ts` are the only instruments that cover what changes.
@@ -5462,3 +5479,21 @@ clock, which is the one number a record cannot state about a run that postdates 
 No push, no `npm publish`, no git tag, no version bump: the freeze holds, and these two
 families ride the post-freeze bump with the six already waiting - which makes it an
 EIGHT-item bump, and `0.1.2` rather than `0.1.1` (decision 13).
+
+### Reconciler closures (batch DL13, layer 2)
+
+Layer 2 (max, both repositories, concurrent with thepile's merged gate) read this record against
+the nine thepile sites, the vendored Switch and the sibling stream's rewrite of
+`scripts/marquee-drift.test.ts`. Closed here, by the reconciler: **HIGH-1**, the "thepile inputs"
+paragraph on the drift test described it at `50f8a22c`, one pin short and with a complement that
+does not move (restated above at `5e4d961b`); **MED-3**, `SwitchInput` writes `role="switch"` and
+the two inputs here write none, with no rule stating it (the role-string scan and the computed
+roles, above); **LOW-6**, "about 55 lines across 20 spec files" was 51 across 21. **Recorded, not
+closed** (the next library stream's first items): **LOW-4**, "byte-identical to `Switch`'s
+`nativeInputClass`" is prose with no instrument, since `test/choice-drawing.test.tsx:136-143`
+compares the two new inputs and never reaches `switch-input` (add the Switch's slot to that arm);
+**LOW-7**, `packages/ui/src/radio-group.tsx:229` throws on `name={undefined}` where
+`refuseAsChild` guards with `!== undefined`, reachable only through a spread; and decision 12's
+REQUEST, `test/switch-drawing.test.tsx` and `test/tailwind-compile.test.tsx` onto
+`test/helpers/compiled-sheet.ts` (keep both `calc()` operand orders). Layer 2's HIGH-1 in thepile
+was this same paragraph, seen from the consuming side.
