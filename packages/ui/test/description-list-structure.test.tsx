@@ -13,7 +13,7 @@ import { labelVariants } from "../src/label.js";
 
 /**
  * The claims that exist ACROSS renders or across the contract, which a story with
- * one list cannot state: the five refusals, the two arrangements as a pair, and
+ * one list cannot state: the EIGHT refusals, the two arrangements as a pair, and
  * the content model's own rules.
  *
  * Everything a single composition can say is said in a story play instead

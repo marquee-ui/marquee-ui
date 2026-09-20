@@ -3682,13 +3682,19 @@ git grep -n -E '^\s*<dl(\s|>|$)' $T -- 'apps/web/src/**/*.tsx' | grep -v '\.test
 difference is four comment lines plus one line matched twice.
 
 ⚠️ **A second count in the same family does NOT reproduce, and the pattern is
-why.** `git grep -h -o -E '<dt(\s|>)'` prints 9 and `<dd(\s|>)` prints 11,
-because `(\s|>)` cannot match a tag whose attributes start on the NEXT line -
-`git grep` is line-based - and `Ledger.tsx` and `ScoreBlock.tsx` both write
-`<dt\n  className={cn(`. With `<dt\b` it is **11 `<dt` lines and 12 `<dd` lines,
-one of the latter a docblock mention at `MemberRow.tsx:25`**, so 11 and 11
-elements. All per-SOURCE: four of the eight sites render theirs inside a `.map()`,
-so the rendered counts are higher.
+why.** All four numbers below are non-test, i.e. every command ends
+`| command grep -v '\.test\.'`, which the first draft of this paragraph did not
+restate (layer 1, LOW-4.1). `git grep -h -o -E '<dt(\s|>)'` prints 9 and
+`<dd(\s|>)` prints 11, because `(\s|>)` cannot match a tag whose attributes start
+on the NEXT line - `git grep` is line-based - and `Ledger.tsx` and `ScoreBlock.tsx`
+both write `<dt\n  className={cn(`. With `<dt\b` it is **11 `<dt` lines and 12
+`<dd` lines, one of the latter a docblock mention at `MemberRow.tsx:25`**, so 11
+and 11 elements. ⚠️ WITHOUT the filter the same four commands give 9 / 12 / 11 /
+**13**, the extra `<dd` hit being a second docblock mention at
+`MemberRow.test.tsx:94` - which is why the filter is now stated rather than
+implied. The conclusion (11 and 11 elements) is the same either way. All
+per-SOURCE: four of the eight sites render theirs inside a `.map()`, so the
+rendered counts are higher.
 
 **2. The structural finding, and it is 8 of 8: every site wraps its pair in a
 `<div>`.** Read one by one, not grepped, because the wrapper is three of them a
@@ -3734,7 +3740,11 @@ one on the shape - `font-mono` + `uppercase` + a small size + positive tracking 
 and one on the INK: applying `fidelity.test.tsx`'s rename table
 (`text-text-muted` -> `text-muted`, `text-text-secondary` -> `text-foreground-2`),
 6 of the 8 terms are `text-muted`, 1 is `text-foreground-2` and 1 is
-`text-foreground`. So the tie is broken by the SKELETON exactly as `FormItem`'s
+`text-foreground`. ⚠️ Five of that six are FLAT; the sixth, `Ledger.tsx:158`, is
+`accent ? "text-accent-ink" : "text-text-muted"`, i.e. muted in its default arm and
+the primary ink on the two accented cells (layer 1, LOW-4.2 - the first draft
+counted it without saying so). The 6/8 conclusion stands; the shape of the sixth
+did not. So the tie is broken by the SKELETON exactly as `FormItem`'s
 `gap-1` was: `tracking-label` is the only one of the five that is a NAME,
 `--tracking-label` exists for this treatment, `Badge` already uses it, and
 `text-3xs` is the majority of the same set.
@@ -4029,8 +4039,10 @@ the command beside any count.
   `it("is ONE definition list whose every child holds nothing but a dt and a dd")`
   with `expect([...cell.children].map((c) => c.tagName)).toEqual(["DT", "DD"])`,
   `expect(container.querySelectorAll("dl")).toHaveLength(1)`,
-  `expect(container.querySelectorAll("dd > a")).toHaveLength(9)` and, at `:236-237`,
-  a `dt` resolved as `dd[data-testid=…].previousElementSibling`. All four survive a
+  `expect(container.querySelectorAll("dd > a")).toHaveLength(9)`, at `:38`
+  `expect(cells).toHaveLength(10)` (the fifth instrument, which layer 1 added to this
+  list), and, at `:236-237`, a `dt` resolved as
+  `dd[data-testid=…].previousElementSibling`. All five survive a
   consumption unchanged - the parts render exactly that DOM - and the last one is
   why the item refuses a detail before its term rather than only counting them.
 - ⚠️ **`Ledger`'s `dt` and `dd` are the one site that must pass
@@ -4069,27 +4081,58 @@ tracking-[0.08em]`, `md:` variants, then one size at `xl`), every one of them
   asserted at `ScoreBlock.test.tsx:112`), so the props pass-through is what keeps
   them - which every story play exercises, since five of the six pass a `className`
   and the structure file asserts the `data-slot`s survive beside them.
-- ⚠️ **The family REFUSES six compositions, loudly, at render, and the consumption
-  has to be read against the PREDICATE and not one clause of it** (layer 2's HIGH-1
-  in DL10 was a checklist enumerated by one attribute when the predicate had three).
-  They are: (1) a part outside its parent; (2) any child of an item that is not a
-  term or a detail; (3) an item with no term; (4) an item with no detail; (5) a
-  detail before a term; (6) `asChild` on a term or a detail. Against the eight sites
-  at `f8385c6d`:
+- ⚠️ **The family REFUSES eight compositions, loudly, at render, and the consumption
+  has to be read against the FULL PREDICATE and not one clause of it** (DL10's layer-2
+  HIGH-1 was a checklist enumerated by fewer clauses than the predicate had; the first
+  draft of THIS bullet listed six when the code had seven, omitting the list's own
+  mixing refusal, which layer 1's MED-5 caught). `command grep -c "throw new Error"
+packages/ui/src/description-list.tsx` -> **9** throw sites for **8** refusals (the
+  arity floor is one site reporting two conditions). They are:
+
+  1. a part outside its parent - including a part inside a PART, which is HIGH-2's fix;
+  2. any child of an item that is not a term, a detail, a `script` or a `template`;
+  3. an item with no term;
+  4. an item with no detail;
+  5. a detail before a term;
+  6. a bare `dt` or `dd` as a direct child of the list (the two content-model forms mixed);
+  7. non-whitespace TEXT as a direct child of the list or of an item (HIGH-1's fix);
+  8. `asChild` on any of the four parts, or `role` on the term or the detail.
+
+  Against the eight sites at `f8385c6d`, by the predicate:
   - (2) is the one with a live hazard, and it has exactly one instance:
     **`Ledger.tsx:206-212`'s `{href && <Link className="absolute inset-0" />}` is
-    inside the `dd` already** (the link opens at `:206`, its `className` is `:210` and the `</dd>` is `:213`), so it PASSES - and it passes
-    because the product already fixed it. A consumption that "tidies" that link out
-    to the cell level takes the route down, which is the point.
+    inside the `dd` already** (`{href && (` is `:206`, `<Link` itself `:207`, its
+    `className` `:210` and the `</dd>` `:213`), so it PASSES - and it passes because
+    the product already fixed it. A consumption that "tidies" that link out to the
+    cell level takes the route down, which is the point. ⚠️ **(2) also fires on an
+    intrinsic `<dt>` or `<dd>` inside a `<DescriptionItem>`** (layer 1, MED-5), so a
+    half-finished refactor that swaps the wrapper for `<DescriptionItem>` but leaves
+    the pair as raw tags takes the route down too. That is correct behaviour and it is
+    the single most likely way to trip this family during a consumption, so read it
+    before wrapping, not after.
   - (3), (4) and (5): all eight sites are one `dt` then one `dd`, checked in
-    measurement 2's table, so none trips.
-  - (6): no site can trip it, because no site uses this family yet; it exists for
-    the consumption itself, which is when someone will reach for it.
-  - (1): the three component-factored sites (`Cell`, `RawFigure`, `Fact`) must
-    return a `DescriptionItem`, not a bare `<div>` with the parts inside, or the
-    parts throw for want of the item's context. That is the one shape change a
-    consumption owes beyond swapping tags, and the `Composed` story is what it
-    copies.
+    measurement 2's table, so none trips. ⚠️ But (3) and (4) are RUNTIME conditions
+    (layer 1, MED-5): the product's two conditional groups - `reckoning:202-212` and
+    `ScoreBlock:231` - are safe only because both guards are `!== null` or object
+    truthiness. A guard that is a bare NUMBER is the same edge as (7).
+  - (6): none of the eight has a bare `dt`/`dd` as a direct child of its `<dl>`; all
+    eight wrap. ⚠️ And the guard is BOUNDED: a component at list level that returns a
+    bare pair is genuinely mixed, genuinely invalid, and is NOT caught - decision 11
+    records why walking component output is refused, and layer 1 established that axe
+    does not catch that case either (`invalidChildrenEvaluate` flattens the roleless
+    `div` and then sees only `DT`/`DD`). It is a rule only a validator sees.
+  - (7): no site trips it today, and the reason it exists is that the shortest React
+    conditional produces it. `{count && <DescriptionDetails>{count}</DescriptionDetails>}`
+    with `count === 0` renders a literal `0` beside the pair; the message says to write
+    `{count !== 0 && …}`.
+  - (8): no site can trip it, because no site uses this family yet; it exists for the
+    consumption itself, which is when someone will reach for `asChild` on a linked `dd`
+    (measurement 5) or for `role` on a cell.
+  - (1): the three component-factored sites (`Cell`, `RawFigure`, `Fact`) must return a
+    `DescriptionItem`, not a bare `<div>` with the parts inside, or the parts throw for
+    want of the item's context. That is the one shape change a consumption owes beyond
+    swapping tags, and the `Composed` story is what it copies.
+
 - ⚠️ **`ImportPreview.tsx:214`'s `aria-live="polite"` is the caller's and stays
   the caller's.** It goes on `<DescriptionList aria-live="polite">`; the family
   neither writes nor strips it, which is the `Live` story. `ImportPreview` is also
@@ -4191,3 +4234,170 @@ verdicts and one shipped family, so three lists, all at the thepile base
   `Ledger:223`). ⚠️ Naming the SHIPPED family's cells and not only the refused
   ones is DL10's MED-1: that batch grepped only the refused family and left the
   shipped one's consumers unnamed.
+
+## Layer 1 (reviewer, detached worktree of 41f243a6, slot r6)
+
+**Thirteen findings: 2 HIGH, 6 MED, 4 LOW** (its LOW-4 is four record-hygiene items
+counted as one). Its full report is `$BATCH_SCRATCH/r6/report.md`. Its baseline on the
+committed head was `pnpm build` exit 0, `pnpm lint` exit 0, `pnpm typecheck` exit 0,
+`pnpm exec vitest run` 23 files / 442 tests exit 0 - and it re-read the branch head at
+the end of the review (`git rev-parse s/design-lib-d-dl` -> `41f243a6`, **unmoved**), so
+every finding is against the head as it stands. The as-built prose below and the gate are,
+by construction, unreviewed by it.
+
+**Both HIGHs are accepted and FIXED, and both were real accessibility defects in a family
+whose whole stated purpose is to prevent them.** It settled the axe question from
+axe-core 4.12.1's own evaluator source rather than from memory, which is why the two are
+HIGH rather than arguable.
+
+⚠️ It also found the one thing I most needed found: **two of my own tests asserted
+comparisons they never made** (MED-3), and one of them - `does NOT reuse Label's micro
+tone` - would have passed unchanged on the day decision 7's premise died. That is the
+failure class this repo calls "a guard that cannot fail", in the arm I wrote to defend my
+own decision.
+
+### The collapse / no-op mutation table, verbatim
+
+| file                                       | test                                                                         | mutation applied                                                                                     | red / GREEN                                                                                                                                           | what it asserts now                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------------------------ | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `stories/description-list.stories.tsx`     | all six plays + `runs all 54 play functions`                                 | `groupsOf` collapsed to `() => []`                                                                   | red (`Test Files 1 failed \| 22 passed (23)`, `Tests 7 failed \| 435 passed (442)`)                                                                   | —                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `stories/description-list.stories.tsx`     | all six plays                                                                | `expectRoles` collapsed to an empty async fn                                                         | **GREEN** (`Test Files 23 passed (23)`, `Tests 442 passed (442)`)                                                                                     | nothing the rest of the suite does not already observe. `groupsOf` has already thrown unless each group's element children are exactly `DT,DD`, and jsdom derives `term`/`definition` from the tag name alone, so the six role reads are a restatement. The one thing that COULD redden them - an explicit `role=` on the `dt`/`dd` - is a composition the family allows (probe P10, MED-1) and no story or test writes it.                                                            |
+| `stories/description-list.stories.tsx`     | all six plays                                                                | `groupsOf`'s "child is not a group" throw made unreachable (its `return` kept)                       | **GREEN** (`Tests 442 passed (442)`)                                                                                                                  | the `dt`/`dd` pairing, the parent identity and the text content of each group. The structural refusal inside the helper cannot fire in this suite: no story composes a non-group child, because the source refuses one.                                                                                                                                                                                                                                                                |
+| `stories/description-list.stories.tsx`     | all six plays                                                                | `groupsOf`'s `shape !== "DT,DD"` throw made unreachable                                              | **GREEN** (`Tests 442 passed (442)`)                                                                                                                  | as above; the `DT,DD` shape is pinned by `description-list-structure.test.tsx:55` and by `getByRole`, not by this throw.                                                                                                                                                                                                                                                                                                                                                               |
+| `stories/description-list.stories.tsx`     | all six plays                                                                | **every one of the six `play` bodies emptied** (`return;` as the first line), stories and plays kept | **GREEN** (`Test Files 23 passed (23)`, `Tests 442 passed (442)`)                                                                                     | **nothing at all.** `stories.test.tsx` records that `play` was CALLED, not that it asserted anything - its own docblock at `:59-68` says so - so all six plays of a family whose stated deliverable is the content model can be reduced to no-ops with the gate green.                                                                                                                                                                                                                 |
+| `stories/description-list.stories.tsx`     | `description-list/Default`                                                   | the `Default` play's body emptied                                                                    | **GREEN** (`Tests 442 passed (442)`)                                                                                                                  | nothing; the single-story form of the row above.                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `test/tailwind-compile.test.tsx`           | the new describe block                                                       | `declaredProperties` collapsed to `() => []`                                                         | red (`Tests 2 failed \| 440 passed (442)`: `declares exactly the properties the term needs`, `…each layout needs`)                                    | **`the detail contributes nothing either: the figure inside it is what varies` stays GREEN** - `expect(declaredProperties(details)).toEqual([])` reads the same from a dead instrument as from an empty part.                                                                                                                                                                                                                                                                          |
+| `test/tailwind-compile.test.tsx`           | the new describe block                                                       | `slotTokens` collapsed to `() => []` (shared helper)                                                 | red (`Tests 24 failed \| 418 passed (442)`; 7 of the 8 new arms redden, including the block's own anchor `found the classes to measure…`)             | **the eighth, `the detail contributes nothing either`, stays GREEN** - both of its assertions are `toEqual([])`. The FILE is anchored; that arm is not.                                                                                                                                                                                                                                                                                                                                |
+| `test/tailwind-compile.test.tsx`           | the new describe block                                                       | `declaredValues` collapsed to `() => []` (shared helper)                                             | red (`Tests 18 failed \| 424 passed (442)`: `found the classes…`, `the term is the house micro-label`, `the group's two layouts…`)                    | GREEN and observing nothing through this helper: `the list contributes nothing`, `the detail contributes nothing either`, `declares exactly the properties the term needs`, `plain really is empty`, `declares exactly the properties each layout needs`.                                                                                                                                                                                                                              |
+| `test/tailwind-compile.test.tsx`           | the new describe block                                                       | `rootVars` collapsed to `() => new Map()` (shared helper)                                            | red (`Tests 10 failed \| 432 passed (442)`: incl. `the term is the house micro-label`, `the group's two layouts are two different resolved drawings`) | —                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `test/description-list-structure.test.tsx` | `%s throws, naming the parent it needs` (×3)                                 | the `it.each` table emptied                                                                          | **GREEN — and `Tests 439 passed (439)`, three fewer than the baseline's 442**                                                                         | nothing. Three named tests vanish in silence: no counter in this file or anywhere in the gate notices a test case leaving it (`stories.test.tsx`'s two counters count STORIES, `registry.test.ts`'s count ITEMS).                                                                                                                                                                                                                                                                      |
+| `test/description-list-structure.test.tsx` | the same three                                                               | `.toThrow(\`<${part}> must be rendered inside a <${parent}>.\`)`weakened to a bare`.toThrow()`       | GREEN (`Tests 442 passed (442)`)                                                                                                                      | **the message IS load-bearing, and I proved it rather than reasoning it.** Paired with `requireContext` made a no-op: with the specific messages, 4 arms redden (`Tests 4 failed \| 18 passed (22)`); with the bare `.toThrow()`, only 3 (`Tests 3 failed \| 19 passed (22)`) - the `DescriptionItem` arm goes green, because `<DescriptionItem>x</DescriptionItem>` then throws the ARITY error instead and a bare matcher accepts it. The test's own comment at `:78-79` is correct. |
+| `test/description-list-structure.test.tsx` | `renders, and renders the content model` (the file's stated positive anchor) | the test body emptied                                                                                | GREEN (`Tests 442 passed (442)`)                                                                                                                      | nothing, and that is acceptable: four other arms in the same file (`but a part's OWN children are content`, `allows several terms then several details`, `counts through a fragment`, `does NOT refuse a component child`) render the parts successfully and read the resulting DOM, so the negative arms stay anchored without it.                                                                                                                                                    |
+| `test/description-list-structure.test.tsx` | the two `asChild` arms                                                       | the `{ asChild: true }` fixture emptied to `{}`                                                      | red (`Tests 2 failed \| 440 passed (442)`)                                                                                                            | fixture is load-bearing.                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `test/description-list-structure.test.tsx` | `renders, and renders the content model` + `gives every part a data-slot…`   | `valid()` drops its `<DescriptionDetails>`                                                           | red (`Tests 2 failed \| 440 passed (442)`)                                                                                                            | fixture is load-bearing.                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+
+### And the source-side probes it ran that my M01-M21 did not, verbatim
+
+| mutation to `packages/ui/src/description-list.tsx`                                                        | red / GREEN                                                                                                                                                                              | reading                                                                                                                                                                                                                                                            |
+| --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| the DETAIL's element: `<dd` -> `<p` (M15 mutated only the `dt`)                                           | red (`Tests 13 failed \| 429 passed (442)`)                                                                                                                                              | the detail's element identity is covered, by both files and all six plays.                                                                                                                                                                                         |
+| the LIST's element: `<dl>…</dl>` -> `<section>…</section>`                                                | red (`Tests 11 failed \| 431 passed (442)`)                                                                                                                                              | covered. ⚠️ My FIRST attempt changed only the opening tag and was a `Transform failed` crash that still printed a `Test Files` line - exactly DL10's miscount. Scored `NO-RUN(crash)` and re-run with the tags matched.                                            |
+| the GROUP's element: the item's `<div>…</div>` -> `<span>…</span>`                                        | red (`Tests 9 failed \| 433 passed (442)`)                                                                                                                                               | covered.                                                                                                                                                                                                                                                           |
+| `refuseAsChild`'s predicate narrowed to `(props as …).asChild === true`                                   | **GREEN** (only `carries the CURRENT bytes of every source it ships`)                                                                                                                    | nothing pins the predicate's shape.                                                                                                                                                                                                                                |
+| `refuseAsChild`'s `!== undefined` clause dropped (`if ("asChild" in props)`)                              | **GREEN** (byte guard only)                                                                                                                                                              | ditto. Only `asChild={true}` is ever tested; `asChild={false}`, `asChild={undefined}` and "present with any other value" are unspecified by the suite. (By render: `asChild={false}` THROWS, `asChild={undefined}` renders and emits no attribute - probes P1/P2.) |
+| `elementChildren`'s `if (!isValidElement(child)) continue;` made unreachable                              | **GREEN** (byte guard only)                                                                                                                                                              | **the suite says nothing whatsoever about non-element children.** No test and no story renders a string or number child of a list or an item. This is the instrument-side proof of HIGH-1.                                                                         |
+| the term's ink `text-muted` -> `text-primary` (a role the arm's own negative anchor calls NOT a body ink) | red (`Tests 4 failed \| 438 passed (442)`) **but `paints the term in a role the presets measure for contrast` stays GREEN**                                                              | that arm never reads the term. It asserts only facts about `BODY_INK_ROLES` (`length > 2`, contains `muted`, not `primary`, not `brand`). Its name is a claim about `DescriptionTerm` that its instrument cannot see.                                              |
+| `label.tsx`'s `micro` tone made byte-identical to `DescriptionTerm`'s micro                               | red (`Tests 2 failed \| 440 passed (442)`: `label.micro` in `fidelity.test.tsx` + the byte guard) **but `does NOT reuse Label's micro tone, and the difference is the ink` stays GREEN** | that arm never imports `labelVariants`. It would pass unchanged on the day `Label`'s micro tone became the same string, i.e. on the day decision 7's premise died.                                                                                                 |
+| `{...props}` moved BEFORE `data-slot` on the `dl`                                                         | **GREEN** (byte guard only)                                                                                                                                                              | the spread order is unpinned in either direction (a caller CAN overwrite every `data-slot` - probe P11 - which is the package-wide posture, `card.tsx` etc. all spread last).                                                                                      |
+| the item accepts a nested `DescriptionItem` as if it were a term                                          | **GREEN** (byte guard only)                                                                                                                                                              | nothing tests that a nested item inside an item is refused (it is - probe P9 - by the stray-child arm, untested for that input).                                                                                                                                   |
+| `terms += 1` -> `terms = 1`                                                                               | **GREEN** (byte guard only)                                                                                                                                                              | not a finding: the counter is only read as zero / non-zero and interpolated into the message, where 1 is still right for the tested case.                                                                                                                          |
+| `requireContext` no-op **with** the record's specific messages                                            | red (`Test Files 1 failed (1)`, `Tests 4 failed \| 18 passed (22)`)                                                                                                                      | pairs with the row above to prove the message load-bearing.                                                                                                                                                                                                        |
+| **spot-check of the record's own table**: M11 (`cn("grid grid-cols-2", className)` on the `dl`)           | red (`Tests 2 failed \| 440 passed (442)`: `gives every part a data-slot, and the list none of its own classes` + byte guard) - reproduces the record                                    | **but the arm literally named `the list contributes nothing: every class on the dl is the caller's` stays GREEN**, see MED-6.                                                                                                                                      |
+| **spot-check**: M12, M14, M06                                                                             | red, each reddening exactly the one arm the record names (`the detail contributes nothing either`; `refuses a bare dt or dd…`; `counts through a fragment…`), 2 failed / 440 each        | 4 of the record's 21 spot-checked, 4 reproduce. I did not re-run the other 17.                                                                                                                                                                                     |
+
+### What was done about each finding
+
+Every one of the thirteen was PROVED by the reviewer with a run. **Eleven are FIXED**
+at `99f7a3c3`, two are recorded with the reason. Eleven new guards came with the
+fixes and **each was proved by its own reddening mutation** (`L1a`-`L1k`, run against
+the committed head `99f7a3c3`, logs in `$BATCH_SCRATCH/s2/mutations/`, input
+`mutations-b.json`), taking this slice's mutation count from 21 to **32**. The
+structure file goes 22 -> 33 tests and the suite 442 -> **453**.
+
+<!-- prettier-ignore-start -->
+
+| finding | verdict | what changed |
+| --- | --- | --- |
+| **HIGH-1** a text or number child walks past both guards and produces the `definition-list` violation the family exists to stop | fixed | `elementChildren` became `walkChildren`/`walked`, which surfaces text as well as elements, and BOTH the list and the item now refuse any non-whitespace text node. The item's message names the cause, because the reviewer's concrete case is a React idiom rather than a slip: `{count && <DescriptionDetails>{count}</DescriptionDetails>}` with `count === 0` renders the literal `0`, so the message says "use `{count !== 0 && …}`". Four tests, and whitespace-only is an explicit NEGATIVE anchor (`L1k` reddens it), because JSX emits whitespace and refusing it would make the family unusable. |
+| **HIGH-2** neither context is ever reset, so a term or an item nested inside a detail renders a `dt` inside a `dd` | fixed | `DescriptionTerm` and `DescriptionDetails` wrap their children in a `NotInsideAPart` that clears BOTH contexts, so a part reached without a re-provision throws the existing "must be rendered inside a" message. Clearing rather than refusing by element is what keeps the one LEGAL nesting working - a `dd` may hold flow content, so `<dd><dl>…</dl></dd>` is valid and the inner list re-provides both contexts - and that composition is its own test, with the inner `dt`'s parent chain asserted to reach a `dl`, which is what axe's `dlitem` check walks. Four tests. |
+| **MED-1** a `role` prop destroys the term/definition association and nothing observes it | fixed, BOTH halves | `role` is refused on the term and the detail, because the reviewer's point is precisely that nothing structural can see it: `role="presentation"` leaves the DOM reading `DT,DD`, so `groupsOf` AND the consuming product's own `["DT","DD"]` assertion both still pass. It is NOT refused on the list (the consuming product puts `aria-live` there) or the item. And the second half: **`expectRoles` is DELETED from the stories rather than kept.** It could not fail - jsdom derives the roles from the tag name and `groupsOf` has already pinned the tags - and with `role` now refused it cannot fail even in principle. The stories' docblock says which half it buys and points at the structure file for the reads that work. |
+| **MED-2** `asChild` refused on two of four parts while the docblock, decision 2 and a describe name all said four | fixed | `refuseAsChild` is now called from all four parts. Chosen over narrowing the three sentences because it is four lines and it matches decision 12; the reviewer noted React 19 drops the unknown prop silently, so there was not even a stray attribute to notice. Two tests, two mutations (`L1e`, `L1f`). |
+| **MED-3.1** `paints the term in a role the presets measure for contrast` never reads the term | fixed | The ink role is now DERIVED from `descriptionTermVariants({tone:"micro"})` instead of typed as `"muted"`, anchored at exactly one colour utility. `L1h` is the reviewer's own mutation (`text-muted` -> `text-primary`) re-run: the arm now reddens with `expected [ 'var(--primary)' ] to deeply equal [ 'var(--muted)' ]`, where it was GREEN. |
+| **MED-3.2** `does NOT reuse Label's micro tone` never imports `labelVariants` | fixed | It imports `labelVariants` and compares the two sets both ways. `L1i` is the reviewer's own mutation (`Label`'s micro made byte-identical) re-run: the arm now reddens with `expected [] to include 'text-muted'`, where it was GREEN. ⚠️ Writing it turned up a fact the record had not stated: the two sets differ by TWO members, not one - the colour AND the tracking, because `labelVariants.micro` still carries the literal `tracking-[0.14em]` where this family uses the named `tracking-label`. The test says so, and `Label` is a CONSUMED behaviour this batch, so it is flagged to the orchestrator rather than edited. |
+| **MED-6** the compile arm named "the list contributes nothing" is GREEN under M11 | fixed | It read the `Live` story, whose caller string is `grid grid-cols-2 gap-3`, so `cn` merged the injected `grid grid-cols-2` away. It reads `Prose` (`flex flex-col gap-4`) now, where an injected grid cannot hide. `L1j` is M11 re-run and **both** arms redden. |
+| **LOW-2** the list's mixing message names a condition the code does not test, and a component at list level bypasses the guard | fixed, and the LIMIT recorded | The message now says what was CHECKED ("this family draws the `<div>`-wrapper form … and the two forms may not be mixed in one list") rather than inferring that mixing occurred. The bypass is NOT closed and the code says why in a comment: closing it means walking component output, which decision 11 refuses for a stated reason. The reviewer's own probe P15 adds the part that matters - axe cannot see that case either - so the guard protects a rule only a validator catches. Recorded, not chased. |
+| **LOW-3** the item refuses script-supporting elements, which the content model permits | fixed | `script` and `template` are skipped in the item's walk. The reviewer's sharper point was that the message claimed an axe `definition-list` failure that does not apply to those two, since axe skips anything not exposed to a screen reader; allowing them makes the message true again. One test, one mutation (`L1g`). |
+| **LOW-4.1** the `<dt`/`<dd` count paragraph does not restate its own filter | fixed | It now names the `command grep -v '\.test\.'` filter, and the second docblock mention at `MemberRow.test.tsx:94` that the unfiltered `<dd` count includes. |
+| **LOW-4.2** "6 of the 8 terms are `text-muted`" counts `Ledger`'s, which is conditional | fixed | Measurement 3 now says 5 flat plus `Ledger`'s `accent ? "text-accent-ink" : "text-text-muted"` (`Ledger.tsx:158`), which is the muted ink in its default arm. The 6/8 conclusion stands; the shape of the sixth did not. |
+| **LOW-4.3** "the link opens at `:206`" - `{href && (` is `:206`, `<Link` is `:207` | fixed | The thepile-inputs bullet now gives `:207`. |
+| **MED-4** the six story plays are removable wholesale with the gate green | **recorded, not fixed** - the reviewer's own option (a) | It is `stories.test.tsx:59-68`'s documented hole, not a new mechanism: that file records that `play` was CALLED, not that it asserted anything, and no self-counting mechanism inside a file defends it. Giving `stories.test.tsx` a per-play assertion count is a SHARED-file reshape that every one of the sixteen families would inherit, which is out of a one-family slice's scope and is a REQUEST rather than an edit. What is true and worth saying plainly: **this family's structural coverage rests on `description-list-structure.test.tsx`, not on its plays.** The plays are the workbench and the thing a consumer copies. |
+| **MED-5** the refusal enumeration is six in the record, five in the test file, seven in the code | fixed, and the count is now **eight** | The record's list omitted the list's own bare-`dt`/`dd` mixing refusal - the one `M14` proves - and the test file's docblock said five. Both corrected, and the fixes above add two more (text at either level, `role`), so `command grep -c "throw new Error" packages/ui/src/description-list.tsx` is now **nine** throw sites for **eight** refusals by the record's own splitting convention. The thepile-inputs bullet is rewritten against the full predicate, and the reviewer's two extra clauses are in it: refusal (2) also fires on an intrinsic `<dt>`/`<dd>` inside an item, so a half-finished refactor takes the route down; and (3)/(4) are runtime conditions, safe at the product's two conditional sites only because both guards are `!== null` rather than a number - the same edge as HIGH-1. |
+| **LOW-1** the `it.each` table can be emptied and three named tests vanish | **recorded, not fixed** | Nothing in this repo counts test CASES (`stories.test.tsx`'s counters count STORIES, `registry.test.ts`'s count ITEMS), and the corpus guard that would catch it (`scripts/test-quality.test.ts`) is in the consuming repo, not here. Recorded so it is not rediscovered; a library-side corpus guard is a REQUEST, not this slice's. |
+
+<!-- prettier-ignore-end -->
+
+**Two probe results the reviewer reported as unpinned, and what I did with each.**
+It found `refuseAsChild`'s predicate unpinned in both directions (narrowing it to
+`=== true`, or dropping the `!== undefined` clause, both stay GREEN) and established
+by render that `asChild={false}` THROWS while `asChild={undefined}` renders. I left
+the predicate as it is and did not add a test for it: `asChild` is not in any part's
+props type, so TypeScript refuses all three spellings and the throw exists only for
+a JavaScript caller, for whom "present at all" is the honest reading of the mistake.
+Recorded rather than pinned, because pinning `asChild={false}` throws would be
+specifying a case no caller can reach in a typed tree. It also found `{...props}`
+spread order unpinned and a `data-slot` therefore overwritable - that is the
+package's posture across all sixteen families (`card.tsx`, `breadcrumb.tsx` and the
+rest all spread last), so it is not this slice's to change either.
+
+**One number in the record the reviewer could not reproduce, and it stands
+unverified by it**: `22 files / 405 tests` at the base `b2e24fd3`. It needs a second
+detached worktree plus an install and a build, which it judged not worth the run;
+it verified the arithmetic instead (405 + 37 = 442). I measured it myself at the top
+of this slice, before touching anything - `pnpm verify` at `b2e24fd3`,
+`Test Files 22 passed (22)` / `Tests 405 passed (405)` - and that measurement is a
+claim from one run in one worktree, not two.
+
+### Consumers, run 3
+
+After the layer-1 fixes (`consumer-scan.3.txt`, at `99f7a3c3`): **the same 16
+exported names**, byte-identical to run 2's list (`diff` of the two scans' name
+lists is empty). Everything eleven fixes added is module-private - `walkChildren`,
+`walked`, the `Walked` type, `refuseRole` and `NotInsideAPart` all live inside
+`description-list.tsx` and none is exported - which is the shape a bug-fix pass
+should have. Scan 3's file list is unchanged too. Still **0 CROSS, 0 UNOWNED**.
+
+⚠️ **One NEW cross-family edge the scan structurally cannot see, and it is the fix
+for MED-3.2 that created it**: `description-list-structure.test.tsx` now imports
+**`labelVariants`** from `label.tsx`, so a change to `Label`'s `micro` tone reddens
+an arm titled for the `DescriptionList` family. That is the coupling working as
+intended - the arm exists to notice the day decision 7's premise dies - but scan 1
+only enumerates what a diff ADDS to the exported surface, and this diff CONSUMES the
+name. It is `Form`'s LOW-7 in the same shape (that slice pinned `inputClass` the same
+way), and whoever next touches `Label` should read this line rather than hunt a
+`DescriptionList` regression. `Label` itself is untouched: `git diff --stat
+b2e24fd3...HEAD -- packages/ui/src/label.tsx` is empty.
+
+⚠️ And one REQUEST rather than an edit, found by writing that arm:
+`labelVariants.micro` carries the literal `tracking-[0.14em]` where the house has a
+`--tracking-label` token at 0.12em, which `Badge` and this family both use by name.
+`Label` is a CONSUMED behaviour this batch, so it was not changed; the test states
+the two-member difference rather than asserting a one-member one, and the
+orchestrator has it.
+
+### The audit cells this slice's three verdicts touch, for the reconciler's §6 grep
+
+All measured at the thepile base `f8385c6d` in `docs/design-audit.md`. Field 4 of a
+pipe-split row IS the "should use" column, proved against the header at `:330`
+(`route | components used now | should use | why | cost | seen at 390 | seen at 1280`).
+
+| verdict                     | command                             | cells                                                                                                                           |
+| --------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `ToggleGroup` does NOT ship | `awk -F'                            | ' '{print $4}' docs/design-audit.md \| command grep -c -w ToggleGroup` -> **6**                                                 | `:333` /backlog · `:340` /browse · `:341` /browse/games · `:368` /studios · `:376` /[username]/[shelf]/[[...view]] · `:385` /[username]/reviews/[[...view]]                                                |
+| `ScrollArea` does NOT ship  | the same with `ScrollArea` -> **6** | `:333` /backlog · `:341` /browse/games · `:343` /developers · `:386` /[username]/tier/[slug] · `:394` /home · `:401` /tiers/new |
+| `DescriptionList` SHIPS     | `awk -F'                            | ' 'NF>4 && $4 ~ /dl`-shaped family/ {print NR": "$2}'` -> **3**                                                                 | `:344` /game/[slug] · `:353` /members · `:388` /admin/reports - all three already ask for it by description ("… or a later `dl`-shaped family (DL10: no `Table` family ships …)"), so they can now name it |
+
+⚠️ **All TEN of the ToggleGroup / ScrollArea mentions are UNANNOTATED today.** Three
+of those cells DO carry a refusal note, but for a DIFFERENT family: `:343` is DL10's
+"no `Table` family ships", `:376` and `:386` are DL9's "no `Dialog` family". So no
+cell records either of this batch's two decisions yet.
+
+The house practice to copy is already in the file, measured the same way: all **6**
+`Dialog` mentions and all **6** `Table` mentions carry their refusal inline, with the
+batch that took it. That is what these ten want.
+
+⚠️ And the five `<dl>` sites whose ROUTE cells do not mention the family yet, so the
+grep for the SHIPPED family's consumers is not just the three above:
+`reckoning:201`, `ImportPreview:214`, `transparency:460`, `ScoreBlock:227`,
+`Ledger:223`. Naming the shipped family's cells and not only the refused ones is
+DL10's MED-1, where that batch grepped only the refused family and left the shipped
+one's consumers unnamed.
