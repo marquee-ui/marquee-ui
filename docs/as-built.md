@@ -5423,3 +5423,25 @@ route-contract scan (arm 2) that this record does not mention at all, and it fou
 so that arm is a no-op here; saying so is better than omitting it.
 
 ### The gate
+
+One run, at the branch head, detached with a sentinel in `$BATCH_SCRATCH/s2/` as the
+thepile streams do (this gate is 16 seconds and contends with nothing, so the shape is
+habit rather than need): `pnpm verify` **exit 0**, read from `verify.exit` and not from an
+appended echo, 23:14:51 -> 23:15:07 IST, 2026-09-20. The runner's own lines:
+`All matched files use Prettier code style!`, both packages' `typecheck: Done`,
+`✔ Building registry.`, `└ Storybook build completed successfully`, and
+`Test Files 26 passed (26)` / `Tests 504 passed (504)` - from 23 / 453 at the base
+`f5df7fb9`, whose own suite was measured green first (and only after `pnpm build`: without
+the tokens' `dist` the base is 5 files red for environmental reasons alone, which is worth
+knowing before anyone reads a base run as a finding).
+
+`git status --short` was empty before and after, so the committed `packages/ui/r` is
+exactly what `build:registry` produces at this head.
+
+⚠️ The run was RE-TAKEN after this section was written, so the gated tree IS the branch
+head rather than one docs commit behind it. That is affordable here and it is not in the
+thepile streams: sixteen seconds against twenty-five minutes.
+
+No push, no `npm publish`, no git tag, no version bump: the freeze holds, and these two
+families ride the post-freeze bump with the six already waiting - which makes it an
+EIGHT-item bump, and `0.1.2` rather than `0.1.1` (decision 13).
