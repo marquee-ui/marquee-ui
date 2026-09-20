@@ -4618,3 +4618,847 @@ The run above was re-taken AFTER this section was written, so the gated tree IS 
 
 No push, no `npm publish`, no git tag: the freeze holds. The tag `ui@0.1.1` is the publish's act and
 is Ankit's to make; thepile's `vendor/` tarball exists only until he does.
+
+## DESIGN-LIB-d-choice: the choice controls (2026-09-20)
+
+Batch DL13, stream s2, branch `s/design-lib-d-choice` from `next` @ `f5df7fb9`. Three parts, in
+the order the brief set them: DL11 layer 2's **LOW-6** first, then the two families MEASURED
+before either was built, then what shipped. Nothing was published, nothing was pushed (the
+Actions-minutes freeze), no version was bumped, and the consuming repository was read only, at
+`50f8a22c`.
+
+### LOW-6: the list's mixed-content guard, widened
+
+Recorded, not closed, by batch DL11's layer 2: `DescriptionList` refused only a bare `dt`/`dd` at
+list level, so an INTRINSIC non-item child between the groups - an `<hr />`, a `<span>` of prose -
+rendered an invalid `<dl>` in silence.
+
+**The rule is axe's own, read rather than recalled** (`axe-core@4.12.1`,
+`node_modules/.pnpm/axe-core@4.12.1/node_modules/axe-core/axe.js:25875-25905`, `onlyDlitemsEvaluate`):
+it first flattens every child that is a `DIV` with a null role into that div's OWN children, then
+pushes any remaining `nodeType === 1` child that `_isVisibleToScreenReaders` and whose tag is not
+`DT`/`DD` (or that carries an explicit role outside `['definition','term','list']`) onto `badNodes`.
+`only-dlitems` is impact `serious`, and its own pass message names the allowed set:
+`"dl element only has direct children that are allowed inside; <dt>, <dd>, or <div> elements"`.
+
+So the widening is bounded by that evaluator rather than by taste. Refused now: every intrinsic
+element at list level except `div`, `script` and `template`. `div` is the content model's other
+legal form and is the one axe flattens; `script` and `template` are the "optionally intermixed"
+script-supporting elements both forms admit, and axe skips them because neither is exposed to a
+screen reader (the same reason `DescriptionItem` already skips them). A COMPONENT child is still
+not refused, which is decision 11 unchanged: three product sites factor a group into a component.
+
+Test-first, and the red was run and read before the code moved:
+
+```
+ FAIL  |ui| packages/ui/test/description-list-structure.test.tsx > the list refuses the one child
+   it can know is wrong > refuses an intrinsic element between the groups, which axe calls only-dlitems
+AssertionError: expected [Function] to throw an error
+ ❯ packages/ui/test/description-list-structure.test.tsx:255:9
+ Test Files  1 failed (1)
+      Tests  1 failed | 34 passed (35)
+```
+
+Two tests, not one: the refusal (`<hr>`, `<span>`, `<p>`) and the BOUND stated positively - a
+hand-written `<div>` wrapper and a `<template>` at list level still render - so the widening cannot
+creep into the three shapes axe passes. The suite goes 453 -> 455.
+
+### The RadioGroup measurement, and the answer
+
+**A `RadioGroup` family SHIPS, for the two sites the audit names - and the three sites
+it does NOT name cannot take it, for a reason the platform decides rather than this
+package.** Everything below was read at the thepile base `50f8a22c`; every command is
+quoted so a later stream re-runs it rather than trusts the number.
+
+The audit's count reproduces (`awk -F'|' '{print $4}' docs/design-audit.md | command grep
+-c -w RadioGroup` -> **8**; `Checkbox` **6**). Its 8 rows are **two** components: seven
+of them name `ReportSheet.tsx:142`'s twelve guideline radios, because `ReportFlag` is
+mounted on seven routes (`git grep -n -F '<ReportFlag'` -> **7 lines**: the six route
+pages plus `ListProgress.tsx:289`), and the eighth is `/settings/profile`'s face grid.
+
+**First, what the tree actually holds**, non-test, at the base:
+
+| grep (all `| command grep -v '\.test\.'`) | result |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `git grep -n -F 'type="radio"' -- 'apps/web/src/**/*.tsx'` | **1 source line**, `ReportSheet.tsx:142`, rendered 12 times |
+| `git grep -n -E 'role="radiogroup"'` | **4 lines in 3 files**: `ReportSheet:107`, `ShelfPicker:85`, `ShelfPicker:105`, `GameActions:427` |
+| `git grep -n -E 'role="radio"'` | **3 lines**: `ShelfPicker:92`, `ShelfPicker:116`, `ShelfSlot:30` - all on `<button>` |
+| `git grep -n -E 'getByRole\("(radio)"' -- 'e2e/**'` | **~55 lines in 20 spec files**, and **every one of them resolves a ShelfPicker/ShelfSlot BUTTON** |
+
+⚠️ **That last row is the finding the audit's column cannot show.** The product has TWO
+single-choice families: one built from native radios (one source line, twelve elements,
+zero e2e instruments) and one built from `button[role="radio"][aria-checked]` (three
+source lines, three groups, essentially the whole e2e suite). The audit names only the
+first. So the invariant was enumerated mechanically rather than site by site, which is
+what turned up rows 3-5 below.
+
+**Second, what the platform does, measured rather than recalled** (`$BATCH_SCRATCH/s2/probe/`,
+jsdom 30.0.1 + `@testing-library/user-event`, the probe files removed after the run):
+
+| P   | question                                                    | measured                                                                                                                                             |
+| --- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P1  | do two radios sharing a `name` exclude each other in jsdom? | yes; `FormData` reads back the checked one's `value`                                                                                                 |
+| P2  | is a radio group ONE tab stop?                              | yes - `user.tab()` went `before -> input[value=a] (the CHECKED one) -> after`, skipping the other two, while their `tabIndex` property still reads 0 |
+| P3  | do the arrow keys move the selection?                       | yes - `{ArrowDown}` on the checked radio left `{a:false, b:true}` and focus on `b`                                                                   |
+| P4  | does clicking an ALREADY-CHECKED radio fire `change`?       | **no** (0 events). The same click on an already-checked CHECKBOX fires **1**                                                                         |
+
+P2 and P3 are why this family needs no roving-tabindex code and no key handler: the two
+behaviours Radix's `RadioGroup` implements in React arrive from the shared `name`, and
+they are ASSERTABLE here, which the Switch's geometry never was. **P4 is the blocker for
+three sites**, below.
+
+**Third, what axe says about the group's shape** (`axe-core@4.12.1`, run under jsdom over
+four hand-built shapes plus two controls, `$BATCH_SCRATCH/s2/probe/probe2.mjs`):
+
+- `ul[role="radiogroup"] > li > (a + label > input[type=radio])` - the report sheet's own
+  shape - **no violation**; `label`, `aria-allowed-role`, `aria-allowed-attr`,
+  `aria-required-attr` and `nested-interactive` all PASS.
+- the same with a `div` root and `div` rows - identical result.
+- `fieldset > legend + label > input` - no violation (and no ARIA rule applies at all).
+- a label holding a visually-hidden radio and an `<img alt="Use the bear face">` - no
+  violation; the name comes off the `alt`. **Control**: the same with `alt=""` fires
+  `label`, impact **critical**, so the harness can fail.
+- ⚠️ **`aria-required-children` never runs on a radiogroup**, including on the negative
+  control `div[role="radiogroup"]` holding two plain `<button>`s, where it came back
+  `inapplicable` rather than `passes`. The reason is in the source: the rule's matcher is
+  `ariaRequiredChildrenMatches` (`axe.js:28338`), which returns `!!requiredOwned(role)`,
+  and `requiredOwned` (`:23449`) reads `standards.ariaRoles[role].requiredOwned` from the
+  table at `:14353` - where `radiogroup` (`:14706`) declares `type`, `allowedAttrs`,
+  `superclassRole` and `accessibleNameRequired: false`, and **no `requiredOwned` at all**.
+  So "axe is happy" is not evidence that a radiogroup owns radios, in either direction.
+- ⚠️ and the same table says **`accessibleNameRequired: false`** for radiogroup, which is
+  why this family's name refusal (decision 3) is deliberately STRICTER than axe.
+
+Row by row, one row per SITE:
+
+| site                                                                             | what it actually is                                                                                                                                                                                                                                                            | wants the part?                                                                                                                                                                         |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ReportSheet.tsx:104-155` (**7 of the 8 audit rows**, 7 routes)                  | `ul[role="radiogroup"][aria-label]` of twelve `li > (Link + label[htmlFor] > input[type=radio][name=groupId] + span)`; the box is `size-4 shrink-0 accent-accent`, the selected state a `border-accent` on the LABEL from React state, both the link and the label `min-h-hit` | **Yes, exactly.** Native radios, one shared `name`, selection committed by a separate Send. The one thing it hand-writes that the part would own: the `useId` name and the group's role |
+| `FacePicker.tsx:319-352` (**the 8th row**, `/settings/profile`)                  | `ul[data-testid="face-grid"]` of eight `li > button[type=button][aria-pressed][aria-label="Use the X face"]`, no group role, no roving focus, the selected state `ring-2 ring-accent ring-offset-[3px]` on the 64px `img`, and **each tap is an immediate save**               | **Yes, structurally** - and with two costs this record names rather than hides (below). It is the site the "indicator may be ABSENT" composition exists for                             |
+| `ShelfPicker.tsx:85` the Shelf segment (**not an audit row**)                    | `div[role="radiogroup"][aria-label="Shelf"]` of four `button[role="radio"][aria-checked]`                                                                                                                                                                                      | **No.** P4: a re-tap has to be able to CLEAR, and a checked native radio fires no `change`                                                                                              |
+| `ShelfPicker.tsx:105` the Outcome pills (**not an audit row**)                   | the same, four pills, and its own comment at `:119-124` states the rule: "Re-tapping the selected one clears it, because the outcome is optional and so has to be un-sayable, and there is no other way back out of a mis-tap"                                                 | **No**, and the source says why before this measurement did                                                                                                                             |
+| `GameActions.tsx:427` + `ShelfSlot.tsx:28` the save slots (**not an audit row**) | `div[role="radiogroup"][aria-labelledby]` of four `ShelfSlot` `button[role="radio"]`; `selectShelf` (`:358-384`) sets `clearing = saved.shelf === value` and writes `null`, with a toast and an Undo, and every tap is a server mutation                                       | **No**, twice: the clear, and P3 - arrow-key traversal CHECKS as it moves, so one keypress per slot would be one mutation per slot                                                      |
+| `FacePicker.tsx:299-315` the 4-chip style strip                                  | `div[role="group"]` of `aria-pressed` buttons                                                                                                                                                                                                                                  | **Out of scope**: the audit's answer for it is `Tabs`, not this family                                                                                                                  |
+
+So **2 of 6 want the part, 3 cannot have it, 1 is another family's.** And the three that
+cannot are not a gap in this family: a set of options that can be emptied by re-tapping
+the chosen one is not a radio group in any implementation - `@radix-ui/react-radio-group`
+refuses it the same way, because it models the same platform semantics. They are toggles
+with a shared exclusivity rule, and they already say so in their own source.
+
+⚠️ **What a FacePicker consumption costs, named now so nobody discovers it later.** (1) The
+role changes from `button` to `radio` and `aria-pressed` becomes `checked`, which is 8
+assertions in `FacePicker.test.tsx` (`:78`, `:151`, `:157`, `:184`, plus `getByRole("button",
+{ name: "Use the X face" })` at `:131`, `:148`, `:184`) and one in
+`e2e/profile-edit.spec.ts:167`. (2) P3: because the arrow keys CHECK as they move, and each
+selection there is an immediate `onSave`, arrow-keying across the row of eight would write
+eight faces in turn. That is the radio pattern's own behaviour (WAI-ARIA APG), not a defect
+in this part - but it is a behaviour change at that site, and it is the consumption's call
+whether the grid becomes radios or stays buttons. **[V]**
+
+### The Checkbox measurement, and the answer
+
+**A `Checkbox` family SHIPS, and one family serves all seven sites**, because seven of
+seven are the same three lines of markup.
+
+The audit's 6 rows are **four components at seven mount points**, and the source count is
+lower than both: `git grep -n -F 'type="checkbox"' -- 'apps/web/src/**/*.tsx' | command
+grep -v '\.test\.'` prints **6 lines in 5 files**, of which one -
+`app/settings/PushSettings.tsx:261` - is the SWITCH's native host and belongs to that
+family, not this one. The remaining five lines are `LogForm.tsx:247` (inside `CheckRow`,
+mounted three times at `:692` Spoilers, `:719` Played on, `:747` Replay),
+`ListForm.tsx:97` Ranked and `:110` Private, `PlayForm.tsx:159` Replay, and
+`OnboardingForm.tsx:171` consent. **Five sources, seven rendered rows.**
+
+**The row is BYTE-IDENTICAL at all five, and that is the measurement this family stands
+on.** `git grep -n -F 'flex min-h-hit items-center justify-between gap-3 text-sm
+text-text'` prints exactly those five lines, each a `<label>`, each holding
+`<span className="flex flex-col">LABEL<span className="text-xs text-text-secondary">SUB</span></span>`
+and then the box. `OnboardingForm.tsx:150-151`'s own comment names it as a pattern:
+"The row is the house checkbox pattern (`components/lists/ListForm.tsx`): a 44px label the
+whole width of which is the target."
+
+| site                                            | what it actually is                                                                                                                                                                                                                                                                                                                                               | wants the part?                                                                                                                                                                  |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LogForm.tsx:247` `CheckRow` -> `:692` Spoilers | the house row; controlled (`checked` + `onChange`); box `h-6 w-6 accent-accent`                                                                                                                                                                                                                                                                                   | Yes                                                                                                                                                                              |
+| the same `CheckRow` -> `:719` Played on         | the same component, second mount                                                                                                                                                                                                                                                                                                                                  | Yes                                                                                                                                                                              |
+| the same `CheckRow` -> `:747` Replay            | the same component, third mount, sublabel swapped by state                                                                                                                                                                                                                                                                                                        | Yes                                                                                                                                                                              |
+| `ListForm.tsx:87-102` Ranked                    | the house row, hand-written; controlled                                                                                                                                                                                                                                                                                                                           | Yes                                                                                                                                                                              |
+| `ListForm.tsx:104-115` Private                  | the same, hand-written a second time in one file                                                                                                                                                                                                                                                                                                                  | Yes                                                                                                                                                                              |
+| `PlayForm.tsx:153-164` Replay                   | the same, hand-written a third time in a third file                                                                                                                                                                                                                                                                                                               | Yes                                                                                                                                                                              |
+| `OnboardingForm.tsx:153-188` consent            | the house row, and the box is the HOUSE box: `peer h-6 w-6 appearance-none rounded-sm border-2 border-line-strong bg-surface checked:border-accent checked:bg-accent` with a SIBLING `<svg data-testid="consent-tick">` at `stroke-on-accent opacity-0 peer-checked:opacity-100`, in a `span.relative.grid.place-items-center`; uncontrolled, no `defaultChecked` | **Yes, and it is the DERIVATION**: MOBILE-3 item 2 replaced the browser's box here deliberately, and its comment says why the tick is a sibling element and never `input::after` |
+
+So the drawing has a direction rather than a majority: six rows draw the browser's box
+themed with `accent-color`, one draws the house box, and the one is the NEWEST and was a
+deliberate design fix whose comment calls the browser box the defect. The family draws the
+house box, and a consumption changes the other six visibly (recorded under "thepile inputs").
+
+**Does `Form`'s field family already compose this row? No, and the reason is structural
+rather than stylistic.** Read at this package's own `form.tsx`: `FormItem` renders a
+`<div className="flex flex-col gap-1 text-sm">`, `FormLabel` writes `htmlFor={controlId}`
+unconditionally, and `FormItem` throws unless it holds exactly one `FormControl`. The
+checkbox row is a `<label>` that WRAPS its control, is a ROW rather than a stack, and
+distributes with `justify-between`. Putting it in a `FormItem` would mean the label stops
+wrapping the input - and the wrapping is the whole point, because it is what makes the
+44px row the tap target rather than the 24px box. So this family owns the row, exactly as
+`Switch` owns its own row, and `Form` stays the family for a stacked label-over-control
+field. Nothing composes them today and nothing needs to.
+
+### What shipped
+
+| file                                                          | what                                                                                                                                                                                       |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `packages/ui/src/checkbox.tsx`                                | four parts - `Checkbox`, `CheckboxInput`, `CheckboxBox`, `CheckboxIndicator`. No `cva`, no `asChild`, no context, no dependency at all (7,269 B installed)                                 |
+| `packages/ui/src/radio-group.tsx`                             | five parts - `RadioGroup`, `RadioGroupItem`, `RadioGroupInput`, `RadioGroupCircle`, `RadioGroupIndicator`. One context (the shared `name`), `asChild` on the group only (9,722 B)          |
+| `packages/ui/stories/checkbox.stories.tsx`                    | 7 stories, 5 with a `play`                                                                                                                                                                 |
+| `packages/ui/stories/radio-group.stories.tsx`                 | 7 stories, 6 with a `play` - including the two the platform gives free: one tab stop per group, and the arrow keys moving the checked radio                                                |
+| `packages/ui/test/choice-structure.test.tsx`                  | 17 tests after layer 1: the refusals, the generated group name, the empty-name and role refusals, and the mark that REPLACES rather than joins                                             |
+| `packages/ui/test/choice-drawing.test.tsx`                    | 11 tests after layer 1: the geometry in resolved pixels, the overlay's COVERING, the selectors the triggers produce, and the cascade                                                       |
+| `packages/ui/test/helpers/compiled-sheet.ts`                  | the compiled-stylesheet instrument as a MODULE rather than a third hand-copy (decision 12)                                                                                                 |
+| `packages/ui/test/entry-point.test.ts`                        | layer 1's HIGH-2, closed for all eighteen families: the package's `exports["."]` barrel read against the part files on disk                                                                |
+| `registry.json` + `packages/ui/r/{checkbox,radio-group}.json` | two items, targets `components/ui/checkbox.tsx` and `components/ui/radio-group.tsx`; one npm dep between them (`@radix-ui/react-slot`, already here)                                       |
+| `packages/ui/src/description-list.tsx`                        | LOW-6's widened guard and its docblock, and nothing else                                                                                                                                   |
+| the declared lists                                            | both lists in `packages/tokens/test/helpers/source-files.ts`, `story-suites.ts`, `stories.test.tsx`'s two counts and its suite length, `registry.test.ts`'s item list and its two counters |
+| the stated count                                              | `AGENTS.md`, `README.md`, `packages/ui/package.json` and `fidelity.test.tsx`'s docblock say eighteen part families                                                                         |
+
+`pnpm test` goes from **23 files / 453 tests** at the base `f5df7fb9` (measured green
+first, and only after `pnpm build` - without the tokens' `dist` the base is 5 files red,
+which is the environment and not the tree) to **25 / 494** at the reviewed head, and to
+**26 / 504** after the layer-1 fixes. Each part measured by running the file alone:
+**+4** in `description-list-structure.test.tsx` (2 for LOW-6, 2 more at layer 1), **+16**
+in `stories.test.tsx` (14 story renders plus the two new suites' `has stories`), **+11**
+in the new `choice-drawing.test.tsx`, **+17** in the new `choice-structure.test.tsx` and
+**+3** in the new `entry-point.test.ts`.
+
+`fidelity.test.tsx:685`'s `toHaveLength(14)` and `:326`'s `toBe(20)` are deliberately NOT
+moved: those are the slots and the strings LIFTED out of the consuming product, and a
+derived family is not fidelity-asserted (`Alert`'s closure, `Form`'s, `DescriptionList`'s).
+Its docblock's "Eight of the eighteen" IS moved, because that is a live ratio.
+
+### Measurements, and what they corrected
+
+The two family tables above are the measurement. What follows is what the WORK
+corrected, in the order it was found.
+
+**1. The brief's counter list reproduces except in one place, and the exception is the
+same one DL11 recorded.** `registry.json` holds **17** items at the base, not "seventeen
+items in eighteen files" read as one number: 17 items, 18 files (`utils` ships two), which
+is `registry.test.ts:215`'s `compared`. After this slice: **19 items, 20 files, 19 registry
+dependencies**. `DECLARED_PLAYS` 54 -> **65**, `DECLARED_STORIES` 80 -> **94**,
+`storySuiteNames()` 16 -> **18**.
+
+**2. A bare `group` cannot appear in a story, and it cost the first draft of one.**
+`TwoInAGroup` wrapped two rows in a `.group` box to show that the named trigger does not
+leak - and `tailwind-compile.test.tsx`'s `compiles every one of them` went red with
+`["group"]`: a marker class emits no rule, so the guard that every rendered class exists in
+the sheet is exactly right to refuse it. The story is `TwoRows` now and says so, and the
+scoping is asserted where it can be SEEN - on the selector, `.group\/checkbox` (M16).
+
+**3. jsdom drops a `border-color` whose value is an unresolved `var()`, and it nearly
+bought a vacuous assertion.** Measured while writing the NoDrawing arm: with the compiled
+sheet in the document, `border-top-color` reads `rgb(255, 255, 255)` on BOTH the checked
+and the unchecked tile, because `border-primary` emits the `border-color` SHORTHAND.
+`background-color` and Tailwind's own `--tw-ring-color` are longhand/custom properties and
+survive. So that arm reads the ring's custom property, and the `.not.toBe` between the two
+tiles is what would have caught it either way. The Switch's file already only ever read
+`background-color` and `--tw-translate-x`; now the reason is written down.
+
+**4. A read resolved by POSITION measured the wrong row, and the test said the part was
+broken.** The radio cascade arm took `container.querySelector('[data-slot="radio-group-circle"]')`
+and the `Chosen` story checks its SECOND option, so the read was of an unchecked circle
+and the red claimed the fill never arrives. It resolves by identity now
+(`container.querySelector("input:checked")`, then that row's drawing), which is the
+repository's own rule in the one place a radio group makes it easy to break.
+
+**5. What jsdom CAN observe about a radio group, which decided what the plays assert.**
+P1-P4 in the RadioGroup measurement above. Two of them are the reason this family needs no
+code: `user.tab()` enters a three-radio group at the checked radio and leaves after ONE
+stop, and `{ArrowDown}` moves the checked radio. Both are asserted in the `Keyboard`
+story's play - unlike the Switch's 20px of travel, which jsdom cannot see at all.
+
+**6. The packed tarball is 78,083 B, and it is NOT the `0.1.1` thepile vendors.** The
+version line stays `0.1.1` per the brief, so `next` now carries an unreleased tree whose
+version string equals a published-and-vendored one. Nothing in this repository can notice
+that; the consuming repo's `vendor/` tarball is fixed bytes and its drift test pins the
+CONSUMED set, so nothing is broken today. It is recorded as decision 13 because the next
+person to pack from `next` gets different bytes under the same number.
+
+### Guards, each proved by running its reddening mutation
+
+**26 mutation runs**, one per guard, all against the COMMITTED head `b2e2fb1c` in a
+DETACHED worktree (`../mutate-choice`), never in the working tree. Each was asserted to
+have LANDED before the run was read (the new text present AND the old text gone, or the
+runner refuses to read it), each reverted with `git checkout -- .` with `git status
+--short` asserted empty before and after. Runner `$BATCH_SCRATCH/s2/mutate.py`, input
+`mutations.json`, logs in `$BATCH_SCRATCH/s2/mutations/`. A red counts only when the
+output contains a `Test Files` line - i.e. that a run happened at all (DL10's correction,
+carried forward).
+
+⚠️ Read one thing into every SOURCE row: it ALSO reddens `carries the CURRENT bytes of
+every source it ships`, because `packages/ui/r` is not rebuilt inside the mutation. That
+is the registry guard doing its job; the tables below list the reds that NAME the mutated
+property.
+
+<!-- prettier-ignore-start -->
+
+| # | guard | mutation | landed in | the red it produced |
+| --- | --- | --- | --- | --- |
+| M01 | LOW-6: the list refuses every other intrinsic element | the new `if` made unreachable | `description-list.tsx` | `refuses an intrinsic element between the groups, which axe calls only-dlitems` (2 failed / 494) |
+| M02 | LOW-6's BOUND: a `div` wrapper stays legal | `"div"` removed from `LIST_LEVEL_INTRINSICS` | `description-list.tsx` | `leaves the OTHER legal shapes alone: a div wrapper, and the script-supporting pair` |
+| M03 | `Checkbox` refuses `asChild` | `refuseAsChild`'s test made unreachable | `checkbox.tsx` | `Checkbox refuses it, naming the element and the reason` |
+| M04 | `RadioGroupItem` refuses `asChild` | the same, in the other file | `radio-group.tsx` | `RadioGroupItem refuses it too` |
+| M05 | the group refuses to render unnamed | the name check made unreachable | `radio-group.tsx` | `refuses to render without one, which is stricter than axe on purpose` |
+| M06 | the name may sit on an `asChild` CHILD | `if (!asChild) return false` -> `return false` | `radio-group.tsx` | FIVE, incl. `takes it from aria-label, from aria-labelledby, or from an asChild child`, `but the GROUP takes it…`, the `AsAList` play and the play counter (5 failed / 484) |
+| M07 | each group generates its OWN name | `name ?? generated` -> `name ?? "radio"` | `radio-group.tsx` | `gives TWO groups on one page two different names, which is what keeps them apart` |
+| M08 | the input refuses a `name` of its own | the check made unreachable | `radio-group.tsx` | `refuses a name on the INPUT, which would split one group in two` |
+| M09 | a radio outside its group throws | the context check made unreachable | `radio-group.tsx` | `throws outside a group rather than rendering an ungrouped radio` |
+| M10 | a caller's mark REPLACES the house tick | `{children ?? <path/>}` -> both rendered | `checkbox.tsx` | THREE: `draws the house tick, and only the caller's mark when there is one`, the `CustomMark` play and the play counter |
+| M11 | the part IS a native checkbox | `type="checkbox"` -> `type="text"` | `checkbox.tsx` | NINE, incl. all five checkbox plays by their own names (`checkbox/Default`, `/Disabled`, `/InAForm`, `/CustomMark`, `/TwoRows`) - the cheap check that the plays observe the ELEMENT and not a class (9 failed / 485) |
+| M12 | the tap floor is on the INPUT | `min-h-hit` dropped from the overlay | `checkbox.tsx` | THREE: `measures every one of them at or above the floor` (the package's own floor guard), `puts the tap floor on the INPUT, which is why the box may be 24px`, and `gives both families the SAME overlay input` |
+| M13 | the drawn box is 24px | `size-6` -> `size-5` | `checkbox.tsx` | TWO, incl. `puts the tap floor on the INPUT…` |
+| M14 | one control in two shapes: the RADIUS is the only difference | `rounded-sm` -> `rounded-full` on the box | `checkbox.tsx` | `draws one control in two shapes: the same box, at a different radius` |
+| M15 | the mark follows `:checked`, not hover | `group-has-checked/checkbox:` -> `group-hover/checkbox:` | `checkbox.tsx` | TWO: `leaves the checkbox's mark unpainted…` and `reaches the drawing through a :checked descendant of the row` |
+| M16 | the trigger is scoped to its OWN named group | `group-has-checked/checkbox:` -> the UNNAMED `group-has-checked:` | `checkbox.tsx` | THREE, incl. `reaches the drawing through a :checked descendant of the row, in both families` - the only place the scoping can be seen |
+| M17 | the mark's ink is the one the fill guarantees | `stroke-primary-foreground` -> `stroke-primary` | `checkbox.tsx` | `paints the mark in the ink the fill guarantees` |
+| M18 | the dot's ink, likewise | `bg-primary-foreground` -> `bg-primary` | `radio-group.tsx` | the same arm, from the other family |
+| M19 | the focus ring is on the ROW, for a DESCENDANT | `has-focus-visible:` -> `focus-visible:` | `radio-group.tsx` | `puts the focus ring and the disabled dimming on the ROW, not on the box` |
+| M20 | the dot is unpainted while the radio is off | `opacity-0` dropped | `radio-group.tsx` | `does the same for the radio, from the same trigger` |
+| M21 | both families share ONE overlay string | `inset-0` -> `inset-1` in one of them | `radio-group.tsx` | `gives both families the SAME overlay input, by declaration and not by name` |
+| M22 | a caller's own drawing is lit by the row's group | the `NoDrawing` tile's ring classes deleted | `radio-group.stories.tsx` | `lights a CALLER's own drawing when the item composes no circle at all` |
+| M23 | a source cannot leave the declared walk | `packages/ui/src/checkbox.tsx` deleted from `PUBLISHED_SOURCE_FILES` | `source-files.ts` | THREE in the tokens' published-source coverage, incl. `walks exactly the published set, by path` |
+| M24 | a part cannot leave the shared suites map | `checkbox` deleted from `STORY_SUITES` | `story-suites.ts` | TWO: `covers all eighteen part families…` and the play counter |
+| M25 | the registry's item list is exact | `"radio-group"` deleted from the list | `registry.test.ts` | `declares the eighteen part families plus the one shared lib` |
+| M26 | a story cannot stop being one | `export const Keyboard` -> `const Keyboard` | `radio-group.stories.tsx` | TWO: the story counter and the play counter |
+
+<!-- prettier-ignore-end -->
+
+**26 red, 0 GREEN, 0 no-run.** Three of them are worth more than a row. M11 is the check
+that the plays observe the ELEMENT rather than a class: turning the input into a text
+field reddens every one of the five checkbox plays by name. M16 is the only instrument in
+either repository that can see the difference between `group-has-checked/checkbox:` and
+`group-has-checked:` - the named and unnamed forms render identically and differ only in
+which boxes some OTHER `.group` can light up. And M02 exists because a widened guard needs
+its BOUND proved as well as its reach: without that row, "refuses every intrinsic element"
+could have quietly grown to refuse the `div` the content model is built out of.
+
+### The pipeline, end to end
+
+`pnpm pack` in both packages (`prepack` is `pnpm -w build:registry && git diff
+--exit-code -- r`, so packing at all is the evidence that `r/` is committed and current)
+-> `marquee-ui-ui-0.1.1.tgz` **78,083 B** (65,759 at `DescriptionList`'s 0.1.0) and
+`marquee-ui-tokens-0.1.0.tgz` 99,608 B, unchanged -> `npm install` of both into a bare
+project (`package.json`, a `tsconfig.json` whose `@/*` is `./src/*`, an `app.css`, and a
+`components.json` whose `registries` map points at `./node_modules/@marquee-ui/ui/r/{name}.json`
+and whose `aliases.utils` is `@/lib/utils`, which DL11 measured to be the load-bearing
+spelling) -> `shadcn add` of both items in one command:
+
+```
+✔ Created 3 files:
+  - src/lib/utils.ts
+  - src/components/ui/checkbox.tsx
+  - src/components/ui/radio-group.tsx
+```
+
+```
+checkbox: installed bytes 7269, target components/ui/checkbox.tsx
+  installed === r/checkbox.json content === packages/ui/src/checkbox.tsx: True
+                                                    sha256 0ebbc670d93a (all three)
+radio-group: installed bytes 9722, target components/ui/radio-group.tsx
+  installed === r/radio-group.json content === packages/ui/src/radio-group.tsx: True
+                                                    sha256 edba63243613 (all three)
+utils: installed bytes 1649, target lib/utils.ts   sha256 78a6fb4e43d8 (all three)
+packed r/registry.json === repo registry.json: True  (19 items)
+npm deps that landed: @radix-ui/react-slot@^1.3.3, clsx@^2.1.1, tailwind-merge@^3.7.0
+```
+
+Three files, not four: `checkbox` declares no npm dependency at all (it is the second
+family after `Card` with none), and `radio-group` asks only for the `Slot` that `asChild`
+on the group needs.
+
+Then the INSTALLED copies compiled in the bare project's own Tailwind 4 against the
+published `@marquee-ui/tokens/tokens.css`, `@source "./src/components"`:
+
+```
+min-h-hit                              min-height: var(--hit-min)          --hit-min          44px
+size-6                                 width/height: calc(var(--spacing) * 6)
+rounded-sm                             border-radius: var(--radius-sm)     --radius-sm        6px
+rounded-full                           border-radius: var(--radius-full)
+border-border-strong                   border-color: var(--border-strong)  --border-strong    var(--mq-olive-800)
+bg-surface                             background-color: var(--surface)    --surface          var(--mq-olive-925)
+stroke-primary-foreground              stroke: var(--primary-foreground)   --primary-foreground var(--mq-olive-950)
+bg-primary-foreground                  background-color: var(--primary-foreground)
+group-has-checked/checkbox:bg-primary  background-color: var(--primary)    --primary          var(--mq-lime-500)
+group-has-checked/radio:opacity-100    opacity: 100%
+has-focus-visible:shadow-focus-ring    --tw-shadow: var(--shadow-focus-ring)
+has-disabled:opacity-50                opacity: 50%
+text-not-a-role                        (ABSENT)
+border-4                               (ABSENT)
+```
+
+Every utility resolves to the ROLE's own variable in the consumer rather than to a copy of
+its value, both named state triggers compile under their own group names, and the two
+negative controls are absent.
+
+⚠️ One number to carry: `--radius-sm` is **6px** in this preset, not Tailwind's default
+`0.125rem`. `choice-drawing.test.tsx` asserts the square's corner through `lengthPx`
+rather than by spelling a value, which is why it did not have to know that - and the first
+draft, which DID spell `"0.125rem"`, was red the moment it ran.
+
+### Decisions
+
+1. **Both families ship, and the audit's eight `RadioGroup` rows are TWO sites.** [V]
+   Seven of the eight are one component mounted on seven routes. The two that want the
+   part are the report sheet (twelve native radios) and the face grid; the rest of the
+   product's single-choice controls are decision 2.
+2. **Three sites are refused, and the platform decides it rather than this package.** [V]
+   `ShelfPicker`'s two groups and `GameActions`' save slots are `button[role="radio"]`
+   sets whose re-tap CLEARS the choice, and P4 measured that a click on an already-checked
+   native radio fires no `change` event at all. `@radix-ui/react-radio-group` would refuse
+   them for the same reason, because it models the same semantics. They are not a gap in
+   this family and they are not this slice's to change.
+3. **The input is an invisible 44px overlay on the row, and the drawing is a separate
+   element.** [V] `Switch`'s decision 4, applied twice. The alternative - the input drawn
+   as the box, which is what the product does - is a 24px control, and this package's own
+   floor guard renders every story and measures every `input`, so the overlay is the only
+   shape in which the floor is a fact rather than a hope about label click-forwarding.
+4. **So the radio circle is DRAWN, although the product has no drawn radio anywhere.** [V]
+   This is the one place the derivation ran out, and it is a consequence of decision 3
+   rather than a preference: an invisible input cannot also be the browser's circle. The
+   drawing is taken from the one house control the product does draw - `OnboardingForm`'s
+   checkbox box - so the consumption of `ReportSheet` replaces twelve browser circles with
+   twelve house ones. That sheet is closed in every shot, so nothing filmed moves.
+5. **The circle IS the box, at a different radius, and that is an assertion.** [V]
+   `choice-drawing.test.tsx` strips the `border-radius` declaration from both class lists
+   and requires the remainder to be EQUAL. A house that draws its two choice controls
+   differently by accident reddens; a house that changes both together does not.
+6. **No `cva` in either family.** [V] `cva` is for visual axes, state is never one, and
+   neither family has an axis with a second value. The composition a `variant` would have
+   been - an option with no drawing at all - is made by composing no `RadioGroupCircle`,
+   which is AGENTS.md rule 1 exactly.
+7. **No `asChild` on either ROW, and `asChild` on the GROUP.** [V] The row must be a
+   `<label>` wrapping its input: that is what names the control with no `id` to keep in
+   sync and what makes the whole 44px row the target, so `asChild` there is refused with a
+   message rather than dropped silently (React 19 drops an unknown prop without a trace).
+   The group has no such constraint and two real sites draw their options as a `<ul>` with
+   tests that resolve the `<li>`s, so it takes a `Slot`.
+8. **The group owns the shared `name`, generated with `useId` when the caller has none.**
+   [V] This is the reason `RadioGroup` is a part at all rather than a `div` with a role: a
+   radio with no shared name is not in a group, and twelve of them are twelve independent
+   controls that can all be checked at once. `RadioGroupInput` refuses a `name` of its own
+   (`FormControl`'s precedent) and throws outside a group.
+9. **The group refuses to render without an accessible name, deliberately stricter than
+   axe.** [V] `axe-core@4.12.1` has `accessibleNameRequired: false` for the role and does
+   not run `aria-required-children` on it at all, so no automated check in either
+   repository would catch an unnamed radiogroup. All four in the consuming product name
+   themselves; this makes the fifth impossible to forget. The refusal reads the caller's
+   props AND, under `asChild`, the child's - which is the arm M06 proves.
+10. **The house box, not the browser's, at all seven checkbox sites.** [V] Six of the
+    seven draw `accent-color` on the UA box today and one draws the house box; the one is
+    the newest and MOBILE-3's own comment calls the browser box the defect it fixed. So
+    the direction is the derivation, and a consumption changes six rows visibly. There is
+    no `native` variant: an axis whose second value is the thing the house decided against
+    is a defect with a prop attached.
+11. **The INPUT throws outside its row in both families; the DRAWING parts do not.** [V]
+    ⚠️ Rewritten at layer 1 (LOW-2), because the first version drew the line between the
+    two families and the line is not there. An orphan `CheckboxBox` or `SwitchTrack` is
+    visible on the first click - it never lights up, in the story, in the workbench, in
+    review - so it is left alone, which is `Switch`'s posture. An orphan `CheckboxInput`
+    is the other kind, and it is the kind `Form` and `DescriptionList` throw for: an
+    `absolute inset-0 opacity-0` control with no accessible name, absorbing taps over
+    whichever ancestor happens to be positioned. Both inputs throw now;
+    `RadioGroupInput`'s also carries the group's `name`, which is a second reason.
+12. **The compiled-sheet instrument became a MODULE, and the other two copies are a
+    REQUEST rather than an edit.** `switch-drawing.test.tsx` and
+    `tailwind-compile.test.tsx` each carry their own copy of the same forty lines; a third
+    would be the defect this package already paid for once (the story-suites map, layer 1
+    of the Switch, MED-2). This slice's fence names the test files it may write and those
+    two are not among them, so the new file uses the module and the other two are left
+    exactly as they are. **REQUEST to the orchestrator: one later stream moves both onto
+    `test/helpers/compiled-sheet.ts`**, which is a mechanical extraction that the Switch's
+    fourteen assertions prove. ⚠️ One thing that stream must not re-derive (layer 1,
+    LOW-3): `tailwind-compile.test.tsx`'s copy resolves BOTH `calc()` operand orders where
+    the first edition of the module resolved one. The module resolves both now and the
+    anchor test reads both back, so the move cannot silently narrow it.
+13. **No version bump, and the packed `0.1.1` is NOT the `0.1.1` thepile vendors.** [V]
+    The version line is untouched per the brief; this pack is 78,083 B against the vendored
+    tarball's fixed bytes. Nothing breaks today - the consuming repo pins a tarball and its
+    drift test pins the CONSUMED set - but `next` now holds an unreleased tree whose version
+    string is already published, so the next bump should go straight to `0.1.2` and carry
+    both of these with the six already waiting.
+14. **The stated count moved where the package DESCRIBES itself** (`AGENTS.md`,
+    `README.md`, `packages/ui/package.json`, and `fidelity.test.tsx`'s ratio) and NOT in
+    `fidelity.test.tsx`'s two assertions, which count the slots and the strings LIFTED out
+    of the product. A derived family does not move them: `Alert`'s closure, `Form`'s and
+    `DescriptionList`'s, all three standing.
+
+### thepile inputs
+
+What the consumption half needs when these two publish (decision 13: with the next bump,
+`0.1.2`). Nothing here was done - the consuming repo was READ ONLY, at `50f8a22c` - and
+every bullet was checked against that tree with `git show` / `git grep` before it was
+written, with the command beside any count.
+
+**Both families, once.** `checkbox` and `radio-group` go into `CONSUMED` in
+`scripts/marquee-drift.test.ts`, and the two files arrive by `shadcn add`. ⚠️ That test
+pins BOTH lists exactly: at `50f8a22c` `CONSUMED` is
+`["button", "input", "label", "sheet", "toast", "ribbon"]` (`:56`) and the arm at `:107`
+asserts the complement is exactly `["accordion", "alert", "badge", "breadcrumb", "card",
+"description-list", "form", "pagination", "separator", "switch", "utils"]` - eleven names,
+which is the vendored `0.1.1`'s seventeen items minus the six consumed. So the moment a
+bump carries these two, that arm is red until both lists move, and the bump and the list
+edits are ONE commit. ⚠️ `shadcn add` also writes `lib/utils.ts`, and thepile's copy is a
+DECLARED EXCLUSION whose `cn` is a plain join on purpose, so `git checkout --
+apps/web/src/lib/utils.ts` after the add.
+
+⚠️ **And the plain join is the trap that bit the Switch, in the same place.** The part's
+row is `inline-flex`; every one of the seven product rows is `flex ... justify-between`.
+thepile's `cn` does not merge, so both land and the stylesheet's later rule (`inline-flex`)
+wins - which shrinks the label to fit and leaves `justify-between` nothing to distribute.
+**Every consuming row passes `w-full`** (DL7 layer 2, MED-3, proved on the Switch).
+
+**Checkbox, site by site.** All seven keep their own row classes through `className`;
+`min-h-hit`, the named group, the focus ring and the disabled treatment come from the part
+and should be deleted from the row's own string.
+
+- `components/log/LogForm.tsx:241-253` (`CheckRow`, three mounts at `:692`, `:719`, `:747`):
+  the `<label>` becomes `<Checkbox className="w-full justify-between text-sm text-text">`,
+  the `<input>` becomes `<CheckboxInput checked={checked} onChange={…} />`, and
+  `<CheckboxBox><CheckboxIndicator/></CheckboxBox>` replaces the bare box. One edit, three
+  rows.
+- `components/lists/ListForm.tsx:87-102` and `:104-115`: the same, twice, hand-written.
+- `components/play/PlayForm.tsx:153-164`: the same, a third file.
+- `app/onboarding/OnboardingForm.tsx:153-188`: the same, and it LOSES the most code - the
+  `span.relative.grid.place-items-center`, the hand-drawn `appearance-none` box and the
+  sibling svg are all the part now. ⚠️ **Keep `data-testid="consent-tick"` on
+  `<CheckboxIndicator>`**: it spreads props, and `e2e/mobile-390.spec.ts` resolves the tick
+  by that id (`git grep -l consent-tick` -> `OnboardingForm.tsx`, `e2e/mobile-390.spec.ts`).
+  ⚠️ And the input stays UNCONTROLLED with no `defaultChecked`: the file's own comment says
+  opt-in means the ABSENCE of a tick is the answer, and the action reads `=== "on"`.
+- **The instruments that must stay green**, all read at the base:
+  `components/lists/ListForm.test.tsx` (`getByRole("checkbox", { name: /ranked|private/i })`
+  at `:18`, `:19`, `:29`, `:50`, `:51`, and `getAllByRole("checkbox")` at `:81`),
+  `components/log/LogModal.test.tsx` (`:105` `played on`, `:247`/`:323` `replay`),
+  `e2e/lists.spec.ts:117,203`, `e2e/mobile-390.spec.ts:2141,2217`,
+  `e2e/log-modal.spec.ts` (nine `getByRole("checkbox", …)` lines), `e2e/first-run.spec.ts:66`.
+  **Every one of them resolves by ROLE and accessible name, and both survive**: the part is
+  a native checkbox in a wrapping label, which is what those queries read.
+  ⚠️ `apps/web/src/app/settings/PushSettings.test.tsx:111` also says
+  `getByRole("checkbox")` and is NOT this family's - it is the Switch's native host.
+- ⚠️ **Six of the seven rows change visibly**: they draw the browser's box themed with
+  `accent-color` today and will draw the house box (decision 10). Of the seven, exactly
+  ONE is filmed: `onboarding` (a screen in `e2e/shots/manifest.ts`), and that is the row
+  that already draws the house box, so it should be near-zero-diff. The other six live
+  inside sheets - `LogForm` in the log modal, `ListForm` in the list sheet, `PlayForm` in
+  the play sheet - which no shot opens. **A consumption owes a prediction and a capture
+  anyway**, because "no shot opens it" is a claim about the manifest at one sha.
+
+**RadioGroup, site by site.**
+
+- `components/reports/ReportSheet.tsx:104-155`: `<ul role="radiogroup" aria-label=…>`
+  becomes `<RadioGroup asChild aria-label="Which rule does it break?">` around the same
+  `<ul>`, so the `<li>`s and the deep-link `<Link>` beside each label are untouched; each
+  `<label htmlFor>` becomes `<RadioGroupItem className="w-full flex-1 …">`, each `<input>`
+  becomes `<RadioGroupInput value={guideline.value} checked={selected} onChange={…} />`,
+  and the drawing becomes `<RadioGroupCircle><RadioGroupIndicator/></RadioGroupCircle>`.
+  **`useId` and `name={groupId}` and every `id`/`htmlFor` pair GO**: the group owns the
+  name and the label wraps its input.
+  ⚠️ **The selected ROW's border can stop being React state**: `:130-139` draws
+  `border-accent` from `chosen === guideline.value`, and `has-checked:border-primary` on
+  the item draws the same thing from the platform. The `chosen` state is still needed for
+  the Send button's `disabled`, so this is a simplification of the ROW and not of the
+  component. Keep the file's own comment about a border-and-ink treatment rather than an
+  accent FILL - that decision is thepile's and this family does not touch the row's colours.
+  ⚠️ Keep `data-testid="report-sheet"` and `"report-send"`: `ReportFlag.test.tsx`,
+  `e2e/reports.spec.ts`, `e2e/admin.spec.ts` and `e2e/tags.spec.ts` all resolve them.
+  **Instruments**: `ReportFlag.test.tsx:148-159` is the one that names this family
+  (`getByRole("radiogroup")`, `getAllByRole("radio")` with `toHaveLength(GUIDELINES.length)`,
+  and `getByLabelText(guideline.heading)` per rule) plus `:169-173`; `e2e/reports.spec.ts`
+  resolves every rule by `getByLabel("…")` (`:108`, `:119`, `:164`, `:201`). All of them
+  survive: the label still wraps the input, so `getByLabelText` still finds it.
+  ⚠️ **Twelve browser circles become twelve house circles** (decision 4). The sheet is
+  closed in all seven of its routes' shots.
+- `components/profile/FacePicker.tsx:319-352`, and this one is a DECISION rather than a
+  mechanical swap [V]. `<RadioGroup asChild aria-label="Face">` around the existing `<ul>`
+  keeps `data-testid="face-grid"`, the `grid-cols-[repeat(4,4rem)]` track count and the
+  `<li>`s that `e2e/profile-edit.spec.ts:138-159` measures; each `<li>`'s `<button>` becomes
+  `<RadioGroupItem>` holding a `<RadioGroupInput>`, an `sr-only` name and the same `<img>`,
+  whose ring moves from `selected ? … : …` to `group-has-checked/radio:ring-2` and is then
+  drawn by the platform. **What it costs**: the role changes from `button` to `radio` and
+  `aria-pressed` becomes `checked`, which is `FacePicker.test.tsx:78,131,148,151,157,184`
+  and `e2e/profile-edit.spec.ts:167`; and arrow-key traversal CHECKS as it moves (P3), so
+  with each selection an immediate `onSave` a person arrowing across the row writes eight
+  faces. `settings-profile` IS a filmed screen, so this one owes a prediction.
+- **Not this family**: `ShelfPicker.tsx:85` and `:105`, `GameActions.tsx:427` +
+  `ShelfSlot.tsx:28` (decision 2), and `FacePicker.tsx:299-315`'s style strip, which the
+  audit answers with `Tabs`.
+- ⚠️ **The e2e suite's `getByRole("radio")` - about 55 lines across 20 spec files - resolves
+  ONLY those refused sites**, so a consumption of this family cannot break any of them, and
+  a green suite is not evidence that the report sheet's radios still work. `ReportFlag.test.tsx`
+  and `e2e/reports.spec.ts` are the only instruments that cover what changes.
+
+**What the consumption GAINS**: the seven checkbox rows stop being five copies of one
+markup; the report sheet loses a `useId`, twelve `id`s, twelve `htmlFor`s and a React-held
+selected border; and a radio group can no longer be built without a shared name or an
+accessible name. **What it does NOT gain, and should not be sold as**: none of these sites
+is broken today. Six checkbox rows change how they are drawn and twelve radios do, which
+is a house decision, not a fix.
+
+### Consumers
+
+The library's own scan (`f5df7fb9` in place of `origin/next`, over `packages/**` and
+`registry.json`), the script in `$BATCH_SCRATCH/s2/consumer-scan.sh`. The shell `grep`
+here is a ugrep wrapper, so every arm that becomes a verdict uses `command grep` or
+`git grep -F`.
+
+⚠️ **Run 1 was not run as a script before the code, and saying so is the point.** Its
+content - the declared lists and counters a seventeenth and eighteenth family have to
+enter - was read off the BASE tree file by file as each was edited, and it is arm 4 of the
+script above, which reads the same lists at any sha. The one thing a mechanical run-1 would
+have caught and this did not is nothing: every counter in the brief's list was opened and
+checked, and the one that did not reproduce is recorded in "Measurements" (1).
+
+**Run 2, at the commit point** (`$BATCH_SCRATCH/s2/consumer-scan.2.txt`): **31 exported
+names** - the nine parts, ten Props types, the fourteen story exports and the helper
+module's `loadCompiledSheet` / `CompiledSheet`. Every reader of every one of them is
+inside this slice's own files (`checkbox.tsx`, `radio-group.tsx`, `index.ts`, the two
+story files, `choice-structure.test.tsx`, `choice-drawing.test.tsx`,
+`helpers/compiled-sheet.ts`, `registry.json`). Four hits are NOT readers and are attributed
+rather than waved away:
+
+- `Checkbox` "read" by `switch.stories.tsx` and `switch-drawing.test.tsx` is the Switch's
+  own `NativeCheckbox` story NAME, and by `radio-group.tsx` is the word `CheckboxInput` in
+  a docblock;
+- `Checked`, `Default`, `Disabled`, `InAForm` collide with nine other story files' own
+  story names and with the word "Checked" in `switch.tsx`'s prose. A story module is its own
+  namespace and a story name is not an import.
+
+Scan 2 printed the two new items and their targets (`items 17 -> 19`). Scan 3 named
+`AGENTS.md`, `README.md`, `registry.test.ts`, `choice-structure.test.tsx` and
+`checkbox.stories.tsx` - all mine and all edited - plus four files I did NOT touch:
+`breadcrumb.tsx` and `pagination.tsx`, whose docblocks name `fidelity.test.tsx`;
+`ribbon.css`, whose comment names `registry.test.ts`; and `description-list.stories.tsx`,
+which names `description-list.tsx`. All four are REVERSE references, and all three of my
+edits to those files are additive: one docblock word in `fidelity.test.tsx`
+(`sixteen` -> `eighteen`, no assertion), two counters and one list entry in
+`registry.test.ts`, and the LOW-6 lines in `description-list.tsx`. So no part is held to
+anything different.
+
+`git diff --name-only f5df7fb9...HEAD` is **24 files** (⚠️ the first draft of this line
+said 18, from counting the "What shipped" table rather than running the command - corrected
+by running it): the twelve in that table, the four `r/` files the registry build rewrites,
+the `description-list.tsx`/`description-list-structure.test.tsx` pair from LOW-6, the four
+counter files (`fidelity.test.tsx`, `registry.test.ts`, `stories.test.tsx`,
+`story-suites.ts` - three of them already in the table's last two rows), plus `AGENTS.md`,
+`README.md`, `packages/ui/package.json` and this record.
+
+**0 CROSS, 0 UNOWNED**, 31 names NEW. ⚠️ And **0 consumers in thepile, by construction**:
+nothing there can consume an item that is not in a published bump, this batch's thepile
+stream consumes the Switch rather than these, and the two families' names appear nowhere
+in that tree at `50f8a22c` except as audit prescriptions. That is said rather than assumed.
+
+**Run 3, after the layer-1 fixes** (`consumer-scan.3.txt`): **one name more, and it is not
+a name.** `X` appears because `entry-point.test.ts`'s own docblock says
+"Every `export function X` / `export const X` in one published source file", and the scan
+reads added lines rather than a parsed module. Nothing else moved: the layer-1 fixes added
+no export (`refuseRole` and `CheckboxContext` are module-private, and the new test file
+exports nothing). Scan 3 gained `checkbox.tsx`, `radio-group.tsx` and `entry-point.test.ts`
+
+- the two parts now name `choice-drawing.test.tsx` in their docblocks, which is the same
+  reverse-reference shape as `breadcrumb.tsx` naming `fidelity.test.tsx`. Still **0 CROSS, 0
+  UNOWNED**.
+
+⚠️ The blind spot every previous family recorded still applies: scan 3's stem arm looks
+for `./<stem>"` and `../<stem>"`, so it does not see
+`import * as checkbox from "../../stories/checkbox.stories.js"`, which is how
+`story-suites.ts` reaches a new story file. Arm 4 - the declared lists - is what covers it,
+which is why that arm exists.
+
+**The audit cells this slice's verdicts touch, for the reconciler's §6 grep.** Both
+families SHIP, so the cells that prescribe them are now answered rather than refused, and
+three sites the audit never named are refused. At `50f8a22c` in `docs/design-audit.md`:
+
+- `RadioGroup` **ships**: cells at `:353` (`/game/[slug]`), `:384` (`/[username]`), `:385`
+  (`/[username]/[shelf]`), `:386` (`/[username]/about`), `:390` (`/[username]/list/[slug]`),
+  `:393` (`/[username]/review/[slug]`), `:395` (`/[username]/tier/[slug]`) - all seven
+  naming `ReportSheet.tsx:142` - and `:399` (`/settings/profile`), the face grid.
+- `Checkbox` **ships**: cells at `:353`, `:357` (`/lists`), `:358` (`/lists/[id]`), `:384`,
+  `:401` (`/diary`), `:406` (`/onboarding`).
+- **Refused, and named in no audit cell at all**: `ShelfPicker.tsx:85` and `:105`, and
+  `GameActions.tsx:427` + `ShelfSlot.tsx:28`. They are drawn on `/game/[slug]` (`:353`)
+  and inside the log sheet on `/[username]` (`:384`), so those two rows' text is where a
+  reconciler would add the verdict - the audit's `should use` column names neither today.
+
+## Layer 1 (reviewer, detached worktree of 87fdf70, slot r6)
+
+**Ten findings: 2 HIGH, 4 MED, 4 LOW**, plus three OWED to an instrument this package does
+not have. Its full report is `$BATCH_SCRATCH/r6/report.md`. Its baseline on the committed
+head was `pnpm -r build` exit 0, `pnpm exec vitest run` **25 files / 494 tests exit 0**,
+`pnpm typecheck` exit 0, `pnpm lint` exit 0 and `pnpm build:registry` exit 0 with
+`git status --short` empty after it - and it re-read the branch head at the end
+(`git rev-parse s/design-lib-d-choice` -> `87fdf70…`, **unmoved**), so every finding is
+against the head as it stands. It also checked that `b2e2fb1c..87fdf70` is
+`docs/as-built.md` alone, which is what makes the 26 mutations evidence about the same
+code artifact it reviewed. The as-built prose below and the gate are, by construction,
+unreviewed by it.
+
+**Both HIGHs are accepted and FIXED, and both are the same failure in two places: a claim
+this record makes in prose that no instrument could see.** The families' whole justification
+for an invisible overlay input is that the 44px floor becomes a FACT rather than a hope
+about label click-forwarding - and the floor guard reads `min-height` and nothing else, so
+an input that kept `min-h-hit` and lost `inset-0` measured 44 and was 13px wide, with every
+play green. And `packages/ui/src/index.ts` IS `@marquee-ui/ui` (`exports["."]`), and both
+families could be deleted from it at 25 files / 494 tests and `typecheck` exit 0.
+
+⚠️ It also found the thing I would not have: **`tailwind-compile.test.tsx:352-354` says in
+its own comment that it reads one axis**, and I cited that file as the instrument that makes
+the overlay's hit box measured. The guard was doing exactly what it says; the docblock I
+wrote around it was the lie.
+
+### The collapse / no-op mutation table, verbatim
+
+<!-- prettier-ignore-start -->
+
+| file | test | mutation applied | red / GREEN | what it asserts now |
+| --- | --- | --- | --- | --- |
+| choice-drawing.test.tsx | puts the tap floor on the INPUT, which is why the box may be 24px | **`inset-0` deleted from `inputClass` in BOTH families** (checkbox.tsx:71, radio-group.tsx:79) | **GREEN** | that the input's class list declares `min-height:44px` — not that the input covers anything. Suite: `Tests 1 failed \| 493 passed (494)`, the one red being the byte digest |
+| tailwind-compile.test.tsx | every interactive element clears the 44px tap floor › measures every one of them at or above the floor | same | **GREEN** | the max of `min-height`/`height` over the class list. It never reads `inset`, `position` or any width, so a non-covering overlay measures 44 |
+| choice-drawing.test.tsx | puts the tap floor on the INPUT… | **`absolute` deleted from `inputClass` in BOTH families** | **GREEN** | same. `Tests 1 failed \| 493 passed (494)`, byte digest only |
+| tailwind-compile.test.tsx | measures every one of them at or above the floor | same | **GREEN** | same |
+| (no touched test file) | — | **both `Checkbox` and `RadioGroup` export blocks deleted from `packages/ui/src/index.ts`** (the package's `exports["."]`) | **GREEN** | nothing. `Test Files 25 passed (25) / Tests 494 passed (494)`, `pnpm typecheck EXIT=0` |
+| registry.test.ts | declares the eighteen part families…; carries the title, description… | same | **GREEN** | the registry item list and the per-item `r/*.json`, which do not read `index.ts` |
+| helpers/source-files.ts → source-coverage.test.ts | walks exactly the published set, by path | same | **GREEN** | that `index.ts` EXISTS and is >100 B with the word `export` in it — not what it exports |
+| stories.test.tsx + radio-group.stories.tsx | all 6 radio plays, and `runs all 65 play functions` | **the whole `{drawing}` (`RadioGroupCircle`+`RadioGroupIndicator`) deleted from the shared `Rules`** | **GREEN** — `0 RED / 114 green` in stories.test.tsx | the radio plays observe role, name, `name` attr, checkedness, tab order and FormData; none observes the drawing. (Caught, but only by choice-drawing.test.tsx) |
+| choice-drawing.test.tsx | gives both families the SAME overlay input | `opacity-0` → `sr-only` in BOTH families (the spelling checkbox.tsx:66 forbids by name) | red — **but by one incidental clause** | reddens solely on `…join(" ")).toContain("opacity: 0%")`; the `toEqual` arm still passes because both sides changed together |
+| description-list-structure.test.tsx | refuses an intrinsic element between the groups… | `if (!LIST_LEVEL_INTRINSICS.has(child.type))` → `if (false)` | red | ✓ |
+| description-list-structure.test.tsx | leaves the OTHER legal shapes alone… | `LIST_LEVEL_INTRINSICS` → `new Set([])` | red | ✓ the bound is non-vacuous |
+| description-list-structure.test.tsx | refuses an intrinsic element… | allow-set widened to `["div","script","template","hr","span","p"]` | red | ✓ |
+| description-list-structure.test.tsx | does NOT refuse a component child… | `if (typeof child.type !== "string") continue` → `if (false) continue` | red (22 red) | ✓ |
+| choice-structure.test.tsx | Checkbox refuses it, naming the element and the reason | checkbox `refuseAsChild` condition → `if (false)` | red | ✓ |
+| choice-structure.test.tsx | RadioGroupItem refuses it too | radio-group `refuseAsChild` condition → `if (false)` | red | ✓ |
+| choice-structure.test.tsx | refuses to render without one, which is stricter than axe | `if (named(props))` → `if (true)` | red | ✓ |
+| choice-structure.test.tsx | gives TWO groups on one page two different names | `name ?? generated` → `name ?? "shared"` | red | ✓ |
+| choice-structure.test.tsx | refuses a name on the INPUT | `if ("name" in props)` → `if (false)` | red | ✓ |
+| choice-structure.test.tsx | throws outside a group rather than rendering an ungrouped radio | `useContext(…)` → `useContext(…) ?? { name: "orphan" }` | red | ✓ |
+| choice-structure.test.tsx | gives every part a data-slot and puts the caller's class after the family's | `cn(rowClass, className)` → `cn(className)` | red | ✓ (+3 collateral in choice-drawing) |
+| choice-structure.test.tsx | …same | `data-slot="checkbox-box"` → `"checkbox-boxx"` | red (+11 collateral) | ✓ |
+| choice-structure.test.tsx | draws the house tick, and only the caller's mark | `{children ?? <path/>}` → both rendered | red | ✓ |
+| choice-structure.test.tsx | draws the house tick… | `aria-hidden="true"` deleted from `CheckboxIndicator` | red | ✓ |
+| choice-structure.test.tsx | fixes the input's type in both families (+4 more) | radio `type="radio"` → `type="text"` | red (5 red + 10 collateral incl. all 6 radio plays) | ✓ the plays observe the ELEMENT |
+| choice-structure.test.tsx | but the GROUP takes it…; takes it from aria-label… | `role="radiogroup"` deleted from `Host` | red | ✓ |
+| choice-structure.test.tsx | …same two | `Host = asChild ? Slot : "div"` → `"div"` | red | ✓ |
+| choice-drawing.test.tsx | puts the tap floor on the INPUT; gives both families the SAME overlay | `min-h-hit` deleted from checkbox `inputClass` | red (+ tailwind-compile floor guard) | ✓ the floor guard DOES measure these inputs |
+| choice-drawing.test.tsx | …same | `min-h-hit` deleted from radio `inputClass` | red (+ floor guard) | ✓ |
+| choice-drawing.test.tsx | puts the tap floor…; draws one control in two shapes | `size-6` → `size-5` on the box | red | ✓ |
+| choice-drawing.test.tsx | paints the mark in the ink…; reaches the drawing through a :checked descendant; leaves the checkbox's mark unpainted | `group-has-checked/checkbox:` → the UNNAMED `group-has-checked:` | red | ✓ only place the scoping is visible |
+| choice-drawing.test.tsx | puts the focus ring and the disabled dimming on the ROW | `has-focus-visible:` → `focus-visible:` | red | ✓ |
+| choice-drawing.test.tsx | paints the mark in the ink the fill guarantees | `stroke-primary-foreground` → `stroke-primary` | red | ✓ |
+| choice-drawing.test.tsx | …same, other family | radio `bg-primary-foreground` → `bg-primary` | red | ✓ |
+| choice-drawing.test.tsx | does the same for the radio, from the same trigger | `opacity-0` deleted from the radio indicator | red | ✓ |
+| choice-drawing.test.tsx | draws one control in two shapes: the same box, at a different radius | circle `border-border-strong` → `border-border` (**one side only**) | red | ✓ the cross-family arm detects a substitution on one side |
+| choice-drawing.test.tsx | …same | box `bg-surface` → `bg-raised` (**one side only**) | red | ✓ |
+| choice-drawing.test.tsx | …same | `overflow-hidden` ADDED to the box only (**one side only**) | red | ✓ it detects an addition too |
+| choice-drawing.test.tsx | …same | circle `rounded-full` → `rounded-sm` | red | ✓ |
+| choice-drawing.test.tsx | lights a CALLER's own drawing when the item composes no circle | `group-has-checked/radio:ring-primary` deleted from the NoDrawing tile | red | ✓ |
+| helpers/compiled-sheet.ts | 8 of 10 choice-drawing tests | `rule()` → `() => ""` | red | ✓ |
+| helpers/compiled-sheet.ts | the 3 cascade tests | `flattened()`'s `at.replaceWith(at.nodes)` made unreachable | red | ✓ |
+| helpers/compiled-sheet.ts | the 2 selector tests | `selectorsOf()` → `() => []` | red | ✓ |
+| helpers/compiled-sheet.ts | 4 geometry tests | `declaredValues()` → `() => []` | red | ✓ |
+| stories.test.tsx | runs all 65 play functions, and knows if one stopped running | one `play:` renamed to `noplay:` in checkbox.stories.tsx | red | ✓ DECLARED_PLAYS is anchored |
+| stories.test.tsx | covers all eighteen part families…; the play counter | `export const CustomMark` → `const CustomMark` | red | ✓ DECLARED_STORIES is anchored |
+| helpers/story-suites.ts | covers all eighteen part families…; the play counter | `checkbox,` deleted from `STORY_SUITES` | red | ✓ anchored on the FILES, not a retyped list |
+| helpers/story-suites.ts | …same | `"radio-group": radioGroup,` deleted | red | ✓ |
+| tokens helpers/source-files.ts | walks exactly the published set, by path (+2) | `packages/ui/src/checkbox.tsx` deleted from `PUBLISHED_SOURCE_FILES` | red | ✓ |
+| tokens helpers/source-files.ts | walks exactly the declared stories, by path (+1) | `radio-group.stories.tsx` deleted from `STORY_FILES` | red | ✓ |
+| registry.test.ts | declares the eighteen part families… (+5) | `"name": "checkbox"` → `"checkboxx"` in registry.json | red | ✓ |
+| registry.test.ts | ships an INDEX…; carries the title, description and both dependency lists | one word changed in radio-group's registry description | red | ✓ |
+| checkbox.stories.tsx | checkbox/Default, /Disabled, /InAForm, /TwoRows + the play counter | `<CheckboxInput …/>` deleted from `Row` | red | ✓ |
+| radio-group.stories.tsx | radio-group/NoDrawing + the play counter | the `sr-only` name deleted from the NoDrawing tile | red | ✓ |
+| radio-group.stories.tsx | radio-group/InAForm + the play counter | `name="reason"` deleted from the InAForm `Rules` | red | ✓ |
+| checkbox.stories.tsx | checkbox/InAForm + the play counter | `name="ranked"` deleted from the InAForm `Row` | red | ✓ |
+| fidelity.test.tsx | — | (the slice's only change to this file is one docblock word, `sixteen`→`eighteen`; it backs no assertion) | n/a | nothing; the "eighteen" in AGENTS.md, README.md, package.json and this docblock is guarded by no test |
+
+<!-- prettier-ignore-end -->
+
+**Its score: 8 GREEN rows across 3 distinct subjects, 40 red.** Its own summary of what the
+26 mutations in this record were worth: it reproduced 23 of them exactly or as the
+equivalent collapse from the other side, every one red on the named test, and covered the
+other three with adjacent collapses that reddened the same arms - "26 red, 0 GREEN is not
+overstated".
+
+### What was done about each finding
+
+**All ten are FIXED** at `94a5c560`. Twelve new guards came with the fixes and **each was
+proved by its own reddening mutation** (`L1a`-`L1l`, run against that committed head in the
+same detached worktree, logs in `$BATCH_SCRATCH/s2/mutations/`, input `mutations-b.json`),
+taking this slice's mutation count from 26 to **38**. The suite goes 494 -> **504** and 25
+files -> **26**.
+
+<!-- prettier-ignore-start -->
+
+| finding | verdict | what changed | the mutation that proves it |
+| --- | --- | --- | --- |
+| HIGH-1 · the overlay's covering is unguarded | FIXED | `choice-drawing.test.tsx` gains `makes the input COVER the row, which is the claim the floor rests on`: `position: absolute` and the `inset` shorthand resolved to 0 out of the compiled sheet, in BOTH families, plus `opacity: 0%` and no `display` of its own. ⚠️ The first draft asked for four inset LONGHANDS and got null from every class - `inset-0` emits the shorthand - which is in the test's comment now. The `checkbox.tsx` docblock stops claiming the floor guard measures the hit box | **L1a** (`inset-0` deleted, checkbox) and **L1b** (`absolute` deleted, radio): each `3 failed / 501`, naming the new arm. **L1c** (`opacity-0` -> `sr-only`): same |
+| HIGH-2 · the public entry point is unguarded | FIXED | a new `packages/ui/test/entry-point.test.ts`, and it closes the hole for ALL EIGHTEEN families rather than the two: it WALKS `packages/ui/src` on disk (not a list anyone maintains), parses every `export function` / `export const`, and requires the barrel to expose each one - and the reverse, that the barrel exports nothing no source declares | **L1d** (one family's `Checkbox` export removed): `re-exports every value each part file exports, by name`. **L1e** (a `Checkbox as Ghost` re-export added): `exports nothing that no part file declares` |
+| MED-1 · `aria-label=""` satisfies the name refusal | FIXED | the check is a non-empty TRIMMED string now, not a present attribute. The dangling-`aria-labelledby` half is not checkable at render (the element is not in a document yet) and is said out loud in the docblock rather than implied away | **L1f** (`filled` -> `!== undefined`): `refuses an EMPTY aria-label, which is how an untitled group arrives` |
+| MED-2 · `<fieldset><legend>` is refused although the docblock offers it | FIXED | `hasAccessibleName` accepts a `<legend>` element child when the `asChild` host is a `<fieldset>`, which is the native named group and is what the reviewer's own accname read resolved | **L1g** (the fieldset arm made unreachable): `takes a <legend>, which is the fieldset shape its own props docblock advertises` |
+| MED-3 · an `asChild` child's own `role` replaces `radiogroup` | FIXED | a `refuseRole` in `DescriptionList`'s shape, reading the part's props AND the `asChild` child's. `<RadioGroup asChild><ul role="list">` was a named LIST of radios belonging to nothing, with the name refusal satisfied | **L1h** (`refuseRole` made unreachable): `refuses a role, on the part and on an asChild child` |
+| MED-4 · LOW-6's stated bound is false in both directions | FIXED, both halves | the guard now copies axe's FLATTEN one level: a hand-written `<div>` at list level may hold `dt`, `dd`, `script` and `template` and nothing else intrinsic, so `<div><hr /></div>` - a real `only-dlitems` failure the first edition passed - takes the route down. And the docblock stops saying "exactly the three that check passes": it is a deliberate SUPERSET bounded by the content model, and the two shapes axe exempts and this refuses (`role="term"`, `hidden`) are now an assertion instead of a sentence | **L1i** (the flatten made unreachable): `flattens a hand-written div one level, because axe's only-dlitems does`. **L1j** (`span` added to the allowed set): `is a deliberate SUPERSET of what axe flags, not a copy of it` |
+| LOW-1 · six radio stories can lose their whole drawing, plays green | RECORDED, not changed | true and already caught: deleting `{drawing}` from the shared `Rules` reddens seven arms in `choice-drawing.test.tsx` (`slots()` throws on the missing `data-slot`), so nothing can ship without it. The narrower fact is worth the line: **the radio plays assert role, name, the shared `name`, exclusivity, tab order, arrow keys and `FormData` - and nothing about what is drawn.** A green story suite is evidence about the semantics, and the drawing is the other file's to hold |
+| LOW-2 · decision 11 argues the no-context call from the wrong part | FIXED | `CheckboxInput` throws outside a `Checkbox` now, exactly as `RadioGroupInput` does. The split decision 11 describes is real but it is INPUT vs DRAWING, not family vs family: an orphan drawing part is an unlit box anyone can see, an orphan input is an unnamed invisible control absorbing taps over whatever ancestor happens to be positioned. Decision 11's text is rewritten to say that | **L1k** (the throw made unreachable): `and the CHECKBOX's input throws outside its row for the same kind of reason` |
+| LOW-3 · the extracted helper resolves one calc operand order, the copy it will replace resolves two | FIXED | the module resolves both, so the later stream that moves `tailwind-compile.test.tsx` onto it cannot silently lose a shape, and the anchor test reads both back | **L1l** (the second regex removed): `found a real drawing to measure, and a sheet to measure it in` |
+| LOW-4 · a pre-existing false comment about the same evaluator | FIXED | `description-list.tsx:136` said axe's `only-dlitems` has `validRoles: ['definition','term','listitem']`; the constant is `ALLOWED_ROLES = ['definition','term','list']` (`axe.js:25876`). One word, in a file this slice already has open, and the file no longer carries two descriptions of one evaluator that disagree |
+
+<!-- prettier-ignore-end -->
+
+**OWED, and it is owed to a browser rather than to this tree** (no Playwright here, and
+jsdom lays nothing out). All three are the same class - a geometric fact about a 44px
+overlay - and the consuming repository is where they can be measured, on the consumption
+slice:
+
+1. the overlay input's real rendered tap box at 390px;
+2. two stacked rows where a caller shortens one below 44px with `h-8` or `min-h-0`: does
+   the input's `min-h-hit` overflow onto the next row's top edge and steal its taps?
+3. an interactive child INSIDE a `Checkbox` row - a link, a button - which the
+   `absolute inset-0` input would occlude. ⚠️ Half of this one is closed rather than owed,
+   and by a record that already existed: the **Switch's** own thepile-inputs list says
+   "the overlay input covers the row's text, so the native host's row has no text selection
+   and cannot carry a second interactive element", which makes it a known property of the
+   pattern rather than a discovery. Both new families' docblocks say it now, and both point
+   at the composition that answers it - the deep link OUTSIDE the label, which is the
+   `AsAList` story and the report sheet's own shape. What is still owed is the measurement:
+   nothing here can show the occlusion, only describe it.
+
+⚠️ And one thing the reviewer noted that is worth carrying rather than closing: it ran the
+route-contract scan (arm 2) that this record does not mention at all, and it found one hit,
+`housePath` - a local `const` in `choice-structure.test.tsx`. This repository has no routes,
+so that arm is a no-op here; saying so is better than omitting it.
+
+### The gate
+
+One run, at the branch head, detached with a sentinel in `$BATCH_SCRATCH/s2/` as the
+thepile streams do (this gate is under half a minute and contends with nothing, so the
+shape is habit rather than need): `pnpm verify` **exit 0**, read from `verify.exit` and not
+from an appended echo. Three times on 2026-09-20 - 23:14:51 -> 23:15:07 IST at `8a68e3a`,
+23:15:37 -> 23:16:00 IST at `282c8bc5`, and once more at the FINAL head after this record
+was finished - with the same exit and the same lines every time:
+`All matched files use Prettier code style!`, both packages' `typecheck: Done`,
+`✔ Building registry.`, `└ Storybook build completed successfully`, and
+`Test Files 26 passed (26)` / `Tests 504 passed (504)` - from 23 / 453 at the base
+`f5df7fb9`, whose own suite was measured green first (and only after `pnpm build`: without
+the tokens' `dist` the base is 5 files red for environmental reasons alone, which is worth
+knowing before anyone reads a base run as a finding).
+
+`git status --short` was empty before and after, so the committed `packages/ui/r` is
+exactly what `build:registry` produces at this head.
+
+⚠️ It was re-run on purpose rather than once, and the last time AFTER this record was
+finished, so the gated tree is the branch head and not one docs commit behind it. That is
+affordable here and it is not in the thepile streams: twenty-three seconds against
+twenty-five minutes. Nothing but this file has moved between the runs - `docs/` is read by
+`prettier --check` and by no test (`source-files.ts` walks `packages/*/src` and
+`packages/*/stories` only) - and the stream's report carries the final run's own wall
+clock, which is the one number a record cannot state about a run that postdates it.
+
+No push, no `npm publish`, no git tag, no version bump: the freeze holds, and these two
+families ride the post-freeze bump with the six already waiting - which makes it an
+EIGHT-item bump, and `0.1.2` rather than `0.1.1` (decision 13).
