@@ -716,3 +716,123 @@ describe("the utilities a consumer calls survive the swap", () => {
     expect(/\.leading-no-such-role\s*\{/.test(contract)).toBe(false);
   });
 });
+
+/**
+ * The description list's four parts, in RESOLVED declarations.
+ *
+ * Each part is read off the story where the CALLER adds no class of its own, so
+ * what the set contains is the part's own contribution and nothing else. Two of
+ * the four contribute nothing at all, and that is an assertion here rather than a
+ * sentence in a docblock.
+ *
+ * Every arm is a WHITELIST - the set of properties the part's classes declare,
+ * equal to the set the drawing needs - and not a blacklist of properties it must
+ * avoid. A blacklist refuses only what someone predicted; layer 1 of the `Form`
+ * family proved the predicted list incomplete four ways in one sitting.
+ */
+describe("the description list's parts, in resolved declarations", () => {
+  const dl = () => STORY_SUITES["description-list"];
+  const declaredProperties = (classes: readonly string[]): string[] => {
+    const found = new Set<string>();
+    for (const token of classes) {
+      for (const match of rule(token).matchAll(/(?:^|[;\s])([a-z-]+)\s*:/g)) found.add(match[1]!);
+    }
+    return [...found].sort();
+  };
+
+  it("found the classes to measure, and a sheet that can answer about them", () => {
+    // Anchors, positive and negative: a story that compiled to nothing and a
+    // property nothing declares read the same without both of these.
+    const term = slotTokens(dl(), "Default", '[data-slot="description-term"]');
+    expect(term.length).toBeGreaterThan(3);
+    expect(declaredValues(term, "color")).not.toEqual([]);
+    expect(declaredValues(term, "border-collapse")).toEqual([]);
+  });
+
+  it("the list contributes nothing: every class on the dl is the caller's", () => {
+    // Eight product sites, eight layouts, so there is no axis to name. Read on
+    // the story whose list carries only a grid, which is therefore the whole of
+    // what the element wears.
+    const list = slotTokens(dl(), "Live", '[data-slot="description-list"]');
+    expect(list).toEqual(["grid", "grid-cols-2", "gap-3"]);
+  });
+
+  it("the detail contributes nothing either: the figure inside it is what varies", () => {
+    // `LinkedFigure`'s details pass no className, so an empty class list IS the
+    // part's whole drawing. The `dd`'s UA indent is Tailwind's preflight, the
+    // same bet `BreadcrumbList` makes about a list's bullets.
+    const details = slotTokens(dl(), "LinkedFigure", '[data-slot="description-details"]');
+    expect(details).toEqual([]);
+    expect(declaredProperties(details)).toEqual([]);
+  });
+
+  it("the term is the house micro-label, in resolved values", () => {
+    const vars = rootVars();
+    const term = slotTokens(dl(), "Default", '[data-slot="description-term"]');
+    // The NAMED tracking token, not one of the four literals the product spells:
+    // `--tracking-label` exists for exactly this treatment.
+    expect(declaredValues(term, "letter-spacing")).toEqual(["var(--tracking-label)"]);
+    expect(vars.get("--tracking-label")).toBe("0.12em");
+    // The ink resolves to the ROLE's own variable, never to a copy of its value.
+    expect(declaredValues(term, "color")).toEqual(["var(--muted)"]);
+    expect(declaredValues(term, "font-family")).toEqual(["var(--font-mono)"]);
+    expect(declaredValues(term, "text-transform")).toEqual(["uppercase"]);
+    // In pixels, so a silent move to another step is a number that changes rather
+    // than a class name that still reads plausibly.
+    expect(declaredValues(term, "font-size").map((v) => lengthPx(v, vars))).toEqual([9.6]);
+  });
+
+  it("declares exactly the properties the term needs, and nothing else", () => {
+    const term = slotTokens(dl(), "Default", '[data-slot="description-term"]');
+    // Six, not five, and the extra one is Tailwind's rather than the drawing's:
+    // `tracking-*` sets `--tw-tracking` beside `letter-spacing`, exactly as
+    // `leading-*` sets `--tw-leading` (the consumer-contract arm below records
+    // the same twin). And `text-3xs` emits font-size ALONE, where `text-sm` emits
+    // a line-height with it: the house's three extra steps declare no paired
+    // leading, so the type scale carries one only where Tailwind's own does.
+    expect(declaredProperties(term)).toEqual([
+      "--tw-tracking",
+      "color",
+      "font-family",
+      "font-size",
+      "letter-spacing",
+      "text-transform",
+    ]);
+  });
+
+  it("plain really is empty, so the two tones are a real axis", () => {
+    // The negative half of the pair: `Prose`'s terms wear only what the caller
+    // passed, which is what lets a site with one `text-*` of its own have nothing
+    // to fight in a consumer whose `cn` is a join rather than a merge.
+    const plain = slotTokens(dl(), "Prose", '[data-slot="description-term"]');
+    expect(plain).toEqual(["font-semibold", "text-foreground"]);
+    expect(declaredValues(plain, "text-transform")).toEqual([]);
+    expect(declaredValues(plain, "font-family")).toEqual([]);
+  });
+
+  it("the group's two layouts are two different resolved drawings", () => {
+    const vars = rootVars();
+    // `Prose` and `Inline` both pass no className on the item, so each set is the
+    // variant's own contribution. The pair is the instrument: two values that
+    // resolved the same would make every layout claim vacuous.
+    const stack = slotTokens(dl(), "Prose", '[data-slot="description-item"]');
+    const inline = slotTokens(dl(), "Inline", '[data-slot="description-item"]');
+    expect(declaredValues(stack, "flex-direction")).toEqual(["column"]);
+    expect(declaredValues(inline, "flex-direction")).toEqual([]);
+    expect(declaredValues(inline, "align-items")).toEqual(["baseline"]);
+    expect(declaredValues(stack, "align-items")).toEqual([]);
+    // The 4px grid, in pixels: 4 stacked, 8 inline. Both on the grid AGENTS.md
+    // names as skeleton, which is what broke both ties in the derivation.
+    expect(declaredValues(stack, "gap").map((v) => lengthPx(v, vars))).toEqual([4]);
+    expect(declaredValues(inline, "gap").map((v) => lengthPx(v, vars))).toEqual([8]);
+  });
+
+  it("declares exactly the properties each layout needs, and nothing else", () => {
+    expect(declaredProperties(slotTokens(dl(), "Prose", '[data-slot="description-item"]'))).toEqual(
+      ["display", "flex-direction", "gap"],
+    );
+    expect(
+      declaredProperties(slotTokens(dl(), "Inline", '[data-slot="description-item"]')),
+    ).toEqual(["align-items", "display", "flex-wrap", "gap"]);
+  });
+});

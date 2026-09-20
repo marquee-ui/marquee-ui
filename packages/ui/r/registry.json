@@ -62,6 +62,21 @@
       ]
     },
     {
+      "name": "description-list",
+      "type": "registry:ui",
+      "title": "Description List",
+      "description": "The term/detail cell as a real dl: groups the content model allows and nothing else, so a link or a hint lands inside the value rather than beside it. No asChild - HTML fixes all four elements.",
+      "dependencies": ["class-variance-authority@^0.7.1"],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/description-list.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/description-list.tsx"
+        }
+      ]
+    },
+    {
       "name": "form",
       "type": "registry:ui",
       "title": "Form",

@@ -59,15 +59,15 @@ afterEach(cleanup);
  * catch `composeStories` no longer ATTACHING `play`: `withPlay` collapses, the
  * early `return` keeps `ran` empty, and both counter assertions fail - proved by
  * renaming the `typeof Story.play` read, which reddens
- * `runs all 48 play functions`. They do NOT catch the CALL below being renamed
+ * `runs all 54 play functions`. They do NOT catch the CALL below being renamed
  * or deleted while the reads stay: `ran.push(id)` records that the next line was
  * reached, not that the call did anything, so the suite stays green with every
  * play a no-op. No self-counting mechanism inside a file can defend that file
  * against being edited to lie about itself; what closes it is review of this
  * file's diff, which is why it is said here rather than left implied.
  */
-const DECLARED_PLAYS = 48;
-const DECLARED_STORIES = 74;
+const DECLARED_PLAYS = 54;
+const DECLARED_STORIES = 80;
 
 describe("every story renders, and every play function passes", () => {
   const seen: string[] = [];
@@ -94,13 +94,13 @@ describe("every story renders, and every play function passes", () => {
     }
   }
 
-  it("covers all fifteen part families, with every story counted", () => {
+  it("covers all sixteen part families, with every story counted", () => {
     // The anchor: a loop that silently composed nothing would pass in silence.
     // Checked against the FILES rather than against a list retyped here, so a
     // part that never entered the shared map reddens instead of vanishing
     // (layer 1 of the Switch, MED-2).
     expect(Object.keys(SUITES).sort()).toEqual(storySuiteNames());
-    expect(storySuiteNames()).toHaveLength(15);
+    expect(storySuiteNames()).toHaveLength(16);
     // Exact, not a floor: a floor of 35 tolerated seven stories vanishing.
     expect(seen).toHaveLength(DECLARED_STORIES);
   });

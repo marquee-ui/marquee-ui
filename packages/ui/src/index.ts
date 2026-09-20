@@ -21,6 +21,18 @@ export {
 export { Button, buttonVariants, type ButtonProps } from "./button.js";
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card.js";
 export {
+  DescriptionDetails,
+  DescriptionItem,
+  DescriptionList,
+  DescriptionTerm,
+  descriptionItemVariants,
+  descriptionTermVariants,
+  type DescriptionDetailsProps,
+  type DescriptionItemProps,
+  type DescriptionListProps,
+  type DescriptionTermProps,
+} from "./description-list.js";
+export {
   FormControl,
   FormDescription,
   FormItem,

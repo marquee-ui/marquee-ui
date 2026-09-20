@@ -48,7 +48,7 @@ so a component copied out of the registry reads the same here as there.
 
 - `packages/tokens` - the role contract, the two presets, the emitters, the build
   checks. Colour, type and depth are decided here and nowhere else.
-- `packages/ui` - the fifteen part families, one file each, in shadcn's lowercase
+- `packages/ui` - the sixteen part families, one file each, in shadcn's lowercase
   spelling (`button.tsx`). They import `cn` from `@/lib/utils`, which is the alias
   the registry ships them under; the CLI rewrites it to the consumer's own.
 - `packages/ui/stories` - one story per part and per variant. **Stories are the
