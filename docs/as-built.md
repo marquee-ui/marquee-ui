@@ -5425,9 +5425,11 @@ so that arm is a no-op here; saying so is better than omitting it.
 ### The gate
 
 One run, at the branch head, detached with a sentinel in `$BATCH_SCRATCH/s2/` as the
-thepile streams do (this gate is 16 seconds and contends with nothing, so the shape is
-habit rather than need): `pnpm verify` **exit 0**, read from `verify.exit` and not from an
-appended echo, 23:14:51 -> 23:15:07 IST, 2026-09-20. The runner's own lines:
+thepile streams do (this gate is under half a minute and contends with nothing, so the
+shape is habit rather than need): `pnpm verify` **exit 0**, read from `verify.exit` and not
+from an appended echo. Twice, both at 2026-09-20: 23:14:51 -> 23:15:07 IST at `8a68e3a`,
+and 23:15:37 -> 23:16:00 IST at `282c8bc5`, this section's own commit. Identical exit and
+identical lines:
 `All matched files use Prettier code style!`, both packages' `typecheck: Done`,
 `✔ Building registry.`, `└ Storybook build completed successfully`, and
 `Test Files 26 passed (26)` / `Tests 504 passed (504)` - from 23 / 453 at the base
@@ -5438,9 +5440,13 @@ knowing before anyone reads a base run as a finding).
 `git status --short` was empty before and after, so the committed `packages/ui/r` is
 exactly what `build:registry` produces at this head.
 
-⚠️ The run was RE-TAKEN after this section was written, so the gated tree IS the branch
-head rather than one docs commit behind it. That is affordable here and it is not in the
-thepile streams: sixteen seconds against twenty-five minutes.
+⚠️ It was run TWICE on purpose, and the second time after this section was written, so the
+gated tree is the branch head rather than one docs commit behind it. That is affordable
+here and it is not in the thepile streams: twenty-three seconds against twenty-five
+minutes. The only commit after the second run is the one that corrects this paragraph's own
+numbers to that run's - `docs/` is read by `prettier --check` and by no test
+(`source-files.ts` walks `packages/*/src` and `packages/*/stories` only), and
+`pnpm exec prettier --check docs/as-built.md` passes at the head.
 
 No push, no `npm publish`, no git tag, no version bump: the freeze holds, and these two
 families ride the post-freeze bump with the six already waiting - which makes it an
