@@ -9,6 +9,7 @@ import {
   descriptionItemVariants,
   descriptionTermVariants,
 } from "../src/description-list.js";
+import { labelVariants } from "../src/label.js";
 
 /**
  * The claims that exist ACROSS renders or across the contract, which a story with
@@ -227,7 +228,8 @@ describe("the list refuses the one child it can know is wrong", () => {
   it("refuses a bare dt or dd, which would mix the two content-model forms", () => {
     for (const bare of [<dt key="t">Developer</dt>, <dd key="d">Studio Nine</dd>]) {
       expect(() => render(<DescriptionList>{bare}</DescriptionList>)).toThrow(
-        "a dl's groups are either bare dt/dd or <div> wrappers, never both",
+        "this family draws the <div>-wrapper form of a dl's group, and the two forms may not be " +
+          "mixed in one list",
       );
       cleanup();
     }
@@ -348,25 +350,269 @@ describe("the term's two tones", () => {
   });
 
   it("does NOT reuse Label's micro tone, and the difference is the ink", () => {
-    // Recorded as an assertion rather than as prose, because "we could have
-    // composed Label" is the first thing a reader will ask. The two differ in
-    // exactly one utility, and it is the colour: Label's is `text-foreground-2`,
-    // 5 of the 6 micro-caps terms in the product are muted.
+    // ⚠️ It COMPARES THE TWO VARIANTS. Layer 1's MED-3.2: the first version named
+    // both strings by hand and never imported `labelVariants`, so it stayed GREEN
+    // when `Label`'s micro tone was edited to be byte-identical to this one - i.e.
+    // it could not observe the decision it is named for.
     const term = new Set(descriptionTermVariants({ tone: "micro" }).split(" "));
-    expect(term.has("text-muted")).toBe(true);
-    expect(term.has("text-foreground-2")).toBe(false);
+    const label = new Set(labelVariants({ tone: "micro" }).split(" ").filter(Boolean));
+    // Anchor: two real sets, or every difference below is vacuous.
+    expect(term.size).toBeGreaterThan(3);
+    expect(label.size).toBeGreaterThan(3);
+    // They differ in exactly one member each way…
+    const onlyTerm = [...term].filter((token) => !label.has(token));
+    const onlyLabel = [...label].filter((token) => !term.has(token));
+    // …and this is where the two families genuinely disagree: the term states its
+    // own tracking in the house's NAMED token where `Label` still carries a
+    // literal, so the sets differ by the colour AND the tracking. The colour is
+    // the decision; the tracking is `Label`'s to fix and is a CONSUMED behaviour
+    // this batch, flagged to the orchestrator rather than edited.
+    expect(onlyTerm).toContain("text-muted");
+    expect(onlyLabel).toContain("text-foreground-2");
+    // The load-bearing half: the two are not the same string.
+    expect(descriptionTermVariants({ tone: "micro" })).not.toBe(labelVariants({ tone: "micro" }));
   });
 
   it("paints the term in a role the presets measure for contrast", async () => {
-    // `text-muted` is in the tokens package's own body-ink list, so it is inside
-    // the 4.5:1 ink-on-ground check on every ground in both presets. Imported
-    // rather than retyped, with two negative anchors, so the arm cannot pass by
-    // saying yes to everything - `Form`'s measurement 3, same shape.
+    // The role is DERIVED FROM THE VARIANT, not typed here. Layer 1's MED-3.1: the
+    // first version read `BODY_INK_ROLES` and asserted `toContain("muted")`, which
+    // stayed GREEN when the term's ink became `text-primary` - a role its own
+    // negative anchor declares is not a body ink. It compared nothing.
     const { BODY_INK_ROLES } = await import("@marquee-ui/tokens");
     const inks: string[] = [...BODY_INK_ROLES];
+    const ink = descriptionTermVariants({ tone: "micro" })
+      .split(" ")
+      .filter((token) => token.startsWith("text-") && !/^text-(\[|[0-9])/.test(token))
+      .map((token) => token.slice("text-".length));
+    // Anchors: exactly one colour utility to talk about, and a list long enough to
+    // be a real list.
+    expect(ink).toHaveLength(1);
     expect(inks.length).toBeGreaterThan(2);
-    expect(inks).toContain("muted");
+    // The claim: whatever ink the variant paints with is one the presets hold to
+    // 4.5:1 on every ground.
+    expect(inks).toContain(ink[0]);
+    // …and the instrument can tell a covered role from an uncovered one.
     expect(inks).not.toContain("primary");
     expect(inks).not.toContain("brand");
+  });
+});
+
+/**
+ * The compositions layer 1 proved the first draft ACCEPTED, each one a violation
+ * axe-core 4.12.1 rates `serious` / WCAG 1.3.1. Added red-first: every test in
+ * this block failed against `41f243a6` before the fix that answers it.
+ */
+describe("a text or number child is refused, at both levels (layer 1, HIGH-1)", () => {
+  it("refuses a stray string inside an item", () => {
+    expect(() =>
+      render(
+        <DescriptionList>
+          <DescriptionItem>
+            {"stray"}
+            <DescriptionTerm>Developer</DescriptionTerm>
+            <DescriptionDetails>Studio Nine</DescriptionDetails>
+          </DescriptionItem>
+        </DescriptionList>,
+      ),
+    ).toThrow('<DescriptionItem> holds text of its own ("stray")');
+  });
+
+  it("refuses the ZERO that the shortest React conditional produces", () => {
+    // The concrete case layer 1 named: `{count && <DescriptionDetails>…}` with
+    // `count === 0` renders a literal `0` text node beside the pair. The product
+    // writes `!== null` at both its conditional sites today, so it is one
+    // character away rather than hypothetical.
+    const count = 0;
+    expect(() =>
+      render(
+        <DescriptionList>
+          <DescriptionItem>
+            <DescriptionTerm>Reviews</DescriptionTerm>
+            <DescriptionDetails>0</DescriptionDetails>
+            {count && <DescriptionDetails>{count}</DescriptionDetails>}
+          </DescriptionItem>
+        </DescriptionList>,
+      ),
+    ).toThrow('<DescriptionItem> holds text of its own ("0")');
+  });
+
+  it("refuses a stray string inside the list", () => {
+    expect(() =>
+      render(
+        <DescriptionList>
+          {"stray"}
+          <DescriptionItem>
+            <DescriptionTerm>Developer</DescriptionTerm>
+            <DescriptionDetails>Studio Nine</DescriptionDetails>
+          </DescriptionItem>
+        </DescriptionList>,
+      ),
+    ).toThrow("holds text of its own");
+  });
+
+  it("but whitespace stays legal, because JSX produces it", () => {
+    // The negative anchor for the two guards above: `{" "}` is a real text node
+    // and refusing it would make the family unusable in formatted JSX.
+    render(
+      <DescriptionList>
+        {" "}
+        <DescriptionItem>
+          {" "}
+          <DescriptionTerm>Developer</DescriptionTerm>{" "}
+          <DescriptionDetails>Studio Nine</DescriptionDetails>{" "}
+        </DescriptionItem>{" "}
+      </DescriptionList>,
+    );
+    expect(screen.getByRole("term")).toHaveTextContent("Developer");
+    expect(screen.getByRole("definition")).toHaveTextContent("Studio Nine");
+  });
+});
+
+describe("a part inside a part is refused (layer 1, HIGH-2)", () => {
+  it("refuses a term inside a detail, which renders a dt inside a dd", () => {
+    expect(() =>
+      render(
+        <DescriptionList>
+          <DescriptionItem>
+            <DescriptionTerm>Followers</DescriptionTerm>
+            <DescriptionDetails>
+              128
+              <DescriptionTerm>per week</DescriptionTerm>
+            </DescriptionDetails>
+          </DescriptionItem>
+        </DescriptionList>,
+      ),
+    ).toThrow("<DescriptionTerm> must be rendered inside a <DescriptionItem>.");
+  });
+
+  it("refuses a whole item inside a detail", () => {
+    expect(() =>
+      render(
+        <DescriptionList>
+          <DescriptionItem>
+            <DescriptionTerm>Followers</DescriptionTerm>
+            <DescriptionDetails>
+              <DescriptionItem>
+                <DescriptionTerm>inner</DescriptionTerm>
+                <DescriptionDetails>1</DescriptionDetails>
+              </DescriptionItem>
+            </DescriptionDetails>
+          </DescriptionItem>
+        </DescriptionList>,
+      ),
+    ).toThrow("<DescriptionItem> must be rendered inside a <DescriptionList>.");
+  });
+
+  it("refuses a detail inside a detail", () => {
+    expect(() =>
+      render(
+        <DescriptionList>
+          <DescriptionItem>
+            <DescriptionTerm>Followers</DescriptionTerm>
+            <DescriptionDetails>
+              <DescriptionDetails>128</DescriptionDetails>
+            </DescriptionDetails>
+          </DescriptionItem>
+        </DescriptionList>,
+      ),
+    ).toThrow("<DescriptionDetails> must be rendered inside a <DescriptionItem>.");
+  });
+
+  it("but a WHOLE NESTED LIST inside a detail works, because a dd may hold flow content", () => {
+    // The positive anchor, and the reason the fix resets the context rather than
+    // refusing by element: `<dd><dl>…</dl></dd>` is valid, and the inner list
+    // re-provides both contexts. Without this arm the fix could have been "refuse
+    // everything below a detail", which would be wrong.
+    render(
+      <DescriptionList>
+        <DescriptionItem>
+          <DescriptionTerm>Breakdown</DescriptionTerm>
+          <DescriptionDetails>
+            <DescriptionList>
+              <DescriptionItem>
+                <DescriptionTerm>Median</DescriptionTerm>
+                <DescriptionDetails>4.3</DescriptionDetails>
+              </DescriptionItem>
+            </DescriptionList>
+          </DescriptionDetails>
+        </DescriptionItem>
+      </DescriptionList>,
+    );
+    const terms = screen.getAllByRole("term");
+    expect(terms).toHaveLength(2);
+    // The inner dl really is inside the outer dd, and the inner dt's own parent
+    // chain reaches a dl - which is what axe's `dlitem` check walks.
+    const inner = screen.getByText("Median");
+    expect(inner.closest("dd")).not.toBeNull();
+    expect(inner.parentElement!.parentElement!.tagName).toBe("DL");
+  });
+});
+
+describe("role and asChild are refused on the parts that own an element (layer 1, MED-1/MED-2)", () => {
+  it("refuses a role on the term or the detail, which would destroy the association", () => {
+    // `role="presentation"` leaves the DOM shape reading DT,DD - so `groupsOf`
+    // and the consuming product's own `["DT","DD"]` assertion both still pass -
+    // while the computed `term` / `definition` roles are gone. Nothing structural
+    // can see it, so it is refused rather than observed.
+    for (const [part, Part] of [
+      ["DescriptionTerm", DescriptionTerm],
+      ["DescriptionDetails", DescriptionDetails],
+    ] as const) {
+      expect(() =>
+        render(
+          <DescriptionList>
+            <DescriptionItem>
+              {part === "DescriptionTerm" ? (
+                <Part role="presentation">Followers</Part>
+              ) : (
+                <DescriptionTerm>Followers</DescriptionTerm>
+              )}
+              {part === "DescriptionDetails" ? (
+                <Part role="presentation">128</Part>
+              ) : (
+                <DescriptionDetails>128</DescriptionDetails>
+              )}
+            </DescriptionItem>
+          </DescriptionList>,
+        ),
+      ).toThrow(`<${part}> does not take "role"`);
+      cleanup();
+    }
+  });
+
+  it("refuses asChild on all FOUR parts, which is what the docblock claims", () => {
+    // It was two of four at `41f243a6` while three sentences said four, and React
+    // 19 drops the unknown prop silently so there was not even a stray attribute.
+    const asChild = { asChild: true } as unknown as Record<string, never>;
+    expect(() => render(<DescriptionList {...asChild}>x</DescriptionList>)).toThrow(
+      '<DescriptionList> does not take "asChild"',
+    );
+    expect(() =>
+      render(
+        <DescriptionList>
+          <DescriptionItem {...asChild}>x</DescriptionItem>
+        </DescriptionList>,
+      ),
+    ).toThrow('<DescriptionItem> does not take "asChild"');
+  });
+});
+
+describe("the content model's script-supporting elements are allowed (layer 1, LOW-3)", () => {
+  it("permits a template beside the pair, which the spec permits and axe ignores", () => {
+    // Both `dl` and the group `div` are specified as "… optionally intermixed
+    // with script-supporting elements". The first draft threw, and its message
+    // claimed an axe `definition-list` failure that does not apply to these two:
+    // axe's `getInvalidSelector` skips anything not exposed to a screen reader.
+    render(
+      <DescriptionList>
+        <DescriptionItem>
+          <DescriptionTerm>Developer</DescriptionTerm>
+          <DescriptionDetails>Studio Nine</DescriptionDetails>
+          <template data-testid="tpl" />
+        </DescriptionItem>
+      </DescriptionList>,
+    );
+    expect(screen.getByRole("term")).toHaveTextContent("Developer");
+    expect(screen.getByTestId("tpl").tagName).toBe("TEMPLATE");
   });
 });

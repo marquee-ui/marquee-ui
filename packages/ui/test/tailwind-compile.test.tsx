@@ -750,11 +750,16 @@ describe("the description list's parts, in resolved declarations", () => {
   });
 
   it("the list contributes nothing: every class on the dl is the caller's", () => {
-    // Eight product sites, eight layouts, so there is no axis to name. Read on
-    // the story whose list carries only a grid, which is therefore the whole of
-    // what the element wears.
-    const list = slotTokens(dl(), "Live", '[data-slot="description-list"]');
-    expect(list).toEqual(["grid", "grid-cols-2", "gap-3"]);
+    // Eight product sites, eight layouts, so there is no axis to name.
+    //
+    // ⚠️ READ OFF `Prose`, NOT `Live`, AND THAT IS LAYER 1's MED-6. `Live`'s caller
+    // string is `grid grid-cols-2 gap-3`, so the mutation this arm exists to catch -
+    // injecting a plausible default layout on the `dl` - was absorbed: the library's
+    // `cn` merged the duplicate `grid grid-cols-2` away and the arm stayed GREEN
+    // while the structure file's own arm reddened. `Prose` is a flex column, so an
+    // injected grid cannot hide inside it.
+    const list = slotTokens(dl(), "Prose", '[data-slot="description-list"]');
+    expect(list).toEqual(["flex", "flex-col", "gap-4"]);
   });
 
   it("the detail contributes nothing either: the figure inside it is what varies", () => {

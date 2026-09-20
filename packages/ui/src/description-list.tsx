@@ -76,25 +76,76 @@ function requireContext(marker: unknown, part: string, parent: string): void {
  * "counts through a fragment" is what found it.
  */
 type ElementChild = { type: unknown; props: { children?: ReactNode } };
+type Walked = { elements: ElementChild[]; text: string[] };
 
-function* elementChildren(children: ReactNode): Generator<ElementChild> {
+/**
+ * ⚠️ IT SURFACES TEXT, AND THAT IS LAYER 1's HIGH-1. The first draft skipped every
+ * non-element child, so neither guard below could see a string or a number, and
+ * `{count && <DescriptionDetails>{count}</DescriptionDetails>}` with `count === 0`
+ * put a literal `0` text node beside the pair - which axe-core 4.12.1 reports as
+ * `definition-list`, impact `serious`, WCAG 1.3.1
+ * (`invalid-children-evaluate`: `if (nodeType === 3 && nodeValue.trim() !== '')`).
+ * The most ordinary React conditional there is, producing the exact violation this
+ * family exists to stop. Whitespace-only text stays legal because JSX emits it.
+ */
+function walkChildren(children: ReactNode, out: Walked): void {
   for (const child of Children.toArray(children)) {
-    if (!isValidElement<{ children?: ReactNode }>(child)) continue;
-    if (child.type === Fragment) {
-      yield* elementChildren(child.props.children);
+    if (typeof child === "string" || typeof child === "number") {
+      const value = String(child);
+      if (value.trim() !== "") out.text.push(value);
       continue;
     }
-    yield child;
+    if (!isValidElement<{ children?: ReactNode }>(child)) continue;
+    if (child.type === Fragment) {
+      walkChildren(child.props.children, out);
+      continue;
+    }
+    out.elements.push(child);
   }
 }
 
-/** `asChild` cannot be legal on an element the content model fixes. */
+function walked(children: ReactNode): Walked {
+  const out: Walked = { elements: [], text: [] };
+  walkChildren(children, out);
+  return out;
+}
+
+/**
+ * `asChild` cannot be legal on an element the content model fixes - which is all
+ * four of them, so all four call this. It was two of four at `41f243a6` while the
+ * docblock above, decision 2 and a describe block all said four (layer 1, MED-2),
+ * and React 19 drops an unknown prop silently, so there was not even a stray
+ * attribute to notice.
+ */
 function refuseAsChild(props: object, part: string, element: string): void {
   if ("asChild" in props && (props as { asChild?: unknown }).asChild !== undefined) {
     throw new Error(
       `<${part}> does not take "asChild": HTML's dl content model fixes it as <${element}>, and a ` +
         `link or span in its place is the axe "definition-list" failure this family exists to ` +
         `stop. Put the element INSIDE <DescriptionDetails> instead.`,
+    );
+  }
+}
+
+/**
+ * ⚠️ A `role` on the term or the detail is refused, and layer 1's MED-1 is why it
+ * is refused rather than observed. `role="presentation"` leaves the DOM shape
+ * reading `DT,DD` - so a structural assertion, including the consuming product's
+ * own `expect([...cell.children].map((c) => c.tagName)).toEqual(["DT","DD"])`,
+ * still passes - while the computed `term` / `definition` roles are gone and axe's
+ * `only-dlitems` check reports it (`validRoles: ['definition','term','listitem']`).
+ * A guard nothing structural can see has to be a refusal.
+ *
+ * It is NOT refused on the list or the item: `aria-live` belongs on the list (the
+ * consuming product puts it there) and neither element's role carries the
+ * association.
+ */
+function refuseRole(props: object, part: string, element: string): void {
+  if ("role" in props && (props as { role?: unknown }).role !== undefined) {
+    throw new Error(
+      `<${part}> does not take "role": the <${element}> element is what associates a term with its ` +
+        `detail, and any role replaces that association while leaving the DOM looking correct. ` +
+        `Use aria-* on the part, or a role on <DescriptionList>.`,
     );
   }
 }
@@ -195,11 +246,27 @@ export type DescriptionListProps = ComponentProps<"dl">;
  * it can be: inside `<DescriptionItem>`.
  */
 export function DescriptionList({ className, children, ...props }: DescriptionListProps) {
-  for (const child of elementChildren(children)) {
+  refuseAsChild(props, "DescriptionList", "dl");
+  const { elements, text } = walked(children);
+  if (text.length > 0) {
+    throw new Error(
+      `<DescriptionList> holds text of its own (${JSON.stringify(text[0])}): a dl's children are ` +
+        `its groups, and a text node between them is an axe "definition-list" failure. Put the ` +
+        `text inside a <DescriptionDetails>.`,
+    );
+  }
+  for (const child of elements) {
     if (child.type === "dt" || child.type === "dd") {
+      // ⚠️ The message says what was CHECKED, not what was inferred (layer 1,
+      // LOW-2): this fires on a bare `dt`/`dd` here whether or not the list also
+      // holds a wrapper, because this family only draws the wrapper form, so the
+      // bare form is never the one it is building. And the check is bounded -
+      // a COMPONENT at this level that returns a bare pair is genuinely mixed and
+      // genuinely invalid, and is not caught; decision 11 records why walking
+      // component output is refused, and axe cannot see that case either.
       throw new Error(
-        `<DescriptionList> holds a bare <${child.type}>: a dl's groups are either bare dt/dd or ` +
-          `<div> wrappers, never both, and this family draws the wrapper form. Wrap the pair in ` +
+        `<DescriptionList> holds a bare <${child.type}>: this family draws the <div>-wrapper form ` +
+          `of a dl's group, and the two forms may not be mixed in one list. Wrap the pair in ` +
           `<DescriptionItem>.`,
       );
     }
@@ -231,10 +298,26 @@ export type DescriptionItemProps = ComponentProps<"div"> &
  */
 export function DescriptionItem({ className, layout, children, ...props }: DescriptionItemProps) {
   requireContext(useContext(DescriptionListContext), "DescriptionItem", "DescriptionList");
+  refuseAsChild(props, "DescriptionItem", "div");
 
+  const { elements, text } = walked(children);
+  if (text.length > 0) {
+    throw new Error(
+      `<DescriptionItem> holds text of its own (${JSON.stringify(text[0])}): a dl group holds a ` +
+        `term and its detail, and a text node beside them is an axe "definition-list" failure. ` +
+        `Put the text inside <DescriptionDetails>. If it came from ` +
+        `{count && <DescriptionDetails>…}, the guard rendered the NUMBER: use {count !== 0 && …}.`,
+    );
+  }
   let terms = 0;
   let details = 0;
-  for (const child of elementChildren(children)) {
+  for (const child of elements) {
+    // The content model admits script-supporting elements in a group as well as in
+    // the list itself - "… optionally intermixed with script-supporting elements" -
+    // and axe skips them, because they are not exposed to a screen reader
+    // (layer 1, LOW-3: the first draft threw and its message named a failure that
+    // does not apply to these two).
+    if (child.type === "script" || child.type === "template") continue;
     if (child.type === DescriptionTerm) {
       if (details > 0) {
         throw new Error(
@@ -274,19 +357,44 @@ export function DescriptionItem({ className, layout, children, ...props }: Descr
   );
 }
 
+/**
+ * ⚠️ BOTH CONTEXTS ARE CLEARED INSIDE A TERM AND INSIDE A DETAIL, and layer 1's
+ * HIGH-2 is why. React context flows down, so the first draft left the item's
+ * context live inside the `dd`: `<DescriptionDetails><DescriptionTerm>…` rendered a
+ * `<dt>` inside a `<dd>`, which is invalid HTML and an axe `dlitem` violation at
+ * `serious` impact - and the item's own walk could not see it, because a part's
+ * children are content and are deliberately not walked (decision 10).
+ *
+ * Clearing rather than refusing by element is what keeps the ONE legal nesting
+ * working: a `dd` may hold flow content, so `<dd><dl>…</dl></dd>` is valid, and the
+ * inner `<DescriptionList>` / `<DescriptionItem>` re-provide both contexts on the
+ * way down. A part reached WITHOUT that re-provision throws the existing
+ * "must be rendered inside a" message, which names exactly what is missing.
+ */
+function NotInsideAPart({ children }: { children?: ReactNode }) {
+  return (
+    <DescriptionListContext.Provider value={null}>
+      <DescriptionItemContext.Provider value={null}>{children}</DescriptionItemContext.Provider>
+    </DescriptionListContext.Provider>
+  );
+}
+
 export type DescriptionTermProps = ComponentProps<"dt"> &
   VariantProps<typeof descriptionTermVariants>;
 
 /** The label. Its `<dt>` is what associates it with the detail that follows. */
-export function DescriptionTerm({ className, tone, ...props }: DescriptionTermProps) {
+export function DescriptionTerm({ className, tone, children, ...props }: DescriptionTermProps) {
   requireContext(useContext(DescriptionItemContext), "DescriptionTerm", "DescriptionItem");
   refuseAsChild(props, "DescriptionTerm", "dt");
+  refuseRole(props, "DescriptionTerm", "dt");
   return (
     <dt
       data-slot="description-term"
       className={cn(descriptionTermVariants({ tone }), className)}
       {...props}
-    />
+    >
+      <NotInsideAPart>{children}</NotInsideAPart>
+    </dt>
   );
 }
 
@@ -305,8 +413,13 @@ export type DescriptionDetailsProps = ComponentProps<"dd">;
  * height; a story cannot copy that without the cell, so `LinkedFigure` draws the
  * inline form with the floor on the link.
  */
-export function DescriptionDetails({ className, ...props }: DescriptionDetailsProps) {
+export function DescriptionDetails({ className, children, ...props }: DescriptionDetailsProps) {
   requireContext(useContext(DescriptionItemContext), "DescriptionDetails", "DescriptionItem");
   refuseAsChild(props, "DescriptionDetails", "dd");
-  return <dd data-slot="description-details" className={className} {...props} />;
+  refuseRole(props, "DescriptionDetails", "dd");
+  return (
+    <dd data-slot="description-details" className={className} {...props}>
+      <NotInsideAPart>{children}</NotInsideAPart>
+    </dd>
+  );
 }

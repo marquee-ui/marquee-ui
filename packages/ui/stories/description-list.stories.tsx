@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, within } from "storybook/test";
+import { expect } from "storybook/test";
 import {
   DescriptionDetails,
   DescriptionItem,
@@ -19,13 +19,21 @@ type Story = StoryObj<typeof meta>;
  * The structure IS the deliverable, so every play reads it out of the DOM rather
  * than asserting a class.
  *
- * Three things, in one pass: the list's element children are ALL groups and
- * nothing else (an element between the `dl` and its groups is the invalid list
- * this family exists to stop); each group's element children are exactly a `dt`
- * then a `dd`, in that order, which is the whole of the association HTML gives a
- * description list; and the two carry the accessible roles a browser computes
- * from them (`term` / `definition`), which is the part a structural read alone
- * cannot see.
+ * Two things, in one pass: the list's element children are ALL groups and nothing
+ * else (an element between the `dl` and its groups is the invalid list this family
+ * exists to stop), and each group's element children are exactly a `dt` then a
+ * `dd`, in that order, which is the whole of the association HTML gives a
+ * description list.
+ *
+ * ⚠️ IT DOES NOT READ THE COMPUTED ROLES, AND THAT IS DELIBERATE (layer 1, MED-1).
+ * An earlier version did, and the reads could not fail: jsdom derives `term` /
+ * `definition` from the tag name alone, and the shape check above has already
+ * thrown unless the tags are `DT` and `DD`. The one composition that COULD break
+ * the roles while leaving the shape intact is `role="presentation"` on a part -
+ * which the family now refuses outright, because nothing structural can see it.
+ * The role reads that do work live in `test/description-list-structure.test.tsx`,
+ * and the mutation that proves them is `<dt` -> `<p`, which reddens all six of
+ * these plays as well.
  */
 function groupsOf(canvasElement: HTMLElement): { term: Element; details: Element }[] {
   const list = canvasElement.querySelector('dl[data-slot="description-list"]');
@@ -47,13 +55,6 @@ function groupsOf(canvasElement: HTMLElement): { term: Element; details: Element
   }
   if (groups.length === 0) throw new Error("the list rendered no groups");
   return groups;
-}
-
-/** Every term and detail also answers to the role a browser computes for it. */
-async function expectRoles(canvasElement: HTMLElement, count: number): Promise<void> {
-  const canvas = within(canvasElement);
-  await expect(canvas.getAllByRole("term")).toHaveLength(count);
-  await expect(canvas.getAllByRole("definition")).toHaveLength(count);
 }
 
 /**
@@ -89,7 +90,6 @@ export const Default: Story = {
   play: async ({ canvasElement }) => {
     const groups = groupsOf(canvasElement);
     await expect(groups).toHaveLength(3);
-    await expectRoles(canvasElement, 3);
     // The term reaches ITS detail and not another group's: the pairing is
     // positional, so the check is that each dt's next sibling is its own dd.
     for (const { term, details } of groups) {
@@ -136,7 +136,6 @@ export const Inline: Story = {
   play: async ({ canvasElement }) => {
     const groups = groupsOf(canvasElement);
     await expect(groups).toHaveLength(2);
-    await expectRoles(canvasElement, 2);
     // The arrangement is the ITEM's, and it is the axis's second value: the two
     // stories' groups must not wear the same layout string.
     const item = groups[0]!.term.parentElement!;
@@ -181,7 +180,6 @@ export const Prose: Story = {
   play: async ({ canvasElement }) => {
     const groups = groupsOf(canvasElement);
     await expect(groups).toHaveLength(2);
-    await expectRoles(canvasElement, 2);
     // `plain` really is empty: the term wears the caller's two utilities and NONE
     // of the micro treatment's four. Stated as the whole class list rather than as
     // absences, so a variant that grew a fifth utility would redden too.
@@ -234,7 +232,6 @@ export const LinkedFigure: Story = {
   play: async ({ canvasElement }) => {
     const groups = groupsOf(canvasElement);
     await expect(groups).toHaveLength(2);
-    await expectRoles(canvasElement, 2);
     // The anchor is INSIDE the dd, which is the whole point of this story. Stated
     // both ways round, because "the link is in the group" is true of the invalid
     // composition too.
@@ -279,7 +276,6 @@ export const Live: Story = {
   play: async ({ canvasElement }) => {
     const groups = groupsOf(canvasElement);
     await expect(groups).toHaveLength(2);
-    await expectRoles(canvasElement, 2);
     const list = canvasElement.querySelector("dl")!;
     await expect(list).toHaveAttribute("aria-live", "polite");
     // The live region is the LIST, so both figures are inside it rather than
@@ -325,7 +321,6 @@ export const Composed: Story = {
     // Three groups, and the wrapper component left NO element of its own behind:
     // `groupsOf` throws on any non-group child of the list.
     await expect(groups).toHaveLength(3);
-    await expectRoles(canvasElement, 3);
     // The conditional second span is content inside the dd, not a third child of
     // the group - which is the distinction the item's guard is drawn around.
     await expect(groups[0]!.details.children).toHaveLength(1);
