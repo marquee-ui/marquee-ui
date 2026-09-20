@@ -41,6 +41,11 @@ import { cn } from "@/lib/utils";
  * would have made a configuration question (D6), and it is a real product's face
  * grid.
  *
+ * ⚠️ AND A ROW HOLDS NOTHING ELSE INTERACTIVE, for the same reason `Checkbox`'s
+ * does: the overlay covers it. A deep link beside an option goes OUTSIDE the
+ * `RadioGroupItem` - the `AsAList` story is exactly that shape, and it is the one
+ * the consuming product's report sheet already draws.
+ *
  * ⚠️ AND WHAT THIS FAMILY CANNOT MODEL, said here because three sites in that
  * product need it: an option set that a RE-TAP on the chosen option clears.
  * Measured on React 19.3.0 under jsdom - a click on an already-checked radio

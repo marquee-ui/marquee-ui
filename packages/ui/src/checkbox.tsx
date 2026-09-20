@@ -25,10 +25,25 @@ import { cn } from "@/lib/utils";
  * IS a 24px control; as an overlay it keeps everything that made a native
  * checkbox the right choice - focus, the space bar, the accessible name from the
  * wrapping label, its value in a `FormData`, `:checked` - and its hit box becomes
- * the whole 44px row, which is what the person is pointing at. The package's own
- * floor guard (`test/tailwind-compile.test.tsx`) measures the INPUT, so this is
- * also the only shape in which the floor is a fact rather than a hope about label
- * click-forwarding.
+ * the whole 44px row, which is what the person is pointing at.
+ *
+ * ⚠️ AND IT TAKES TWO INSTRUMENTS TO SAY THAT, not one (layer 1, HIGH-1). The
+ * package's floor guard (`test/tailwind-compile.test.tsx`) resolves the INPUT's
+ * declared height and demands 44 - and it reads `min-height`/`height` and nothing
+ * else, which its own comment says. So an input that kept `min-h-hit` and lost
+ * `inset-0` measures 44px tall, renders about 13px wide at the UA checkbox's
+ * intrinsic size, and every test passes while the row's tap band is gone.
+ * `test/choice-drawing.test.tsx` reads the COVERING - `position: absolute` and a
+ * zero `inset` - out of the same compiled sheet, and the two together are what
+ * make the floor a fact rather than a hope about label click-forwarding.
+ *
+ * ⚠️ AND THE ROW HOLDS NOTHING ELSE INTERACTIVE. The overlay covers the row's own
+ * text, so there is no text selection inside it and a second control - a link, a
+ * button - would be occluded by it. That is inherent to the pattern rather than
+ * this part's choice (`Switch` records the same), and a row that needs a link
+ * beside it puts that link OUTSIDE the label, which is what the report sheet in
+ * the consuming product already does and what `RadioGroupItem`'s `AsAList` story
+ * shows.
  *
  * ⚠️ THE MARK IS AN ELEMENT, NEVER `input::after`. The consuming product's own
  * comment says why: pseudo-elements on a replaced element are engine-dependent,
