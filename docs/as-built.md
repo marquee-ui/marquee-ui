@@ -3611,3 +3611,583 @@ property. Nothing ships.
 semantics this product does not have: it has no pressed-state option group over
 navigation, and no drawn scrollbar. The audit's twelve cells are what should move,
 and that is the reconciler's grep, not this stream's edit.
+
+### What shipped
+
+| file                                                    | what                                                                                                                                                                                       |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `packages/ui/src/description-list.tsx`                  | four parts - `DescriptionList`, `DescriptionItem`, `DescriptionTerm`, `DescriptionDetails` - two `cva` axes, no `asChild`, no context beyond two markers (14,515 B)                        |
+| `packages/ui/stories/description-list.stories.tsx`      | 6 stories, all 6 carrying a `play`                                                                                                                                                         |
+| `packages/ui/test/description-list-structure.test.tsx`  | 22 tests: the refusals and the axis pairs, which one composition cannot state                                                                                                              |
+| `packages/ui/test/tailwind-compile.test.tsx`            | 8 new tests in resolved declarations, appended; `slotTokens` / `declaredValues` / `rootVars` / `lengthPx` reused, not copied                                                               |
+| `registry.json` + `packages/ui/r/description-list.json` | the `description-list` item, `target` `components/ui/description-list.tsx`, one npm dep (`class-variance-authority`) and one registry dep (`@marquee/utils`)                               |
+| `packages/ui/src/index.ts`                              | the four parts, the two `cva` functions and four Props types                                                                                                                               |
+| the declared lists                                      | both lists in `packages/tokens/test/helpers/source-files.ts`, `story-suites.ts`, `stories.test.tsx`'s two counts and its suite length, `registry.test.ts`'s item list and its two counters |
+| the stated count                                        | `AGENTS.md`, `README.md`, `packages/ui/package.json` and `fidelity.test.tsx`'s docblock say sixteen part families                                                                          |
+
+No new dependency: `class-variance-authority` was already here and no Radix
+primitive is involved at all - this is the first family since `Card` with no
+`@radix-ui/*` dependency of any kind, which is a consequence of decision 3 rather
+than a goal. `pnpm test` goes from **22 files / 405 tests** at the base
+(`b2e24fd3`, `pnpm verify` measured green first) to **23 / 442**, which is +37,
+each measured by running the file alone: **+22** in the new
+`description-list-structure.test.tsx`, **+7** in `stories.test.tsx` (6 story
+renders plus the suite's own `description-list: has stories`) and **+8** in
+`tailwind-compile.test.tsx`'s new describe block.
+
+`fidelity.test.tsx:685`'s `expect(slots).toHaveLength(14)` is deliberately NOT
+moved, and neither is its `NEW_PARTS` table: that is the set of slots LIFTED out
+of the consuming product, a new family is not fidelity-asserted, and `Alert` and
+`Form` are both absent from it for the same reason. Its docblock's "Eight of the
+sixteen" IS moved, because that is a live ratio.
+
+The shape, in one line each:
+
+```tsx
+// the bordered cell grid: the list owns the grid, the item owns one cell
+<DescriptionList className="grid grid-cols-2 gap-px border-2 border-border bg-border">
+  <DescriptionItem className="bg-surface px-3 py-2.5">
+    <DescriptionTerm>Developer</DescriptionTerm>
+    <DescriptionDetails className="text-sm font-medium text-foreground">Studio Nine</DescriptionDetails>
+  </DescriptionItem>
+</DescriptionList>
+
+// the term beside its detail, baselines aligned
+<DescriptionItem layout="inline">…</DescriptionItem>
+
+// a prose term, where the micro-caps treatment would be wrong
+<DescriptionTerm tone="plain" className="font-semibold text-foreground">…</DescriptionTerm>
+
+// a door: the link goes INSIDE the dd, and it owes the 44px floor
+<DescriptionDetails><a href="…" className="min-h-hit …">128</a></DescriptionDetails>
+```
+
+### Measurements, and what they corrected
+
+All read with `git show` at the thepile base `f8385c6d`; every command is quoted so
+a later stream can re-run it rather than trust the number.
+
+**1. There are eight `<dl>`s, and the brief's count reproduces.**
+
+```
+git grep -n -E '^\s*<dl(\s|>|$)' $T -- 'apps/web/src/**/*.tsx' | grep -v '\.test\.'
+```
+
+-> **8 in 8 files**: `[username]/reckoning/[year]/page.tsx:201`,
+`admin/reports/page.tsx:85`, `game/[slug]/page.tsx:757`,
+`settings/steam/ImportPreview.tsx:214`, `transparency/page.tsx:460`,
+`components/game/ScoreBlock.tsx:227`, `components/profile/Ledger.tsx:223`,
+`components/profile/MemberRow.tsx:171`. The batch table's correction of DL10's
+"13 openings" stands: `git grep -h -o '<dl'` still prints **13**, and the
+difference is four comment lines plus one line matched twice.
+
+⚠️ **A second count in the same family does NOT reproduce, and the pattern is
+why.** `git grep -h -o -E '<dt(\s|>)'` prints 9 and `<dd(\s|>)` prints 11,
+because `(\s|>)` cannot match a tag whose attributes start on the NEXT line -
+`git grep` is line-based - and `Ledger.tsx` and `ScoreBlock.tsx` both write
+`<dt\n  className={cn(`. With `<dt\b` it is **11 `<dt` lines and 12 `<dd` lines,
+one of the latter a docblock mention at `MemberRow.tsx:25`**, so 11 and 11
+elements. All per-SOURCE: four of the eight sites render theirs inside a `.map()`,
+so the rendered counts are higher.
+
+**2. The structural finding, and it is 8 of 8: every site wraps its pair in a
+`<div>`.** Read one by one, not grepped, because the wrapper is three of them a
+component away:
+
+| site                               | the `dl`'s own classes                                                                                 | the group wrapper                                                                               | the `dt`                                                                                 | what the `dd` holds                                             |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `game/[slug]/page.tsx:757` Details | `grid grid-cols-2 gap-px overflow-hidden rounded-md border-2 border-line bg-line`                      | `<div className="bg-surface px-3 py-2.5 last:odd:col-span-2">`                                  | `font-mono text-3xs uppercase tracking-wide text-text-muted`                             | a string, `text-sm font-medium text-text`                       |
+| `MemberRow.tsx:171`                | `col-span-2 grid grid-cols-3 border-2 border-line`                                                     | `<div className={CELL}>` (`border-r-2 … last:border-r-0`)                                       | `CELL_LABEL`: `font-mono text-[0.55rem] uppercase tracking-[0.14em] text-text-muted`     | a count, `font-mono text-[1.05rem] font-bold tabular-nums`      |
+| `Ledger.tsx:223`                   | `grid grid-cols-[repeat(10,minmax(0,1fr))] gap-[2px]`, inside a `border-2 border-line bg-line` wrapper | `<div>` per cell, via a local `Cell` component                                                  | `font-mono uppercase leading-[1.5]` + three measured sizes/trackings + `text-text-muted` | a figure **and an `<a className="absolute inset-0">`**          |
+| `reckoning/[year]/page.tsx:201`    | `grid grid-cols-2 gap-2`                                                                               | `<div className="flex flex-col gap-1 border-2 border-line bg-surface p-3">`, via a local `Fact` | `microLabelClass`                                                                        | a value span and a note span                                    |
+| `ImportPreview.tsx:214`            | `grid grid-cols-2 gap-3`, **plus `aria-live="polite"`**                                                | `<div className="rounded-md border-2 border-line p-3">`                                         | `font-mono text-xs uppercase tracking-label text-text-muted`                             | `font-display text-2xl`                                         |
+| `ScoreBlock.tsx:227`               | `flex flex-col gap-2`                                                                                  | `<div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">`, via a local `RawFigure`    | `font-mono text-3xs uppercase tracking-wide text-text-muted`                             | a figure span and a hint span, `flex flex-1 …`                  |
+| `transparency/page.tsx:460`        | `flex flex-col gap-4`                                                                                  | `<div className="flex flex-col gap-1">`                                                         | `text-reading font-semibold text-text` - **not micro-caps at all**                       | a paragraph, `text-reading leading-relaxed text-text-secondary` |
+| `admin/reports/page.tsx:85`        | `pt-2`                                                                                                 | `<div className="flex gap-2 break-words">`                                                      | `text-text-muted`, plain                                                                 | `text-text`                                                     |
+
+⚠️ **The batch table's split into "bordered cell grid" (3) and "stacked list" (5)
+does not survive the read, and neither does the axis it proposed.** Sorting the
+same eight three ways:
+
+- **the LIST's layout**: a grid at 5 (`game`, `MemberRow`, `Ledger`, `reckoning`,
+  `ImportPreview` - the table put the last two in the stacked bucket), a flex
+  column at 2, bare at 1. Column counts 2, 3, 10, 2, 2. **Eight sites, eight
+  strings, no two equal.**
+- **the GROUP's arrangement**: term OVER detail at 6, term BESIDE it at 2
+  (`ScoreBlock`, `admin/reports`) - and `transparency`, which the table called a
+  stacked list, is one of the six that stack.
+- **the BORDER**: gridlines drawn by a gap over a coloured backdrop at 2, a border
+  per cell at 3, none at 3.
+
+So "bordered grid vs stacked list" conflates a LIST property with a GROUP one, and
+the list property has eight values. The axis the measurement does support is the
+GROUP's arrangement, 6 against 2, and it is the one that shipped. **The list
+decides no layout**, which is `FormItem`'s "decides no width" one level up.
+
+**3. The term is spelled FIVE ways, not four, and the fifth breaks the tie.** The
+batch table's (c) names four; `Ledger.tsx`'s is a fifth and it is three values by
+breakpoint. As tracking: `tracking-wide` (0.025em) twice, `tracking-[0.14em]`
+twice, `tracking-label` (0.12em) once, plus the ledger's `0.06em` / `0.08em` /
+`0.14em`. As size: `text-3xs` (0.6rem) three times, `text-[0.55rem]`,
+`text-xs`, plus the ledger's four. **There is no majority on the string.** There is
+one on the shape - `font-mono` + `uppercase` + a small size + positive tracking -
+and one on the INK: applying `fidelity.test.tsx`'s rename table
+(`text-text-muted` -> `text-muted`, `text-text-secondary` -> `text-foreground-2`),
+6 of the 8 terms are `text-muted`, 1 is `text-foreground-2` and 1 is
+`text-foreground`. So the tie is broken by the SKELETON exactly as `FormItem`'s
+`gap-1` was: `tracking-label` is the only one of the five that is a NAME,
+`--tracking-label` exists for this treatment, `Badge` already uses it, and
+`text-3xs` is the majority of the same set.
+
+**4. THE MEASUREMENT THAT DECIDED AGAINST COMPOSING `Label`.** `microLabelClass`
+in the consuming product is
+`font-mono text-3xs uppercase tracking-[0.14em] text-foreground-2`, which is
+byte-identical to this package's `labelVariants({ tone: "micro" })` - it is the
+consumed registry copy. So `Label tone="micro"` IS the house micro-label, and
+composing it looked obviously right. Two measurements say no:
+
+| the question                          | measured                                                                                                                                                                                            | consequence                                                                                                                               |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| is the ink the same?                  | `labelVariants.micro` ends `text-foreground-2`; 5 of the 6 micro-caps terms are `text-muted` (the 6th is `reckoning`, the one site that already uses `microLabelClass`)                             | wrong at five sites, and each would pass an overriding `text-*` - the two-colour trap `micro-label.ts` and `MemberRow.tsx:80` both record |
+| what does `Label` cost a server page? | `@radix-ui/react-label@2.1.15`'s `dist/index.mjs` opens `"use client"` (`head -2`), and 7 of the 8 `<dl>` sites are server components (`head -1 \| grep -c 'use client'` -> 1, `ImportPreview.tsx`) | a static cell would buy a client boundary for four utilities                                                                              |
+
+`DescriptionTerm` therefore states the treatment itself, in the muted ink, and the
+one utility of difference is asserted rather than left as prose
+(`does NOT reuse Label's micro tone, and the difference is the ink`).
+
+**5. `asChild` on the detail is the composition the family must REFUSE, and the
+brief's own citation says so.** The row asks for "`asChild` where a `dd` carries a
+link (`Ledger.tsx:11-16`)". Read those lines:
+
+> ⚠️ ONE `<dl>`, AND THE LINKS LIVE INSIDE THE `dd`s. A `div` inside a `dl` may
+> hold only `dt`/`dd`, so an anchor as its third child is a real WCAG 1.3.1
+> failure (axe `definition-list`) - which is exactly what `e2e/profile.spec.ts`
+> reported when the four-cell version of this was first written the other way.
+
+`<DescriptionDetails asChild><a/></DescriptionDetails>` renders the anchor IN PLACE
+OF the `dd`, i.e. as the group's second child - which is that failure. The link
+belongs INSIDE the `dd`, which is what the ledger does. And the same argument
+reaches every part: HTML's `dl` content model fixes the list as a `dl`, the group
+as a `div`, the term as a `dt` and the detail as a `dd`, so **there is no legal
+`asChild` anywhere in this family**. Both parts refuse it with a message naming
+where the child belongs.
+
+**6. The consuming product already hand-wrote this family's central guard, per
+site.** `Ledger.test.tsx:34-48`:
+
+```
+it("is ONE definition list whose every child holds nothing but a dt and a dd", …
+  expect([...cell.children].map((c) => c.tagName)).toEqual(["DT", "DD"]);
+```
+
+with its own comment, "The rule, stated as the rule: dt, dd, and nothing else. A
+layout wrapper here is the same WCAG 1.3.1 failure as a stray anchor." That is the
+best evidence the shape is right: the product wrote the assertion because it had
+no part to put it in. It also fixes the ORDER as load-bearing at the call site -
+`:237` resolves the `dt` as the `dd`'s `previousElementSibling` - which is why the
+item refuses a detail before its term rather than only counting them.
+
+**7. `Children.toArray` does not flatten fragments, and a test found it.**
+Measured on React 19.3.0: it flattens arrays and drops falsy children, and keeps a
+fragment as ONE element whose `type` is the fragment symbol. The first draft of
+this family read children through it and refused
+`<><DescriptionTerm/><DescriptionDetails/></>`, a legal group. The walk now
+descends fragments and ONLY fragments - a fragment renders no element, an element
+between the group and its pair is invalid - which is the one place this family's
+walk is deliberately narrower than `Form`'s, whose MED-1 fix descends through
+element wrappers too. Both are right in their own tree.
+
+### Guards, each proved by running its reddening mutation
+
+**21 mutation runs**, one per guard, all against the COMMITTED head `879da4d2`,
+each asserted to have LANDED before the run was read (the new text present and,
+for a replacement, the old text gone, or the runner refuses to read it), each
+reverted with `git checkout --` and `git status --short` asserted empty afterwards,
+per mutation. Runner `$BATCH_SCRATCH/s2/mutate.py`, input `mutations-a.json`, logs
+in `$BATCH_SCRATCH/s2/mutations/`.
+
+The runner carries DL10's correction forward: **a red is counted only when the
+output contains a `Test Files` line**, i.e. that a run happened at all. DL10's
+first pass counted thirteen startup crashes as thirteen reddened guards. Every row
+below reports that line.
+
+⚠️ Read one thing into every SOURCE row: **it also reddens `carries the CURRENT
+bytes of every source it ships`**, because `packages/ui/r` was not rebuilt. That is
+the registry guard doing its job; it is omitted from the table, which lists the
+reds that NAME the mutated property.
+
+<!-- prettier-ignore-start -->
+
+| # | guard | mutation | landed in | the red it produced |
+| --- | --- | --- | --- | --- |
+| M01 | the item refuses a stray child | the `else { throw }` branch made unreachable | `description-list.tsx` | TWO: `refuses an anchor beside the pair…` and `refuses a component child too…` (3 failed / 439) |
+| M02 | a part outside its parent throws | `requireContext` made a no-op | `description-list.tsx` | FIVE: all three `%s throws, naming the parent it needs` arms, `a term inside a LIST but outside an item still throws`, and the baseline (5 failed / 437) |
+| M03 | a group needs a term AND a detail | the arity floor made unreachable | `description-list.tsx` | `refuses a group with no detail, and a group with no term` (2 failed / 440) |
+| M04 | every term before every detail | the order check made unreachable | `description-list.tsx` | `refuses a detail before its term, which is the one ORDER the model fixes` |
+| M05 | `asChild` is refused | `refuseAsChild` made a no-op | `description-list.tsx` | TWO: `DescriptionTerm refuses it, naming the element` and `DescriptionDetails refuses it, which is the composition the brief asked for` |
+| M06 | the walk descends a fragment | the `Fragment` branch made unreachable | `description-list.tsx` | `counts through a fragment and drops a falsy child, so a conditional part is fine` |
+| M07 | the term's ink is the MUTED role | `text-muted` -> `text-foreground-2` (i.e. `Label`'s micro ink) | `description-list.tsx` | THREE, incl. `expected [ 'var(--foreground-2)' ] to deeply equal [ 'var(--muted)' ]` and `does NOT reuse Label's micro tone, and the difference is the ink` (4 failed / 438) |
+| M08 | the tracking is the NAMED token | `tracking-label` -> `tracking-[0.14em]` | `description-list.tsx` | TWO: `the term is the house micro-label, in resolved values` and `micro is the default, and plain declares nothing at all` |
+| M09 | the stack's gutter is the 4px grid | `gap-1` -> `gap-2` | `description-list.tsx` | TWO, incl. `expected [ 'flex', 'flex-col', 'gap-2' ] to deeply equal [ 'flex', 'flex-col', 'gap-1' ]` |
+| M10 | the inline layout aligns baselines | `items-baseline` dropped | `description-list.tsx` | SEVEN, incl. the `Inline` story's own play and `declares exactly the properties each layout needs` (7 failed / 435) |
+| M11 | the list decides no layout | `cn("grid grid-cols-2", className)` added to the `dl` | `description-list.tsx` | `gives every part a data-slot, and the list none of its own classes`, `expected 'grid grid-cols-2' to be null` |
+| M12 | the detail decides no ink | `cn("text-foreground", className)` added to the `dd` | `description-list.tsx` | `the detail contributes nothing either…`, `expected [ 'text-foreground' ] to deeply equal []` |
+| M13 | `plain` really is empty | `plain: ""` -> `plain: "text-muted"` | `description-list.tsx` | `micro is the default, and plain declares nothing at all`, `expected 'text-muted' to be ''` |
+| M14 | the list refuses a bare `dt`/`dd` | the mixing check made unreachable | `description-list.tsx` | `refuses a bare dt or dd, which would mix the two content-model forms` |
+| M15 | the term IS a `dt` | `<dt` -> `<p` | `description-list.tsx` | FIFTEEN: all six story plays, the play counter (`expected [ … (47) ] to deeply equal [ … (53) ]`) and the whole structure file's role reads (15 failed / 427) |
+| M16 | a part cannot leave the shared suites map | `"description-list"` deleted from `STORY_SUITES` | `story-suites.ts` | TEN: `covers all sixteen part families…`, the play counter and all eight declaration arms, which stop finding anything to measure |
+| M17 | a source cannot leave the declared walk | `packages/ui/src/description-list.tsx` deleted from `PUBLISHED_SOURCE_FILES` | `source-files.ts` | THREE in `published source coverage`, all naming `walks exactly the published set, by path` |
+| M18 | a story file cannot either | `packages/ui/stories/description-list.stories.tsx` deleted from `STORY_FILES` | `source-files.ts` | TWO, naming `walks exactly the declared stories, by path` |
+| M19 | a story cannot stop being one | `export const Composed` -> `const Composed` | `description-list.stories.tsx` | TWO: `covers all sixteen part families…` and the play counter |
+| M20 | a link inside a `dd` still owes the floor | the `LinkedFigure` story's `min-h-hit` deleted | `description-list.stories.tsx` | the package's own floor guard: `expected [ 'a[data-slot=-] "128" -> 0px' ] to deeply equal []` |
+| M21 | the registry's item list is exact | `"description-list"` deleted from `registry.test.ts`'s list | `registry.test.ts` | `declares the sixteen part families plus the one shared lib` |
+
+<!-- prettier-ignore-end -->
+
+**21 red, 0 GREEN, 0 no-run.** Two things worth saying about that rather than
+leaving it to read as luck. M15 is the cheap check that the plays observe the
+ELEMENT and not a class: turning the `dt` into a `p` reddens all six of them plus
+every role read in the structure file, which is what a family whose deliverable is
+the content model should do. And M11/M12/M13 are the three arms that assert a part
+declares NOTHING - the kind of claim that is usually vacuous - so each one has a
+mutation that gives it something to find.
+
+### The pipeline, end to end
+
+`pnpm pack` in both packages (`prepack` is
+`pnpm -w build:registry && git diff --exit-code -- r`, so packing at all is the
+evidence that `r/` is committed and current) -> `marquee-ui-ui-0.1.0.tgz`
+**62,046 B** (51,909 at `Form`, 38,315 at `Alert`, 26,396 at the Switch) and
+`marquee-ui-tokens-0.1.0.tgz` 99,608 B, unchanged -> `npm install` of both into a
+bare project (`package.json`, `tsconfig.json` with `@/*` -> `./src/*`, an
+`app.css`, and a `components.json` whose `registries` map points at
+`./node_modules/@marquee-ui/ui/r/{name}.json`) ->
+`shadcn add ./node_modules/@marquee-ui/ui/r/description-list.json`:
+
+```
+✔ Created 2 files:
+  - src/lib/utils.ts
+  - src/components/ui/description-list.tsx
+```
+
+Two, not three: unlike `form`, this item declares no cross-item dependency beyond
+`@marquee/utils`.
+
+```
+description-list: installed bytes 14515, target components/ui/description-list.tsx
+  installed === r/description-list.json content === packages/ui/src/description-list.tsx: True
+                                                    sha256 dedc02c548cf (all three)
+utils: installed bytes 1649, target lib/utils.ts
+  installed === r/utils.json content === packages/ui/src/lib/utils.ts: True
+                                                    sha256 78a6fb4e43d8 (all three)
+packed r/registry.json === repo registry.json: True  (17 items)
+npm deps the item asked for, and that landed:
+  class-variance-authority@^0.7.1, clsx@^2.1.1, tailwind-merge@^3.7.0
+```
+
+⚠️ **The first run of this proof FAILED, and the finding is about the consumer's
+`components.json`, not the registry.** The installed copy came back 2 bytes larger
+and a different sha, and the diff was one line: `@/lib/utils` -> `src/lib/utils`.
+The bare project's `aliases.utils` had been written as the bare path `src/lib/utils`
+rather than `@/lib/utils`, and `shadcn` rewrote the import to match it, exactly as
+it is documented to. The control that settles it: **`form.json`, recorded
+byte-equal in DL10, is byte-UNEQUAL in that same project, in the same one line.**
+So the equality this section claims is conditional and the condition is worth
+stating - a consumer whose `utils` alias is `@/lib/utils` (which is the reference
+consumer's) gets the registry's bytes verbatim; one that spells it as a bare path
+gets one rewritten import. Re-run with the alias a real consumer has, all three
+copies agree.
+
+Then the installed copy compiled in the bare project's own Tailwind 4 against the
+published `@marquee-ui/tokens/tokens.css`, `@source "./src/components"`:
+
+```
+font-mono         font-family: var(--font-mono)
+text-3xs          font-size: var(--text-3xs)          --text-3xs       0.6rem
+uppercase         text-transform: uppercase
+tracking-label    letter-spacing: var(--tracking-label)  --tracking-label 0.12em
+text-muted        color: var(--muted)                 --muted          var(--mq-olive-600)
+flex-col          flex-direction: column
+gap-1             gap: var(--spacing)
+flex-wrap         flex-wrap: wrap
+items-baseline    align-items: baseline
+gap-2             gap: calc(var(--spacing) * 2)
+text-not-a-role   (ABSENT)
+border-2          (ABSENT)
+```
+
+Every utility resolves to the ROLE's own variable in the consumer, not to a copy
+of its value, and the two negative controls are absent.
+
+⚠️ **One utility compiled that the part does not render, and it is this repo's own
+recorded trap one step further out.** `min-h-hit` resolves in the consumer
+(`min-height: var(--hit-min)`), because the part's DOCBLOCK names it - "A control
+inside a `dd` owes `min-h-hit` FROM THE CALLER" - and Tailwind's source scan reads
+comments. `AGENTS.md` records the same mechanism inside the test fixture ("a test
+can conjure the thing it is testing"); here a shipped source's prose conjures one
+rule in someone else's stylesheet. Harmless - one unused rule - but it means a
+"does the consumer get this utility?" check cannot be answered by compiling a file
+that mentions it. `text-not-a-role` and `border-2` are the controls that hold.
+
+### Decisions
+
+1. **The family is the CONTENT MODEL; the drawing is secondary.** [V] HTML's `dl`
+   admits bare `dt`/`dd` groups or `<div>`-wrapped ones and never both, all 8
+   product sites use the wrapper form, and the ledger records shipping an axe
+   `definition-list` failure by getting it wrong. So the parts exist to make the
+   valid composition the only available one, and every test here reads the DOM
+   structure and the computed roles rather than a class.
+2. **No `asChild`, anywhere.** [V] Measurement 5: the content model fixes all four
+   elements, and the one `asChild` that looks useful - a linked `dd` - is exactly
+   the failure above. Refused at render on both parts a caller would reach for,
+   with the message naming where the child belongs. This is `Form`'s LOW-2 in a
+   different costume, applied to a whole family rather than one part.
+3. **No Radix, and no primitive at all.** [V] There is nothing to control: no
+   state, no focus management, no portal. This is the first family since `Card`
+   with no `@radix-ui/*` dependency, and it is a consequence of decision 1 rather
+   than a target.
+4. **The list decides no layout.** [V] Measurement 2: eight sites, eight strings,
+   column counts 2/3/10/2/2. A `cva` with eight values is not an axis. `FormItem`'s
+   "decides no width" one level up, and the arm that proves it is the same shape -
+   the rendered class list equals the caller's string exactly.
+5. **The group's arrangement IS an axis, with two values.** [V] Measurement 2: 6
+   stack, 2 inline. `stack` is `flex flex-col gap-1` (two of the six write exactly
+   that; the other four get it from block flow) and `inline` is
+   `flex flex-wrap items-baseline gap-2`. Both gaps are on the 4px grid, which is
+   what broke both ties - `gap-y-0.5` at `ScoreBlock` is 2px and off it, the same
+   tie-break `FormItem` made against `gap-1.5`.
+6. **It is a `cva` and not two class strings a caller appends, for the CONSUMER's
+   sake.** [V] The reference consumer's `cn` is a plain join, not a tailwind-merge
+   (its `lib/utils.ts` is a declared exclusion from this registry), so a caller's
+   `flex-row` over a part that says `flex-col` leaves both on the element with the
+   stylesheet's order deciding - a trap that repository records twice and that has
+   shipped a wrong colour once. Mutually exclusive variant strings cannot do it.
+7. **The term's `micro` tone is the DEFAULT, and it is not `Label`'s.** [V]
+   Measurement 4: 6 of 8 terms are micro-caps, so `micro` defaults where `Label`'s
+   is opt-in; and `labelVariants.micro` differs in one utility, the ink, which is
+   wrong at 5 of the 6 - plus `@radix-ui/react-label` is a client module against 7
+   server-component sites. The difference is an assertion, not a sentence.
+8. **`plain` declares nothing at all.** [V] The two non-micro terms disagree with
+   each other, so there is no second treatment to name; an empty variant lets each
+   pass its own single `text-*` with nothing to fight. It is the one shape that
+   answers decision 6's trap for a site the axis does not cover.
+9. **The detail carries no ink.** [V] 2 sites `text-foreground`, 1
+   `text-foreground-2`, 5 inherit while styling the figure inside. No majority,
+   and what varies is the content of the `dd`, not the `dd`.
+10. **The walk descends fragments and only fragments.** [V] Measurement 7: a
+    fragment renders no element so a group may be written as one; an element
+    between the group and its pair is invalid so it must be refused, not walked
+    through. Deliberately narrower than `Form`'s walk, which descends element
+    wrappers because there the wrapper is legal.
+11. **The list refuses a bare `dt`/`dd` and nothing else; the ITEM does the real
+    refusing.** [V] Three of the eight sites factor a group into a component
+    (`Cell`, `RawFigure`, `Fact`), and a component is not an element - refusing an
+    unrecognised child type at the list would reject all three while proving
+    nothing. A bare `dt`/`dd` there is always the mixing error, so that one is
+    knowable and refused. What the component renders is checked inside the item,
+    where the check can see it. Both halves have a test.
+12. **A composition mistake takes the route DOWN.** [V] `Form`'s decision 11 and
+    the same reasoning: the quiet version of every refusal here is an invalid
+    `<dl>` - a label with no value, a link beside the pair - and every one of them
+    looks entirely normal on screen. The product found its own instance with an
+    axe sweep rather than by looking.
+13. **The `dd`'s UA 40px indent is left to Tailwind's preflight.** [V] Not an
+    oversight: `BreadcrumbList` renders an `<ol>` with no `list-none` and
+    `PaginationContent` a `<ul>` with no `p-0`, so relying on preflight is the
+    package's existing posture rather than a new bet. Stated in the docblock, with
+    what a consumer who turns preflight off owes.
+14. **The stated part count moved where the package DESCRIBES itself**
+    (`AGENTS.md`, `README.md`, `packages/ui/package.json`) and in
+    `fidelity.test.tsx`'s docblock ratio. `fidelity.test.tsx:685`'s
+    `toHaveLength(14)` and its `NEW_PARTS` table are NOT touched: a new family is
+    not fidelity-asserted, which is `Alert`'s closure and `Form`'s, and stands here.
+
+### thepile inputs
+
+What the consumption half needs when `0.1.1` publishes, in one list. Nothing here
+was done: the consuming repo was read only, at `f8385c6d`, and **every bullet was
+checked against that tree with `git show` / `git grep` before it was written**, with
+the command beside any count.
+
+- `description-list` goes into `CONSUMED` in `scripts/marquee-drift.test.ts`, and
+  `components/ui/description-list.tsx` arrives by `shadcn add`. ⚠️ **That test pins
+  BOTH lists exactly** (read at the base): `CONSUMED` is
+  `["button", "input", "label", "sheet", "toast", "ribbon"]` (`:49`) and the arm at
+  `:98` asserts the complement is exactly
+  `["accordion", "badge", "card", "separator", "utils"]`, with `toEqual` and its own
+  comment saying why it is not a subset matcher. Re-read at `f8385c6d` rather than
+  carried over from DL10. So new items in the shipped index redden that arm the moment
+  `0.1.1` lands whether or not anyone consumes them - the bump and both list edits
+  are ONE commit, or the arm is red between them. ⚠️ **It is now a SIX-item bump**:
+  `switch`, `breadcrumb`, `pagination`, `alert`, `form` and `description-list`.
+  ⚠️ `shadcn add description-list.json` writes **two** files, `lib/utils.ts` and
+  `description-list.tsx`; thepile's `lib/utils.ts` is a DECLARED EXCLUSION whose
+  `cn` is a plain join on purpose, so `git checkout -- apps/web/src/lib/utils.ts`
+  after the add.
+- ⚠️ **`Ledger.test.tsx` is the instrument to read first, and it is the one that
+  already tests this family's contract.** At the base it holds
+  `it("is ONE definition list whose every child holds nothing but a dt and a dd")`
+  with `expect([...cell.children].map((c) => c.tagName)).toEqual(["DT", "DD"])`,
+  `expect(container.querySelectorAll("dl")).toHaveLength(1)`,
+  `expect(container.querySelectorAll("dd > a")).toHaveLength(9)` and, at `:236-237`,
+  a `dt` resolved as `dd[data-testid=…].previousElementSibling`. All four survive a
+  consumption unchanged - the parts render exactly that DOM - and the last one is
+  why the item refuses a detail before its term rather than only counting them.
+- ⚠️ **`Ledger`'s `dt` and `dd` are the one site that must pass
+  `tone="plain"`.** Its term is not the default micro string: it is
+  `font-mono uppercase leading-[1.5]` plus THREE measured size/tracking pairs by
+  breakpoint (`text-[0.5rem] tracking-[0.06em]` / `text-[0.55rem]
+tracking-[0.08em]`, `md:` variants, then one size at `xl`), every one of them
+  measured against a named overflow in `e2e/profile.spec.ts`'s sweep, and
+  `Ledger.test.tsx:240-249` pins them with `className.toContain`. Passing the
+  default `micro` would put a second `font-size` and a second `letter-spacing` on
+  the element - the exact join-not-merge trap `Ledger.tsx:150-158` is written
+  around. `tone="plain"` plus its existing string, and every `toContain` still
+  holds.
+- **The other seven sites take the default.** Five change the term's ink by one
+  step (`text-text-muted` is `text-muted`, which is what `micro` carries, so they
+  change nothing), `reckoning` moves from `microLabelClass`'s
+  `text-foreground-2` to `text-muted` and from `tracking-[0.14em]` to
+  `tracking-label` (0.14em -> 0.12em), `game/[slug]` and `ScoreBlock` move from
+  `tracking-wide` to `tracking-label` (0.025em -> 0.12em, the visible one), and
+  `ImportPreview` from `text-xs` to `text-3xs` (12px -> 9.6px). ⚠️ **Those last
+  three are the shots-visible changes of a consumption and they are NOT zero-diff.**
+  A consumption slice owes a prediction and a capture, not a claim that nothing
+  moves.
+- ⚠️ **The testids all live on the parts' own props and pass through `{...props}`,
+  so every one keeps resolving.** Measured, by the exact testid rather than the
+  substring (`git grep -l -E '(data-testid="X"|getByTestId\("X"\)|\[data-testid="X"\])' $T -- 'apps/web/src/**' 'e2e/**' 'scripts/**'`):
+  `member-played` **4** files, `member-rated` **3**, `member-reviews` **5**,
+  `profile-stats` **7**, `steam-import-split` **3**, `steam-split-backlog` **3**,
+  `steam-split-played` **3**, `rejected` **2**, `score-median` **2**,
+  `score-mean` **2**, `follow-counts` **4**. ⚠️ The brief's `rejected` is the one
+  to be careful with: a bare `git grep -c rejected` matches **38** files because it
+  is an English word, and 2 is the number that is about the `<dl>`. Three of the
+  eleven sit on a `dt` or a `dd` rather than on the list
+  (`member-played`/`-rated`/`-reviews` on `dd`s, `score-median`/`-mean` on the
+  figure inside the `dd`, and `score-median-label`/`-mean-label` on the `dt`s,
+  asserted at `ScoreBlock.test.tsx:112`), so the props pass-through is what keeps
+  them - which every story play exercises, since five of the six pass a `className`
+  and the structure file asserts the `data-slot`s survive beside them.
+- ⚠️ **The family REFUSES six compositions, loudly, at render, and the consumption
+  has to be read against the PREDICATE and not one clause of it** (layer 2's HIGH-1
+  in DL10 was a checklist enumerated by one attribute when the predicate had three).
+  They are: (1) a part outside its parent; (2) any child of an item that is not a
+  term or a detail; (3) an item with no term; (4) an item with no detail; (5) a
+  detail before a term; (6) `asChild` on a term or a detail. Against the eight sites
+  at `f8385c6d`:
+  - (2) is the one with a live hazard, and it has exactly one instance:
+    **`Ledger.tsx:206-212`'s `{href && <Link className="absolute inset-0" />}` is
+    inside the `dd` already** (the link opens at `:206`, its `className` is `:210` and the `</dd>` is `:213`), so it PASSES - and it passes
+    because the product already fixed it. A consumption that "tidies" that link out
+    to the cell level takes the route down, which is the point.
+  - (3), (4) and (5): all eight sites are one `dt` then one `dd`, checked in
+    measurement 2's table, so none trips.
+  - (6): no site can trip it, because no site uses this family yet; it exists for
+    the consumption itself, which is when someone will reach for it.
+  - (1): the three component-factored sites (`Cell`, `RawFigure`, `Fact`) must
+    return a `DescriptionItem`, not a bare `<div>` with the parts inside, or the
+    parts throw for want of the item's context. That is the one shape change a
+    consumption owes beyond swapping tags, and the `Composed` story is what it
+    copies.
+- ⚠️ **`ImportPreview.tsx:214`'s `aria-live="polite"` is the caller's and stays
+  the caller's.** It goes on `<DescriptionList aria-live="polite">`; the family
+  neither writes nor strips it, which is the `Live` story. `ImportPreview` is also
+  the ONE client component of the eight, so it is the only site where the family's
+  lack of a Radix dependency buys nothing - and the only one where it would have
+  cost nothing either.
+- **What the consumption GAINS**: one refusal in place of the per-site
+  `["DT","DD"]` assertion the product would otherwise owe eight times over (it has
+  written it once, for the ledger); and the micro-label term stated once instead of five ways.
+- **What it does NOT gain, and should not be sold as**: the eight lists are already
+  valid `dl`s today. This does not fix a live accessibility defect - the product
+  fixed its one - it stops the next one, and it removes four of the five spellings.
+
+### Consumers
+
+Both runs of the scan (`b2e24fd3` in place of `origin/next`, over `packages/**` and
+`registry.json`), the script in `$BATCH_SCRATCH/s2/consumer-scan.sh`, in the shape
+the DL10 `Form` stream recorded. The shell `grep` here is a ugrep wrapper, so every
+arm that becomes a verdict uses `command grep` or `git grep -F`.
+
+**Run 1, before any code** (`consumer-scan.1.txt`): the diff was empty, so scans
+1-3 printed nothing; scan 4 is what the run was for - the declared lists and
+counters a sixteenth family has to enter, read off the tree rather than off the
+brief:
+
+```
+AGENTS.md:51 the fifteen part families · README.md:19,24 · packages/ui/package.json:4
+packages/ui/test/fidelity.test.tsx:36    Eight of the fifteen part families
+packages/ui/test/fidelity.test.tsx:685   expect(slots).toHaveLength(14)
+packages/ui/test/registry.test.ts:60     declares the fifteen part families plus the one shared lib
+packages/ui/test/registry.test.ts:147    expect(checked).toBe(16)
+packages/ui/test/registry.test.ts:215    expect(compared).toBe(17)
+packages/ui/test/stories.test.tsx:69     const DECLARED_PLAYS = 48
+packages/ui/test/stories.test.tsx:70     const DECLARED_STORIES = 74
+packages/ui/test/stories.test.tsx:103    expect(storySuiteNames()).toHaveLength(15)
+```
+
+⚠️ **One count in the brief does not reproduce: `registry.json` has 16 items, not 17.** The row says "`registry.json` 17 items"; `node -e 'console.log(require("./registry.json").items.length)'`
+prints **16** at `b2e24fd3`. 17 is `registry.test.ts:215`'s `compared`, which counts
+FILES - `utils` ships two. The two numbers move together but they are not the same
+number, and a stream that trusted 17 would have set the item list one short. After
+this slice: **17 items, 18 files, 17 registry dependencies**. Everything else in the
+brief's counter list reproduced exactly, including the two line numbers.
+
+**Run 2, at the commit point** (`consumer-scan.2.txt`): **16 exported names** - the
+four parts, four Props types, two `cva` functions, and the six story exports. Every
+reader of every one of them is inside this slice's own files
+(`description-list.tsx`, `index.ts`, `description-list.stories.tsx`,
+`description-list-structure.test.tsx`, `tailwind-compile.test.tsx`,
+`registry.json`). `Default` collides with a `cva` key in `button.tsx` and with nine
+other story files' own `Default`; a story module is its own namespace and a variant
+key is not an export, so neither is a consumer. The `LinkedFigure` hit inside
+`description-list.tsx` is the docblock naming the story, not a reader.
+`Inline` / `Live` / `Prose` / `Composed` / `Default` in `tailwind-compile.test.tsx`
+are real readers, by story name, and they are this slice's own new arms.
+
+Scan 2 printed the one new item, its path and its target. Scan 3 named
+`source-files.ts`, `story-suites.ts`, `registry.test.ts`, `fidelity.test.tsx`,
+`stories.test.tsx`, `tailwind-compile.test.tsx` - all mine and all edited - plus
+five files I did NOT touch: `breadcrumb.tsx` and `pagination.tsx`, which name
+`fidelity.test.tsx` in their docblocks, and `badge.tsx`, `switch.tsx` and
+`breadcrumb.stories.tsx`, which name `tailwind-compile.test.tsx` in theirs
+(attributed by re-running the scan's own arm per changed file). They are REVERSE
+references - files that point at a test I edited - and both edits are additive: one
+docblock word in `fidelity.test.tsx` (`fifteen` -> `sixteen`, no assertion), and a
+new describe block appended at the end of `tailwind-compile.test.tsx` with the four
+hoisted helpers REUSED and not copied and not one line of the nav, alert or field
+arms touched. So none of the four parts is held to anything different. That is
+`Alert`'s decision 10 collecting its dividend a third time.
+
+`git diff --stat b2e24fd3...HEAD` is **14 files, +1218 / -10**, and every one of
+the fourteen is in the "What shipped" table.
+
+**0 CROSS, 0 UNOWNED**, 16 names NEW between the two runs (the first ran against an
+empty diff by construction). The batch's other stream is in a different repository,
+and nothing in this one was edited outside this slice's own surface.
+
+⚠️ The blind spot the Switch, `Alert` and `Form` all recorded still applies: scan
+3's stem arm looks for `./<stem>"` and `../<stem>"`, so it does NOT see
+`import * as descriptionList from "../../stories/description-list.stories.js"`,
+which is how `story-suites.ts` reaches a new story file. Scan 4 - the declared
+lists - is what covers it, which is why that arm exists.
+
+**The audit cells this slice's decisions touch, for the reconciler's §6 grep.** Two
+verdicts and one shipped family, so three lists, all at the thepile base
+`f8385c6d` in `docs/design-audit.md`:
+
+- `ToggleGroup` **does not ship**: cells at `:333`, `:340`, `:341`, `:368`, `:376`,
+  `:385`.
+- `ScrollArea` **does not ship**: cells at `:333`, `:341`, `:343`, `:386`, `:394`,
+  `:401`.
+- `DescriptionList` **ships**, and no audit cell names it, because the audit's
+  answer for these rows was `Table` (refused in DL10) or nothing. The cells whose
+  CURRENT text points at the `<dl>` sites, which the shipped family is now the
+  answer for, are the three DL10's `Table` table already resolved to "already a
+  `<dl>`" - `game/[slug]:757`, `admin/reports:85` and `members/**`'s
+  `MemberRow.tsx` - plus the five sites measurement 2 adds
+  (`reckoning:201`, `ImportPreview:214`, `transparency:460`, `ScoreBlock:227`,
+  `Ledger:223`). ⚠️ Naming the SHIPPED family's cells and not only the refused
+  ones is DL10's MED-1: that batch grepped only the refused family and left the
+  shipped one's consumers unnamed.
