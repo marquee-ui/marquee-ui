@@ -4665,7 +4665,144 @@ creep into the three shapes axe passes. The suite goes 453 -> 455.
 
 ### The RadioGroup measurement, and the answer
 
+**A `RadioGroup` family SHIPS, for the two sites the audit names - and the three sites
+it does NOT name cannot take it, for a reason the platform decides rather than this
+package.** Everything below was read at the thepile base `50f8a22c`; every command is
+quoted so a later stream re-runs it rather than trusts the number.
+
+The audit's count reproduces (`awk -F'|' '{print $4}' docs/design-audit.md | command grep
+-c -w RadioGroup` -> **8**; `Checkbox` **6**). Its 8 rows are **two** components: seven
+of them name `ReportSheet.tsx:142`'s twelve guideline radios, because `ReportFlag` is
+mounted on seven routes (`git grep -n -F '<ReportFlag'` -> **7 lines**: the six route
+pages plus `ListProgress.tsx:289`), and the eighth is `/settings/profile`'s face grid.
+
+**First, what the tree actually holds**, non-test, at the base:
+
+| grep (all `| command grep -v '\.test\.'`) | result |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `git grep -n -F 'type="radio"' -- 'apps/web/src/**/*.tsx'` | **1 source line**, `ReportSheet.tsx:142`, rendered 12 times |
+| `git grep -n -E 'role="radiogroup"'` | **4 lines in 3 files**: `ReportSheet:107`, `ShelfPicker:85`, `ShelfPicker:105`, `GameActions:427` |
+| `git grep -n -E 'role="radio"'` | **3 lines**: `ShelfPicker:92`, `ShelfPicker:116`, `ShelfSlot:30` - all on `<button>` |
+| `git grep -n -E 'getByRole\("(radio)"' -- 'e2e/**'` | **~55 lines in 20 spec files**, and **every one of them resolves a ShelfPicker/ShelfSlot BUTTON** |
+
+⚠️ **That last row is the finding the audit's column cannot show.** The product has TWO
+single-choice families: one built from native radios (one source line, twelve elements,
+zero e2e instruments) and one built from `button[role="radio"][aria-checked]` (three
+source lines, three groups, essentially the whole e2e suite). The audit names only the
+first. So the invariant was enumerated mechanically rather than site by site, which is
+what turned up rows 3-5 below.
+
+**Second, what the platform does, measured rather than recalled** (`$BATCH_SCRATCH/s2/probe/`,
+jsdom 30.0.1 + `@testing-library/user-event`, the probe files removed after the run):
+
+| P   | question                                                    | measured                                                                                                                                             |
+| --- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P1  | do two radios sharing a `name` exclude each other in jsdom? | yes; `FormData` reads back the checked one's `value`                                                                                                 |
+| P2  | is a radio group ONE tab stop?                              | yes - `user.tab()` went `before -> input[value=a] (the CHECKED one) -> after`, skipping the other two, while their `tabIndex` property still reads 0 |
+| P3  | do the arrow keys move the selection?                       | yes - `{ArrowDown}` on the checked radio left `{a:false, b:true}` and focus on `b`                                                                   |
+| P4  | does clicking an ALREADY-CHECKED radio fire `change`?       | **no** (0 events). The same click on an already-checked CHECKBOX fires **1**                                                                         |
+
+P2 and P3 are why this family needs no roving-tabindex code and no key handler: the two
+behaviours Radix's `RadioGroup` implements in React arrive from the shared `name`, and
+they are ASSERTABLE here, which the Switch's geometry never was. **P4 is the blocker for
+three sites**, below.
+
+**Third, what axe says about the group's shape** (`axe-core@4.12.1`, run under jsdom over
+four hand-built shapes plus two controls, `$BATCH_SCRATCH/s2/probe/probe2.mjs`):
+
+- `ul[role="radiogroup"] > li > (a + label > input[type=radio])` - the report sheet's own
+  shape - **no violation**; `label`, `aria-allowed-role`, `aria-allowed-attr`,
+  `aria-required-attr` and `nested-interactive` all PASS.
+- the same with a `div` root and `div` rows - identical result.
+- `fieldset > legend + label > input` - no violation (and no ARIA rule applies at all).
+- a label holding a visually-hidden radio and an `<img alt="Use the bear face">` - no
+  violation; the name comes off the `alt`. **Control**: the same with `alt=""` fires
+  `label`, impact **critical**, so the harness can fail.
+- ⚠️ **`aria-required-children` never runs on a radiogroup**, including on the negative
+  control `div[role="radiogroup"]` holding two plain `<button>`s, where it came back
+  `inapplicable` rather than `passes`. The reason is in the source: the rule's matcher is
+  `ariaRequiredChildrenMatches` (`axe.js:28338`), which returns `!!requiredOwned(role)`,
+  and `requiredOwned` (`:23449`) reads `standards.ariaRoles[role].requiredOwned` from the
+  table at `:14353` - where `radiogroup` (`:14706`) declares `type`, `allowedAttrs`,
+  `superclassRole` and `accessibleNameRequired: false`, and **no `requiredOwned` at all**.
+  So "axe is happy" is not evidence that a radiogroup owns radios, in either direction.
+- ⚠️ and the same table says **`accessibleNameRequired: false`** for radiogroup, which is
+  why this family's name refusal (decision 3) is deliberately STRICTER than axe.
+
+Row by row, one row per SITE:
+
+| site                                                                             | what it actually is                                                                                                                                                                                                                                                            | wants the part?                                                                                                                                                                         |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ReportSheet.tsx:104-155` (**7 of the 8 audit rows**, 7 routes)                  | `ul[role="radiogroup"][aria-label]` of twelve `li > (Link + label[htmlFor] > input[type=radio][name=groupId] + span)`; the box is `size-4 shrink-0 accent-accent`, the selected state a `border-accent` on the LABEL from React state, both the link and the label `min-h-hit` | **Yes, exactly.** Native radios, one shared `name`, selection committed by a separate Send. The one thing it hand-writes that the part would own: the `useId` name and the group's role |
+| `FacePicker.tsx:319-352` (**the 8th row**, `/settings/profile`)                  | `ul[data-testid="face-grid"]` of eight `li > button[type=button][aria-pressed][aria-label="Use the X face"]`, no group role, no roving focus, the selected state `ring-2 ring-accent ring-offset-[3px]` on the 64px `img`, and **each tap is an immediate save**               | **Yes, structurally** - and with two costs this record names rather than hides (below). It is the site the "indicator may be ABSENT" composition exists for                             |
+| `ShelfPicker.tsx:85` the Shelf segment (**not an audit row**)                    | `div[role="radiogroup"][aria-label="Shelf"]` of four `button[role="radio"][aria-checked]`                                                                                                                                                                                      | **No.** P4: a re-tap has to be able to CLEAR, and a checked native radio fires no `change`                                                                                              |
+| `ShelfPicker.tsx:105` the Outcome pills (**not an audit row**)                   | the same, four pills, and its own comment at `:119-124` states the rule: "Re-tapping the selected one clears it, because the outcome is optional and so has to be un-sayable, and there is no other way back out of a mis-tap"                                                 | **No**, and the source says why before this measurement did                                                                                                                             |
+| `GameActions.tsx:427` + `ShelfSlot.tsx:28` the save slots (**not an audit row**) | `div[role="radiogroup"][aria-labelledby]` of four `ShelfSlot` `button[role="radio"]`; `selectShelf` (`:358-384`) sets `clearing = saved.shelf === value` and writes `null`, with a toast and an Undo, and every tap is a server mutation                                       | **No**, twice: the clear, and P3 - arrow-key traversal CHECKS as it moves, so one keypress per slot would be one mutation per slot                                                      |
+| `FacePicker.tsx:299-315` the 4-chip style strip                                  | `div[role="group"]` of `aria-pressed` buttons                                                                                                                                                                                                                                  | **Out of scope**: the audit's answer for it is `Tabs`, not this family                                                                                                                  |
+
+So **2 of 6 want the part, 3 cannot have it, 1 is another family's.** And the three that
+cannot are not a gap in this family: a set of options that can be emptied by re-tapping
+the chosen one is not a radio group in any implementation - `@radix-ui/react-radio-group`
+refuses it the same way, because it models the same platform semantics. They are toggles
+with a shared exclusivity rule, and they already say so in their own source.
+
+⚠️ **What a FacePicker consumption costs, named now so nobody discovers it later.** (1) The
+role changes from `button` to `radio` and `aria-pressed` becomes `checked`, which is 8
+assertions in `FacePicker.test.tsx` (`:78`, `:151`, `:157`, `:184`, plus `getByRole("button",
+{ name: "Use the X face" })` at `:131`, `:148`, `:184`) and one in
+`e2e/profile-edit.spec.ts:167`. (2) P3: because the arrow keys CHECK as they move, and each
+selection there is an immediate `onSave`, arrow-keying across the row of eight would write
+eight faces in turn. That is the radio pattern's own behaviour (WAI-ARIA APG), not a defect
+in this part - but it is a behaviour change at that site, and it is the consumption's call
+whether the grid becomes radios or stays buttons. **[V]**
+
 ### The Checkbox measurement, and the answer
+
+**A `Checkbox` family SHIPS, and one family serves all seven sites**, because seven of
+seven are the same three lines of markup.
+
+The audit's 6 rows are **four components at seven mount points**, and the source count is
+lower than both: `git grep -n -F 'type="checkbox"' -- 'apps/web/src/**/*.tsx' | command
+grep -v '\.test\.'` prints **6 lines in 5 files**, of which one -
+`app/settings/PushSettings.tsx:261` - is the SWITCH's native host and belongs to that
+family, not this one. The remaining five lines are `LogForm.tsx:247` (inside `CheckRow`,
+mounted three times at `:692` Spoilers, `:719` Played on, `:747` Replay),
+`ListForm.tsx:97` Ranked and `:110` Private, `PlayForm.tsx:159` Replay, and
+`OnboardingForm.tsx:171` consent. **Five sources, seven rendered rows.**
+
+**The row is BYTE-IDENTICAL at all five, and that is the measurement this family stands
+on.** `git grep -n -F 'flex min-h-hit items-center justify-between gap-3 text-sm
+text-text'` prints exactly those five lines, each a `<label>`, each holding
+`<span className="flex flex-col">LABEL<span className="text-xs text-text-secondary">SUB</span></span>`
+and then the box. `OnboardingForm.tsx:150-151`'s own comment names it as a pattern:
+"The row is the house checkbox pattern (`components/lists/ListForm.tsx`): a 44px label the
+whole width of which is the target."
+
+| site                                            | what it actually is                                                                                                                                                                                                                                                                                                                                               | wants the part?                                                                                                                                                                  |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LogForm.tsx:247` `CheckRow` -> `:692` Spoilers | the house row; controlled (`checked` + `onChange`); box `h-6 w-6 accent-accent`                                                                                                                                                                                                                                                                                   | Yes                                                                                                                                                                              |
+| the same `CheckRow` -> `:719` Played on         | the same component, second mount                                                                                                                                                                                                                                                                                                                                  | Yes                                                                                                                                                                              |
+| the same `CheckRow` -> `:747` Replay            | the same component, third mount, sublabel swapped by state                                                                                                                                                                                                                                                                                                        | Yes                                                                                                                                                                              |
+| `ListForm.tsx:87-102` Ranked                    | the house row, hand-written; controlled                                                                                                                                                                                                                                                                                                                           | Yes                                                                                                                                                                              |
+| `ListForm.tsx:104-115` Private                  | the same, hand-written a second time in one file                                                                                                                                                                                                                                                                                                                  | Yes                                                                                                                                                                              |
+| `PlayForm.tsx:153-164` Replay                   | the same, hand-written a third time in a third file                                                                                                                                                                                                                                                                                                               | Yes                                                                                                                                                                              |
+| `OnboardingForm.tsx:153-188` consent            | the house row, and the box is the HOUSE box: `peer h-6 w-6 appearance-none rounded-sm border-2 border-line-strong bg-surface checked:border-accent checked:bg-accent` with a SIBLING `<svg data-testid="consent-tick">` at `stroke-on-accent opacity-0 peer-checked:opacity-100`, in a `span.relative.grid.place-items-center`; uncontrolled, no `defaultChecked` | **Yes, and it is the DERIVATION**: MOBILE-3 item 2 replaced the browser's box here deliberately, and its comment says why the tick is a sibling element and never `input::after` |
+
+So the drawing has a direction rather than a majority: six rows draw the browser's box
+themed with `accent-color`, one draws the house box, and the one is the NEWEST and was a
+deliberate design fix whose comment calls the browser box the defect. The family draws the
+house box, and a consumption changes the other six visibly (recorded under "thepile inputs").
+
+**Does `Form`'s field family already compose this row? No, and the reason is structural
+rather than stylistic.** Read at this package's own `form.tsx`: `FormItem` renders a
+`<div className="flex flex-col gap-1 text-sm">`, `FormLabel` writes `htmlFor={controlId}`
+unconditionally, and `FormItem` throws unless it holds exactly one `FormControl`. The
+checkbox row is a `<label>` that WRAPS its control, is a ROW rather than a stack, and
+distributes with `justify-between`. Putting it in a `FormItem` would mean the label stops
+wrapping the input - and the wrapping is the whole point, because it is what makes the
+44px row the tap target rather than the 24px box. So this family owns the row, exactly as
+`Switch` owns its own row, and `Form` stays the family for a stacked label-over-control
+field. Nothing composes them today and nothing needs to.
 
 ### What shipped
 
