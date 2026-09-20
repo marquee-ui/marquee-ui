@@ -4472,3 +4472,147 @@ can widen to every intrinsic element that is not `dt`/`dd`, with a reddening tes
 `<hr />` inside a list. Layer 2's HIGH-1 was thepile's (two audit cells for the same `MemberRow`
 `<dl>` on the followers/following routes still prescribing a `Separator` inside the list; closed in
 thepile's audit).
+
+## LIB-VENDOR-0.1.1: `@marquee-ui/ui` 0.1.1, vendored into thepile by `file:` (2026-09-20)
+
+Batch DL12, stream s1, branch `s/lib-vendor-0.1.1` from `next` @ `cd32dd5`. The whole diff in this
+repository is the version line, this block and the README record: **no `src`, no `r/`, no `tokens`**.
+The consuming half lives in thepile's `docs/slices/LIB-VENDOR-0.1.1.md`.
+
+### What the bump carries
+
+Six part families shipped here since `ui@0.1.0` (`8ad765011828ad18a2e7ede6060ed5b154a418cd`) and
+this is the version that makes them installable:
+
+| item               | family            | landed                   |
+| ------------------ | ----------------- | ------------------------ |
+| `switch`           | `Switch`          | DESIGN-LIB-d, 2026-09-18 |
+| `breadcrumb`       | `Breadcrumb`      | DESIGN-LIB-d, 2026-09-18 |
+| `pagination`       | `Pagination`      | DESIGN-LIB-d, 2026-09-18 |
+| `alert`            | `Alert`           | DESIGN-LIB-d, 2026-09-19 |
+| `form`             | `Form`            | DESIGN-LIB-d, 2026-09-19 |
+| `description-list` | `DescriptionList` | DESIGN-LIB-d, 2026-09-20 |
+
+`git diff --stat ui@0.1.0 HEAD -- packages/ui/r` is those six plus the index and nothing else
+(`7 files changed, 218 insertions(+)`), so the eleven items `0.1.0` already shipped are
+**byte-identical to the tag** - which is what lets thepile's `scripts/marquee-drift.test.ts` keep its
+six installed copies untouched across the bump and red only on the item LIST.
+
+**`pnpm -w build:registry` after the bump leaves `packages/ui/r` byte-unchanged** (`git diff --stat
+-- packages/ui/r` empty). The built index does not carry the package version, so the version line is
+the entire code diff and there is no rebuilt `r/` riding this commit.
+
+**Sixteen part families still.** The index holds 17 items; `utils` is the `cn` helper, not a family.
+So `package.json`'s `"sixteen part families"` description is true at this head and was not touched.
+
+### `@marquee-ui/tokens` does NOT bump with it
+
+`git diff --stat tokens@0.1.0 HEAD -- packages/tokens` (`tokens@0.1.0` = `99ea141f`) is one file,
+`packages/tokens/test/helpers/source-files.ts`, and that package's `files` is `["dist","fonts","src"]`
+
+- `test/` is not shipped. Nothing a consumer receives has moved, so tokens stays `0.1.0` and thepile
+  keeps consuming it from the registry at `^0.1.0`. **One tarball is vendored downstream, not two.**
+
+### The packed tarball, as measured
+
+```
+$ pnpm --filter @marquee-ui/ui pack --pack-destination …/thepile-LIB-VENDOR-0.1.1/vendor/marquee-ui/
+$ stat -c %s marquee-ui-ui-0.1.1.tgz ; sha256sum marquee-ui-ui-0.1.1.tgz
+65840
+d7b8989da179703195750bec6a1f21b687c8c1092d90c567f70a6c663ff9609b
+```
+
+|                                         | `ui@0.1.0`'s tarball (a3) | this one  |
+| --------------------------------------- | ------------------------- | --------- |
+| bytes                                   | 22005                     | **65840** |
+| `r/` item files (excl. `registry.json`) | 11                        | **17**    |
+| `src/` modules (`.ts`/`.tsx`)           | 12                        | **18**    |
+
+`files` was ALREADY `["r","src"]` at `ui@0.1.0` (read from `git show
+ui@0.1.0:packages/ui/package.json`), so the tarball's shape did not change and the 22005 → 65840 is
+content. It is ~3x for six families on eleven because **every family's bytes are in the tarball
+twice**: once as the source module under `src/`, once inlined into its registry item's `content`
+string under `r/`. That duplication is by design - a registry item has to be self-contained for
+`shadcn add` to write it with no network - and `Form`, `Pagination` and `DescriptionList` are three of
+the largest modules in the package. Stated because the number otherwise reads like an accident.
+
+**The packed `package.json`'s `@marquee-ui/tokens` specifier, READ from the tarball rather than
+predicted:**
+
+```
+$ tar -xzOf marquee-ui-ui-0.1.1.tgz package/package.json | …
+version: 0.1.1
+devDeps @marquee-ui/tokens: "0.1.0"
+```
+
+`workspace:*` was rewritten to the exact `0.1.0`, as expected. ⚠️ Worth being precise about, because
+the DL12 composition was not: `packages/ui/package.json:33` names tokens in **`devDependencies`**,
+not `dependencies`. A devDependency is never installed for a consumer, so the rewritten specifier
+cannot reach thepile's resolution at all; thepile gets `@marquee-ui/tokens` from its own direct
+`^0.1.0` dependency. The read is recorded because it was asked for, not because it is load-bearing.
+
+### `prepack`'s stale-registry refusal, proved live again
+
+The same instrument a3 recorded, re-run at this head because a version bump is exactly when a stale
+`r/` would ship. Run in a **detached worktree** of the committed bump (`c99b71e`), never in the
+branch tree, so the revert is "delete the worktree" rather than a `git checkout --` in a tree
+somebody else reads:
+
+| mutation                                                                              | landed                                                          | the red                                                                                                                                                                 |
+| ------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bg-border` → `bg-border-strong` in `packages/ui/src/separator.tsx`, `r/` not rebuilt | `separator.tsx:24`, confirmed by `grep` before the run was read | `pnpm run prepack` exit **1**, the `git diff --exit-code -- r` output naming `packages/ui/r/separator.json` and carrying `bg-border-strong` inside its `content` string |
+
+So the tarball above cannot be bytes that disagree with `src/`.
+
+### The README consumer lines (DL12 composition (e)): none remains
+
+Ankit's 2026-09-15 call was that a README line addressed to a CONSUMER speaks `npm`/`npx`, not
+`pnpm`, because the consumer's package manager is not ours. Re-checked at this head:
+
+```
+$ git grep -n pnpm -- README.md 'packages/*/README.md'
+README.md:34            "so a story that stops working reddens `pnpm test`"
+README.md:66,67,68      pnpm install / pnpm verify / pnpm storybook
+README.md:75            "Node 22, pnpm 10.24.0, TypeScript strict…"
+packages/tokens/README.md:9   pnpm build     # measures the faces… writes dist/
+packages/tokens/README.md:80  "measured 2026-09-14 (`pnpm build` prints it)"
+```
+
+Every one of the five is a CONTRIBUTOR line: `README.md:66-75` sit under `## Working in this repo`,
+`:34` describes this repo's own Storybook-as-test-suite, and both `packages/tokens/README.md` hits
+are about building this package's `dist/`. The two consumer-facing command lines, `README.md:40` and
+`:43` under `## Installing a component`, already say `npx`. **Nothing to fix; recorded rather than
+edited.**
+
+⚠️ One adjacent finding, NOT fixed here because it is outside this stream's fence (consumer command
+lines only) and is the orchestrator's to place: `README.md:61` still says
+**"Packages stay `"private": true` until their first publish."** That is now false - `packages/ui`
+and `packages/tokens` both dropped `private` at `ed7f34c` and `0.1.0` of each is resolvable from the
+registry (thepile's `pnpm-lock.yaml` carries a `sha512` `resolution.integrity` for both, not a
+`file:` link). Only the repo root is still `"private": true`. One line, one batch, somebody's fence.
+
+### The two a3 follow-ups this bump does NOT do [V]
+
+- **LOW-2**, `ui`'s `prepack` breaks a git-URL install (`git diff --exit-code` needs a git checkout,
+  which an `npm install <git-url>` tarball extraction is not). Recorded, not done: the fix changes
+  `packages/ui`'s shipped `package.json`, so it belongs to a bump whose job is that, and doing it
+  inside this one would put a behaviour change under a version number whose entire claim is "the six
+  items, and nothing else".
+- **LOW-3**, the tokens TS entry. Recorded, not done: it would change the shipped bytes of
+  `@marquee-ui/tokens`, which deliberately does not bump in this batch.
+
+### The gate
+
+`pnpm verify` at the library head, foreground (the run is seconds and there is no stack to contend
+for): **exit 0**, 12s, the runner's own lines being `All matched files use Prettier code style!`,
+both packages' `typecheck: Done`, `✔ Building registry.`,
+`└  Storybook build completed successfully` and `Test Files  23 passed (23)` /
+`Tests  453 passed (453)` - the same 23 / 453 as DL11's closure head, which is the expected
+number: this bump adds no source, no story and no test. `git status --short` empty before and after
+the run, so the committed `packages/ui/r` is exactly what `build:registry` produces at `0.1.1`.
+
+The run above was re-taken AFTER this section was written, so the gated tree IS the branch head
+(this is 13 seconds; there is no reason to quote a run that predates its own record, as DL11 had to).
+
+No push, no `npm publish`, no git tag: the freeze holds. The tag `ui@0.1.1` is the publish's act and
+is Ankit's to make; thepile's `vendor/` tarball exists only until he does.
