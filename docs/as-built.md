@@ -5235,8 +5235,13 @@ edits to those files are additive: one docblock word in `fidelity.test.tsx`
 `registry.test.ts`, and the LOW-6 lines in `description-list.tsx`. So no part is held to
 anything different.
 
-`git diff --stat f5df7fb9...HEAD` is **18 files**, and every one of them is in the "What
-shipped" table or is the LOW-6 pair.
+`git diff --name-only f5df7fb9...HEAD` is **24 files** (⚠️ the first draft of this line
+said 18, from counting the "What shipped" table rather than running the command - corrected
+by running it): the twelve in that table, the four `r/` files the registry build rewrites,
+the `description-list.tsx`/`description-list-structure.test.tsx` pair from LOW-6, the four
+counter files (`fidelity.test.tsx`, `registry.test.ts`, `stories.test.tsx`,
+`story-suites.ts` - three of them already in the table's last two rows), plus `AGENTS.md`,
+`README.md`, `packages/ui/package.json` and this record.
 
 **0 CROSS, 0 UNOWNED**, 31 names NEW. ⚠️ And **0 consumers in thepile, by construction**:
 nothing there can consume an item that is not in a published bump, this batch's thepile
