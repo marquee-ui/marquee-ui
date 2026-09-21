@@ -5497,3 +5497,506 @@ compares the two new inputs and never reaches `switch-input` (add the Switch's s
 REQUEST, `test/switch-drawing.test.tsx` and `test/tailwind-compile.test.tsx` onto
 `test/helpers/compiled-sheet.ts` (keep both `calc()` operand orders). Layer 2's HIGH-1 in thepile
 was this same paragraph, seen from the consuming side.
+
+## DESIGN-LIB-d: Avatar (2026-09-21)
+
+Batch DL14, stream s2, branch `s/design-lib-d-avatar` from the library's `next` @ `0b56bf49`. Four
+items in the order the brief fixed them - the client boundary alone and first, the compiled-sheet
+move, then DL13 layer 2's LOW-4 and LOW-7 - then `Tabs` and `Avatar` MEASURED before either was
+built, then the one that ships. Nothing was published, nothing was pushed (the Actions-minutes
+freeze), no version was bumped, and the consuming repository was read only, at `8a2dc618`.
+
+The base's own numbers, run first: `pnpm verify` exit 0, **26 files / 504 tests**, which is what
+the brief predicted.
+
+### The client boundary: four parts a Server Component could not import
+
+**This is a shipping defect, not a tidy, and it was RUN rather than reasoned.** The orchestrator
+vendored this package's `form.tsx` into thepile at `d69b5df6`, composed it in an existing Server
+Component page, and `pnpm --filter @thepile/web build` exited 1:
+
+```
+You're importing a component that needs createContext. This React Hook only works in a Client
+Component. To fix, mark the file (or its parent) with the "use client" directive.
+```
+
+naming `src/components/ui/form.tsx:2:1`. Four files here were in that state - `form.tsx`,
+`checkbox.tsx`, `radio-group.tsx`, `description-list.tsx`, all four importing `createContext` and
+`useContext` from `react` - while three others (`accordion`, `sheet`, `toast`) carried the
+directive. The rule existed and nothing held anyone to it.
+
+**`description-list.tsx` takes the directive, and that was the DECISION the brief left open.** Its
+docblock promised the opposite ("7 of the 8 `<dl>` sites are server components. A static cell
+should not buy a client boundary"), so the question was whether its two contexts - `{ inList: true }`
+/ `{ inItem: true }` markers for the misuse throws - can be replaced by something a server module
+can do. They cannot, and the measurement is the test file rather than an opinion:
+`test/description-list-structure.test.tsx` has **seven** arms that exist only because of them
+(`:73-94`, three bare parts plus "a term inside a LIST but outside an item"; `:565-613`, three
+"a part inside a part" cases), and two of those classes are unreachable without context:
+
+- a part rendered at the TOP LEVEL has no parent to walk it, so nothing can observe it at all;
+- a `<DescriptionTerm>` at any depth inside a `<DescriptionDetails>` is caught because
+  `NotInsideAPart` CLEARS the context, and a walk sees direct children only - decision 10 refuses
+  to walk a part's children, which is what lets a link live inside a `dd`.
+
+**The alternative was worked out and rejected on a measured counter-example.** Cloning each direct
+part child with a marker prop catches the bare part and the nested one, and REFUSES the three
+product sites that factor a group into a component (`Ledger`'s `Cell`, `ScoreBlock`'s `RawFigure`,
+`reckoning`'s `Fact`): their `DescriptionItem` is rendered from inside a component, so there is no
+child for a parent to clone. Dropping the contexts would have kept the file a server module and
+silently deleted five guard arms. The file opens with the directive, its reason 2 is retired IN
+PLACE rather than deleted (the cost sentence still stands as a cost), and the family docblock now
+says what the boundary buys.
+
+**The guard, `test/client-boundary.test.ts`.** Every `packages/ui/src/*.tsx` whose `react` import
+names `createContext`, `useContext`, `useState`, `useEffect`, `useRef`, `useLayoutEffect`,
+`useReducer` or `useSyncExternalStore` opens with `"use client"`. `useId` is deliberately NOT in
+the set: React serves it on the server, which is how a server-rendered label and its input agree on
+an id at all. `import type { … } from "react"` is skipped whole and an inline `type X` member is
+dropped, or `card.tsx` would read like `toast.tsx`.
+
+⚠️ **Its third arm found something the brief did not predict, and the first draft of that arm was
+WRONG.** "A file with no hooks must not carry the directive" reported `accordion.tsx` and
+`sheet.tsx` - both correct files. Measured: `@radix-ui/react-accordion`, `@radix-ui/react-dialog`
+and `@radix-ui/react-label` all open their ESM entry with `"use client"`; `@radix-ui/react-separator`
+and `@radix-ui/react-slot` do not. So the arm resolves the wrapped dependency's own entry and reads
+ITS first bytes, rather than carrying a list. The assertion was fixed; it was not weakened.
+
+Both directions were RUN, on the committed head `32f3705`:
+
+| mutation                                                     | run                                       | red                                                                                                                                                          |
+| ------------------------------------------------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| the guard, against the BASE (before the fix)                 | `vitest run test/client-boundary.test.ts` | **red 2** - `opens every hook-importing file` naming all four files with the hooks each imports, and the entitlement arm naming `accordion.tsx`, `sheet.tsx` |
+| `"use client";` stripped from `form.tsx`                     | same                                      | **red 1** - `[ "packages/ui/src/form.tsx (imports createContext, useContext)" ]`                                                                             |
+| `"use client";` prepended to `card.tsx` (no hooks, no Radix) | same                                      | **red 1** - `does not spend the boundary on a file that is entitled to none`, `[ 'card.tsx' ]`                                                               |
+
+### The compiled-sheet move (DL13 decision 12's REQUEST)
+
+`test/switch-drawing.test.tsx` and `test/tailwind-compile.test.tsx` each carried their own copy of
+the postcss compile, the `:root` scan and the length resolver; both now read
+`test/helpers/compiled-sheet.ts`. **163 lines of duplicated instrument removed** (`+173 / -336`
+across the three files). Both `calc()` operand orders survive, because the module already handled
+both where `switch-drawing`'s copy handled one - `choice-drawing.test.tsx:83-84` is the arm that
+says so, and it is untouched.
+
+`CompiledSheet` gains one member, `has(name)`, which is the class-name set
+`tailwind-compile`'s "compiles every one of them" arm reads. It is NOT `rule(name) !== ""`: a class
+whose rule body is empty compiles and would read as absent. Two facts the deleted copies held and
+the module's docblock did not moved with them - the measured "not one rule applied" before
+flattening, and the two UNLAYERED `.mq-marquee` rules whose precedence flattening inverts.
+
+**Proved load-bearing, on the committed head `524b7b0`**: `lengthPx` made to return `null` for every
+value (mutation confirmed landed by `grep`) reddens **20 tests across all three readers**
+(`choice-drawing`, `switch-drawing`, `tailwind-compile`), where the tree is green.
+
+### LOW-4 and LOW-7, the two DL13 layer-2 findings
+
+**LOW-4.** `checkbox.tsx:80` says its overlay-input string is "byte-identical to `Switch`'s
+`nativeInputClass`, deliberately", and `test/choice-drawing.test.tsx:136-143` compared the checkbox's
+slot to the radio's and never reached `switch-input`: the sentence had no instrument, and
+`switch.tsx` could have been edited alone. The arm takes all three slots now, the Switch's off its
+NATIVE host story (`NativeCheckbox`, the one that renders an `<input>` rather than a
+`button[role=switch]`), and it carries a non-emptiness anchor so three empty lists cannot satisfy it.
+
+Reddening run, committed head `982c4b7`: `z-10` planted in `switch.tsx`'s `nativeInputClass` alone
+(mutation confirmed landed at `:85`) →
+`AssertionError: switch-input vs checkbox-input: expected [ …(6) ] to deeply equal [ …(5) ]`, the
+diff naming `+ "z-10"`.
+
+**LOW-7.** `radio-group.tsx:229` refused a `name` with `"name" in props`, which reports a spread
+carrying `name: undefined` as PRESENT - so a caller who destructured `name` off their own props and
+spread the rest got a message telling them to move a name they never wrote. It guards with
+`props.name !== undefined` now, which is `refuseAsChild`'s own form eleven screens up in the same
+file. Red-first, before the fix: the new arm
+(`lets a SPREAD whose name is undefined through, and gives it the group's`) threw
+`<RadioGroupInput> does not take "name": …` from `radio-group.tsx:232`. Its positive half is the
+point - the radio comes out carrying the GROUP's name - and the existing arm that refuses a REAL
+name stayed green.
+
+### The Tabs measurement, and the answer
+
+**No `Tabs` family ships.** The audit's five rows reproduce at the thepile base `8a2dc618`
+(`awk -F'|' '{ if ($4 ~ /Tabs/) print NR": "$2 }' docs/design-audit.md` → `:357`, `:381`, `:385`, `:399`, `:401`).
+
+| audit row                                | what it actually is                                                                                                                                                                                                                                                                                                                                                                                                                 | wants the part?                                                                                                                                       |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `:357` `/lists`                          | `HubTabs.tsx:48-70`: `<nav aria-label="Lists and tier lists">` of TWO `next/link`, `aria-current={current ? "page" : undefined}`, `data-testid="hub-tab-*"`, the active one `-mb-0.5 border-b-2 border-accent`. Its docblock `:13-18` decided it in code: "**A URL, NOT STATE, and that is a cacheability decision rather than a style one** … a tab held in `?tab=` would make each route depend on `searchParams` and go dynamic" | No. Each tab is a distinct ISR route, and the state IS the current page                                                                               |
+| `:381` `/tiers/boards`                   | the SAME component, second mount - which is the whole reason it exists ("this strip is the door, and it sits on BOTH pages so the pair is symmetric")                                                                                                                                                                                                                                                                               | No. Same                                                                                                                                              |
+| `:385` `/[username]/[shelf]/[[...view]]` | `Door.tsx:77-101` `DoorTab`: a `next/link` with `aria-current={selected ? "page" : undefined}`. Its docblock `:70-76` already answered this row in code: "`aria-current` rather than `aria-selected`, **because this is a set of links and not a `tablist`: the selected one IS the current page**"                                                                                                                                 | No. The house decision is recorded in the source, with its reason                                                                                     |
+| `:401` `/diary`                          | `ShelfSwitcher.tsx:29-56`: `<nav aria-label="Your library">` of five shelf `Pill`s, an `aria-hidden` middot and Diary, every one a `next/link` with `aria-current`, `px-2` a MOBILE-1 measurement with its own e2e                                                                                                                                                                                                                  | No. Five sibling routes; `usePathname()` is reading the URL, not holding a selection                                                                  |
+| `:399` `/settings/profile`               | `FacePicker.tsx:299-315`: a `div[role="group"][aria-label="Face styles"]` of FOUR `aria-pressed` buttons that switch `ids` in React state (`setSet`, `setPage(0)`) and refill ONE `ul[data-testid="face-grid"]` at `:318-346`                                                                                                                                                                                                       | **No - and for a different reason from the other four.** This one IS tab-shaped: four chips, one region. What refuses it is arithmetic, not semantics |
+
+**So four of five are anchors whose selected state is the current URL**, which is DL11's ToggleGroup
+verdict one row over, and the house has already written it down twice in its own source.
+
+**The fifth is the one worth stating carefully, because the orchestrator's read [V] and this record
+agree on the verdict and not on the reason.** `/settings/profile`'s strip is the product's one
+in-page selector, and `role="tablist"` is a defensible reading of it: four chips selecting which set
+fills one panel. What it would cost is written down in the tree already, at
+`components/tiers/TierEditor.tsx:458-468` - the nearest precedent, a `role="group"` of two
+`aria-pressed` mode buttons, which refused the same role for the same reason: "`aria-pressed` rather
+than `aria-current="page"` (no page changes) and rather than a `role="tablist"` (which owes roving
+arrow keys and `aria-controls`, and the Board panel is not a tabpanel that exists in both states)".
+For the face picker the panel DOES exist in both states, so that last clause does not carry - but
+the roving tab stop and the `aria-controls` do, and the change from `aria-pressed` to
+`aria-selected` is a product decision about how that control announces itself. **One site, four chips, and a semantics change the product has not taken
+is not a family.** If `/settings/profile` ever wants `tablist`, this is the row that says so, and it
+should arrive as a product decision first. Nothing ships; the reconciler corrects the five cells.
+
+### The Avatar measurement, and the answer
+
+The audit's five rows (`:362` `/members`, `:371` `/search`, `:384` `/[username]`, `:387`
+`/[username]/followers`, `:402` `/feed`) plus two by `same as` (`:363` `/members/[page]`, `:388`
+`/[username]/following`) = **seven cells over eleven drawn faces**, read at `8a2dc618`.
+
+`components/profile/Avatar.tsx` has NINE call sites, each one read:
+
+| site                                              | size             | what wraps it                                                                                           |
+| ------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------- |
+| `app/[username]/[shelf]/[[...view]]/page.tsx:194` | 28               | INSIDE a `<Link data-testid="shelf-owner">` that also holds the owner's name                            |
+| `app/[username]/about/page.tsx:90`                | 28               | a flex row; the link is its SIBLING                                                                     |
+| `app/[username]/list/[slug]/page.tsx:167`         | 28               | same shape                                                                                              |
+| `app/[username]/tier/[slug]/page.tsx:106`         | 28               | same shape                                                                                              |
+| `app/[username]/page.tsx:542`                     | 64 (the default) | the player card's header grid; no link                                                                  |
+| `components/profile/FacePicker.tsx:283`           | 96               | the preview; no link                                                                                    |
+| `components/profile/MemberRow.tsx:113`            | 56               | INSIDE the card's `<Link … className="… after:absolute after:inset-0">`, beside the name                |
+| `components/profile/NetworkStrip.tsx:146`         | 34               | a `<span role="img" aria-label={"@"+handle} className="-mr-2 inline-flex rounded-full ring-2 ring-bg">` |
+| `components/search/StartSomewhere.tsx:127`        | 34               | a `<span className="-mr-2.5 inline-flex rounded-full ring-2 ring-bg">` inside an `aria-hidden` strip    |
+
+Two hand-drawn siblings and one grid make it eleven:
+
+| face                                           | box                                                            | edge                                                                           | badge                                                                                                         |
+| ---------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `home/Byline.tsx:92-111` `MemberGlyph`         | `h-[26px] w-[26px]`                                            | `border` (1px)                                                                 | none, by its decision 4 ("26px is under the 28 floor, and the handle is the very next thing in the sentence") |
+| `shell/TopBar.tsx:163-190`                     | `h-9 w-9` (36) on a gradient wrapper with `group-hover:ring-2` | NONE on the `<img>`                                                            | none, by the same decision 4                                                                                  |
+| `profile/FacePicker.tsx:338-347` the face grid | `h-16 w-16`                                                    | `border-2`, `border-accent ring-2 ring-accent ring-offset-[3px]` when selected | none                                                                                                          |
+
+**Three measurements decided the family, and two of them contradict the brief's read [V].**
+
+**1. No size axis.** Eleven faces, **SEVEN** boxes - 26, 28, 34, 36, 56, 64, 96 - and two of the
+pairs are two pixels apart, each pair from two components that each explain in their own docblock
+why theirs is what it is. A `cva` with seven arbitrary values is not a visual axis; it is one
+product's measurements wearing a `size` prop, and `DescriptionList` refused the identical shape for
+the identical reason ("eight product sites, eight layouts. A `cva` with eight values is not an
+axis"). **And the size could not have been left to `className` either**, which is the fact that
+closes the question: the reference consumer's `cn` is a plain JOIN, not a tailwind-merge - a
+declared exclusion from this registry whose own docblock says "a caller's `className` does NOT beat
+a variant's. Two same-specificity utilities on one element are resolved by the STYLESHEET's order" -
+so `<Avatar size="sm" className="h-[34px] w-[34px]">` would leave BOTH on the element. A size a
+consumer needs has to be reachable, and the only spelling that is reachable here is the caller's own.
+
+**2. One shape, not two, and the product's own bug is the argument.** `Avatar.tsx` sizes the `<img>`
+itself on the keyed branch and the WRAPPER on the default branch. Its docblock `:50-61` records
+what that cost: when the shared constant carried `h-full w-full`, the keyed branch emitted
+`h-16 w-16 shrink-0 h-full w-full` on one element - same specificity, `h-full` later in the sheet -
+so every uploaded and every picked face was sized by its container instead of by its prop, and it
+was invisible to a `toContain` assertion, to an e2e that read only `src`, and to a screenshot suite
+whose fixtures never draw that branch. Here the root ALWAYS carries the box and the image is ALWAYS
+`h-full w-full`, so the fork does not exist to get wrong.
+
+**3. No Radix, and it was PROBED.** `@radix-ui/react-avatar@1.2.6` + `react@19.3.0` under jsdom
+(`$BATCH_SCRATCH/s2/radix-probe/probe.mjs`):
+
+```
+=== dist opens with
+"\"use client\";\n"
+=== SSR (renderToString), which is what an ISR page ships
+<span class="root"><span class="fb">N</span></span>
+=== after mount, image NOT loaded
+<span class="root"><span class="fb">N</span></span>
+img count: 0
+```
+
+**`renderToString` emits no `<img>` at all**, and after mount with the image unloaded the DOM still
+holds zero. Its `Image` is a load-status state machine that paints nothing until the browser has the
+bytes. That is fatal here three ways: nine of the eleven faces are on SERVER-rendered pages whose
+HTML is what a crawler and a screenshot suite read; `Avatar.test.tsx:60`'s "never renders a bare
+letter any more: every member is an image" would be false BY CONSTRUCTION, since Radix's server
+output is exactly a letter on a circle - the placeholder PROF-6 retired by design-gate decision 2;
+and the product has no loading state to model at all, because `defaultFaceKey(username)` always
+yields a URL. The brief asked whether Image/Fallback buys anything a site wants: **nothing any of
+the eleven wants, and it removes something all nine server ones need.**
+
+**4. `asChild` is on the root only, and NOT for the reason the brief gave.** The read [V] was
+"`asChild` where a site wraps the face in a link". Measured: **zero of the eleven** want it. The two
+sites whose face sits inside a link (`:194`, `MemberRow:113`) have the link wrapping the face AND
+the name, so the link is the face's PARENT and not the face's element; the two ring sites want a
+wrapper that the root now simply IS. `asChild` ships on the root anyway because a face that is
+itself a link is the obvious general composition and the house rule asks for it - and the
+`AsChildLink` story carries `h-11` for a reason the package enforces: the 44px floor guard resolves
+every `a[href]` a story renders against the compiled sheet, so a 26px avatar-as-link would redden
+the suite here rather than ship as a 26px tap target. It is REFUSED on the image (a void element has
+no child to give its props to: `asChild` there renders the caller's element and no image at all) and
+on the mark (its position and its `aria-hidden` ARE the part).
+
+### What shipped
+
+`packages/ui/src/avatar.tsx`, 9,767 B, three parts and one `cva`:
+
+- **`Avatar`** - `relative inline-flex shrink-0 @container`, plus `asChild`. No box: the caller's.
+- **`AvatarImage`** - `h-full w-full rounded-full bg-surface object-cover` + `avatarImageVariants({ edge })`.
+  `alt` defaults to `""` and stays the caller's; `src` is required by the TYPE rather than by a
+  throw, because an `<img>` with no `src` draws the browser's broken-image glyph, and this package
+  throws for the misuse whose failure is QUIET.
+- **`AvatarBadge`** - the corner mark: `absolute -right-[4%] -bottom-[4%] grid h-2/5 w-2/5
+place-items-center rounded-full border-2 border-border-strong bg-surface leading-none
+text-[length:var(--avatar-mark-size,20cqw)]`, with `aria-hidden="true"` written AFTER the caller's
+  props so it cannot be turned off (`RadioGroupInput`'s `name` is placed the same way).
+
+**The one visual axis is the EDGE**, three values with a measured site each: `default` `border-2`
+(ten of the eleven faces), `thin` `border` (the 26px byline glyph, whose docblock calls the
+proportion "the design, not an accident"), `none` (the top bar's, whose ring is its wrapper's).
+`none` declares NOTHING rather than `border-0`, and the drawing test reads that difference as
+`null` vs `0`.
+
+**`--avatar-mark-size` is the family's central decision and it is the plain-join constraint again.**
+The mark's type is the only thing that must know the face's box, and a `text-*` passed through
+`className` would sit BESIDE the part's rather than replace it. So the part declares
+`font-size: var(--avatar-mark-size, 20cqw)` - exactly one declaration - the root opens a container,
+and a caller moves the value with one custom property on the root
+(`className="[--avatar-mark-size:0.95rem]"`) with nothing to fight. The default, 20% of the face's
+own width, is legible at 26px and at 96px with the caller saying nothing at all. The reference
+product's five values are its mockup's and are non-linear (0.206, 0.198, 0.171, 0.170, 0.158 of the
+face), so they are a consumption, not a library rule.
+
+⚠️ **The bound on `@container`, stated because it is a real layout primitive**: `container-type:
+inline-size` also applies inline-size containment, which would matter for an element whose width is
+decided by its CONTENTS. This one's content is an image at `h-full w-full`, so a root with no box of
+its own is already drawing nothing - which the drawing test asserts directly.
+
+Seven stories (`Default`, `NoBadge`, `Named`, `Edges`, `MarkSize`, `AsChildLink`, `Stack`), every one
+with a `play`. `DECLARED_STORIES` 94 → **101**, `DECLARED_PLAYS` 65 → **72**. The face in every story
+is a 1x1 transparent gif as a `data:` URI: the stories are the tests, and a test that fetches is a
+test that can fail for the weather.
+
+### The guards, and the runs that reddened them
+
+`test/avatar-drawing.test.tsx` re-derives every number from the COMPILED sheet through
+`helpers/compiled-sheet.ts`; `test/avatar-structure.test.tsx` holds the two refusals. There is no
+state cascade to measure - this family has no state - which is why the drawing file has two halves
+where `switch-drawing.test.tsx` has three. All seven mutations were run on the committed head
+`220f5ad`, each one confirmed landed by `grep` before the run was read:
+
+| mutation applied to `src/avatar.tsx`                                                           | red / GREEN                          | which arm caught it                                                                                                                   |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **M-1** the image sizes itself (`h-full w-full` → `h-16 w-16`)                                 | **red 4**                            | `puts the box on the ROOT's caller and NONE on the part`, `keeps the story's own box on the root`, `avatar/Default`, the play counter |
+| **M-2** the root stops opening a container (`@container` dropped)                              | **red 1**                            | `opens the container that fallback is measured against`                                                                               |
+| **M-3** the mark's type becomes a literal (`var(--avatar-mark-size,20cqw)` → `text-[0.68rem]`) | **red 3**                            | `carries exactly ONE font-size on the mark, and it is the seam`, `avatar/MarkSize`, the counter                                       |
+| **M-4** the mark stops being square (`w-2/5` → `w-1/2`)                                        | **red 1**                            | `gives the mark one square box on the diagonal, at 40% of the face`                                                                   |
+| **M-5** the mark stops writing `aria-hidden`                                                   | **red 3**                            | `keeps the mark hidden even when the caller asks for it not to be`, `avatar/Default`, the counter                                     |
+| **M-6** `edge: "none"` declares `border-0` instead of nothing                                  | **red 1** - `expected +0 to be null` | `resolves the edge axis to three different widths, one of them nobody's`                                                              |
+| **M-7** the face stops being an `<img>` (`<img alt>` → `<span aria-label>`)                    | **red 4**                            | `lets a SPREAD whose asChild is undefined through`, `avatar/Default`, `avatar/Named`, the counter                                     |
+
+⚠️ **M-6 was run TWICE and the first run is the one worth recording.** The first `replace` matched
+nothing - prettier had reformatted the line - and the suite came back `134 passed`, which is exactly
+what a guard that cannot fail looks like. The `grep -c` that gates every mutation here printed `0`,
+so the green was discarded rather than believed. That check is the whole of the difference between
+the two runs.
+
+Two assumptions in the first draft of the drawing test were WRONG and were corrected to what the
+sheet says, not the other way round: `rounded-full` compiles to `var(--radius-full)` (a token, at
+`9999px`), so "is it a circle" is read as a resolved length over 1000 exactly as
+`choice-drawing.test.tsx` reads the radio's; and `h-full w-full` emits `height`/`width` only, no
+`min-*`, so the image's floors are asserted absent rather than 100%.
+
+### The pipeline, end to end
+
+`pnpm pack` in both packages (`prepack` is `pnpm -w build:registry && git diff --exit-code -- r`, so
+packing at all is the evidence that `r/` is committed and current) → `marquee-ui-ui-0.1.1.tgz`
+**90,710 B** (78,083 at the choice families' head) and `marquee-ui-tokens-0.1.0.tgz` 99,608 B,
+unchanged → `npm install` of both into a bare project → `shadcn add`:
+
+```
+✔ Created 2 files:
+  - src/lib/utils.ts
+  - src/components/ui/avatar.tsx
+```
+
+```
+avatar: installed bytes 9767, target components/ui/avatar.tsx
+  installed === r/avatar.json content === packages/ui/src/avatar.tsx: True
+                                                    sha256 568fcfad7f06 (all three)
+utils: installed bytes 1649, target lib/utils.ts   sha256 78a6fb4e43d8 (all three)
+packed r/registry.json === repo registry.json: True  (20 items)
+npm deps that landed: @radix-ui/react-slot@^1.3.3, class-variance-authority@^0.7.1,
+                      clsx@^2.1.1, tailwind-merge@^3.7.0
+```
+
+⚠️ The add is by LOCAL PATH (`shadcn@4.21.0 add -y -o ./node_modules/@marquee-ui/ui/r/avatar.json`),
+which is DL13's step-1 form. A `components.json` `registries` map spelled
+`{"@marquee": "./node_modules/@marquee-ui/ui/r/{name}.json"}` and an item named `@marquee/avatar`
+resolved to `https://ui.shadcn.com/r/./node_modules/…` and 404'd - recorded so the next stream does
+not spend the round trip.
+
+Then the INSTALLED copy compiled in the bare project's own Tailwind 4 against the published
+`@marquee-ui/tokens/tokens.css`, `@source "./components"`:
+
+```
+@container                                   container-type: inline-size
+text-[length:var(--avatar-mark-size,20cqw)]  font-size: var(--avatar-mark-size,20cqw)   --avatar-mark-size ?
+h-2/5                                        height: calc(2 / 5 * 100%)
+w-2/5                                        width: calc(2 / 5 * 100%)
+-right-[4%]                                  right: calc(4% * -1)
+-bottom-[4%]                                 bottom: calc(4% * -1)
+rounded-full                                 border-radius: var(--radius-full)          --radius-full 9999px
+border-border-strong                         border-color: var(--border-strong)         --border-strong var(--mq-olive-800)
+bg-surface                                   background-color: var(--surface)           --surface var(--mq-olive-925)
+object-cover                                 object-fit: cover
+shrink-0                                     flex-shrink: 0
+place-items-center                           place-items: center
+leading-none                                 --tw-leading: 1; line-height: 1
+h-full                                       height: 100%
+w-full                                       width: 100%
+text-not-a-role                              (ABSENT)
+border-9                                     (ABSENT)
+```
+
+`--avatar-mark-size ?` is not a gap: the seam is UNDEFINED on purpose, which is what makes the
+`20cqw` fallback the default. Every other utility resolves to the ROLE's own variable in the
+consumer rather than to a copy of its value, and both negative controls are absent.
+
+### Decisions
+
+1. **`description-list.tsx` buys a client boundary rather than dropping its guards.** [V] Seven test
+   arms, two of them unreachable without React context, against a bundle cost on eight `<dl>` sites
+   that have not been written yet. Ankit may prefer the other trade; the alternative is named above
+   and the docblock's reason 2 is retired in place rather than deleted so the cost stays visible.
+2. **No `Tabs` family.** Four rows are `aria-current` link strips the house has already ruled on
+   twice in its own source; the fifth is one site whose adoption is a product decision about how it
+   announces itself.
+3. **`Avatar` declares no size.** Seven boxes over eleven faces, and the consumer's `cn` is a join,
+   so a `className` override is not an escape hatch. The caller owns the box and the image fills it.
+4. **One shape, always the root.** The two-shape original shipped a sizing bug that four instruments
+   missed; the family makes it unrepresentable.
+5. **Native `<img>`, no Radix, no new dependency.** [V] Probed, above.
+6. **The mark's type is a custom property, not a prop and not a context.** A context would have made
+   this file a client module on the day item (1) was fixed - nine of eleven sites are server
+   components - and a prop would have to be passed twice. `--avatar-mark-size` is one declaration
+   either way.
+7. **`AvatarBadge` is not `Badge` with a rounded corner.** `Badge` is a micro-caps status token with
+   a tone axis and a tap-floor note; this is a ~40%-of-a-circle mark with no type of its own.
+8. **No version bump.** [V] `0.1.1` stands; this family rides LIB-VENDOR-0.1.2 with the six already
+   waiting and with the client-boundary fix, which is what makes 0.1.2 the gate for `/pile`'s Form
+   consumption and for Checkbox's and RadioGroup's thepile halves.
+
+### thepile inputs
+
+**Nothing in thepile changed this batch.** This section is the checklist the consumption owes, in
+the Switch's shape, with every count read HIT BY HIT rather than by `grep -c`.
+
+**The instruments the consumption must keep green**, enumerated at `8a2dc618` over
+`apps/web/src/**/*.test.tsx` and `e2e/*.spec.ts`:
+
+- `data-testid="avatar-image"` - **16 assertions and 1 comment**, all on the family this part
+  replaces. `Avatar.test.tsx:19,43,54` (the three branches' `src`); `FacePicker.test.tsx:136,171,188,503`
+  (the 96 preview, reached through `<Avatar>`); `e2e/members.spec.ts:395,409,431` (one per row, the
+  `src` per handle) plus the comment at `:61` explaining why the locator is row-scoped;
+  `e2e/profile-edit.spec.ts:54,72,84,111,195,206` (including `:54`'s
+  `boundingBox().height ≈ 96`, the arm that exists because the two-shape sizing bug was invisible
+  to everything else). **Every one of them resolves a face this family replaces.** The testid is the
+  consumption's to keep: the part writes `data-slot="avatar-image"` and spreads the caller's props,
+  so a wrapper keeps `data-testid` with no library change.
+- `data-testid="avatar-initial-badge"` - **11 assertions**. `Avatar.test.tsx:30,48,57,110`;
+  `Byline.test.tsx:61` (the glyph has NO badge - the arm that pins decision 4);
+  `e2e/members.spec.ts:435`; `e2e/profile-edit.spec.ts:53,117,123,170,211`, of which `:123` reads the
+  badge's own `boundingBox()`. All resolve the mark `AvatarBadge` replaces.
+- `data-testid="member-glyph"` - **5 assertions, 1 comment, 1 selector constant**.
+  `Byline.test.tsx:23,35,45`; `FeedItem.test.tsx:106,107` (the row has exactly one glyph and no other
+  `img`); `e2e/feed.spec.ts:287` (a comment) and `:300`, where `COVER_IMG` is
+  `img:not([data-testid="member-glyph"])` - **a glyph that stopped carrying that testid would make
+  every feed row's cover count wrong**, which is the one instrument here that fails in a direction
+  nobody would read as an avatar change.
+- `data-testid="top-bar-avatar-image"` - **4 assertions**, `TopBar.test.tsx:184,205,222,249`. A
+  SEPARATE testid for a separate face; `:184` asserts the string is ABSENT before hydration, so it
+  is a substring assertion on rendered HTML and not a locator.
+- `data-testid="face-option"` - `FacePicker.test.tsx:33` (the helper every grid arm goes through).
+  The grid is DL13's `RadioGroup` site, so this one is shared with that consumption.
+
+**`Avatar.test.tsx`'s seven arms, mapped:**
+
+| arm                                                                                                              | the part's, or the consumption's?                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `:16` draws the DEFAULT face: `/avatar/pixel/nova.svg`, `alt=""`, not the media domain                           | **consumption** for the URL (`defaultFaceKey` + `mediaUrl` are product data), **part** for `alt=""`, which `avatar.stories.tsx`'s `Default` play asserts                                                                                                                                                                                                                                                                              |
+| `:27` the initial in a badge, `aria-hidden`, `h-2/5 w-2/5`, `-right-[4%] -bottom-[4%]`                           | **part**, and it becomes a RESOLVED assertion rather than four `toContain`s: `avatar-drawing.test.tsx` reads the square box and the equal offsets out of the compiled sheet                                                                                                                                                                                                                                                           |
+| `:40` a PICKED face, and NO badge                                                                                | **consumption**: which branch renders a mark is the product's rule (decision 3, "you chose it, it is you"), and the part makes the mark optional by composition                                                                                                                                                                                                                                                                       |
+| `:51` an UPLOADED avatar from the media host, no badge                                                           | **consumption**, same                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `:60` never a bare letter: every member is an image                                                              | **both.** The product's half is that `avatarKey` always resolves; the part's half is that the face is an `<img>` and not a `background-image`, which the `Default` play asserts and M-7 reddened                                                                                                                                                                                                                                      |
+| `:68` every size in the map sizes all three branches the same, and the keyed branch carries NO `h-full`/`w-full` | ⚠️ **this arm is about a fork that no longer exists.** With one shape the box is on the root at every size and the image is always `h-full w-full`, so the arm's second half becomes untrue BY DESIGN. The consumption rewrites it as "the root carries the caller's box at every size"; it must not be deleted, and the part's own `puts the box on the ROOT's caller` is the half that moves here                                   |
+| `:99` the badge scales with the face, thinner-bordered at the two small sizes                                    | **consumption.** Five mockup values, non-linear; they arrive as `[--avatar-mark-size:…]` on the root per size, and the thinner border at 28/34 is a `border-[1.5px]` the caller passes - which COLLIDES with the part's `border-2` under thepile's join `cn`, so this one needs the consumption to pick: pass the mark a `border` seam, or accept 2px at the two small sizes. **Named here as the one open collision, not resolved.** |
+
+**The two siblings and the grid, DECIDED - the consumption's call, with the part's allowance stated:**
+
+- `home/Byline.tsx` `MemberGlyph` (26px, 1px edge, no mark) → **takes the part**:
+  `<Avatar className="h-[26px] w-[26px]"><AvatarImage src={…} edge="thin"/></Avatar>`. The `edge`
+  axis exists FOR this face. Its `data-testid="member-glyph"` rides on `AvatarImage`'s prop spread,
+  which keeps `FeedItem.test.tsx:106` and `e2e/feed.spec.ts:300` green with no library change.
+- `shell/TopBar.tsx:163-190` (36px, gradient ring wrapper, no edge, no mark) → **takes the part**:
+  the gradient span IS `<Avatar className="h-9 w-9 overflow-hidden rounded-full bg-gradient-to-br …">`
+  and the `<img>` is `<AvatarImage edge="none" className="bg-raised"/>`. ⚠️ `bg-raised` over the
+  part's `bg-surface` is a second `background-color` on one element under a join `cn`; the
+  consumption either drops it (the wrapper's gradient is already behind the face) or the part owes a
+  ground seam. **The part allows the composition; it does not allow the override.**
+- `profile/FacePicker.tsx:318-347` the face grid → **takes `AvatarImage` and NOT `Avatar`**: there
+  is no mark and no positioning to establish, and DL13 already gave the `<li>` to
+  `RadioGroupItem` + `RadioGroupInput`. The selected ring is
+  `group-has-checked/radio:*` on the image - a DIFFERENT utility name from the part's own
+  `border-border-strong`, so those do not collide - which is the composition
+  `radio-group.tsx`'s docblock already names ("`group-has-checked/radio:ring-2` on an avatar").
+- `profile/NetworkStrip.tsx:146` and `search/StartSomewhere.tsx:127` → the two ring wrappers
+  BECOME the root: `<Avatar role="img" aria-label={"@"+handle} className="-mr-2 ring-2 ring-bg">`,
+  which is the `Stack` story exactly. Two components that today do not import each other stop
+  disagreeing about an idiom.
+
+**The shots-visible list** - every screen that films a face, ids confirmed present in
+`e2e/shots/manifest.ts` at `8a2dc618`: `search` (`:125`), `profile` (`:239`), `member-lists`
+(`:297`), `member-tier-lists` (`:307`), `followers-public` (`:404`), `feed` (`:423`), `members`
+(`:437`), `members-signed-in` (`:458`). **Eight.** The consumption is a pixel change on all eight if
+the 28px badge's border moves, and a pixel change on none of them if the checklist's two collisions
+are resolved by composition rather than by override. No prediction is made here: the reconciler
+measures on the merged tree.
+
+**The drift test.** `scripts/marquee-drift.test.ts` compares each INSTALLED copy against the
+vendored tarball's `r/`, which is `@marquee-ui/ui` **0.1.1** and therefore does not contain this
+item at all. At the DL14 merge head its `CONSUMED` list gains `form` (s1's route), and possibly
+`alert` - so it is seven at this stream's base (`button, input, label, sheet, toast, ribbon,
+switch`) and eight or nine at the merge head, and the docblock's "seven are installed" / "the nine
+that have no thepile call site" move with it. `avatar` joins neither list this batch: it is not in
+the vendored tarball, so the item count the drift test reads ("SEVENTEEN ship") is the TARBALL's and
+does not move either. It moves when LIB-VENDOR-0.1.2 lands, and that is the commit where `avatar`
+becomes installable in thepile at all.
+
+### Consumers
+
+**Run 1, before any code**, was the scan script against an EMPTY diff, so it printed zero names by
+construction and is recorded as what it is. The enumeration that did the work at that point was by
+hand, over the surface the brief named:
+
+- the four `src/*.tsx` files the directive touches are named by `registry.json`, their own
+  `packages/ui/r/*.json`, `packages/ui/r/registry.json`, `packages/tokens/test/helpers/source-files.ts`
+  and `docs/as-built.md` - so `pnpm build:registry` is a REQUIRED step of that commit, not a tidy
+  after it (`registry.test.ts`'s `carries the CURRENT bytes of every source it ships` is the arm);
+- `avatar` collides with no exported name in the package (`git grep -i -w avatar` over `packages`,
+  `registry.json`, `README.md`, `AGENTS.md` printed three PROSE hits and no symbol);
+- `"use client"` is read by nothing in `packages/` but the three files that carry it.
+
+**Run 2, at the commit point** (`220f5ad`, diff `0b56bf49...HEAD`), full output in
+`$BATCH_SCRATCH/s2/scan-run2.txt`:
+
+- **Scan 1, exported symbols: 14 names.** Seven are the family's (`Avatar`, `AvatarImage`,
+  `AvatarBadge`, `avatarImageVariants`, and the three `*Props`), and every reader of each is inside
+  `packages/ui/{src,stories,test}` plus `registry.json` and `packages/ui/r/`. Seven are STORY names
+  (`Default`, `NoBadge`, `Named`, `Edges`, `MarkSize`, `AsChildLink`, `Stack`); `Default` and
+  `AsChildLink` are also story names in other families' modules, which is not a collision - the
+  suites map is keyed by module and `stories.test.tsx` ids are `${family}/${story}`.
+- **Scan 2, the entry point**: `src/index.ts` +9, and `entry-point.test.ts` walks `src` on disk, so
+  the new file's exports are checked by it without an edit.
+- **Scan 3, the path-naming lists**: `source-files.ts` +2 (the source and the story),
+  `story-suites.ts` +2, `registry.json` +15. All three are the lists that redden until a new file is
+  declared; that edit IS the review, per `AGENTS.md`.
+- **Scan 4, role/aria strings**: `aria-hidden="true"` (new, the mark), `aria-label="Nova's profile"`
+  (the `AsChildLink` story), `aria-label="Rules"` (the LOW-7 arm), `aria-checked="true"` (moved text
+  in `switch-drawing.test.tsx`, unchanged). None of them is a string any thepile spec resolves,
+  because nothing in thepile consumes this family yet.
+- **Scan 5, tests naming a touched path**: `registry.json`, which `registry.test.ts` reads as data.
+- **CROSS: 0. UNOWNED: 0. NEW between the runs: 14**, in the trivial sense that run 1's diff was
+  empty; nothing in run 2 was outside the by-hand enumeration above.
