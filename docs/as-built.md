@@ -6622,6 +6622,11 @@ four identity fields read as `undefined` (they are absent from the log's JSON, w
 `JSON.stringify` dropping undefined), and the own-key set is React's three private lazy fields. The
 only public thing on it is `$$typeof === Symbol.for("react.lazy")`.
 
+⚠️ **That three-key set is the PRODUCTION flight client's**, which is the build the probe
+measured; `lazy()` under this repo's React **19.3.0** DEVELOPMENT build adds a fourth,
+`_debugInfo` - read off the installed copy with `node -e`, not assumed (layer 1, LOW-2). `$$typeof`
+is identical in both, and it is the only thing either guard reads.
+
 **Option (B) therefore has nothing to stand on and is not taken.** A boundary-safe marker would have
 to be something the element KEEPS across the boundary; the reading says the element keeps three
 React-internal keys and nothing else. A static property on the part (`DescriptionTerm.__part`) is on
@@ -6689,7 +6694,7 @@ The red is the red that was predicted, in both arms: the exact-set anchor gained
 `"low2-probe.tsx (focus-visible)"`, and the invariant reported
 `["low2-probe.tsx (focus-visible): outline-width null"]` under its own forced-colors message. **The
 five shipping sites did not move**, which is how the widening is known to be a widening rather than
-a change of subject; the anchor list at `:332-338` is re-read and unchanged.
+a change of subject; the anchor list (`:333-339` at the base, `:365-371` at this head after the new docblock) is re-read and unchanged.
 
 **`focus:` does NOT become a third variant, and the cost was measured rather than guessed.** Two
 readings in the same worktree:
@@ -6869,3 +6874,79 @@ surface the brief named:
 - **CROSS: 0. UNOWNED: 0. NEW between the two runs: 0** - run 2 found nothing the by-hand
   enumeration had not already named, which is the first time in this doc's nine sections that is
   true, and it is because the diff exports nothing.
+
+## Layer 1 (reviewer r6, detached worktree of dc9d7b6, marquee-ui, no database)
+
+**Five findings: 0 HIGH, 2 MED, 3 LOW**, over **14 mutations**, of which **3 stayed GREEN** and
+each of those three is fixed below. Its full report is `$BATCH_SCRATCH/r6/report.md`. Its baseline
+on the committed head was `pnpm test` **31 files / 560 tests**, `pnpm typecheck` exit 0, `pnpm lint`
+exit 0, and `pnpm build:registry` + `git status --short` EMPTY (the committed `r/` is what the
+sources produce). The table is its own, verbatim:
+
+| file                        | test                                                                                                            | mutation applied                                                                     | red / GREEN                                                                                                                      | what it asserts now                                                                                                        |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| src/description-list.tsx    | description-list-structure: "throws a message naming the boundary, for a group that IS one term and one detail" | deleted the whole `if (crossedAClientBoundary(child.type)) throw …` block            | red                                                                                                                              | - (red reason: `expected '<DescriptionItem> may hold only <Desc…' to contain 'React lazy wrapper'`)                        |
+| src/description-list.tsx    | description-list-structure: "still names the ordinary third child as a third child"                             | `crossedAClientBoundary` → `return true`                                             | red (22 failed in the file)                                                                                                      | -                                                                                                                          |
+| src/form.tsx                | form-wiring: "tells the caller about the boundary, not about a control they did write"                          | `seen.boundary` → `false` in the throw's ternary                                     | red                                                                                                                              | -                                                                                                                          |
+| src/form.tsx                | form-wiring: **"does not offer the boundary as an explanation when no child crossed one"**                      | `crossedAClientBoundary` → `return true`                                             | **GREEN** (28 passed)                                                                                                            | only that a field whose children are ALL recognised parts gets no boundary sentence - it never reaches the predicate       |
+| src/form.tsx                | whole suite under the same mutation                                                                             | `crossedAClientBoundary` → `return true`                                             | 1 failed / 559 passed - and the one red is `registry.test.ts` "carries the CURRENT bytes", a byte digest that fires for ANY edit | no behavioural test in the repo sees this predicate collapse                                                               |
+| src/form.tsx                | form-wiring: "leaves a legal field with a lazy child of its OWN alone"                                          | the walk `throw`s on a lazy child instead of flagging                                | red                                                                                                                              | -                                                                                                                          |
+| test/focus-outline.test.tsx | both invariant arms                                                                                             | added `packages/ui/src/r6-low2-probe.tsx` carrying only `focus-visible:outline-none` | red **2 failed / 11 passed**, `r6-low2-probe.tsx (focus-visible): outline-width null`                                            | reproduces the stream's LOW-2 claim exactly                                                                                |
+| test/focus-outline.test.tsx | both invariant arms                                                                                             | same scratch part + predicate reverted to box-shadow-only                            | **GREEN 13 passed**                                                                                                              | confirms LOW-2 was a real blindness at the base                                                                            |
+| test/focus-outline.test.tsx | whole suite                                                                                                     | **deleted the `                                                                      |                                                                                                                                  | … "outline-style" …` disjunct** (the whole LOW-2 fix), no scratch part                                                     | **GREEN 31 files / 560 tests** | the widening has ZERO live coverage |
+| test/focus-outline.test.tsx | whole file                                                                                                      | deleted the `box-shadow` disjunct instead (outline-style only)                       | **GREEN 13 passed**                                                                                                              | the pre-existing half is equally uncovered                                                                                 |
+| test/focus-outline.test.tsx | whole file                                                                                                      | `focus: ":focus"` added to `VARIANTS` alone                                          | GREEN 13                                                                                                                         | verifies claim 5a: inert, as the as-built says                                                                             |
+| test/focus-outline.test.tsx | both invariant arms                                                                                             | `VARIANTS` + the token regex both widened for `focus:`                               | red 2 failed / 11 passed, adding exactly `input.tsx (focus)` and `sheet.tsx (focus)`, both `outline-width null`                  | verifies claim 5b exactly                                                                                                  |
+| test/focus-outline.test.tsx | "finds every part that draws a focus ring, and knows which ones are short"                                      | `ringSites()` → `return []`                                                          | red (`expected 0 to be greater than or equal to 4`)                                                                              | -                                                                                                                          |
+| test/focus-outline.test.tsx | **"gives every focus ring an outline beside it, or names it as a known gap"**                                   | `ringSites()` → `return []`                                                          | **GREEN**                                                                                                                        | nothing - it iterates an empty list; it leans entirely on its sibling arm's `>= 4` anchor (pre-existing shape, documented) |
+
+### What each GREEN row cost, and what changed
+
+**MED-1 (GREEN row 4, and the whole-suite row under it): the boundary sentence fired for a `lazy()`
+child that had crossed nothing, and the arm written to catch that could not see it.** The negative
+arm held only RECOGNISED parts (`FormLabel`, `FormMessage`), which `countParts` matches in its
+`if/else if` chain - so the walk never reached the `else` where the predicate lives, and collapsing
+`crossedAClientBoundary` to `return true` left all 28 tests green. Meanwhile the source comment
+claimed "both halves are pinned in test/form-wiring.test.tsx", which was false. Two changes, and the
+second is the more important one:
+
+- the arm now holds an unrecognised **non-lazy** child (a `<div>` wrapper), which is the only
+  composition that makes the predicate RUN and answer `false`. Reddening mutation RUN in a detached
+  worktree of the committed head `bef07c6`: `crossedAClientBoundary` → `return true` →
+  `AssertionError: expected '<FormItem> must hold exactly one <For…' not to contain 'React lazy
+wrapper'`, **1 failed / 28 passed** - the same mutation the reviewer ran to a full green;
+- **the message stops asserting what it cannot know.** The reviewer is right that a deliberate
+  `lazy()` beside a missing control sets the same flag, and that nothing reachable from userland
+  separates the two (React's own flight client discriminates a client reference by this same
+  `$$typeof`). So the sentence now names BOTH readings - "either a part created in a SERVER
+  component … or a `lazy()` of your own, which is legal here and is NOT the cause" - which is the
+  form `description-list.tsx`'s message already had, and a third arm pins it.
+
+**MED-2 (GREEN rows 9 and 10): the LOW-2 widening shipped with no live coverage.** Deleting the
+`outline-style` disjunct left the WHOLE SUITE green at 31 files / 560 tests, and the `box-shadow`
+half was identically uncovered. The reason is structural rather than careless: on the shipping tree
+every ring site declares both, so from outside the predicate's two halves are indistinguishable, and
+the only thing that had ever exercised the widening was a scratch part in a worktree that no longer
+exists. The predicate is now a named function `declaresARing()`, and one arm feeds it the two halves
+SEPARATELY - tokens read off a rendered host (this file's rule) and split by what the compiled sheet
+says each one declares. Both mutations RUN at `bef07c6`: deleting the outline disjunct →
+`AssertionError: the outline half of the predicate is dead: expected false to be true`; deleting the
+shadow disjunct → `the shadow half of the predicate is dead`. **1 failed / 13 passed** each way.
+
+**The third GREEN row ("gives every focus ring an outline beside it" survives `ringSites()` → `[]`)**
+was pre-existing and is fixed in passing, because it is one line: the arm now anchors its own sweep
+(`expect(sites.length).toBeGreaterThanOrEqual(4)`) instead of leaning on its sibling's. Mutation RUN:
+`ringSites()` returning `[]` now reddens BOTH arms - `no part declares a focus ring at all` and
+`the sweep found no ring site at all` - where it used to redden one.
+
+**LOW-1** (the as-built cited `:332-338` for an anchor list the new docblock had pushed to
+`:365-371`) is corrected below in §2. **LOW-2** is a real correction to a recorded fact: the own-key
+set `["$$typeof", "_payload", "_init"]` is the PRODUCTION flight client's, and `lazy()` under this
+repo's React **19.3.0** development build adds a fourth, `_debugInfo` - read off the installed copy
+(`node -e` on `packages/ui`'s `react`), not assumed. The guard reads `$$typeof` alone, which is
+identical in both, but the sentence now says which build it describes. **LOW-3**: the shipped
+`description-list.tsx` docblock cited `$BATCH_SCRATCH/s2/probe.run5.log`, a session-scoped path that
+would be copied into every consumer's tree by the registry and read by none of them; it now points
+at `docs/as-built.md`, which is what `form.tsx`'s equivalent already did.
+
+Nothing the reviewer raised was declined.
