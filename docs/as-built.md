@@ -6182,3 +6182,267 @@ which is MED-2.
 | src/avatar.tsx | as-built M-7 verbatim (`<img alt>` → `<span aria-label>`) | as-built records **red 4** | red **5** | same |
 
 <!-- prettier-ignore-end -->
+
+## LIB-VENDOR-0.1.2: `@marquee-ui/ui` 0.1.2, two carry-ins before the pack (2026-09-21)
+
+Batch DL15, stream s1, branch `s/lib-vendor-0.1.2` from `next` @
+`f960fea9604b2a888916227403c80c72f81f4ba3`. Four commits here: LOW-8's named cold-tree failure,
+REQUEST A's focus outline, the version line, and this block. The consuming half lives in thepile's
+`docs/slices/LIB-VENDOR-0.1.2.md`.
+
+### What the bump carries
+
+Three part families and one directive shipped since `ui@0.1.1` (`c99b71e`), plus the two carry-ins
+this stream did first:
+
+| item                                                                                              | family                           | landed                     |
+| ------------------------------------------------------------------------------------------------- | -------------------------------- | -------------------------- |
+| `avatar`                                                                                          | `Avatar`                         | DESIGN-LIB-d, 2026-09-21   |
+| `checkbox`                                                                                        | `Checkbox`                       | DESIGN-LIB-d-choice, 09-20 |
+| `radio-group`                                                                                     | `RadioGroup`                     | DESIGN-LIB-d-choice, 09-20 |
+| `"use client"` on four parts (`form`, `description-list`, `accordion`, and the choice pair's own) | -                                | DL13/DL14                  |
+| LOW-8                                                                                             | `test/helpers/compiled-sheet.ts` | this stream                |
+| REQUEST A                                                                                         | `Switch`, `Accordion`            | this stream                |
+
+`git diff --stat c99b71e HEAD -- packages/ui/src packages/ui/r packages/ui/package.json` at the bump
+is **17 files changed, 958 insertions(+), 18 deletions(-)**. Of the nine items thepile consumes
+(`scripts/marquee-drift.test.ts`) exactly TWO moved: `form` (+2, the directive only) and `switch`
+(REQUEST A's focus classes). `dependencies` is unchanged at eight names, so the consumer's lockfile
+moves by the tarball's integrity alone.
+
+**Twenty items, nineteen families**, read from the shipped index rather than assumed:
+`packages/ui/r/registry.json` holds 20 items and `packages/ui/r` holds 21 files (the 20 plus the
+index). Minus `utils` - the `cn` helper, not a family - that is nineteen, so `package.json`'s
+`"nineteen part families"` description was already true at `f960fea` and the bump does not touch it.
+⚠️ The DL15 composition (g) said "22 items in 23 files" and flagged it UNVERIFIED; the read is 20
+and 21, and thepile's drift complement is therefore ELEVEN names, not fourteen.
+
+**`pnpm build:registry` after the version line leaves `packages/ui/r` byte-unchanged** (`git status
+--short` prints `packages/ui/package.json` alone): the built index does not carry the package
+version, so the version line is the whole of that commit. The registry DID move in REQUEST A's
+commit - `r/switch.json` and `r/accordion.json`, rebuilt and committed beside their sources.
+
+### LOW-8: the cold tree's sheet-reading tests, and what was actually wrong
+
+⚠️ **Two claims in the record this fixes were wrong, and both were measured rather than argued.**
+
+1. `as-built.md:6106` says a bare `pnpm test` on a cold tree gives "`13 skipped` / `11 skipped` /
+   `8 skipped` and a green-looking run". **The run is not green.** Measured in a detached worktree
+   of `f960fea` with no `packages/tokens/dist`, the four sheet-readers alone:
+
+   ```
+   $ pnpm exec vitest run --project ui \
+       packages/ui/test/{switch-drawing,choice-drawing,avatar-drawing,tailwind-compile}.test.tsx
+    ❯ |ui| packages/ui/test/avatar-drawing.test.tsx    (9 tests  | 9 skipped)
+    ❯ |ui| packages/ui/test/switch-drawing.test.tsx   (13 tests | 13 skipped)
+    ❯ |ui| packages/ui/test/choice-drawing.test.tsx   (11 tests | 11 skipped)
+    ❯ |ui| packages/ui/test/tailwind-compile.test.tsx (40 tests | 40 skipped)
+    Test Files  4 failed (4)
+         Tests  73 skipped (73)                                          # exit 1
+   ```
+
+   So the defect is the REPORTING, not the exit code: `Tests 73 skipped (73)`, nothing failed and
+   nothing passed, is the same test-level line a deliberate `it.skip` prints. The counts are
+   13 / 11 / **9** / **40** = 73; "8" had moved and the 40 was never in the record at all. The whole
+   suite on the same tree is `Test Files 7 failed | 23 passed (30)` / `Tests 1 failed | 452 passed |
+73 skipped (526)` - the other three are `merge-theme`, `storybook-preview` and the tokens
+   package's `emitted-surface`, all on the same missing `dist/`.
+
+2. The mechanism, which the composition marked UNVERIFIED: not a missing fixture and not a swallowed
+   skip. `loadCompiledSheet` is awaited from a `beforeAll`, and the compile throws
+   `CssSyntaxError: tailwindcss: …/compile.css:1:1: Package path ./tokens.css is exported from
+package …/@marquee-ui/tokens, but no valid target file was found (see exports field …)`. vitest
+   attributes a `beforeAll` throw to the FILE and marks every test inside it skipped. So: an
+   `@import` that resolved to nothing, named by a manifest key rather than by the build step.
+
+⚠️ **And the DL15 row's own command is a no-op.** `pnpm --filter @marquee-ui/ui test` exits **0**
+with no output: `packages/ui` has no `test` script, the runner is the ROOT's `vitest run`. The
+repro command is `pnpm test`, or `pnpm exec vitest run --project ui <files>`.
+
+**The fix**: `loadCompiledSheet` resolves every `@import` in the fixture BEFORE the compile - a bare
+specifier through `createRequire(fixture).resolve` (which honours the same `exports` map Tailwind
+walks), a relative one through `existsSync` - and throws `merge-theme.test.ts:17-19`'s own named
+error otherwise. One guard in the shared helper, so all four readers inherit it.
+
+| run (cold, `packages/tokens/dist` absent, detached worktree)                                                  | what the runner said                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| at `f960fea`, before                                                                                          | `CssSyntaxError: tailwindcss: … Package path ./tokens.css is exported from package … but no valid target file was found (see exports field …)`                                                                                                                                                                                                         |
+| at `8004ae1f` (the shipping sha), after                                                                       | `Error: the compile fixture's `@import "@marquee-ui/tokens/tokens.css"`resolves to nothing. The tokens stylesheet is BUILT output, so a cold checkout has none: run`pnpm build`(or`pnpm --filter @marquee-ui/tokens build`) before `pnpm test`. Every test in this file would otherwise report as SKIPPED rather than as the broken instrument it is.` |
+| the relative arm, proved separately: `src/ribbon.css` moved aside in the same detached worktree, tokens BUILT | `Error: the compile fixture's `@import "../../src/ribbon.css"` resolves to nothing: /…/packages/ui/src/ribbon.css is missing. …`                                                                                                                                                                                                                       |
+| warm, same sha                                                                                                | `Test Files 4 passed (4)` / `Tests 73 passed (73)` - the guard does not fire on a built tree                                                                                                                                                                                                                                                           |
+
+The tests still report as `skipped` rather than `failed`: that is vitest's handling of a `beforeAll`
+throw and it is not the helper's to change. What the fix buys is the MESSAGE beside the count.
+`AGENTS.md` gained the one line it had nowhere: a bare `pnpm test` needs `pnpm build` first.
+
+### REQUEST A: the focus indicator survives forced colors
+
+The verdict this closes is thepile's `docs/slices/FOLLOWUPS-3.md:260-320` - the Switch measured in a
+real browser under `emulateMedia({ forcedColors: "active" })`, with transitions disabled: the part
+read `outline-style: none` and `box-shadow: none`, i.e. **no visible focus indicator at all**, while
+a plain `button` beside it under the consumer's house rule kept its 2px solid outline.
+`AccordionTrigger` carried the identical `focus-visible:outline-none focus-visible:shadow-focus-ring`
+pair. Those two were the whole of it: `command grep -rn 'outline-none' packages/ui/src` finds four
+hits, and the other two are `input.tsx:6` and `sheet.tsx:67` (below).
+
+**What changed**: `focus-visible:outline-none` → `focus-visible:outline-2
+focus-visible:outline-offset-2 focus-visible:outline-primary` on both sites, plus the
+`has-focus-visible:` triple on the switch row, because the label host's focused element is the
+`opacity-0` `SwitchInput` and the row is what carries the indicator. **The shadow ring is kept** on
+every one of them: the outline is the half that survives forced colors, the shadow is the dark inner
+separator that makes the ring readable over cover art.
+
+**What Tailwind v4 emits, READ from the compiled sheet rather than typed** (the composition's guess
+was right, and the guard asserts the emitted spelling, never a typed `solid`):
+
+| class                                    | declarations                                                 | selector                                            |
+| ---------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------- |
+| `focus-visible:outline-2`                | `outline-style: var(--tw-outline-style); outline-width: 2px` | `.focus-visible\:outline-2:focus-visible`           |
+| `focus-visible:outline-offset-2`         | `outline-offset: 2px`                                        | `.focus-visible\:outline-offset-2:focus-visible`    |
+| `focus-visible:outline-primary`          | `outline-color: var(--primary)`                              | `.focus-visible\:outline-primary:focus-visible`     |
+| `has-focus-visible:outline-2`            | the same two                                                 | `.has-focus-visible\:outline-2:has(:focus-visible)` |
+| `focus-visible:outline-none` (what went) | `--tw-outline-style: none; outline-style: none`              | `.focus-visible\:outline-none:focus-visible`        |
+
+`outline-width: 2px` alone says nothing - a 2px outline whose style resolved to `none` paints
+exactly as much as no outline - so the guard also reads the sheet's own
+`@property --tw-outline-style { syntax: "*"; inherits: false; initial-value: solid; }` and asserts
+the initial value is `solid`.
+
+**`test/focus-outline.test.tsx`**, seven tests over three hosts (the button Switch, the label
+Switch, the AccordionTrigger), every class name read off the RENDERED story and never typed (the
+fixture's `source(none)` rule). Per host and variant: the declared `outline-width` and
+`outline-offset` resolve to 2px, `outline-style` is declared as `var(--tw-outline-style)`, nothing
+in the same list declares `outline-style: none`, a `box-shadow` is still declared, and every
+variant-prefixed class is checked against the SELECTOR the sheet gave it, so a prefix that compiled
+to something else cannot pass by its name.
+
+⚠️ **It reads the sheet rather than a computed style, and that is measured, not preference.** jsdom
+answers `element.matches(":focus-visible")` with `true` after `.focus()`, but does not APPLY the
+matching rule: with the flattened sheet in the document the focused root still computes
+`outline-style: none` and `outline-width: 16px` (jsdom's own defaults) and `var()` never resolves.
+A `getComputedStyle` assertion here would have passed against anything. The browser half is the
+consuming product's.
+
+**The four reddening mutations, RUN at the shipping sha `3d45465`, each landing `grep`-confirmed and
+each restored with `git checkout --`** (`git status --short` empty before and after every one):
+
+| mutation                                                             | red                  | the assertion message                                                                                                                                                          |
+| -------------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `focus-visible:outline-none` restored on `switch.tsx`, the rest kept | 1 failed / 92 passed | `'Switch (button host)' … AssertionError: a class under this variant still declares outline-style: none: expected [ 'none', 'var(--tw-outline-style)' ] to not include 'none'` |
+| the same on `accordion.tsx`                                          | 2 failed / 91 passed | the same message on `'AccordionTrigger'`, **plus** `fidelity.test.tsx > accordion-trigger`                                                                                     |
+| `has-focus-visible:outline-none` added to the switch row             | 1 failed / 92 passed | the same message on `'Switch (label host, focus lands on th…')` - the half a `focus-visible:`-only guard would have missed                                                     |
+| `accordion.tsx` reverted to the BASE pair entirely                   | 2 failed / 91 passed | `AssertionError: no class under this variant declares an outline-width: expected null to be 2`                                                                                 |
+
+**One consumer found by the gate and not by the scan**: `packages/ui/test/fidelity.test.tsx:661`
+pins `accordion-trigger`'s EXACT class list (`NEW_PARTS`), so the outline reddened it as
+`expected [ 'flex', …(16) ] to deeply equal [ 'flex', …(14) ]`. The list was updated in the same
+commit; it is the third instrument on the same change, and the switch host has no such row.
+
+### `input.tsx:6` and `sheet.tsx:67`: measured, recorded, NOT edited [V]
+
+The DL15 row asked for `input.tsx` under the same instrument if it cost under ten minutes. It did
+(one probe, ~3 min). The field's focus indicator, read off the rendered `Input` story:
+
+```
+focus:border-primary  -> "border-color: var(--primary)"            .focus\:border-primary:focus
+focus:outline-none    -> "--tw-outline-style: none; outline-style: none"
+declared outline-width = null       box-shadow values = []       border-color values = ["var(--primary)"]
+```
+
+So the field's ENTIRE focus indicator is a border colour: nothing declares an outline width and
+nothing declares a shadow. Under `forced-colors: active` the UA forces border colours to the system
+palette, so the focused and unfocused borders resolve to the same value and the field has no
+distinguishable indicator - the same defect the Switch had, by a third route. **The declarations are
+measured; the forced-colors consequence is reasoned from the mechanism FOLLOWUPS-3 measured for the
+shadow, not observed in a browser.** Not fixed here: `input.tsx` is outside this stream's fence and
+the change moves the focused look of every field in every consumer, which is Ankit's call.
+**Follow-up, in tier with `input.tsx:6`'s entry in the DL15 composition.**
+
+`sheet.tsx:67`'s `focus:outline-none` is NOT the same defect and needs nothing: it sits on the Radix
+dialog surface, a programmatically focused container with no keyboard target, which is Radix's own
+pattern.
+
+### The packed tarball, as measured
+
+```
+$ pnpm --filter @marquee-ui/ui pack --pack-destination …/thepile-LIB-VENDOR-0.1.2/vendor/marquee-ui/
+$ stat -c %s marquee-ui-ui-0.1.2.tgz ; sha256sum marquee-ui-ui-0.1.2.tgz
+92751
+09f05aa6a3d8333e0027bc7101114894334d82fbb11855e19b1e05cb8620024a
+```
+
+|                                         | `ui@0.1.1`'s tarball | this one  |
+| --------------------------------------- | -------------------- | --------- |
+| bytes                                   | 65840                | **92751** |
+| `r/` item files (excl. `registry.json`) | 17                   | **20**    |
+| `src/` modules (`.ts`/`.tsx`)           | 18                   | **21**    |
+
+`files` is still `["r","src"]`, so the shape did not change and 65840 → 92751 is content: three
+families, each carried twice (once as the source module, once inlined into its registry item's
+`content` string, because a registry item has to be self-contained for an offline `shadcn add`).
+The tarball carries **no** `.test.`, `.spec.` or `stories` file - checked, because thepile's
+`scripts/test-quality.test.ts` walks from ITS repo root and a vendored tarball that were ever
+unpacked would put its tests in that corpus (DL12's reviewer finding).
+
+**The packed `package.json`'s `@marquee-ui/tokens` specifier, READ from the tarball:**
+
+```
+$ tar -xzOf marquee-ui-ui-0.1.2.tgz package/package.json | …
+version: 0.1.2
+devDeps @marquee-ui/tokens: "0.1.0"
+files: ["r","src"]
+deps: @radix-ui/react-accordion @radix-ui/react-dialog @radix-ui/react-label @radix-ui/react-separator @radix-ui/react-slot class-variance-authority clsx tailwind-merge
+```
+
+`workspace:*` rewritten to the exact `0.1.0` again, and again in `devDependencies`, which a consumer
+never installs - so it cannot reach thepile's resolution. The eight `dependencies` are unchanged
+from 0.1.1, which is what keeps thepile's `declares every dependency` arm green across the bump.
+
+### `@marquee-ui/tokens` does NOT bump with it (DL12 decision 1, re-measured)
+
+`git diff --stat tokens@0.1.0 HEAD -- packages/tokens/src` prints **nothing**. Over the whole
+package it is two files, `test/docs-headers.test.ts` and `test/helpers/source-files.ts`, and that
+package's `files` is `["dist","fonts","src"]` - `test/` is not shipped. Nothing a consumer receives
+has moved, so tokens stays `0.1.0`, thepile keeps consuming it from the registry at `^0.1.0`, and
+**ONE tarball is vendored downstream, not two.**
+
+### `prepack`'s stale-registry refusal, proved live again
+
+Re-run at the bump commit `c9115f7`, in a **detached worktree**, because the mutation lives in
+`packages/ui/src/**`:
+
+| mutation                                                                                   | landed                                                               | the red                                                                                                                                                                                                                       |
+| ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `border-border-strong` → `border-border` in `packages/ui/src/switch.tsx`, `r/` not rebuilt | `switch.tsx` trackClass, confirmed by `grep` before the run was read | `pnpm run prepack` exit **1**, the `git diff --exit-code -- r` output naming `packages/ui/r/switch.json` and carrying `border-border` inside its `content` string. **No tarball was written** (`ls packages/ui/*.tgz` → none) |
+
+So the 92751 bytes above cannot be bytes that disagree with `src/`.
+
+### The two a3 follow-ups this bump does NOT do [V]
+
+- **LOW-2**, `ui`'s `prepack` breaks a git-URL install. **Taken: NO**, agreeing with the
+  orchestrator's read. This bump DOES touch `packages/ui/package.json`, so the fence would have
+  allowed it, and it is still the wrong commit: under the freeze the only install anyone performs is
+  the vendored tarball, which `pnpm pack` writes from a git checkout where `git diff --exit-code`
+  works; and 0.1.2's claim is "the three families, the directive, the two carry-ins", which a
+  lifecycle-script change is not. It stays recorded for the bump whose job it is.
+- **LOW-3**, the tokens TS entry. Recorded, not done: it would change the shipped bytes of
+  `@marquee-ui/tokens`, which deliberately does not bump.
+
+### The gate
+
+`pnpm verify` at the library head, foreground: **exit 0**, the runner's own lines being
+`All matched files use Prettier code style!`, both packages' `typecheck: Done`,
+`✔ Building registry.`, `└  Storybook build completed successfully` and
+`Test Files 31 passed (31)` / `Tests 549 passed (549)`. `git status --short` empty before and after,
+so the committed `packages/ui/r` is exactly what `build:registry` produces at `0.1.2`.
+
+That is **+1 file / +7 tests** on DL14's closure (30 / 542), which is this stream's
+`focus-outline.test.tsx` and nothing else. Two earlier runs are worth recording because each was a
+real finding rather than a flake: `JSX.Element` in the new test's type annotation failed
+`packages/ui typecheck` with `TS2503: Cannot find namespace 'JSX'` under this repo's React 19 JSX
+transform (now `ReactElement`), and `fidelity.test.tsx`'s pinned class list reddened as described
+above.
+
+No push, no `npm publish`, no git tag: the freeze holds. The tags `ui@0.1.1` (at `c99b71e`) and
+`ui@0.1.2` (at `c9115f7`) are the publish's act and are Ankit's to make; thepile's `vendor/` tarball
+exists only until he does.
