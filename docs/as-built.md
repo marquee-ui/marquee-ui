@@ -6782,8 +6782,19 @@ changed, so `pnpm build:registry` ran and `packages/ui/r/description-list.json` 
 are committed with them. `registry.test.ts`'s "carries the CURRENT bytes of every source it ships"
 is the arm that makes that a required step rather than a tidy-up, and it is green.
 
-`pnpm test` at the head: **31 files / 560 tests**, against **31 / 555** at the base - the base
-number MEASURED in the detached worktree at `1fd163d` rather than quoted from an earlier section. The `+5` is exactly this stream's: 2 arms in
+`pnpm verify` at the head, detached under the batch's gate lock: **exit 0**, the runner's own
+lines being `All matched files use Prettier code style!`, both packages' `typecheck: Done`,
+`✔ Building registry.`, `└  Storybook build completed successfully` and **`Test Files 31 passed
+(31)` / `Tests 562 passed (562)`**, in 2.6 minutes. `git status --short` was EMPTY after it, so the
+committed `packages/ui/r` is exactly what `build:registry` produces at this head.
+
+That is **+7 tests on 31 unchanged files** against **31 / 555** at the base - the base number
+MEASURED in the detached worktree at `1fd163d` rather than quoted from an earlier section. The
+seven: 2 arms in `description-list-structure.test.tsx` and 3 in `form-wiring.test.tsx` for item 1,
+then layer 1's two (a third `form-wiring` arm for MED-1's ambiguity, and `focus-outline`'s
+both-disjuncts arm for MED-2). `focus-outline.test.tsx` went from 13 to 14: LOW-2 itself widened a
+predicate rather than adding an arm, which is exactly why its red had to be run in a detached
+worktree to exist at all - and why layer 1 was right that it needed one live arm of its own. The `+5` is exactly this stream's: 2 arms in
 `description-list-structure.test.tsx` and 3 in `form-wiring.test.tsx`. `focus-outline.test.tsx`
 stays at 13 - LOW-2 widened a predicate rather than adding an arm, which is why its red had to be
 run in a detached worktree to exist at all.
