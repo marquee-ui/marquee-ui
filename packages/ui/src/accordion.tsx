@@ -12,6 +12,11 @@ import { cn } from "@/lib/utils";
  * No chevron is drawn. An icon is a dependency and a taste call, and the trigger
  * is a slot: put whatever marker the product uses inside it. The trigger's own
  * `data-state` is what any such marker rotates on.
+ *
+ * ⚠️ The trigger's focus indicator declares an OUTLINE as well as the shadow
+ * ring: `forced-colors: active` drops a `box-shadow` and keeps an `outline`, so
+ * a shadow-only ring is no indicator at all in that mode
+ * (`test/focus-outline.test.tsx`, and `switch.tsx` for the measurement).
  */
 export const Accordion = AccordionPrimitive.Root;
 
@@ -39,7 +44,7 @@ export function AccordionTrigger({
       <AccordionPrimitive.Trigger
         data-slot="accordion-trigger"
         className={cn(
-          "flex min-h-hit w-full items-center justify-between gap-3 py-3 text-left text-sm font-semibold text-foreground transition-colors hover:text-primary-ink focus-visible:outline-none focus-visible:shadow-focus-ring",
+          "flex min-h-hit w-full items-center justify-between gap-3 py-3 text-left text-sm font-semibold text-foreground transition-colors hover:text-primary-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary focus-visible:shadow-focus-ring",
           className,
         )}
         {...props}

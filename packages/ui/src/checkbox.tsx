@@ -72,9 +72,17 @@ import { cn } from "@/lib/utils";
  * The focus ring is drawn on the ROW (`has-focus-visible:`) because the input's
  * own ring is invisible at `opacity-0`, and the disabled treatment likewise
  * (`has-disabled:`): the row is the only element either state has to show on.
+ *
+ * ⚠️ AND IT DECLARES AN OUTLINE, NOT ONLY A SHADOW. `forced-colors: active` drops
+ * a `box-shadow` and keeps an `outline`, so a shadow-only ring on a row whose
+ * focusable input is already invisible leaves NO focus indicator at all in the
+ * mode a person uses because they cannot see the default one. The Switch's label
+ * host had the identical hole (`switch.tsx`, and the consuming product's own browser measurement); `test/focus-outline.test.tsx` derives this
+ * invariant over every part rather than listing them, which is how this one was
+ * found.
  */
 const rowClass =
-  "group/checkbox relative inline-flex min-h-hit cursor-pointer items-center gap-3 has-focus-visible:shadow-focus-ring has-disabled:cursor-not-allowed has-disabled:opacity-50";
+  "group/checkbox relative inline-flex min-h-hit cursor-pointer items-center gap-3 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary has-focus-visible:shadow-focus-ring has-disabled:cursor-not-allowed has-disabled:opacity-50";
 
 /**
  * The native control, invisible and covering the row.

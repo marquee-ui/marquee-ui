@@ -94,6 +94,17 @@ a leading comment block from a css file as a banner, so the consumer's copy woul
 differ from the registry's content forever and a `shadcn diff` drift check would
 report it as drift. Every other comment in the file survives.
 
+**A bare `pnpm test` needs `pnpm build` first.** `packages/tokens/dist` is emitted, not
+committed, and every suite that reads the compiled sheet (`git grep -l loadCompiledSheet
+packages/ui/test`) compiles a fixture that `@import`s it, so on a cold checkout they fail as a
+broken instrument - and because the call sits in a `beforeAll`, vitest reports their tests as
+SKIPPED rather than failed. `loadCompiledSheet` says so by name now.
+`pnpm verify` builds first and is immune.
+
+⚠️ `pnpm --filter @marquee-ui/ui test` is a NO-OP that exits 0 silently: `packages/ui` has no
+`test` script, the runner is the ROOT's `vitest run`. Use `pnpm test`, or
+`pnpm exec vitest run --project ui <files>`.
+
 **A test can conjure the thing it is testing.** `test/fixtures/compile.css` opens
 `@import "tailwindcss" source(none)` and names its sources explicitly. With
 Tailwind's automatic detection on it scans the whole repository, which includes the

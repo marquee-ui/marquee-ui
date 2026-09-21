@@ -53,9 +53,17 @@ import { cn } from "@/lib/utils";
  * itself when it is the button, a descendant when it is the label - and both
  * disabled spellings, for the same reason. The ring is drawn on the ROW in both,
  * rather than on the track, because the row is what the person is pointing at.
+ *
+ * ⚠️ THE OUTLINE IS THE LOAD-BEARING HALF AND THE SHADOW IS THE NICE ONE.
+ * `forced-colors: active` drops a `box-shadow` and keeps an `outline`, so the
+ * old `focus-visible:outline-none` left this control with NO focus indicator at
+ * all in the mode a person uses because they cannot see the default one -
+ * measured in the consuming product, `test/focus-outline.test.tsx` carries the
+ * numbers. Both are declared now: the outline for forced colors, the shadow for
+ * the dark inner separator that makes the ring readable over cover art.
  */
 const switchClass =
-  "group/switch relative inline-flex min-h-hit cursor-pointer items-center gap-3 focus-visible:outline-none focus-visible:shadow-focus-ring has-focus-visible:shadow-focus-ring disabled:cursor-not-allowed disabled:opacity-50 has-disabled:cursor-not-allowed has-disabled:opacity-50";
+  "group/switch relative inline-flex min-h-hit cursor-pointer items-center gap-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary focus-visible:shadow-focus-ring has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary has-focus-visible:shadow-focus-ring disabled:cursor-not-allowed disabled:opacity-50 has-disabled:cursor-not-allowed has-disabled:opacity-50";
 
 /** The track: the pill, and the fill that changes with the state. */
 const trackClass =
