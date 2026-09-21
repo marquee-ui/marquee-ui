@@ -7,6 +7,15 @@ export {
   alertVariants,
   type AlertProps,
 } from "./alert.js";
+export {
+  Avatar,
+  AvatarBadge,
+  AvatarImage,
+  avatarImageVariants,
+  type AvatarBadgeProps,
+  type AvatarImageProps,
+  type AvatarProps,
+} from "./avatar.js";
 export { Badge, badgeVariants, type BadgeProps } from "./badge.js";
 export {
   Breadcrumb,

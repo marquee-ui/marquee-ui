@@ -150,6 +150,21 @@
       ]
     },
     {
+      "name": "avatar",
+      "type": "registry:ui",
+      "title": "Avatar",
+      "description": "A circular image with an optional corner mark, as parts: the caller owns the box and the image fills it.",
+      "dependencies": ["@radix-ui/react-slot@^1.3.3", "class-variance-authority@^0.7.1"],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/avatar.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/avatar.tsx"
+        }
+      ]
+    },
+    {
       "name": "badge",
       "type": "registry:ui",
       "title": "Badge",

@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 
 import * as accordion from "../../stories/accordion.stories.js";
 import * as alert from "../../stories/alert.stories.js";
+import * as avatar from "../../stories/avatar.stories.js";
 import * as badge from "../../stories/badge.stories.js";
 import * as breadcrumb from "../../stories/breadcrumb.stories.js";
 import * as button from "../../stories/button.stories.js";
@@ -34,6 +35,7 @@ import * as toast from "../../stories/toast.stories.js";
 export const STORY_SUITES = {
   accordion,
   alert,
+  avatar,
   badge,
   breadcrumb,
   button,
