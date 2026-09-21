@@ -7015,7 +7015,8 @@ Every line number above was read at `1533f084` and is as the DL17 table states i
 
 **The mark's geometry, computed from the consumer's own two maps** (`SIZE` `:37-46`, `MARK_SIZE`
 `:68-74`) and the part's `h-2/5`, because the choice of thin value turns on it and nothing in the
-record had the arithmetic:
+record had the arithmetic. Rem is converted at a 16px root, which is this package's own convention
+(`compiled-sheet.ts`'s `lengthPx` multiplies rem by 16):
 
 | face | mark ø (40%) | mark font-size  | interior ø at 2px | interior ÷ glyph at 2px | at 1.5px | at 1px |
 | ---- | ------------ | --------------- | ----------------- | ----------------------- | -------- | ------ |
@@ -7058,19 +7059,29 @@ to "pass the role when the notice ARRIVES" - one of the two ways to write a regi
 Both thepile sites were re-read at `1533f084` rather than taken from the DL16 note, and both
 establish the missing half in their own source:
 
-- **`app/login/page.tsx`** renders `<Alert tone="destructive" className="text-text-secondary">` with
-  NO role, and `:80-89` says the attribute was dropped (2026-09-21, Ankit; DL14 layer 2 LOW-4)
-  because "typed or reloaded, the notice is there at first paint, where nothing announces at all".
-  Its unit arm `page.test.tsx:88-100` is titled "puts no live region on that notice, in any
-  spelling" and its comment states the half the library was missing: "a live region inserted
-  together with its content is unreliably announced … **one that announces has to exist, empty,
-  first**".
-- **`app/settings/steam/page.tsx:63-89`** carries the measurement for the other side: every writer of
-  `?link=` is a DOCUMENT navigation, instrumented through `e2e/steam-import.spec.ts:302-313`
-  (a `window` marker gone afterwards, 3 document load events, the surviving navigation entry
-  `{"name":".../settings/steam?link=rejected","type":"navigate"}`), so the notice is in the bytes the
-  server sent and there is no mutation to catch. Its comment already points forward at this edit:
-  "a soft-navigated notice earns a role only when the region exists, empty, before its content does
+- **`app/login/page.tsx` is the product's ONE `<Alert>` site, and it carries BOTH halves.** (Layer 1
+  MED-2 and LOW-3 are exactly this: the first draft of both this bullet and the docblock said "two
+  sites", and the second of them is not an `Alert` at all. At `1533f084`,
+  `git grep -ln 'from "@/components/ui/alert"' -- apps/web/src` prints `app/login/page.tsx` and
+  nothing else.) It renders `<Alert tone="destructive" className="text-text-secondary">` with NO
+  role, and its comment `:55-89` is careful about WHY in a way the first draft got backwards: its
+  own ⚠️ says **"AND THIS NOTICE DOES ARRIVE, SO 'IT IS THERE FROM FIRST PAINT' IS NOT THE REASON
+  (layer 1 caught exactly that sentence here, and it was false)"** - both routes to the URL are
+  `router.push` + `router.refresh()` from `"use client"` components, instrumented on the built page
+  as same-document with 0 load events. The reason it declines is the half the library was missing:
+  "the region would be inserted TOGETHER with its sentence, and 'a live region inserted together
+  with its content is unreliably announced' … **A region that announces has to EXIST, empty, before
+  the text does**". The first-paint sentence is the TYPED-OR-RELOADED path, a second reason, which
+  is what makes one site enough. Its unit arm `page.test.tsx:88-100` ("puts no live region on that
+  notice, in any spelling") is the instrument.
+- **`app/settings/steam/page.tsx:63-92` is the other measurement and is NOT this part**: it renders a
+  raw `<p data-testid="steam-link-notice" className="rounded-md border-2 p-3 text-sm …">`, and only
+  CITES `components/ui/alert.tsx:17-24` as the rule it is following. Its navigation is measured -
+  every writer of `?link=` is a DOCUMENT navigation, instrumented through
+  `e2e/steam-import.spec.ts:302-313` (a `window` marker gone afterwards, 3 document load events, the
+  surviving navigation entry `{"name":".../settings/steam?link=rejected","type":"navigate"}`) - so
+  it is the pure first-paint case. Its comment already points forward at this edit: "a
+  soft-navigated notice earns a role only when the region exists, empty, before its content does
   (DL16 layer 2, MED-2)".
 
 So the rule now says both: a role belongs on a region that exists, EMPTY, before its content does;
@@ -7140,7 +7151,9 @@ share two class strings **byte for byte** - the results list
 disabled:opacity-50`), `cmp`'d at `1533f084` - plus a near-copy of the debounce, the request token
 and the phase machine. None of it is a Marquee part: the row holds `GameCover`, the machine is the
 product's S35 rule, the endpoint is `/api/search`, the `max-h-[50dvh]` is one product's measurement,
-and no `buttonVariants` value is this row (all five are centred and none uses a hover GROUND). If
+and no `buttonVariants` value is this row (four of the five are centred blocks and the fifth,
+`ghost`, is sized to its text; none is a full-width LEFT-aligned row and none uses a hover GROUND -
+they change a border and an ink). If
 anything is shared there it is a thepile component over `/api/search`, and that is thepile's call to
 take, not this package's. Recorded so the reconciler's cells can say it.
 

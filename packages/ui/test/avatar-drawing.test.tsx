@@ -45,6 +45,26 @@ const classesOf = (element: Element | null): string[] =>
   (element?.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
 
 /**
+ * The ring's ink, resolved, and PINNED rather than compared - layer 1's MED-1.
+ *
+ * Three arms here used to compare one part's `border-color` to another's and
+ * call that an assertion. `declaredValues` answers `[]` for a property nobody
+ * declares, so `[] === []` passes: the reviewer deleted EVERY
+ * `border-border-strong` in the family - the image's two edges and the mark's
+ * base, so nothing in it has a ring ink at all - and this file, whose own
+ * docblock claims it reads "every number the drawing is MADE of", stayed at
+ * **11 passed**. The whole gate caught it only through a class-name assertion
+ * in one story play.
+ *
+ * So the ink is anchored to a VALUE, once, and all three arms read this. The
+ * property the comparisons were reaching for - that the mark's ink and the
+ * face's are ONE role, so moving the role moves both - is now the shared
+ * constant: a role rename is one line here, and a part that stopped agreeing
+ * with it reddens on its own arm rather than on nobody's.
+ */
+const RING_INK = ["var(--border-strong)"];
+
+/**
  * A CSS percentage as a fraction, in the two shapes Tailwind 4 emits for the
  * utilities this family uses: `calc(2 / 5 * 100%)` for a fraction utility and
  * `calc(4% * -1)` for a negative arbitrary one. Null when the value is not a
@@ -203,12 +223,12 @@ describe("the face's geometry, in resolved values", () => {
     // sits on whatever is behind the root, which is how one member gets two
     // different faces from two components.
     expect(sheet.declaredValues(parts.image, "background-color")).toEqual(["var(--surface)"]);
-    // The mark's edge is what CUTS it out of the face it overhangs - compared to
-    // the image's ink rather than pinned, so one role moving moves both.
+    // The mark's edge is what CUTS it out of the face it overhangs, so both the
+    // width and the INK are read - the ink against `RING_INK`, which is the one
+    // thing that makes "the mark's ink is the face's" an assertion at all.
     expect(sheet.declared(parts.mark, "border-width")).toBe(2);
-    expect(sheet.declaredValues(parts.mark, "border-color")).toEqual(
-      sheet.declaredValues(parts.image, "border-color"),
-    );
+    expect(sheet.declaredValues(parts.mark, "border-color")).toEqual(RING_INK);
+    expect(sheet.declaredValues(parts.image, "border-color")).toEqual(RING_INK);
     // …and it is a centred box, not a corner of text: `place-items` is the only
     // thing putting the glyph in the middle of it, and `line-height: 1` the only
     // thing stopping a mono ascent pushing it off centre.
@@ -243,10 +263,10 @@ describe("the face's geometry, in resolved values", () => {
     expect(sheet.declared(imageAt("thin"), "border-width")).toBe(1);
     expect(sheet.declared(imageAt("none"), "border-width")).toBeNull();
     // …and the ink is the same role in the two that have one, so the axis is a
-    // WIDTH axis and not a second colour decision.
-    expect(sheet.declaredValues(imageAt("default"), "border-color")).toEqual(
-      sheet.declaredValues(imageAt("thin"), "border-color"),
-    );
+    // WIDTH axis and not a second colour decision. Both read against `RING_INK`:
+    // comparing them to each other passed with neither of them having an ink.
+    expect(sheet.declaredValues(imageAt("default"), "border-color")).toEqual(RING_INK);
+    expect(sheet.declaredValues(imageAt("thin"), "border-color")).toEqual(RING_INK);
   });
 
   it("resolves the ground axis to two grounds, with the old value still the default", () => {
@@ -296,11 +316,10 @@ describe("the face's geometry, in resolved values", () => {
     // reader meets rather than a typo they find.
     expect(sheet.declared(imageAt("thin"), "border-width")).toBe(1);
     // The ink is one role at both widths, so this is a WIDTH axis and not a
-    // second colour decision - compared rather than pinned, exactly as the
-    // image's axis compares its own two.
-    expect(sheet.declaredValues(markAt("thin"), "border-color")).toEqual(
-      sheet.declaredValues(markAt("default"), "border-color"),
-    );
+    // second colour decision - both read against `RING_INK` for the reason that
+    // constant carries.
+    expect(sheet.declaredValues(markAt("thin"), "border-color")).toEqual(RING_INK);
+    expect(sheet.declaredValues(markAt("default"), "border-color")).toEqual(RING_INK);
   });
 
   it("keeps the story's own box on the root, which is what a consumer copies", () => {

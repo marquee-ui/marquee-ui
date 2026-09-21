@@ -40,11 +40,16 @@ import { cn } from "@/lib/utils";
  *   or `role="alert"` HERE only when this box itself is already mounted and empty
  *   before the notice is written into it.
  *
- *   Both halves are measured at the reference product's two sites, and neither
- *   takes a role: one notice is in the bytes the server sent for its URL (a
- *   document navigation, so it is there at first paint), and the other DOES
- *   arrive - by soft navigation - and still declines, because it is inserted
- *   together with its sentence.
+ *   Measured at the reference product rather than reasoned, and its ONE site
+ *   for this part carries both halves at once. That notice DOES arrive - both
+ *   routes to the URL are client-side soft navigations, instrumented on the
+ *   built page as same-document with zero load events - and it declines the role
+ *   anyway, because the region would be inserted together with its sentence; and
+ *   on the typed-or-reloaded path the same box is there at first paint, where
+ *   there is nothing to announce either. So the attribute could do its job on
+ *   neither path. A second notice elsewhere in that product - NOT drawn by this
+ *   part, and reached by a document navigation it measured - declined for the
+ *   first-paint half alone.
  * - **its width and its outer margin**. A part that caps its own line length has
  *   decided the column it sits in, and one that sets its own margin has decided
  *   its relationship to a sibling it does not own. Both are the page's.

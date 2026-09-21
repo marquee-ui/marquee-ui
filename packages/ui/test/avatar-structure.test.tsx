@@ -50,6 +50,37 @@ describe("the face refuses asChild where the element is not the caller's to give
     expect(document.querySelector('[data-slot="avatar-badge"]')!.tagName).toBe("SPAN");
   });
 
+  it("keeps the variant props OFF both elements, which only the destructure does", () => {
+    // ⚠️ LAYER 1's LOW-1, AND THIS ARM IS THE FINDING. `ground` and `edge` are
+    // kept off the DOM by being destructured out of `...props` and by nothing
+    // else. The reviewer left `ground` in the spread and read it from `props`
+    // instead: `pnpm test` stayed at 565 passed (the one red being the registry
+    // BYTE digest, which fires for any edit), `pnpm typecheck` said `Done`, and
+    // the shipped element was
+    // `<img data-slot="avatar-image" … class="… bg-raised" ground="raised">` -
+    // an invalid attribute on every consumer's face plus React's "does not
+    // recognize the prop" warning, with nothing anywhere looking.
+    //
+    // React 19 lower-cases an unknown prop and WRITES it, which is what makes
+    // this observable; the pre-existing `edge` had the same hole.
+    render(
+      <Avatar className="h-16 w-16">
+        <AvatarImage src="/face.svg" ground="raised" edge="thin" />
+        <AvatarBadge edge="thin">n</AvatarBadge>
+      </Avatar>,
+    );
+    const image = document.querySelector('[data-slot="avatar-image"]')!;
+    const mark = document.querySelector('[data-slot="avatar-badge"]')!;
+    // The anchor FIRST, so an arm whose render silently drew nothing cannot
+    // pass its two absences: the values did reach the variants.
+    expect(image.getAttribute("class")).toContain("bg-raised");
+    expect(mark.getAttribute("class")).toContain("border-[1.5px]");
+    for (const attribute of ["ground", "edge"]) {
+      expect(image.getAttribute(attribute), `image keeps ${attribute} off the DOM`).toBeNull();
+      expect(mark.getAttribute(attribute), `mark keeps ${attribute} off the DOM`).toBeNull();
+    }
+  });
+
   it("keeps the mark hidden even when the caller asks for it not to be", () => {
     // The part writes `aria-hidden` AFTER the spread, so this is a real refusal
     // rather than a default. Every other part in this package spreads last, so a
