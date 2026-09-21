@@ -660,7 +660,7 @@ const NEW_PARTS: readonly (readonly [string, () => void, string])[] = [
   [
     "accordion-trigger",
     () => renderAccordion(),
-    "flex min-h-hit w-full items-center justify-between gap-3 py-3 text-left text-sm font-semibold text-foreground transition-colors hover:text-primary-ink focus-visible:outline-none focus-visible:shadow-focus-ring",
+    "flex min-h-hit w-full items-center justify-between gap-3 py-3 text-left text-sm font-semibold text-foreground transition-colors hover:text-primary-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary focus-visible:shadow-focus-ring",
   ],
   ["accordion-content", () => renderAccordion(), "overflow-hidden pb-3 text-sm text-foreground-2"],
   ["label", () => render(<Label>l</Label>), "text-sm text-foreground-2"],
