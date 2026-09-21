@@ -252,6 +252,27 @@ describe("the group owns the shared name, and that is why it is a part", () => {
     ).toThrow('<RadioGroupInput> does not take "name"');
   });
 
+  it("lets a SPREAD whose name is undefined through, and gives it the group's", () => {
+    // DL13 layer 2, LOW-7. `{...rest}` from a caller that already destructured
+    // `name` off its own props carries `name: undefined`, and `"name" in props`
+    // reports that as PRESENT - so the refusal fired on a caller who passed no
+    // name at all, with a message telling them to move a name they never wrote.
+    // `refuseAsChild`, two screens up in the same file, has always guarded with
+    // `!== undefined`; this is that test, one property over. The positive half is
+    // the point: it is not enough that it does not throw, the radio has to come
+    // out carrying the GROUP's name.
+    const rest = { value: "ads", name: undefined };
+    render(
+      <RadioGroup aria-label="Rules" name="reason">
+        <RadioGroupItem>
+          <RadioGroupInput {...rest} />
+          <span>Ads</span>
+        </RadioGroupItem>
+      </RadioGroup>,
+    );
+    expect(screen.getByRole("radio", { name: "Ads" })).toHaveAttribute("name", "reason");
+  });
+
   it("throws outside a group rather than rendering an ungrouped radio", () => {
     expect(() => render(<RadioGroupInput value="ads" />)).toThrow(
       "<RadioGroupInput> must be rendered inside a <RadioGroup>",

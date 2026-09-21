@@ -5,6 +5,7 @@ import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.js";
 import * as checkboxStories from "../stories/checkbox.stories.js";
 import * as radioStories from "../stories/radio-group.stories.js";
+import * as switchStories from "../stories/switch.stories.js";
 
 /**
  * The two choice families' drawings, in RESOLVED PIXELS and in a real cascade.
@@ -39,6 +40,7 @@ afterEach(cleanup);
 
 const checkbox = composeStories(checkboxStories);
 const radio = composeStories(radioStories);
+const switchParts = composeStories(switchStories);
 
 const classesOf = (element: Element | null): string[] =>
   (element?.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
@@ -133,13 +135,26 @@ describe("the choice controls' geometry, in resolved pixels", () => {
     }
   });
 
-  it("gives both families the SAME overlay input, by declaration and not by name", () => {
+  it("gives all THREE families the SAME overlay input, by declaration and not by name", () => {
     // One decision about one element, so one spelling. Compared by what the
     // classes DECLARE, so a class renamed on one side and not the other is
     // visible here rather than in somebody's screenshot.
+    //
+    // ⚠️ THE SWITCH IS IN IT, AND DL13 LAYER 2's LOW-4 IS WHY. `checkbox.tsx:80`
+    // says its string is "byte-identical to `Switch`'s `nativeInputClass`,
+    // deliberately" - and while this arm compared only the two new families, that
+    // sentence had no instrument at all: `switch.tsx` could have been edited alone
+    // and nothing in the package would have said so. The Switch's slot comes off
+    // its NATIVE host story, which is the one that renders an `<input>` rather
+    // than a `button[role=switch]`.
     const box = slots(checkbox.Default, CHECKBOX_SLOTS).get("checkbox-input")!;
     const dot = slots(radio.Default, RADIO_SLOTS).get("radio-group-input")!;
+    const toggle = slots(switchParts.NativeCheckbox, ["switch-input"]).get("switch-input")!;
     expect(box).toEqual(dot);
+    expect(toggle, "switch-input vs checkbox-input").toEqual(box);
+    // …and the set is not empty, which is what an `toEqual([])` on all three
+    // would otherwise satisfy.
+    expect(box.length).toBeGreaterThan(5);
     expect(box.map((token) => sheet.rule(token)).join(" ")).toContain("opacity: 0%");
   });
 
