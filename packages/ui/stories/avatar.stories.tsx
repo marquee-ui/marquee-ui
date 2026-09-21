@@ -127,7 +127,7 @@ export const MarkSize: Story = {
     const mark = canvasElement.querySelector('[data-slot="avatar-badge"]')!;
     // The part still declares the var, not a size: the caller moved the VALUE,
     // so there is exactly one font-size declaration on the element.
-    await expect(mark.getAttribute("class")).toContain("var(--avatar-mark-size,20cqw)");
+    await expect(mark.getAttribute("class")).toContain("var(--avatar-mark-size,17cqw)");
     await expect(
       canvasElement.querySelector('[data-slot="avatar"]')!.getAttribute("class"),
     ).toContain("[--avatar-mark-size:0.95rem]");

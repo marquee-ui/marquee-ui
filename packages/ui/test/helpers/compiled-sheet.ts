@@ -31,9 +31,14 @@ export interface CompiledSheet {
   /**
    * Whether the compile emitted a rule for this class AT ALL.
    *
-   * ⚠️ Not `rule(name) !== ""`, and the difference is real: a class whose rule
-   * body is empty - a variant that declares nothing, a `@media` shell - compiles
-   * and would read as absent. The set is filled by the same walk that fills the
+   * ⚠️ Not `rule(name) !== ""`, and the difference WOULD be real: a class whose
+   * rule body is empty - a variant that declares nothing, a `@media` shell -
+   * compiles and would read as absent. It is defensive rather than instrumented,
+   * and layer 1 (LOW-2) measured exactly how defensive: reverting this to
+   * `rule(name) !== ""` leaves the suite green, and a probe for a class with an
+   * empty body in the compiled sheet returns `[]`. So it is written this way
+   * because the walk is the honest source, not because anything today can tell
+   * the two apart. The set is filled by the same walk that fills the
    * declarations, so the two cannot disagree about what exists.
    */
   has(name: string): boolean;
@@ -93,10 +98,11 @@ export async function loadCompiledSheet(): Promise<CompiledSheet> {
       .trim();
     const plain = /^(-?\d*\.?\d+)(px|rem)$/.exec(resolved);
     if (plain) return Number(plain[1]) * (plain[2] === "rem" ? 16 : 1);
-    // BOTH operand orders, because `tailwind-compile.test.tsx`'s copy of this
-    // resolver handles both and a module that handles one would lose a shape the
-    // day that file moves onto this one (layer 1, LOW-3; latent today - nothing
-    // the choice families read is written the second way).
+    // BOTH operand orders, and this is INSTRUMENTED rather than latent:
+    // `choice-drawing.test.tsx:84` pins `lengthPx("calc(6 * 0.25rem)")` at 24
+    // explicitly, and deleting the second regex reddens it with
+    // `expected null to be 24` (layer 1, LOW-3, run - the comment this replaces
+    // said "latent today", which stopped being true the day that arm was added).
     const scaled =
       /^calc\(\s*(-?\d*\.?\d+)(px|rem)\s*\*\s*(-?\d*\.?\d+)\s*\)$/.exec(resolved) ??
       /^calc\(\s*(-?\d*\.?\d+)\s*\*\s*(-?\d*\.?\d+)(px|rem)\s*\)$/.exec(resolved);

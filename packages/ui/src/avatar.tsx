@@ -30,16 +30,20 @@ import { cn } from "@/lib/utils";
  * than a tailwind-merge (a declared exclusion from this registry, and its own
  * docblock says so: "a caller's `className` does NOT beat a variant's"). So
  * `className="text-[0.36rem]"` over a part that already declares a `text-*`
- * leaves BOTH on the element with the stylesheet's order picking the winner. A
- * `var()` cannot be fought that way: the part reads
- * `--avatar-mark-size`, the caller sets it, and there is one declaration on the
- * element either way. Its default, `20cqw`, is 20% of the face's own width -
- * which is why the root opens a container - so a mark is legible at 26px and at
- * 96px with the caller saying nothing at all.
+ * leaves BOTH on the element with the stylesheet's order picking the winner. The
+ * `var()` is the route AROUND that, not an immunity to it: a caller who moves the
+ * VALUE writes one declaration and has nothing to fight, and a caller who writes
+ * a second `text-*` anyway is back in the same trap. Its default is `17cqw` -
+ * 17% of the face's own width, which is why the root opens a container - and that
+ * number is the MEDIAN of the five sizes the reference product's own design gate
+ * drew (0.206, 0.198, 0.171, 0.170, 0.158 of the face, smallest face first). It
+ * is a median and not a rule: the ratio that product chose FALLS as the face
+ * grows, which no single number reproduces, so every site that cares sets the
+ * var. What the default buys is a mark that is proportional rather than
+ * inherited at a size nobody picked.
  *
  * ⚠️ **NO RADIX, AND IT WAS PROBED RATHER THAN RECALLED.**
- * `@radix-ui/react-avatar@1.2.6` under `react@19.3.0`
- * (`$BATCH_SCRATCH/s2/radix-probe/probe.mjs`): `renderToString` of
+ * `@radix-ui/react-avatar@1.2.6` under `react@19.3.0`: `renderToString` of
  * `<Root><Image src alt/><Fallback>N</Fallback></Root>` emits
  * `<span class="root"><span class="fb">N</span></span>` - **no `<img>` at all** -
  * and after mount, with the image not yet loaded, the DOM still holds zero
@@ -85,11 +89,16 @@ export type AvatarProps = ComponentProps<"span"> & {
  * type is measured against. It declares no width or height of its own: see the
  * family docblock.
  *
- * `@container` is `container-type: inline-size`, whose layout containment is a
- * no-op HERE and would not be in general - an element whose inline size is
- * decided by its contents would stop being. This one's contents are an image at
- * `h-full w-full`, so a root with no box of its own is already drawing nothing,
- * and the story and the drawing test both say so.
+ * `@container` is `container-type: inline-size`, and it has a CONSEQUENCE rather
+ * than none (layer 1, MED-1: the first edition of this note called it a no-op and
+ * said the drawing test proved it, and neither was true). Containment means the
+ * root's inline size stops reading its contents, so a root the caller never sized
+ * collapses to zero instead of falling back to the image's intrinsic width. That
+ * is not a regression this family introduces - an unsized root is already drawing
+ * an image at `h-full w-full` of nothing - but it does make the mistake SILENT
+ * rather than merely wrong, and nothing here can catch it: jsdom lays nothing out
+ * and this package has no browser runner. So it is the caller's contract, said
+ * out loud: **`<Avatar>` owes a box.** Every story carries one.
  */
 export function Avatar({ className, asChild = false, ...props }: AvatarProps) {
   const Host = asChild ? Slot : "span";
@@ -203,9 +212,18 @@ export function AvatarBadge({ className, ...props }: AvatarBadgeProps) {
     <span
       data-slot="avatar-badge"
       className={cn(
+        // ⚠️ `leading-none` COMES AFTER THE FONT SIZE, AND THAT IS NOT A STYLE
+        // CHOICE. This package's own `cn` is a real tailwind-merge, and
+        // tailwind-merge's `font-size` group CONFLICTS with `leading` - because
+        // `text-sm` sets a line-height too - so a `text-*` written after
+        // `leading-none` DELETES it. Written the other way round the shipped
+        // element carried no line-height at all and nothing said so: layer 1's
+        // M16 deleted `leading-none` from this string and the suite stayed
+        // GREEN, which is how the class was found to have never been on the
+        // element. Measured with this package's own `cn`, not reasoned.
         "absolute -right-[4%] -bottom-[4%] grid h-2/5 w-2/5 place-items-center rounded-full " +
-          "border-2 border-border-strong bg-surface leading-none " +
-          "text-[length:var(--avatar-mark-size,20cqw)]",
+          "border-2 border-border-strong bg-surface " +
+          "text-[length:var(--avatar-mark-size,17cqw)] leading-none",
         className,
       )}
       {...props}

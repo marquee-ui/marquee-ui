@@ -138,7 +138,7 @@ describe("the face's geometry, in resolved values", () => {
     // measured.
     const { mark } = bare();
     const sizes = sheet.declaredValues(mark, "font-size");
-    expect(sizes).toEqual(["var(--avatar-mark-size,20cqw)"]);
+    expect(sizes).toEqual(["var(--avatar-mark-size,17cqw)"]);
   });
 
   it("opens the container that fallback is measured against", () => {
@@ -150,6 +150,34 @@ describe("the face's geometry, in resolved values", () => {
     const opened = root.filter((token) => sheet.rule(token).includes("container-type"));
     expect(opened).toHaveLength(1);
     expect(sheet.rule(opened[0]!)).toContain("container-type: inline-size");
+  });
+
+  it("cuts the mark out of the face, and paints a ground under a transparent one", () => {
+    // ⚠️ LAYER 1's HIGH-2, AND THIS ARM IS THE FINDING. The file's own docblock
+    // said it reads "every number the drawing is MADE of"; it read the boxes, the
+    // offsets, the radius, the font and the container, and NOT these. So the mark
+    // could lose its edge and its centring, and the face its ground, with the
+    // whole suite green - four classes whose docblocks call them load-bearing
+    // (M11, M15, M16, M17, and M23 proved all four deletable together).
+    const parts = bare();
+    // The face's ground: a drawn face with a transparent background otherwise
+    // sits on whatever is behind the root, which is how one member gets two
+    // different faces from two components.
+    expect(sheet.declaredValues(parts.image, "background-color")).toEqual(["var(--surface)"]);
+    // The mark's edge is what CUTS it out of the face it overhangs - compared to
+    // the image's ink rather than pinned, so one role moving moves both.
+    expect(sheet.declared(parts.mark, "border-width")).toBe(2);
+    expect(sheet.declaredValues(parts.mark, "border-color")).toEqual(
+      sheet.declaredValues(parts.image, "border-color"),
+    );
+    // …and it is a centred box, not a corner of text: `place-items` is the only
+    // thing putting the glyph in the middle of it, and `line-height: 1` the only
+    // thing stopping a mono ascent pushing it off centre.
+    expect(sheet.declaredValues(parts.mark, "place-items")).toEqual(["center"]);
+    expect(sheet.declaredValues(parts.mark, "line-height")).toContain("1");
+    // The root is a box that sits IN a line of text at eight of the eleven sites
+    // measured, so its display is part of the drawing rather than a default.
+    expect(sheet.declaredValues(parts.root, "display")).toEqual(["inline-flex"]);
   });
 
   it("draws both circles with the same corner, and the face with object-fit", () => {

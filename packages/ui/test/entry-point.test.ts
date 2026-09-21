@@ -63,6 +63,42 @@ describe("the package's entry point exposes every published part", () => {
     expect(missing).toEqual([]);
   });
 
+  it("re-exports every TYPE each part file exports, by name", () => {
+    // ⚠️ THE OTHER HALF OF THE SAME HOLE (layer 1, LOW-1, proved). The two arms
+    // above read `Object.keys(entry)`, and a type is not a runtime key - so
+    // deleting `type AvatarProps`, `type AvatarImageProps` and
+    // `type AvatarBadgeProps` from the barrel left the suite at 29 files / 528
+    // tests AND `pnpm typecheck` at exit 0, while a consumer's
+    // `import type { AvatarProps } from "@marquee-ui/ui"` fails in THEIR build.
+    // So this arm reads the barrel's SOURCE rather than the module: it is the
+    // only instrument that can see a name that exists only at compile time.
+    const barrel = readFileSync(resolve(ROOT, "packages/ui/src/index.ts"), "utf8");
+    const reexported = new Set<string>();
+    for (const block of barrel.matchAll(/export\s*\{([^}]*)\}\s*from/g)) {
+      for (const member of block[1]!.split(",")) {
+        const token = member.trim().replace(/^type\s+/, "");
+        if (token !== "")
+          reexported.add(
+            token
+              .split(/\s+as\s+/)
+              .pop()!
+              .trim(),
+          );
+      }
+    }
+    const declared = PARTS.flatMap((path) => {
+      const text = readFileSync(resolve(ROOT, path), "utf8");
+      return [...text.matchAll(/^export (?:type|interface) ([A-Za-z_][A-Za-z0-9_]*)/gm)].map(
+        (match) => `${path}: ${match[1]!}`,
+      );
+    });
+    // Anchors: an empty barrel parse or an empty type list would make the
+    // comparison below vacuous in either direction.
+    expect(reexported.size).toBeGreaterThan(60);
+    expect(declared.length).toBeGreaterThan(15);
+    expect(declared.filter((id) => !reexported.has(id.split(": ")[1]!))).toEqual([]);
+  });
+
   it("exports nothing that no part file declares", () => {
     // The other direction, so a barrel cannot grow a name with no source behind
     // it - a stale re-export survives a deleted part and only fails at a

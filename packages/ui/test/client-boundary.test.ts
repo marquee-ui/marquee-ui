@@ -26,10 +26,18 @@ import { describe, expect, it } from "vitest";
  * loader does not flag it. A file whose only react import is `useId` stays a
  * server module, which is the whole point of `FormLabel`'s generated ids.
  *
- * ⚠️ AND THE BOUND IS STATED: this reads the `react` import list, so a client-only
- * import from ANOTHER module (`react-dom`'s `createPortal`, a third-party hook)
- * is invisible to it. `toast.tsx` is exactly that shape and carries the directive
- * for its react hooks anyway. Widen the set, not the mechanism, when one arrives.
+ * ⚠️ AND THE BOUND IS STATED: this reads what a file imports FROM `react` - named
+ * or as a namespace - so a client-only import from ANOTHER module (`react-dom`'s
+ * `createPortal`, a third-party hook) is invisible to it. `toast.tsx` is exactly
+ * that shape and carries the directive for its react hooks anyway. Widen the set,
+ * not the mechanism, when one arrives.
+ *
+ * The other bounds, each one exercised by the table at the foot of this file
+ * rather than promised here: a multi-line import, braces with no spaces, an
+ * aliased hook (`createContext as mk`) and a namespace import are all read; a
+ * `type`-only import and an inline `type` member are dropped; and the directive
+ * is recognised only double-quoted, which is what `prettier --check` enforces
+ * for the whole repository anyway.
  */
 
 const ROOT = resolve(process.cwd());
@@ -74,6 +82,19 @@ function reactRuntimeImports(text: string): string[] {
       const token = member.trim();
       if (token === "" || token.startsWith("type ")) continue;
       names.push(token.split(/\s+as\s+/)[0]!.trim());
+    }
+  }
+  // ⚠️ AND THE NAMESPACE FORM, WHICH IS THE ONE THAT MATTERS MOST (layer 1,
+  // HIGH-1, proved). `import * as React from "react"` + `React.createContext(…)`
+  // is what UPSTREAM SHADCN publishes, so it is the likeliest spelling for a part
+  // copied in from there - and the first edition of this parser read named
+  // imports only. It was run: `checkbox.tsx` rewritten that way with its
+  // directive DELETED left the whole suite at 29 files / 528 tests passed, which
+  // is exactly the state whose Next build this file's docblock quotes as exit 1.
+  for (const ns of text.matchAll(/^import\s+\*\s+as\s+([A-Za-z_$][\w$]*)\s+from\s*"react";/gm)) {
+    const alias = ns[1]!;
+    for (const use of text.matchAll(new RegExp(`\\b${alias}\\.([A-Za-z_$][\\w$]*)\\b`, "g"))) {
+      names.push(use[1]!);
     }
   }
   return names;
@@ -152,6 +173,38 @@ describe("every part that needs a client boundary declares one", () => {
     expect(wrapsClientModule(read("accordion.tsx"))).toBe(true);
     expect(wrapsClientModule(read("switch.tsx"))).toBe(false);
     expect(radixImports(read("switch.tsx"))).toEqual(["@radix-ui/react-slot"]);
+  });
+
+  it.each([
+    ['import { createContext } from "react";', ["createContext"]],
+    ['import {createContext} from "react";', ["createContext"]],
+    ['import {\n  useState,\n  type ReactNode,\n} from "react";', ["useState"]],
+    ['import { createContext as mk } from "react";', ["createContext"]],
+    ['import type { ComponentProps } from "react";', []],
+    ['import { useId } from "react";', ["useId"]],
+    ['import * as React from "react";\nconst C = React.createContext(null);', ["createContext"]],
+    ['import * as R from "react";\nR.useState(0);\nR.memo(x);', ["useState", "memo"]],
+    ['import * as React from "react";\nconst n = React.version;', ["version"]],
+  ])("reads %j as %j", (source, expected) => {
+    // The parser's BOUNDS, exercised rather than described - including the two
+    // rows that decide nothing on their own (`memo`, `version` are read and then
+    // filtered by CLIENT_ONLY), because a parser that over-reads and a filter
+    // that under-filters fail the same way from outside.
+    expect(reactRuntimeImports(source)).toEqual(expected);
+  });
+
+  it("reads useId and then does NOT ask it for a boundary", () => {
+    // The split the table above rests on, said once as a behaviour: the parser
+    // reads every runtime name, and `CLIENT_ONLY` is what decides. React serves
+    // `useId` on the server - it is how a server-rendered label and its input
+    // agree on an id at all - so a file whose only react import is `useId` stays
+    // a server module. `form.tsx` imports it beside two real hooks, which is why
+    // the negative case is stated here rather than read off a file.
+    expect(needsBoundary('import { useId } from "react";')).toEqual([]);
+    expect(needsBoundary('import * as React from "react";\nReact.useId();')).toEqual([]);
+    expect(needsBoundary('import * as React from "react";\nReact.useState(0);')).toEqual([
+      "useState",
+    ]);
   });
 
   it('opens every hook-importing file with "use client"', () => {

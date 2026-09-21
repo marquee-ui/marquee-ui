@@ -38,10 +38,10 @@ import { cn } from "@/lib/utils";
  *
  * ⚠️ **IT OPENS WITH `"use client"`, AND THAT IS A COST THIS FAMILY DELIBERATELY
  * PAYS.** The two contexts below are not decoration: they are the only instrument
- * that can see a part rendered outside its parent, and three of the eight product
- * sites factor a group into a COMPONENT (`Ledger`'s `Cell`, `ScoreBlock`'s
- * `RawFigure`, `reckoning`'s `Fact`), whose output a parent's walk deliberately
- * never reads (decision 10). The alternative was measured and rejected: cloning
+ * that can see a part rendered outside its parent, and three of the eight sites
+ * measured factor a group into a COMPONENT of their own - a stat cell, an inline
+ * figure, a labelled fact - whose output a parent's walk deliberately never reads
+ * (decision 10). The alternative was measured and rejected: cloning
  * each direct part child with a marker prop catches the bare part and the part
  * inside a `dd`, and REFUSES all three of those component-factored groups, because
  * their `DescriptionItem` is not a child anyone can clone. Dropping the contexts
