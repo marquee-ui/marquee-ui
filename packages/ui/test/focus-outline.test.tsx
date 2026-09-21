@@ -286,7 +286,47 @@ describe("the invariant, over every part rather than a hand-written table", () =
    * file green (layer 1, MED-3). So the set is DERIVED from the sources: every
    * part that declares a focus ring at all is enumerated, and the invariant is
    * checked against the COMPILED sheet, not against the class name.
+   *
+   * ⚠️ AND "DECLARES A FOCUS RING" IS A SHADOW **OR** AN OUTLINE (DL15 layer 2,
+   * LOW-2). The first edition asked for a `box-shadow` only, which made the
+   * sweep blind in exactly the direction it exists to look: a part shipping
+   * `focus-visible:outline-none` and NO shadow contributed no site, so the arm
+   * below had nothing to find it short on. Run rather than argued, in a detached
+   * worktree of `1fd163d`: a scratch part carrying that one class string left
+   * this file GREEN at 13 passed, and reddened BOTH arms once the predicate read
+   * an `outline-style` too - the exact-set anchor gained
+   * `low2-probe.tsx (focus-visible)` and the invariant reported
+   * `low2-probe.tsx (focus-visible): outline-width null`. The five shipping sites
+   * did not move, which is how the widening was known to be a widening and not a
+   * change of subject.
+   *
+   * ⚠️ `focus:` IS DELIBERATELY NOT A THIRD VARIANT, AND THE COST WAS MEASURED
+   * RATHER THAN GUESSED. `input.tsx:6` and `sheet.tsx:67` are the only two
+   * `focus:` sites in the package and neither declares an outline, so admitting
+   * the variant would enter both as short sites needing a `KNOWN_GAPS` entry
+   * apiece - `input.tsx`'s ring is Ankit's open [V] from DL15 and `sheet.tsx`'s
+   * is a decided non-target, so neither is this slice's to excuse. Measured in
+   * the same worktree, and it takes TWO edits, not one: adding
+   * `focus: ":focus"` to `VARIANTS` alone changed NOTHING, because the token
+   * walk below only reads a class string that already contains a
+   * `focus-visible:` token. With the regex widened as well, the sweep gained
+   * exactly `input.tsx (focus)` and `sheet.tsx (focus)`. The day either ring is
+   * this slice's, both halves move together.
    */
+  /**
+   * What makes a class list a RING SITE, as a function rather than a condition
+   * inlined in the walk - which is what lets the arm below observe BOTH of its
+   * disjuncts (layer 1, MED-2: deleting either one left the whole suite green,
+   * 31 files / 560 tests, because the only thing that had ever exercised the
+   * widening was a scratch part in a worktree that no longer exists).
+   */
+  const declaresARing = (tokens: readonly string[]): boolean =>
+    tokens.some(
+      (token) =>
+        sheet.declaredValues([token], "box-shadow").length > 0 ||
+        sheet.declaredValues([token], "outline-style").length > 0,
+    );
+
   const ringSites = (): { file: string; variant: Variant; tokens: string[] }[] => {
     const dir = resolve(process.cwd(), "packages/ui/src");
     const sites: { file: string; variant: Variant; tokens: string[] }[] = [];
@@ -299,7 +339,7 @@ describe("the invariant, over every part rather than a hand-written table", () =
         .filter(Boolean);
       for (const variant of Object.keys(VARIANTS) as Variant[]) {
         const mine = tokens.filter((token) => token.startsWith(`${variant}:`));
-        if (mine.some((token) => sheet.declaredValues([token], "box-shadow").length > 0)) {
+        if (declaresARing(mine)) {
           sites.push({ file, variant, tokens: mine });
         }
       }
@@ -338,9 +378,38 @@ describe("the invariant, over every part rather than a hand-written table", () =
     ]);
   });
 
+  it("counts a site on its outline ALONE, and on its shadow alone", () => {
+    // BOTH disjuncts, live. Deleting either one reddens this arm, which is what
+    // the sweep itself cannot do: on the shipping tree every ring site declares
+    // both, so the predicate's two halves are indistinguishable from outside.
+    //
+    // ⚠️ The tokens are READ OFF A RENDERED HOST and then split by what the
+    // compiled sheet says each one declares - never typed, per this file's rule.
+    const host = HOSTS[0];
+    const tokens = under(classesFor(host), host.variant);
+    const declares = (token: string, property: string): boolean =>
+      sheet.declaredValues([token], property).length > 0;
+    const outlineOnly = tokens.filter(
+      (token) => declares(token, "outline-style") && !declares(token, "box-shadow"),
+    );
+    const shadowOnly = tokens.filter(
+      (token) => declares(token, "box-shadow") && !declares(token, "outline-style"),
+    );
+    // The anchors: an empty list would make either claim below vacuous.
+    expect(outlineOnly.length, `${host.name}: no outline-only token to test`).toBeGreaterThan(0);
+    expect(shadowOnly.length, `${host.name}: no shadow-only token to test`).toBeGreaterThan(0);
+    expect(declaresARing(outlineOnly), "the outline half of the predicate is dead").toBe(true);
+    expect(declaresARing(shadowOnly), "the shadow half of the predicate is dead").toBe(true);
+  });
+
   it("gives every focus ring an outline beside it, or names it as a known gap", () => {
+    const sites = ringSites();
+    // The anchor the sibling arm cannot lend this one (layer 1): an empty sweep
+    // makes the loop below run zero times and the assertion pass by iterating
+    // nothing, which is this repository's most recurrent defect.
+    expect(sites.length, "the sweep found no ring site at all").toBeGreaterThanOrEqual(4);
     const short: string[] = [];
-    for (const site of ringSites()) {
+    for (const site of sites) {
       const width = sheet.declared(site.tokens, "outline-width");
       const gap = KNOWN_GAPS[site.file];
       if (gap?.variant === site.variant) {

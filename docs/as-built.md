@@ -6581,3 +6581,383 @@ above.
 No push, no `npm publish`, no git tag: the freeze holds. The tags `ui@0.1.1` (at `c99b71e`) and
 `ui@0.1.2` (at `c9115f7`) are the publish's act and are Ankit's to make; thepile's `vendor/` tarball
 exists only until he does.
+
+## DESIGN-LIB-d-select: the client boundary the walks could not see, LOW-2, and the Select measurement (2026-09-22)
+
+Batch DL16's library stream. Three items, each its own commit, and the third one ships nothing on
+purpose. Base `1fd163d`; no push, no tag, no publish (the freeze).
+
+### 1. The identity walk across a client boundary, MEASURED
+
+**The finding, before this stream existed.** The orchestrator's DL16 probe vendored the 0.1.2
+registry copies of `avatar.tsx` and `description-list.tsx` into a detached thepile worktree and
+composed both families in a Server Component page. `pnpm --filter @thepile/web build` **exited 1 at
+prerender**, and the message was this family's own:
+
+```
+Error: <DescriptionItem> may hold only <DescriptionTerm> and <DescriptionDetails>: a div inside a
+dl is a group, and any third child makes the list invalid (axe `definition-list`).
+```
+
+for a group holding **exactly one** term and **exactly one** detail. The same composition inside one
+`"use client"` island built, exit 0.
+
+**What `child.type` actually is, read rather than reasoned.** This stream instrumented the probe
+worktree's copy of the walk - `typeof`, `String()`, `$$typeof`, `$$id`, `$$async`, `name`,
+`displayName`, own keys, prototype keys, and the identity comparison itself - made the refusal a
+`console.log` so one build would report every child of both compositions, and rebuilt
+(`$BATCH_SCRATCH/s2/probe.run5.log:47-56`; two earlier builds were type errors in the
+instrumentation, `probe.run3/run4`, and are not readings). One page, one build, the SAME three-cell
+`<dl>` composed twice: once directly in the Server Component, once inside a `"use client"` island.
+
+| composed in               | `typeof child.type` | `$$typeof`   | own keys                            | `name` / `displayName` / `$$id` / `$$async` | `child.type === DescriptionTerm` |
+| ------------------------- | ------------------- | ------------ | ----------------------------------- | ------------------------------------------- | -------------------------------- |
+| the Server Component      | `"object"`          | `react.lazy` | `["$$typeof", "_payload", "_init"]` | all four **undefined**                      | **false**                        |
+| one `"use client"` island | `"function"`        | (none)       | `["length", "name", "prototype"]`   | `name` = `"t"`, the minified export         | **true**                         |
+
+So an element a Server Component creates reaches the client module as a **client reference, which
+React hands over as its LAZY wrapper**. It is not the module's export, `===` is false against every
+part, and - the half that decides the whole item - **the wrapper keeps NO marker of its own**: the
+four identity fields read as `undefined` (they are absent from the log's JSON, which is
+`JSON.stringify` dropping undefined), and the own-key set is React's three private lazy fields. The
+only public thing on it is `$$typeof === Symbol.for("react.lazy")`.
+
+⚠️ **That three-key set is the PRODUCTION flight client's**, which is the build the probe
+measured; `lazy()` under this repo's React **19.3.0** DEVELOPMENT build adds a fourth,
+`_debugInfo` - read off the installed copy with `node -e`, not assumed (layer 1, LOW-2). `$$typeof`
+is identical in both, and it is the only thing either guard reads.
+
+**Option (B) therefore has nothing to stand on and is not taken.** A boundary-safe marker would have
+to be something the element KEEPS across the boundary; the reading says the element keeps three
+React-internal keys and nothing else. A static property on the part (`DescriptionTerm.__part`) is on
+the module's export, which is exactly the object that does not arrive. Resolving `_payload`/`_init`
+by hand is React's private lazy protocol and suspends. Nothing measured supports (B).
+
+**So (A): the island IS the family's Server-Component form, and the MESSAGE is what changes.**
+
+- `description-list.tsx` refuses a lazy-typed child with its own throw, naming the boundary and the
+  island instead of naming an invalid `<dl>` the caller did not write. Its docblocks say so in both
+  places the old cost sentence lived (the directive note, and the retired reason 2 at the term's
+  tone block): the cost is not "a static cell is a client component", it is **"a Server Component
+  cannot compose these parts at all"**.
+- `form.tsx` **does not fail the same way**, and that is this stream's correction to its own brief
+  (which reasoned the failure from the code). Measured in jsdom with the shape the build produced:
+  `countParts` does not refuse an unrecognised child, it **RECURSES INTO** it - a part is found at
+  any depth by design - so a `<FormControl>` created on the server side is never refused and never
+  counted, and the caller is told `<FormItem> must hold exactly one <FormControl>` about a field
+  holding exactly one. That throw now carries the cause, **and only when a child really crossed**;
+  a field that simply forgot its control must not send the next reader hunting for a boundary that
+  is not there. Its docblock carries the rule as the family's second one.
+
+**Neither change refuses a composition that rendered before.** In `description-list.tsx` a lazy
+child was already refused (with the wrong reason); in `form.tsx` the walk still walks through it,
+which `test/form-wiring.test.tsx` pins with a deliberate `lazy()` decoration beside a real control.
+
+**The guard, and its reddening run.** `lazy()` is the public API that produces exactly the measured
+object, so the tests state the boundary's own shape rather than a stand-in for it; the wrapper never
+resolves, because the item throws while walking its children, before React renders one. Run, not
+argued, in the working tree with the source untouched:
+
+| test file                                  | arm                                                                                 | before the fix                                                                                                                                          |
+| ------------------------------------------ | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `test/description-list-structure.test.tsx` | "throws a message naming the boundary, for a group that IS one term and one detail" | RED: `expected '<DescriptionItem> may hold only <Desc…' to contain 'React lazy wrapper'` - the jsdom instrument reproduced the BUILD's message verbatim |
+| `test/form-wiring.test.tsx`                | "tells the caller about the boundary, not about a control they did write"           | RED: `expected '<FormItem> must hold exactly one <For…' to contain 'React lazy wrapper'`                                                                |
+
+Both red firsts name the property under test, and the description-list red is the exact string the
+Next build printed - which is what makes the jsdom arm evidence about the build and not only about
+jsdom. Each has a negative twin in the same describe (an ordinary stray child still reads as a stray
+child; a control-less field still reads as control-less), so the split is pinned from both sides.
+
+**What `test/client-boundary.test.ts` guards, and what it does not.** It guards the **DIRECTIVE**:
+a part file that imports a client-only React hook and does not open with `"use client"` is a file
+the consumer's framework refuses to build, and that file holds every part to it. It says nothing
+about **the WALKS** - a file can carry the directive correctly, as both of these do, and still hold
+a comparison that cannot survive the boundary the directive creates. DL14 closed the first hole;
+this item closes the second, and they are different behaviours in the same file. `client-boundary`
+is untouched here and stays green (`form.tsx` still imports `createContext`/`useContext`/`useId`).
+
+### 2. LOW-2 (DL15 layer 2): `ringSites()` reads an outline as well as a shadow
+
+`ringSites()` pushed a site only when a token under the variant declared a `box-shadow`, so a part
+shipping `focus-visible:outline-none` and **no** shadow contributed no site at all and was invisible
+to both arms - blind in the one direction a forced-colors sweep exists to look.
+
+Red-first exactly as layer 2 prescribed, in a **detached worktree of `1fd163d`**
+(`/home/ankit/Code/marquee-ui-low2`, installed and built):
+
+| step                                                                       | `pnpm exec vitest run --project ui test/focus-outline.test.tsx` |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| base + a scratch part carrying only `focus-visible:outline-none`           | **13 passed** - layer 2's ⚠️ UNVERIFIED prediction, CONFIRMED   |
+| the same tree, predicate widened to "a `box-shadow` OR an `outline-style`" | **2 failed / 11 passed**, both naming the scratch part          |
+
+The red is the red that was predicted, in both arms: the exact-set anchor gained
+`"low2-probe.tsx (focus-visible)"`, and the invariant reported
+`["low2-probe.tsx (focus-visible): outline-width null"]` under its own forced-colors message. **The
+five shipping sites did not move**, which is how the widening is known to be a widening rather than
+a change of subject; the anchor list (`:333-339` at the base, `:365-371` at this head after the new docblock) is re-read and unchanged.
+
+**`focus:` does NOT become a third variant, and the cost was measured rather than guessed.** Two
+readings in the same worktree:
+
+- `focus: ":focus"` added to `VARIANTS` **alone changed nothing**. The token walk only reads a class
+  string that already contains a `focus-visible:` token, so `input.tsx:6` and `sheet.tsx:67` - whose
+  strings carry `focus:` and nothing else - are never collected. A one-line change that looks like
+  it widens the sweep is inert.
+- With the regex widened as well, the sweep gained exactly `input.tsx (focus)` and
+  `sheet.tsx (focus)`, both `outline-width null`.
+
+So admitting the variant costs two `KNOWN_GAPS` entries, and neither is this slice's to write:
+`input.tsx`'s ring is Ankit's open [V] from DL15 and `sheet.tsx`'s is a decided non-target. Both
+readings are in the file's own docblock, so the next stream does not re-derive them.
+
+### 3. The Select measurement, and the answer
+
+**No `Select` family ships.** The audit's four rows at thepile's DL16 base
+(`awk -F'|' '{ if ($4 ~ /Select/) print NR": "$2 }' docs/design-audit.md` → `:353`, `:384`, `:397`,
+`:401`), every site read:
+
+| audit row               | what it actually is                                                                                                                                                                                                                                                                                 | wants the part?                                                                                                   |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `:353` `/game/[slug]`   | `log/LogForm.tsx:794-812`, Platform: `<select id="log-platform" autoComplete="off" value onChange className={cn(inputClass, "mt-1")}>` under `<label className={labelClass} htmlFor="log-platform">`, "Any" + the platforms. `"use client"`, in the log sheet the root layout mounts on every route | **No.** `inputClass` IS this package's `Input` string (below), so the house treatment is already on it, from here |
+| `:384` `/[username]`    | `log/LogForm.tsx:825-846`, Edition: the same shape, conditional on `editions.length > 0`, with an `__other` sentinel option that flips the field to free text                                                                                                                                       | **No.** Same string, same file; the sentinel is product logic no part can hold                                    |
+| `:401` `/diary`         | `play/PlayForm.tsx:120-131`, Platform: inside a wrapping `<label className={labelClass}>` (implicit association, no `htmlFor`), `className={inputClass}`. `"use client"`                                                                                                                            | **No.** Same string again                                                                                         |
+| `:397` `/admin/reports` | `app/admin/reports/page.tsx:231-245`: a **Server Component**, `<select name="underReason" defaultValue="" className="min-h-hit rounded border border-line bg-raised px-3 text-sm text-text">` inside `<form action={resolveReportAction}>` at `:219`; the page's own 1px chrome                     | **No**, and it is the row that decides the shape of the answer - see below                                        |
+
+**The measurement that makes it a refusal rather than a deferral.** thepile's `inputClass`
+(`apps/web/src/components/ui/form-styles.ts`) is **byte-identical** to this package's
+`packages/ui/src/input.tsx:6` (`cmp` of the two lines at the two base shas: identical), and that
+equality is not a coincidence a drift could eat - thepile's `form-styles.test.ts` asserts every
+string in that module is exactly what the registry copy produces. So three of the four sites already
+draw **this library's own field treatment**, through the constant the product shares between its
+`<input>`s and its `<select>`s. A `NativeSelect` part would be `<select className={cn(inputClass,
+className)}>`: `Input` with a different tag, adding nothing any site is missing. The ladder stops at
+rung 2.
+
+**And the three answers, each refused on a measured ground rather than on taste:**
+
+- **Radix.** `@radix-ui/react-select` is **not** a dependency of this package today (its
+  `dependencies` are the four Radix primitives `accordion`, `dialog`, `label`, `separator`, plus
+  `react-slot`, `cva`, `clsx`, `tailwind-merge`), so it would be a NEW one - on a sheet the root
+  layout mounts on every route. The product's own dated verdict on exactly this trade is
+  `docs/slices/FIDELITY.md:34-49` (2026-07-28): a native control stays on every platform and every
+  surface, because replacing it costs 15-40 kB of script under a hard per-URL
+  `resource-summary:script:size` budget and gives up the OS picker, locale formatting,
+  VoiceOver/TalkBack and desktop keyboard entry. And `/admin/reports` submits **without client JS**:
+  a Radix select is a client module, so that page - a Server Component - would have to buy an island
+  for a control that today needs nothing, which is item 1 of this very slice arriving a second time.
+- **A native `NativeSelect` family in the Checkbox/RadioGroup shape.** Those two families exist for
+  a measured reason: the browser's own `accent-color` box is not the house's box, so the part draws
+  it. A `<select>`'s counterpart of that is `appearance: none` plus a drawn chevron - and **no site
+  in the product does that today**; all four keep the platform arrow, which is the same posture
+  `FIDELITY.md` takes on the date field. Drawing it is a product decision nobody has taken, which is
+  the Tabs answer's `/settings/profile` row again: _a semantics or a painting change the product has
+  not taken is not a family._
+- **No family.** Taken. The four cells should say what is true: the three client sites carry the
+  house field string already, and `/admin/reports`' 1px chrome is a page-level inconsistency (the
+  audit's own note: it is the only page drawing `rounded border border-line`, and its six remedy
+  buttons bypass `Button` too), to be fixed when that page is consumed - not by a new family.
+
+None of the four sites has a defect a part would close: each clears the 44px floor (`min-h-hit` in
+all four class strings), each is labelled (two explicitly by `htmlFor`, two implicitly by a wrapping
+`<label>`), and each submits or handles a value. Nothing ships; the reconciler corrects the four
+cells. If the product ever decides to draw its own chevron, **this is the row that says so**, and it
+should arrive as a product decision first.
+
+⚠️ For the record, the brief's claim that "a `select` is in the 44px floor's selector list" is
+**true** (`tailwind-compile.test.tsx:215`,
+`'button, a[href], input, select, textarea, [role="button"]'`) - it was checked because it would
+have been load-bearing had a part shipped, and it is recorded here so the next stream does not
+re-check it.
+
+### The pipeline, end to end
+
+`packages/ui/package.json` still says **nineteen** and `registry.json` still has **20 items** (19
+families + `utils`, read: `node -e 'console.log(require("./registry.json").items.length)'` → `20`).
+Nothing in `README.md`, `AGENTS.md`, `registry.test.ts` (`:60`), `stories.test.tsx` (`:97`) or
+`fidelity.test.tsx` (`:36`) moves, because no part was added - the counts were re-read at the base
+rather than quoted, which is the check the "Adding a part" steps exist for.
+
+What DID move through the pipeline is the registry's bytes: `description-list.tsx` and `form.tsx`
+changed, so `pnpm build:registry` ran and `packages/ui/r/description-list.json` and `r/form.json`
+are committed with them. `registry.test.ts`'s "carries the CURRENT bytes of every source it ships"
+is the arm that makes that a required step rather than a tidy-up, and it is green.
+
+`pnpm verify` at the head, detached under the batch's gate lock: **exit 0**, the runner's own
+lines being `All matched files use Prettier code style!`, both packages' `typecheck: Done`,
+`✔ Building registry.`, `└  Storybook build completed successfully` and **`Test Files 31 passed
+(31)` / `Tests 562 passed (562)`**, in 2.6 minutes. `git status --short` was EMPTY after it, so the
+committed `packages/ui/r` is exactly what `build:registry` produces at this head.
+
+That is **+7 tests on 31 unchanged files** against **31 / 555** at the base - the base number
+MEASURED in the detached worktree at `1fd163d` rather than quoted from an earlier section. The
+seven: 2 arms in `description-list-structure.test.tsx` and 3 in `form-wiring.test.tsx` for item 1,
+then layer 1's two (a third `form-wiring` arm for MED-1's ambiguity, and `focus-outline`'s
+both-disjuncts arm for MED-2). `focus-outline.test.tsx` went from 13 to 14: LOW-2 itself widened a
+predicate rather than adding an arm, which is exactly why its red had to be run in a detached
+worktree to exist at all - and why layer 1 was right that it needed one live arm of its own. The `+5` is exactly this stream's: 2 arms in
+`description-list-structure.test.tsx` and 3 in `form-wiring.test.tsx`. `focus-outline.test.tsx`
+stays at 13 - LOW-2 widened a predicate rather than adding an arm, which is why its red had to be
+run in a detached worktree to exist at all.
+
+### Decisions
+
+1. **[V] The island is the family's Server-Component form (option A), not a boundary-safe marker
+   (option B).** The reason is the reading, not a preference: the element keeps `$$typeof`,
+   `_payload` and `_init` and nothing else, with `name`, `displayName`, `$$id` and `$$async` all
+   undefined, so there is no marker to compare instead. Ankit may veto in the other direction only
+   by accepting React-internal lazy resolution inside a part, which suspends.
+2. **[V] The two walks are corrected in their MESSAGES only, and `form.tsx`'s addition is
+   conditional.** No composition that rendered before changes. The boundary sentence is appended to
+   exactly one throw - the one a boundary can actually cause - because a hint that fires on an
+   unrelated failure is a worse instrument than no hint.
+3. **[V] `focus:` does not become a third `VARIANTS` entry.** Measured cost: two `KNOWN_GAPS`
+   entries, one of which is Ankit's own open decision from DL15.
+4. **[V] No `Select` family ships**, on the measurement above. The four audit cells are the
+   reconciler's to correct.
+
+### thepile inputs
+
+Nothing in thepile moves this batch for any of the three items; these are the inputs the next
+consumption needs, each count read hit by hit with the command that produced it, at thepile
+`next` @ `4d36dd30`:
+
+- **The 0.1.2 copies vendored in thepile do NOT carry item 1's messages.** They are the 0.1.2 bytes;
+  these corrections are unreleased on the library's `next` and arrive with the 0.1.3 bump. Until
+  then a thepile Server Component composing either family fails with the OLD message - which is the
+  reason this write-up exists rather than only the fix.
+- **Every audit cell prescribing `DescriptionList` on a Server-Component site carries a false
+  premise until it says "inside one island".** Eight rows name it
+  (`awk -F'|' '{ if ($4 ~ /DescriptionList/) print NR": "$2 }' docs/design-audit.md` → `:353`
+  `/game/[slug]`, `:362` `/members`, `:382` `/transparency`, `:384` `/[username]`, `:387`
+  `/[username]/followers`, `:392` `/[username]/reckoning/[year]`, `:397` `/admin/reports`, `:400`
+  `/settings/steam`). Their existing parenthetical already says the family is a client module since
+  DL14; what it does not say is that the parts cannot be composed from the server side AT ALL, which
+  is the difference between "buys a boundary" and "does not build".
+- **Six rows name a `Form*` part** (`awk -F'|' '{ if ($4 ~ /FormItem|FormControl|FormLabel|FormMessage|FormDescription/) print NR": "$2 }'`
+  → `:358` `/lists/[id]`, `:360` `/login`, `:393` `/[username]/review/[slug]`, `:399`
+  `/settings/profile`, `:406` `/onboarding`, `:407` `/pile`) and carry the same premise. `/login`
+  and `/onboarding` already compose the parts inside client components, so they are unaffected in
+  fact; the cells are what need to say why.
+- **Four rows name `Select`** (`:353`, `:384`, `:397`, `:401`, the awk above) and should say that
+  the three client sites already carry this package's `Input` string through
+  `components/ui/form-styles.ts`, and that `/admin/reports` keeps its native control.
+- `form-styles.test.ts` is the guard that keeps thepile's `inputClass` equal to this package's, and
+  it is the reason the Select answer is a refusal rather than a deferral. It is not touched.
+
+### Consumers
+
+**Run 1, before any code**, was the scan script against an EMPTY diff, so it printed zero names by
+construction and is recorded as what it is. The enumeration that did the work was by hand, over the
+surface the brief named:
+
+- the two `src/*.tsx` files are named by `registry.json`, their own `packages/ui/r/*.json`,
+  `packages/ui/r/registry.json`, `packages/tokens/test/helpers/source-files.ts` (`:53`, `:54`, and
+  their stories at `:86`, `:87`) and `docs/as-built.md` - so `pnpm build:registry` is a REQUIRED
+  step of item 1's commit and not a tidy-up after it;
+- `form.tsx` is named BY NAME inside `test/client-boundary.test.ts`, in its docblock and in a live
+  assertion (`expect(client).toContain("form.tsx")`) - the one consumer that would notice if the
+  file stopped importing its hooks, which it does not;
+- `ringSites()` is local to `focus-outline.test.tsx` (three hits, all in that file:
+  `git grep -n -F 'ringSites' -- packages`), so LOW-2's predicate has no reader outside it;
+- the counts are named in eight places (`README.md` ×2, `AGENTS.md:51`, `package.json:4`,
+  `registry.test.ts:60`, `stories.test.tsx:97`, `fidelity.test.tsx:36`), re-read at the base and
+  moved by nothing here because no part shipped.
+
+**Run 2, at the commit point** (diff `1fd163d...HEAD`), full output in
+`$BATCH_SCRATCH/s2/scan-run2.txt` and `scan-run2b.txt`:
+
+- **Scan 1, exported symbols: ZERO.** The diff adds no export at all. `REACT_LAZY` and
+  `crossedAClientBoundary` are module-scope in each of the two files and deliberately not exported:
+  a part file is what the registry copies into a consumer, so a private helper is the whole of it.
+  `entry-point.test.ts` (which walks `src` on disk) is green, and the registry's `files[0].content`
+  is the same bytes.
+- **Scan 3, the path-naming lists:** no movement. `source-files.ts`, `story-suites.ts`,
+  `registry.test.ts`'s item list and `registry.json` are all unchanged, because no file was added or
+  removed. The seven touched paths are the two sources, their two `r/` items and three test files.
+- **Scan 4, role/aria strings: none.** The diff writes no `role=`, `aria-*` or `data-slot=` in
+  `src` or `test` (`git diff … | command grep -E '^[+-].*(role=|aria-|data-slot=)'` over
+  `packages/ui/src packages/ui/test` prints nothing), so no spec anywhere resolves on a string this
+  stream moved.
+- **Scan 5, tests naming a touched path:** two hits, both read. `form.tsx` →
+  `test/client-boundary.test.ts` (above, green). `description-list.tsx` →
+  `test/form-wiring.test.tsx`, which is this stream's own new docblock citing the other family by
+  name; it is prose, not a consumer.
+- **CROSS: 0. UNOWNED: 0. NEW between the two runs: 0** - run 2 found nothing the by-hand
+  enumeration had not already named, which is the first time in this doc's nine sections that is
+  true, and it is because the diff exports nothing.
+
+## Layer 1 (reviewer r6, detached worktree of dc9d7b6, marquee-ui, no database)
+
+**Five findings: 0 HIGH, 2 MED, 3 LOW**, over **14 mutations**, of which **3 stayed GREEN** and
+each of those three is fixed below. Its full report is `$BATCH_SCRATCH/r6/report.md`. Its baseline
+on the committed head was `pnpm test` **31 files / 560 tests**, `pnpm typecheck` exit 0, `pnpm lint`
+exit 0, and `pnpm build:registry` + `git status --short` EMPTY (the committed `r/` is what the
+sources produce). The table is its own, verbatim:
+
+| file                        | test                                                                                                            | mutation applied                                                                     | red / GREEN                                                                                                                      | what it asserts now                                                                                                        |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| src/description-list.tsx    | description-list-structure: "throws a message naming the boundary, for a group that IS one term and one detail" | deleted the whole `if (crossedAClientBoundary(child.type)) throw …` block            | red                                                                                                                              | - (red reason: `expected '<DescriptionItem> may hold only <Desc…' to contain 'React lazy wrapper'`)                        |
+| src/description-list.tsx    | description-list-structure: "still names the ordinary third child as a third child"                             | `crossedAClientBoundary` → `return true`                                             | red (22 failed in the file)                                                                                                      | -                                                                                                                          |
+| src/form.tsx                | form-wiring: "tells the caller about the boundary, not about a control they did write"                          | `seen.boundary` → `false` in the throw's ternary                                     | red                                                                                                                              | -                                                                                                                          |
+| src/form.tsx                | form-wiring: **"does not offer the boundary as an explanation when no child crossed one"**                      | `crossedAClientBoundary` → `return true`                                             | **GREEN** (28 passed)                                                                                                            | only that a field whose children are ALL recognised parts gets no boundary sentence - it never reaches the predicate       |
+| src/form.tsx                | whole suite under the same mutation                                                                             | `crossedAClientBoundary` → `return true`                                             | 1 failed / 559 passed - and the one red is `registry.test.ts` "carries the CURRENT bytes", a byte digest that fires for ANY edit | no behavioural test in the repo sees this predicate collapse                                                               |
+| src/form.tsx                | form-wiring: "leaves a legal field with a lazy child of its OWN alone"                                          | the walk `throw`s on a lazy child instead of flagging                                | red                                                                                                                              | -                                                                                                                          |
+| test/focus-outline.test.tsx | both invariant arms                                                                                             | added `packages/ui/src/r6-low2-probe.tsx` carrying only `focus-visible:outline-none` | red **2 failed / 11 passed**, `r6-low2-probe.tsx (focus-visible): outline-width null`                                            | reproduces the stream's LOW-2 claim exactly                                                                                |
+| test/focus-outline.test.tsx | both invariant arms                                                                                             | same scratch part + predicate reverted to box-shadow-only                            | **GREEN 13 passed**                                                                                                              | confirms LOW-2 was a real blindness at the base                                                                            |
+| test/focus-outline.test.tsx | whole suite                                                                                                     | **deleted the `                                                                      |                                                                                                                                  | … "outline-style" …` disjunct** (the whole LOW-2 fix), no scratch part                                                     | **GREEN 31 files / 560 tests** | the widening has ZERO live coverage |
+| test/focus-outline.test.tsx | whole file                                                                                                      | deleted the `box-shadow` disjunct instead (outline-style only)                       | **GREEN 13 passed**                                                                                                              | the pre-existing half is equally uncovered                                                                                 |
+| test/focus-outline.test.tsx | whole file                                                                                                      | `focus: ":focus"` added to `VARIANTS` alone                                          | GREEN 13                                                                                                                         | verifies claim 5a: inert, as the as-built says                                                                             |
+| test/focus-outline.test.tsx | both invariant arms                                                                                             | `VARIANTS` + the token regex both widened for `focus:`                               | red 2 failed / 11 passed, adding exactly `input.tsx (focus)` and `sheet.tsx (focus)`, both `outline-width null`                  | verifies claim 5b exactly                                                                                                  |
+| test/focus-outline.test.tsx | "finds every part that draws a focus ring, and knows which ones are short"                                      | `ringSites()` → `return []`                                                          | red (`expected 0 to be greater than or equal to 4`)                                                                              | -                                                                                                                          |
+| test/focus-outline.test.tsx | **"gives every focus ring an outline beside it, or names it as a known gap"**                                   | `ringSites()` → `return []`                                                          | **GREEN**                                                                                                                        | nothing - it iterates an empty list; it leans entirely on its sibling arm's `>= 4` anchor (pre-existing shape, documented) |
+
+### What each GREEN row cost, and what changed
+
+**MED-1 (GREEN row 4, and the whole-suite row under it): the boundary sentence fired for a `lazy()`
+child that had crossed nothing, and the arm written to catch that could not see it.** The negative
+arm held only RECOGNISED parts (`FormLabel`, `FormMessage`), which `countParts` matches in its
+`if/else if` chain - so the walk never reached the `else` where the predicate lives, and collapsing
+`crossedAClientBoundary` to `return true` left all 28 tests green. Meanwhile the source comment
+claimed "both halves are pinned in test/form-wiring.test.tsx", which was false. Two changes, and the
+second is the more important one:
+
+- the arm now holds an unrecognised **non-lazy** child (a `<div>` wrapper), which is the only
+  composition that makes the predicate RUN and answer `false`. Reddening mutation RUN in a detached
+  worktree of the committed head `bef07c6`: `crossedAClientBoundary` → `return true` →
+  `AssertionError: expected '<FormItem> must hold exactly one <For…' not to contain 'React lazy
+wrapper'`, **1 failed / 28 passed** - the same mutation the reviewer ran to a full green;
+- **the message stops asserting what it cannot know.** The reviewer is right that a deliberate
+  `lazy()` beside a missing control sets the same flag, and that nothing reachable from userland
+  separates the two (React's own flight client discriminates a client reference by this same
+  `$$typeof`). So the sentence now names BOTH readings - "either a part created in a SERVER
+  component … or a `lazy()` of your own, which is legal here and is NOT the cause" - which is the
+  form `description-list.tsx`'s message already had, and a third arm pins it.
+
+**MED-2 (GREEN rows 9 and 10): the LOW-2 widening shipped with no live coverage.** Deleting the
+`outline-style` disjunct left the WHOLE SUITE green at 31 files / 560 tests, and the `box-shadow`
+half was identically uncovered. The reason is structural rather than careless: on the shipping tree
+every ring site declares both, so from outside the predicate's two halves are indistinguishable, and
+the only thing that had ever exercised the widening was a scratch part in a worktree that no longer
+exists. The predicate is now a named function `declaresARing()`, and one arm feeds it the two halves
+SEPARATELY - tokens read off a rendered host (this file's rule) and split by what the compiled sheet
+says each one declares. Both mutations RUN at `bef07c6`: deleting the outline disjunct →
+`AssertionError: the outline half of the predicate is dead: expected false to be true`; deleting the
+shadow disjunct → `the shadow half of the predicate is dead`. **1 failed / 13 passed** each way.
+
+**The third GREEN row ("gives every focus ring an outline beside it" survives `ringSites()` → `[]`)**
+was pre-existing and is fixed in passing, because it is one line: the arm now anchors its own sweep
+(`expect(sites.length).toBeGreaterThanOrEqual(4)`) instead of leaning on its sibling's. Mutation RUN:
+`ringSites()` returning `[]` now reddens BOTH arms - `no part declares a focus ring at all` and
+`the sweep found no ring site at all` - where it used to redden one.
+
+**LOW-1** (the as-built cited `:332-338` for an anchor list the new docblock had pushed to
+`:365-371`) is corrected below in §2. **LOW-2** is a real correction to a recorded fact: the own-key
+set `["$$typeof", "_payload", "_init"]` is the PRODUCTION flight client's, and `lazy()` under this
+repo's React **19.3.0** development build adds a fourth, `_debugInfo` - read off the installed copy
+(`node -e` on `packages/ui`'s `react`), not assumed. The guard reads `$$typeof` alone, which is
+identical in both, but the sentence now says which build it describes. **LOW-3**: the shipped
+`description-list.tsx` docblock cited `$BATCH_SCRATCH/s2/probe.run5.log`, a session-scoped path that
+would be copied into every consumer's tree by the registry and read by none of them; it now points
+at `docs/as-built.md`, which is what `form.tsx`'s equivalent already did.
+
+Nothing the reviewer raised was declined.

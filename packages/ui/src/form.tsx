@@ -40,6 +40,16 @@ import { cn } from "@/lib/utils";
  *   not run on the server, so a server-rendered error would ship its HTML with
  *   no wiring at all and acquire it only once hydration lands.
  *
+ * ⚠️ AND THE SECOND RULE, MEASURED IN DL16: **THIS FILE IS A CLIENT MODULE, SO A
+ * SERVER COMPONENT CANNOT COMPOSE ITS PARTS.** A part element a Server Component
+ * creates arrives here as a client reference - React's lazy wrapper - which the
+ * walk below cannot recognise, so the control is never counted and the field
+ * throws about an arity the caller satisfied. It does not fail the way
+ * `description-list.tsx` fails (that walk refuses the child; this one recurses
+ * through it), and the throw names the boundary when one is in play. The form's
+ * Server-Component form is an ISLAND: one `"use client"` component holding the
+ * whole field. `docs/as-built.md` carries the reading.
+ *
  * ⚠️ THE ONE RULE A CALL SITE HAS TO KNOW: **the parts are DIRECT children of
  * `FormItem`**. The item reads its own `children` to find out which of them were
  * composed, and it names an id in `aria-describedby` only for the ones that
@@ -87,6 +97,37 @@ function useFormField(part: string): FormFieldContextValue {
 type PartCounts = { label: number; control: number; description: number; message: number };
 
 /**
+ * THE CLIENT BOUNDARY, WHICH THIS WALK CANNOT SEE THROUGH - AND NOW SAYS SO.
+ *
+ * Measured, not reasoned (DL16, an instrumented Next 15 prerender; the log and
+ * the finding are written up in `docs/as-built.md`). An element a SERVER
+ * component creates reaches this `"use client"` module as a client reference,
+ * which React hands over as its LAZY wrapper: `typeof child.type === "object"`,
+ * own keys exactly `["$$typeof", "_payload", "_init"]`, `$$typeof` the public
+ * `Symbol.for("react.lazy")`, and no name and no `$$id` of its own. So
+ * `child.type === FormControl` is false for a control the caller DID compose.
+ *
+ * ⚠️ AND IT DOES NOT FAIL THE WAY `description-list.tsx`'s walk fails, which is
+ * why this is its own reading rather than the same one twice. That walk REFUSES
+ * an unrecognised child; this one RECURSES INTO it, because a part is found at
+ * any depth by design - so nothing is refused, the control is simply never
+ * counted, and the caller was told `must hold exactly one <FormControl>` about a
+ * field holding exactly one. Only the MESSAGE changes here: every composition
+ * that rendered before still renders, including a deliberate `lazy()` child
+ * beside a real control, which `test/form-wiring.test.tsx` pins.
+ */
+const REACT_LAZY = Symbol.for("react.lazy");
+
+/** True for a child whose type arrived as React's lazy wrapper. */
+function crossedAClientBoundary(type: unknown): boolean {
+  return (
+    typeof type === "object" &&
+    type !== null &&
+    (type as { $$typeof?: unknown }).$$typeof === REACT_LAZY
+  );
+}
+
+/**
  * How many of each part the caller composed, read off the item's own children at
  * render. That is what makes `{error && <FormMessage>…}` work without a second
  * prop: it tracks what is actually rendered, not what was declared.
@@ -104,14 +145,17 @@ type PartCounts = { label: number; control: number; description: number; message
  * from its own internals rather than receiving it as a child. That is the limit
  * of anything render-time, and it is why the throws below exist.
  */
-function countParts(children: ReactNode, counts: PartCounts): void {
+function countParts(children: ReactNode, counts: PartCounts, seen: { boundary: boolean }): void {
   for (const child of Children.toArray(children)) {
     if (!isValidElement<{ children?: ReactNode }>(child)) continue;
     if (child.type === FormLabel) counts.label += 1;
     else if (child.type === FormControl) counts.control += 1;
     else if (child.type === FormDescription) counts.description += 1;
     else if (child.type === FormMessage) counts.message += 1;
-    else countParts(child.props.children, counts);
+    else {
+      if (crossedAClientBoundary(child.type)) seen.boundary = true;
+      countParts(child.props.children, counts, seen);
+    }
   }
 }
 
@@ -150,7 +194,8 @@ export function FormItem({ className, invalid = false, children, ...props }: For
   const descriptionId = `${id}-description`;
   const messageId = `${id}-message`;
   const counts: PartCounts = { label: 0, control: 0, description: 0, message: 0 };
-  countParts(children, counts);
+  const seen = { boundary: false };
+  countParts(children, counts, seen);
 
   // ⚠️ ONE OF EACH, ENFORCED. An item owns exactly one `useId`, so a second part
   // of any kind wears an id the first one already has: two `<FormDescription>`s
@@ -172,7 +217,29 @@ export function FormItem({ className, invalid = false, children, ...props }: For
   if (counts.control !== 1) {
     throw new Error(
       "<FormItem> must hold exactly one <FormControl>: without it the label's `for` points at " +
-        "nothing. A group of controls is a fieldset, not a field.",
+        "nothing. A group of controls is a fieldset, not a field." +
+        // Appended ONLY here, and only when the walk really WALKED THROUGH a
+        // lazy child: this is the single throw a boundary can cause, and a field
+        // that simply forgot its control must not send the next reader hunting
+        // for a boundary that is not there.
+        //
+        // ⚠️ AND IT CANNOT TELL THE TWO LAZIES APART, SO IT SAYS SO (layer 1,
+        // MED-1, reproduced). A deliberate `lazy()` decoration beside a missing
+        // control sets the same flag - React's own flight client discriminates a
+        // client reference by exactly this `$typeof` and nothing finer is
+        // reachable from userland - so the sentence names both readings instead
+        // of asserting the one it cannot know. All three halves are pinned in
+        // test/form-wiring.test.tsx, including a field whose unrecognised child
+        // is an ordinary <div>, which is what makes the predicate's collapse
+        // visible at all.
+        (seen.boundary
+          ? " One of its children is a React lazy wrapper. Either it is a part created in a " +
+            'SERVER component - which is what one looks like from inside this "use client" ' +
+            "module, and this walk cannot recognise it, so a <FormControl> composed on the " +
+            'server side is never counted; compose the whole field inside one "use client" ' +
+            "component - or it is a lazy() of your own, which is legal here and is NOT the " +
+            "cause: the field is simply missing its control."
+          : ""),
     );
   }
 

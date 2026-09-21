@@ -1,6 +1,8 @@
 import { BODY_INK_ROLES } from "@marquee-ui/tokens";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import { lazy } from "react";
+import type { ComponentType, ReactElement } from "react";
 
 import { FormControl, FormDescription, FormItem, FormLabel, FormMessage } from "@/form";
 import { Input } from "@/input";
@@ -230,6 +232,121 @@ describe("an item holds one of each part, or it says so", () => {
           </FormControl>
           <FormDescription>One.</FormDescription>
           <FormMessage>One.</FormMessage>
+        </FormItem>,
+      ),
+    ).not.toThrow();
+  });
+});
+
+describe("a part created across a client boundary is named as that, not as a missing control", () => {
+  /**
+   * ⚠️ THE BRIEF SAID THIS FILE'S WALK "FAILS THE SAME WAY" AS
+   * `description-list.tsx`'s, REASONED FROM THE CODE. It does not fail the same
+   * way, and the difference is the whole reason this arm exists: `countParts`
+   * does not refuse an unrecognised child, it RECURSES into it - so a
+   * `<FormControl>` created in a Server Component is not refused, it is simply
+   * never counted, and the caller is told `must hold exactly one <FormControl>`
+   * about a field that holds exactly one.
+   *
+   * The shape is the measured one (DL16, the finding is in `docs/as-built.md`):
+   * a client reference reaches a `"use client"` module as React's LAZY wrapper,
+   * and `lazy()` is the public API that makes that object. ⚠️ The own-key set
+   * recorded there - `["$typeof", "_payload", "_init"]` - is the PRODUCTION
+   * flight client's; `lazy()` under this repo's React 19.3.0 development build
+   * adds a fourth, `_debugInfo` (read, not assumed: `node -e` on the installed
+   * copy). The guard reads `$typeof` alone, which is identical in both. It never
+   * resolves here - `FormItem` throws while walking, before React renders it.
+   */
+  const acrossTheBoundary = <P extends object>(part: (props: P) => ReactElement) =>
+    lazy(async () => ({ default: part as unknown as ComponentType<P> }));
+
+  it("tells the caller about the boundary, not about a control they did write", () => {
+    const ServerControl = acrossTheBoundary(FormControl);
+    let message = "";
+    try {
+      render(
+        <FormItem>
+          <FormLabel>Email</FormLabel>
+          <ServerControl>
+            <Input />
+          </ServerControl>
+        </FormItem>,
+      );
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    // Both halves: the arity rule that actually fired, AND the cause.
+    expect(message).toContain("must hold exactly one <FormControl>");
+    expect(message).toContain("React lazy wrapper");
+    expect(message).toContain('"use client"');
+  });
+
+  it("does not offer the boundary as an explanation when no child crossed one", () => {
+    // The split, and the reason it is not appended to every throw: a field that
+    // simply forgot its control must not send the next reader hunting for a
+    // client boundary that is not there.
+    //
+    // ⚠️ THE <div> IS LOAD-BEARING, NOT DECORATION (layer 1, MED-1). The first
+    // edition of this arm held only recognised parts, which `countParts` matches
+    // in its if/else-if chain - so the walk NEVER REACHED the predicate and
+    // collapsing `crossedAClientBoundary` to `return true` left all 28 tests
+    // green. An unrecognised, NON-lazy child is the only composition that makes
+    // the predicate run and answer false, which is what this arm has to observe.
+    let message = "";
+    try {
+      render(
+        <FormItem invalid>
+          <FormLabel>Email</FormLabel>
+          <div className="relative">
+            <span>an icon slot</span>
+          </div>
+          <FormMessage>Wrong.</FormMessage>
+        </FormItem>,
+      );
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    expect(message).toContain("must hold exactly one <FormControl>");
+    expect(message).not.toContain("React lazy wrapper");
+  });
+
+  it("says BOTH readings, because it cannot tell the two lazies apart", () => {
+    // The honest bound (layer 1, MED-1): a deliberate `lazy()` decoration beside
+    // a MISSING control sets the same flag as a part from across a boundary, and
+    // nothing reachable from userland separates them - React's own flight client
+    // discriminates a client reference by this same `$typeof`. So the sentence
+    // must not assert the boundary; it names the other reading too.
+    const LazyHint = lazy(async () => ({ default: () => <span>hint</span> }));
+    let message = "";
+    try {
+      render(
+        <FormItem invalid>
+          <FormLabel>Email</FormLabel>
+          <LazyHint />
+          <FormMessage>Wrong.</FormMessage>
+        </FormItem>,
+      );
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    expect(message).toContain("React lazy wrapper");
+    expect(message).toContain("lazy() of your own");
+    expect(message).toContain("is NOT the cause");
+  });
+
+  it("leaves a legal field with a lazy child of its OWN alone", () => {
+    // `countParts` walks THROUGH an unrecognised child and always has: a
+    // code-split decoration beside a real control is a composition that works
+    // today, and naming the boundary must not start refusing it.
+    const LazyHint = lazy(async () => ({ default: () => <span>hint</span> }));
+    expect(() =>
+      render(
+        <FormItem>
+          <FormLabel>Email</FormLabel>
+          <FormControl>
+            <Input />
+          </FormControl>
+          <LazyHint />
         </FormItem>,
       ),
     ).not.toThrow();
