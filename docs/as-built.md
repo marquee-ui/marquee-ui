@@ -6378,7 +6378,7 @@ pins `accordion-trigger`'s EXACT class list (`NEW_PARTS`), so the outline redden
 `expected [ 'flex', …(16) ] to deeply equal [ 'flex', …(14) ]`. The list was updated in the same
 commit; it is the third instrument on the same change, and the switch host has no such row.
 
-### The known gaps: `Checkbox` and `RadioGroupItem` ship the same defect, RECORDED not fixed
+### `Checkbox` and `RadioGroupItem` had the same defect, and it is FIXED here
 
 Layer 1's HIGH-1, reproduced with the guard this slice added. `checkbox.tsx:77` and
 `radio-group.tsx:121` are the same construction as the Switch's label host:
@@ -6395,28 +6395,57 @@ default outline is invisible too and the row's ENTIRE focus indicator is a `box-
 all**, which is verbatim the failure recorded above for the Switch. Both parts are among the three
 items `0.1.2` adds, so this bump is the release that first makes the defect installable.
 
-**Not fixed here**: `packages/ui/src/checkbox.tsx` and `radio-group.tsx` are outside
-LIB-VENDOR-0.1.2's fence (other parts' files), so this is a hand-back to the orchestrator and a
-later bump's work - the same three classes under `has-focus-visible:`, a registry rebuild, and the
-two rows added to `HOSTS`.
+**FIXED here, on a widened fence.** Both files were outside LIB-VENDOR-0.1.2's fence, so the finding
+was handed back rather than edited; the orchestrator widened the fence to cover them (2026-09-21
+~18:55 IST) on the reasoning that the cut's intent was _"every part with the Switch's forced-colors
+hole rides the fix BEFORE the pack"_, and that shipping 0.1.2 with a `KNOWN_GAPS` entry for two
+brand-new families is not the bump's claim. Both `rowClass` strings now carry
+`has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary`
+beside the shadow ring, `r/checkbox.json` and `r/radio-group.json` are rebuilt, `HOSTS` gains both
+label hosts and **`KNOWN_GAPS` is empty**.
 
-**What DID ship, so the gap cannot sit unnoticed.** `focus-outline.test.tsx` no longer trusts its
+**The reddening run, at the pre-fix head `18ebac8`, both entries dropped so ONE red names both:**
+
+```
+$ pnpm exec vitest run --project ui packages/ui/test/focus-outline.test.tsx          # exit 1
+AssertionError: a part draws its focus ring with a box-shadow and no outline, so it has NO
+indicator under forced-colors: active. Add the outline trio under the same variant, or declare it
+in KNOWN_GAPS with a reason: expected [ …(2) ] to deeply equal []
+- []
++ [
++   "checkbox.tsx (has-focus-visible): outline-width null",
++   "radio-group.tsx (has-focus-visible): outline-width null",
++ ]
+ Test Files  1 failed (1)   Tests  1 failed | 8 passed (9)
+```
+
+**And the expiry assertion fired for real, which is the half that could not be predicted.** Applying
+the fix with the two entries still in place reddened this file by itself:
+`AssertionError: checkbox.tsx now declares an outline under has-focus-visible: delete its
+KNOWN_GAPS entry, the defect it excuses is fixed: expected 2 to be null`. The entries were deleted
+by the commit that fixed the parts because the guard refused the alternative - which is what
+"the excuse dies with the fix" has to mean to be worth writing.
+
+**And the instrument that found it stays.** `focus-outline.test.tsx` no longer trusts its
 hand-written `HOSTS` table for completeness (layer 1 MED-3: a length anchor pins a table against
 SHRINKING, never against being INCOMPLETE - which is exactly how these two sat green). A second
 describe block DERIVES the set from the sources: every `packages/ui/src/*.tsx` whose class strings
 declare a `box-shadow` under a focus variant is enumerated, and each must declare an
-`outline-width` under the SAME variant. `checkbox.tsx` and `radio-group.tsx` are listed in
-`KNOWN_GAPS` with their reason, in `marquee-drift.test.ts`'s declared-exclusion shape - **and the
-entry asserts the gap is STILL THERE, so the fix's own commit is the one that deletes it.**
+`outline-width` under the SAME variant. It also pins the exact ring-site set
+(`accordion.tsx (focus-visible)`, `checkbox.tsx (has-focus-visible)`,
+`radio-group.tsx (has-focus-visible)`, `switch.tsx` under both), so a part that starts or stops
+drawing a ring moves a list somebody has to read. `KNOWN_GAPS` survives EMPTY, with its reason for
+existing: the next part that must ship short has somewhere honest to say so, and the entry will
+expire the same way.
 
 Both arms reddened before they shipped, run in a detached worktree of `f3721e9`:
 
-| mutation                                                                  | red                 | the assertion message                                                                                                                                         |
-| ------------------------------------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `checkbox.tsx`'s `KNOWN_GAPS` entry deleted (the gap goes unnamed)        | 1 failed / 8 passed | `a part draws its focus ring with a box-shadow and no outline, so it has NO indicator under forced-colors: active … expected [ Array(1) ] to deeply equal []` |
-| the FIX applied to `checkbox.tsx` while its entry is still declared       | 1 failed / 8 passed | `checkbox.tsx now declares an outline under has-focus-visible: delete its KNOWN_GAPS entry, the defect it excuses is fixed: expected 2 to be null`            |
-| `ringSites()` collapsed to `[]`                                           | 1 failed / 8 passed | `no part declares a focus ring at all: the walk found nothing: expected 0 to be greater than or equal to 4`                                                   |
-| `accordion.tsx` reduced to a shadow-only ring (a ring site with no entry) | 2 failed / 7 passed | the derived arm AND the `AccordionTrigger` row, `no class under this variant declares an outline-width`                                                       |
+| mutation                                                                  | red                 | the assertion message                                                                                                                                                                                                                                |
+| ------------------------------------------------------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkbox.tsx`'s `KNOWN_GAPS` entry deleted (the gap goes unnamed)        | 1 failed / 8 passed | `a part draws its focus ring with a box-shadow and no outline, so it has NO indicator under forced-colors: active … expected [ Array(1) ] to deeply equal []`                                                                                        |
+| the FIX applied to `checkbox.tsx` while its entry is still declared       | 1 failed / 8 passed | `checkbox.tsx now declares an outline under has-focus-visible: delete its KNOWN_GAPS entry, the defect it excuses is fixed: expected 2 to be null` - and this row stopped being a mutation an hour later, when the granted fix made it fire for real |
+| `ringSites()` collapsed to `[]`                                           | 1 failed / 8 passed | `no part declares a focus ring at all: the walk found nothing: expected 0 to be greater than or equal to 4`                                                                                                                                          |
+| `accordion.tsx` reduced to a shadow-only ring (a ring site with no entry) | 2 failed / 7 passed | the derived arm AND the `AccordionTrigger` row, `no class under this variant declares an outline-width`                                                                                                                                              |
 
 And layer 1's two GREEN rows on `under()` are closed, re-run at `f3721e9` and now RED (MED-2):
 `selectorsOf` rewriting every `:focus-visible` to `:has(:focus-visible)` fails 4 tests, and weakening
@@ -6424,14 +6453,17 @@ And layer 1's two GREEN rows on `under()` are closed, re-run at `f3721e9` and no
 `":has(:focus-visible)"` CONTAINS `":focus-visible"` and the two are different selectors - a row's
 indicator that fires on any DESCENDANT's focus is not the same behaviour as its own.
 
-### The tarball does not move for any of this
+### What moved the tarball, and what did not
 
-The layer-1 commit touches `AGENTS.md`, `packages/ui/test/focus-outline.test.tsx` and
-`test/helpers/compiled-sheet.ts` only, and `files` is `["r","src"]`. Re-packed to a scratch
-directory at the fixed head and compared: **92751 bytes and sha256
-`09f05aa6a3d8333e0027bc7101114894334d82fbb11855e19b1e05cb8620024a`, byte-identical to the vendored
-one.** So thepile's `vendor/` tarball and lockfile stand as committed; `pnpm pack` is deterministic
-across these commits, which is checked rather than assumed.
+The layer-1 GUARD commit touches `AGENTS.md`, `packages/ui/test/focus-outline.test.tsx` and
+`test/helpers/compiled-sheet.ts` only, and `files` is `["r","src"]`. Re-packed to a scratch directory
+at that head and compared: **92751 bytes, sha256
+`09f05aa6a3d8333e0027bc7101114894334d82fbb11855e19b1e05cb8620024a`, byte-identical to the first
+pack.** So `pnpm pack` is deterministic across a test-and-docs-only commit - checked, not assumed.
+
+The HIGH-1 FIX commit is different and does move it: `src/checkbox.tsx`, `src/radio-group.tsx` and
+their two rebuilt `r/*.json` are all inside `files`. The tarball is re-packed at the final head and
+its size and sha256 are recorded in the consuming repo's slice doc and vendor README.
 
 ### `input.tsx:6` and `sheet.tsx:67`: measured, recorded, NOT edited [V]
 
@@ -6528,11 +6560,19 @@ So the 92751 bytes above cannot be bytes that disagree with `src/`.
 `pnpm verify` at the library head, foreground: **exit 0**, the runner's own lines being
 `All matched files use Prettier code style!`, both packages' `typecheck: Done`,
 `✔ Building registry.`, `└  Storybook build completed successfully` and
-`Test Files 31 passed (31)` / `Tests 551 passed (551)`. `git status --short` empty before and after,
+`Test Files 31 passed (31)` / `Tests 555 passed (555)`. `git status --short` empty before and after,
 so the committed `packages/ui/r` is exactly what `build:registry` produces at `0.1.2`.
 
-That is **+1 file / +9 tests** on DL14's closure (30 / 542), which is this stream's
-`focus-outline.test.tsx` and nothing else (7 tests at the bump, 9 after layer 1's derived arm). Two earlier runs are worth recording because each was a
+That is **+1 file / +13 tests** on DL14's closure (30 / 542), all of it this stream's
+`focus-outline.test.tsx`: 7 tests at the bump, 9 after layer 1's derived arm, 13 after HIGH-1's fix
+added both label hosts to `HOSTS`.
+
+⚠️ **One red on the way there, and it is the library's own rule working.** The first verify after the
+fix failed `packages/tokens/test/brand-guard.test.ts > ships no brand string of the consuming app`,
+naming `packages/ui/src/checkbox.tsx` and `radio-group.tsx`: the new docblocks cited the consuming
+product's slice doc by NAME, which `AGENTS.md`'s "No product vocabulary" rule forbids in shipped
+source. Both now say "the consuming product's own browser measurement". The `switch.tsx` docblock
+written earlier never named it, which is why this did not surface at the bump. Two earlier runs are worth recording because each was a
 real finding rather than a flake: `JSX.Element` in the new test's type annotation failed
 `packages/ui typecheck` with `TS2503: Cannot find namespace 'JSX'` under this repo's React 19 JSX
 transform (now `ReactElement`), and `fidelity.test.tsx`'s pinned class list reddened as described
