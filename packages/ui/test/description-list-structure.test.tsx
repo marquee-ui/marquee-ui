@@ -231,11 +231,19 @@ describe("a part created across a client boundary is named as that, not as a thi
    * ⚠️ THE SHAPE HERE IS MEASURED, NOT INVENTED. A Next 15 Server Component
    * composing this family exits the build at prerender, and the instrumented
    * walk read `child.type` as React's LAZY wrapper: `typeof "object"`, own keys
-   * exactly `["$$typeof", "_payload", "_init"]`, `$$typeof` =
-   * `Symbol.for("react.lazy")` (DL16, `$BATCH_SCRATCH/s2/probe.run5.log:47`).
-   * `lazy()` is the public API that produces exactly that object, so this is the
-   * boundary's own shape and not a stand-in for it. The wrapper never resolves:
-   * the item throws while walking its children, before React renders one.
+   * exactly `["$typeof", "_payload", "_init"]`, `$typeof` =
+   * `Symbol.for("react.lazy")` (DL16; the reading is in `docs/as-built.md`).
+   * `lazy()` is the public API that produces that object, so this is the
+   * boundary's own shape and not a stand-in for it.
+   *
+   * ⚠️ WITH ONE MEASURED DIFFERENCE, RECORDED RATHER THAN GLOSSED (layer 1): the
+   * own-key set above is the PRODUCTION flight client's, and `lazy()` under this
+   * repo's React 19.3.0 DEVELOPMENT build adds a fourth key, `_debugInfo` (read
+   * off the installed copy with `node -e`, not assumed). `$typeof` is identical
+   * in both, and it is the only thing the guard reads.
+   *
+   * The wrapper never resolves: the item throws while walking its children,
+   * before React renders one.
    */
   const acrossTheBoundary = <P extends object>(part: (props: P) => ReactElement) =>
     lazy(async () => ({ default: part as unknown as ComponentType<P> }));

@@ -218,15 +218,27 @@ export function FormItem({ className, invalid = false, children, ...props }: For
     throw new Error(
       "<FormItem> must hold exactly one <FormControl>: without it the label's `for` points at " +
         "nothing. A group of controls is a fieldset, not a field." +
-        // Appended ONLY here, and only when a child really crossed one: this is
-        // the single throw a boundary can cause, and a field that simply forgot
-        // its control must not send the next reader hunting for a boundary that
-        // is not there. Both halves are pinned in test/form-wiring.test.tsx.
+        // Appended ONLY here, and only when the walk really WALKED THROUGH a
+        // lazy child: this is the single throw a boundary can cause, and a field
+        // that simply forgot its control must not send the next reader hunting
+        // for a boundary that is not there.
+        //
+        // ⚠️ AND IT CANNOT TELL THE TWO LAZIES APART, SO IT SAYS SO (layer 1,
+        // MED-1, reproduced). A deliberate `lazy()` decoration beside a missing
+        // control sets the same flag - React's own flight client discriminates a
+        // client reference by exactly this `$typeof` and nothing finer is
+        // reachable from userland - so the sentence names both readings instead
+        // of asserting the one it cannot know. All three halves are pinned in
+        // test/form-wiring.test.tsx, including a field whose unrecognised child
+        // is an ordinary <div>, which is what makes the predicate's collapse
+        // visible at all.
         (seen.boundary
-          ? " One of its children is a React lazy wrapper, which is what a part created in a " +
-            'SERVER component looks like from inside this "use client" module: this walk ' +
-            "cannot recognise it, so a <FormControl> composed on the server side is never " +
-            'counted. Compose the whole field inside one "use client" component.'
+          ? " One of its children is a React lazy wrapper. Either it is a part created in a " +
+            'SERVER component - which is what one looks like from inside this "use client" ' +
+            "module, and this walk cannot recognise it, so a <FormControl> composed on the " +
+            'server side is never counted; compose the whole field inside one "use client" ' +
+            "component - or it is a lazy() of your own, which is legal here and is NOT the " +
+            "cause: the field is simply missing its control."
           : ""),
     );
   }

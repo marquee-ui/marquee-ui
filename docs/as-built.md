@@ -6613,7 +6613,7 @@ instrumentation, `probe.run3/run4`, and are not readings). One page, one build, 
 | composed in               | `typeof child.type` | `$$typeof`   | own keys                            | `name` / `displayName` / `$$id` / `$$async` | `child.type === DescriptionTerm` |
 | ------------------------- | ------------------- | ------------ | ----------------------------------- | ------------------------------------------- | -------------------------------- |
 | the Server Component      | `"object"`          | `react.lazy` | `["$$typeof", "_payload", "_init"]` | all four **undefined**                      | **false**                        |
-| one `"use client"` island | `"function"`        | (none)       | `["length", "name", "prototype"]`   | `name` = the module's own export            | **true**                         |
+| one `"use client"` island | `"function"`        | (none)       | `["length", "name", "prototype"]`   | `name` = `"t"`, the minified export         | **true**                         |
 
 So an element a Server Component creates reaches the client module as a **client reference, which
 React hands over as its LAZY wrapper**. It is not the module's export, `===` is false against every

@@ -248,9 +248,13 @@ describe("a part created across a client boundary is named as that, not as a mis
    * never counted, and the caller is told `must hold exactly one <FormControl>`
    * about a field that holds exactly one.
    *
-   * The shape is the measured one (DL16, `$BATCH_SCRATCH/s2/probe.run5.log:47`):
+   * The shape is the measured one (DL16, the finding is in `docs/as-built.md`):
    * a client reference reaches a `"use client"` module as React's LAZY wrapper,
-   * and `lazy()` is the public API that makes exactly that object. It never
+   * and `lazy()` is the public API that makes that object. ⚠️ The own-key set
+   * recorded there - `["$typeof", "_payload", "_init"]` - is the PRODUCTION
+   * flight client's; `lazy()` under this repo's React 19.3.0 development build
+   * adds a fourth, `_debugInfo` (read, not assumed: `node -e` on the installed
+   * copy). The guard reads `$typeof` alone, which is identical in both. It never
    * resolves here - `FormItem` throws while walking, before React renders it.
    */
   const acrossTheBoundary = <P extends object>(part: (props: P) => ReactElement) =>
@@ -279,13 +283,23 @@ describe("a part created across a client boundary is named as that, not as a mis
 
   it("does not offer the boundary as an explanation when no child crossed one", () => {
     // The split, and the reason it is not appended to every throw: a field that
-    // simply forgot its control must not send the next reader looking for a
+    // simply forgot its control must not send the next reader hunting for a
     // client boundary that is not there.
+    //
+    // ⚠️ THE <div> IS LOAD-BEARING, NOT DECORATION (layer 1, MED-1). The first
+    // edition of this arm held only recognised parts, which `countParts` matches
+    // in its if/else-if chain - so the walk NEVER REACHED the predicate and
+    // collapsing `crossedAClientBoundary` to `return true` left all 28 tests
+    // green. An unrecognised, NON-lazy child is the only composition that makes
+    // the predicate run and answer false, which is what this arm has to observe.
     let message = "";
     try {
       render(
         <FormItem invalid>
           <FormLabel>Email</FormLabel>
+          <div className="relative">
+            <span>an icon slot</span>
+          </div>
           <FormMessage>Wrong.</FormMessage>
         </FormItem>,
       );
@@ -294,6 +308,30 @@ describe("a part created across a client boundary is named as that, not as a mis
     }
     expect(message).toContain("must hold exactly one <FormControl>");
     expect(message).not.toContain("React lazy wrapper");
+  });
+
+  it("says BOTH readings, because it cannot tell the two lazies apart", () => {
+    // The honest bound (layer 1, MED-1): a deliberate `lazy()` decoration beside
+    // a MISSING control sets the same flag as a part from across a boundary, and
+    // nothing reachable from userland separates them - React's own flight client
+    // discriminates a client reference by this same `$typeof`. So the sentence
+    // must not assert the boundary; it names the other reading too.
+    const LazyHint = lazy(async () => ({ default: () => <span>hint</span> }));
+    let message = "";
+    try {
+      render(
+        <FormItem invalid>
+          <FormLabel>Email</FormLabel>
+          <LazyHint />
+          <FormMessage>Wrong.</FormMessage>
+        </FormItem>,
+      );
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    expect(message).toContain("React lazy wrapper");
+    expect(message).toContain("lazy() of your own");
+    expect(message).toContain("is NOT the cause");
   });
 
   it("leaves a legal field with a lazy child of its OWN alone", () => {

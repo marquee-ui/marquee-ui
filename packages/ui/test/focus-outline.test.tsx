@@ -313,6 +313,20 @@ describe("the invariant, over every part rather than a hand-written table", () =
    * exactly `input.tsx (focus)` and `sheet.tsx (focus)`. The day either ring is
    * this slice's, both halves move together.
    */
+  /**
+   * What makes a class list a RING SITE, as a function rather than a condition
+   * inlined in the walk - which is what lets the arm below observe BOTH of its
+   * disjuncts (layer 1, MED-2: deleting either one left the whole suite green,
+   * 31 files / 560 tests, because the only thing that had ever exercised the
+   * widening was a scratch part in a worktree that no longer exists).
+   */
+  const declaresARing = (tokens: readonly string[]): boolean =>
+    tokens.some(
+      (token) =>
+        sheet.declaredValues([token], "box-shadow").length > 0 ||
+        sheet.declaredValues([token], "outline-style").length > 0,
+    );
+
   const ringSites = (): { file: string; variant: Variant; tokens: string[] }[] => {
     const dir = resolve(process.cwd(), "packages/ui/src");
     const sites: { file: string; variant: Variant; tokens: string[] }[] = [];
@@ -325,13 +339,7 @@ describe("the invariant, over every part rather than a hand-written table", () =
         .filter(Boolean);
       for (const variant of Object.keys(VARIANTS) as Variant[]) {
         const mine = tokens.filter((token) => token.startsWith(`${variant}:`));
-        if (
-          mine.some(
-            (token) =>
-              sheet.declaredValues([token], "box-shadow").length > 0 ||
-              sheet.declaredValues([token], "outline-style").length > 0,
-          )
-        ) {
+        if (declaresARing(mine)) {
           sites.push({ file, variant, tokens: mine });
         }
       }
@@ -370,9 +378,38 @@ describe("the invariant, over every part rather than a hand-written table", () =
     ]);
   });
 
+  it("counts a site on its outline ALONE, and on its shadow alone", () => {
+    // BOTH disjuncts, live. Deleting either one reddens this arm, which is what
+    // the sweep itself cannot do: on the shipping tree every ring site declares
+    // both, so the predicate's two halves are indistinguishable from outside.
+    //
+    // ⚠️ The tokens are READ OFF A RENDERED HOST and then split by what the
+    // compiled sheet says each one declares - never typed, per this file's rule.
+    const host = HOSTS[0];
+    const tokens = under(classesFor(host), host.variant);
+    const declares = (token: string, property: string): boolean =>
+      sheet.declaredValues([token], property).length > 0;
+    const outlineOnly = tokens.filter(
+      (token) => declares(token, "outline-style") && !declares(token, "box-shadow"),
+    );
+    const shadowOnly = tokens.filter(
+      (token) => declares(token, "box-shadow") && !declares(token, "outline-style"),
+    );
+    // The anchors: an empty list would make either claim below vacuous.
+    expect(outlineOnly.length, `${host.name}: no outline-only token to test`).toBeGreaterThan(0);
+    expect(shadowOnly.length, `${host.name}: no shadow-only token to test`).toBeGreaterThan(0);
+    expect(declaresARing(outlineOnly), "the outline half of the predicate is dead").toBe(true);
+    expect(declaresARing(shadowOnly), "the shadow half of the predicate is dead").toBe(true);
+  });
+
   it("gives every focus ring an outline beside it, or names it as a known gap", () => {
+    const sites = ringSites();
+    // The anchor the sibling arm cannot lend this one (layer 1): an empty sweep
+    // makes the loop below run zero times and the assertion pass by iterating
+    // nothing, which is this repository's most recurrent defect.
+    expect(sites.length, "the sweep found no ring site at all").toBeGreaterThanOrEqual(4);
     const short: string[] = [];
-    for (const site of ringSites()) {
+    for (const site of sites) {
       const width = sheet.declared(site.tokens, "outline-width");
       const gap = KNOWN_GAPS[site.file];
       if (gap?.variant === site.variant) {

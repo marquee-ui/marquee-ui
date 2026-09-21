@@ -378,15 +378,16 @@ export function DescriptionList({ className, children, ...props }: DescriptionLi
  * THE CLIENT BOUNDARY, WHICH THE WALK ABOVE CANNOT SEE THROUGH - AND SAYS SO.
  *
  * Measured, not reasoned (DL16, the orchestrator's probe rebuilt with the walk
- * instrumented; log at `$BATCH_SCRATCH/s2/probe.run5.log:47-56`, the finding is
- * written up in `docs/as-built.md`). A Next 15 Server Component composing the
+ * instrumented; the reading, the log and both shapes are in `docs/as-built.md`).
+ * A Next 15 Server Component composing the
  * 0.1.2 copy of this family exits the build at prerender, and the reason is in
  * `child.type`: an element a SERVER component creates reaches this `"use
  * client"` module as a client reference, which React hands over as its LAZY
  * wrapper - `typeof child.type === "object"`, own keys exactly
- * `["$$typeof", "_payload", "_init"]`, `$$typeof` the public
- * `Symbol.for("react.lazy")`, and no name, no `displayName`, no `$$id` of its
- * own. It is not the module's export and `===` is false against every part. The
+ * `["$typeof", "_payload", "_init"]` (the PRODUCTION flight client's shape;
+ * React's development build appends a `_debugInfo`, which is why only
+ * `$typeof` is read below), `$typeof` the public `Symbol.for("react.lazy")`,
+ * and no name, no `displayName`, no `$id` of its own. It is not the module's export and `===` is false against every part. The
  * same composition inside ONE `"use client"` island read `child.type` as this
  * module's own function, identity true, and built.
  *
