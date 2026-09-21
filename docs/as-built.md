@@ -6987,3 +6987,301 @@ would be copied into every consumer's tree by the registry and read by none of t
 at `docs/as-built.md`, which is what `form.tsx`'s equivalent already did.
 
 Nothing the reviewer raised was declined.
+
+## DESIGN-LIB-d-command: the two Avatar axes, the Alert rule's second half, and the `Command` measurement (2026-09-22)
+
+Batch DL17, stream s2, on the library's `next` at `a4040016`. thepile is read-only throughout, at
+`1533f084` (`next`, the commit carrying the DL17 table), by `git -C … show <sha>:<path>` - no file
+in that tree moves for any of the three items. Under the push freeze: three LOCAL commits on
+`s/design-lib-d-command`, no tag, no publish, and `packages/ui/package.json`'s version line stays
+`0.1.2`. Everything here is the 0.1.3 bump's.
+
+### 1. The two Avatar axes, measured at the consumer
+
+**s1's REQUEST 1 (`DESIGN-LIB-f-members-avatar`, DL16), and the defect is one defect wearing two
+costumes.** `avatarImageVariants` hard-coded `bg-surface` in its `cva` BASE and `AvatarBadge` had no
+`cva` at all, its `border-2 border-border-strong bg-surface` inside a literal class string. Neither
+value is reachable by a consumer whose `cn` is a plain JOIN - a `className` lands BESIDE the part's
+class and the emitted stylesheet's order picks the winner - so thepile's wrapper
+(`apps/web/src/components/profile/Avatar.tsx`, read at `1533f084`) holds both as inline STYLE
+declarations, and says so in its own two docblocks:
+
+| the wrapper's line | what it writes                                                                      | why, in its own words                                                                                                                                                                                                                                                                                            |
+| ------------------ | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `:101` → `:129`    | `GROUND` = `{ backgroundColor: "var(--raised)" }` on **every** face it draws        | "`bg-surface` … is `--surface`, `#12140c`, which is also `MemberRow.tsx`'s card … taking the part's value would sink every face into the card behind it … A `bg-raised` CLASS loses (`.bg-surface` is emitted after `.bg-raised`, measured), so it is a declaration **until the library grows a `ground` axis**" |
+| `:83` → `:143`     | `MARK_EDGE` = `1.5px` on the **28 and 34** faces only, as `style={{ borderWidth }}` | "Below 56 the badge is an ~11-14px circle and the part's 2px border eats the letter, so the two small faces get 1.5px … `AvatarBadge` has no `edge` axis (`AvatarImage` does, and this is the same gap on the other part), which is REQUEST 1"                                                                   |
+
+Every line number above was read at `1533f084` and is as the DL17 table states it.
+
+**The mark's geometry, computed from the consumer's own two maps** (`SIZE` `:37-46`, `MARK_SIZE`
+`:68-74`) and the part's `h-2/5`, because the choice of thin value turns on it and nothing in the
+record had the arithmetic:
+
+| face | mark ø (40%) | mark font-size  | interior ø at 2px | interior ÷ glyph at 2px | at 1.5px | at 1px |
+| ---- | ------------ | --------------- | ----------------- | ----------------------- | -------- | ------ |
+| 28   | 11.2px       | 0.36rem 5.76px  | 7.2px             | **1.25**                | 1.42     | 1.60   |
+| 34   | 13.6px       | 0.42rem 6.72px  | 9.6px             | **1.43**                | 1.58     | 1.73   |
+| 56   | 22.4px       | 0.6rem 9.6px    | 18.4px            | 1.92                    | -        | -      |
+| 64   | 25.6px       | 0.68rem 10.88px | 21.6px            | 1.99                    | -        | -      |
+| 96   | 38.4px       | 0.95rem 15.2px  | 34.4px            | 2.26                    | -        | -      |
+
+So "the 2px ring eats the letter" is a real discontinuity and not a taste note: the three large
+faces sit at 1.9-2.3 interior-to-glyph and the two small ones at 1.25-1.43. **It also shows the 1px
+alternative is arguable**, because 1px is what brings the two small marks NEAREST the proportion the
+three large ones draw (1.60 and 1.73). It is recorded and not taken; the reason is decision 1 below.
+
+**What shipped.** `avatarImageVariants` gains `ground` (`surface` the default, `raised`) and
+`bg-surface` LEAVES the base, so exactly one ground lands on the element at either value.
+`AvatarBadge` gains `avatarBadgeVariants`, a new exported `cva` carrying the whole of its old literal
+plus `edge` (`default` `border-2`, `thin` `border-[1.5px]`), and `AvatarBadgeProps` gains that
+axis's `VariantProps`. `avatarBadgeVariants` is exported and re-exported from `src/index.ts`, which
+is not optional: `entry-point.test.ts` walks `packages/ui/src` on disk, parses every
+`export const` out of every part file and requires the barrel to expose each one.
+
+**TWO values on the mark's axis and not the image's three.** The image's `edge` is three values
+because three sites measure three (2px on ten faces, 1px on the 26px byline glyph, none on the top
+bar's gradient ring). The mark's sites measure two, and there is no site with no edge at all -
+the edge is what CUTS the mark out of the face it overhangs, so a `none` would be a value nobody
+has drawn. The family's own rule ("one measured site each, rather than a number") is what decides
+the count, in both directions.
+
+**`thin` is 1.5px on the mark and 1px on the image, on purpose**, and the drawing test asserts both
+in ONE arm so the asymmetry is met rather than found. `thin` means "the small-face treatment" on
+each part; the parts are at different scales (the mark is 40% of the face), so one shared number
+would be a number neither site drew. The part's docblock says it, at length, because a reader who
+meets only one of the two will otherwise read the other as a typo.
+
+### 2. The Alert rule's second half
+
+DL16 layer 2's MED-2. `alert.tsx` said a notice on the page from the start is not a live region and
+to "pass the role when the notice ARRIVES" - one of the two ways to write a region nobody hears.
+Both thepile sites were re-read at `1533f084` rather than taken from the DL16 note, and both
+establish the missing half in their own source:
+
+- **`app/login/page.tsx`** renders `<Alert tone="destructive" className="text-text-secondary">` with
+  NO role, and `:80-89` says the attribute was dropped (2026-09-21, Ankit; DL14 layer 2 LOW-4)
+  because "typed or reloaded, the notice is there at first paint, where nothing announces at all".
+  Its unit arm `page.test.tsx:88-100` is titled "puts no live region on that notice, in any
+  spelling" and its comment states the half the library was missing: "a live region inserted
+  together with its content is unreliably announced … **one that announces has to exist, empty,
+  first**".
+- **`app/settings/steam/page.tsx:63-89`** carries the measurement for the other side: every writer of
+  `?link=` is a DOCUMENT navigation, instrumented through `e2e/steam-import.spec.ts:302-313`
+  (a `window` marker gone afterwards, 3 document load events, the surviving navigation entry
+  `{"name":".../settings/steam?link=rejected","type":"navigate"}`), so the notice is in the bytes the
+  server sent and there is no mutation to catch. Its comment already points forward at this edit:
+  "a soft-navigated notice earns a role only when the region exists, empty, before its content does
+  (DL16 layer 2, MED-2)".
+
+So the rule now says both: a role belongs on a region that exists, EMPTY, before its content does;
+a region inserted together with its sentence is one mutation nothing was watching, and a
+conditionally mounted `<Alert role="status">` is that case wearing the other case's fix. It names
+the shape that does work - an always-mounted, usually `sr-only` region whose TEXT changes, with
+`<Alert>` beside it as the visible half - and says `role` on THIS box is right only when the box is
+already mounted and empty before the notice is written into it. Docblock only: no class, no prop, no
+element, no test moved (scan 5 found nothing pinning the text).
+
+### 3. The `Command` measurement, and the answer
+
+**No `Command` family ships.** The audit's three rows reproduce at thepile `1533f084`
+(`awk -F'|' '$4 ~ /Command/ { print NR": "$2 }' docs/design-audit.md` → `:358`, `:371`, `:410`), and
+all three sites were read in full - including `AddGameRow.tsx`, which the composition marked unread:
+
+| audit row                                                                       | what it actually is                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | wants the part?                                                                                                                                                                              |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `:371` `/search` ("the whole input + grouped results")                          | `components/search/SearchInput.tsx`, 568 lines, `"use client"`. It is a RESULTS PAGE, not a popup: `<input type="search" autoFocus aria-label="Search games">` (`:369-385`) and then FOUR permanent groups - Games as a `<ul className="grid grid-cols-3 … md:grid-cols-6">` of `next/link`, then Players, Lists and Tier lists as `<ul>`s of link rows - each under its own `<h2>` (`ResultGroup`, `:101-108`). Arrow keys move a highlight (`onKeyDown` `:280-292`) and Enter NAVIGATES. An always-mounted `sr-only` `<p role="status">` at `:359` carries the announcement | **No.** There is no popup whose expanded state the input owns and no value an option could set: activating a result navigates. And the source already recorded the blocking fact - see below |
+| `:358` `/lists/[id]` (`AddGameRow`)                                             | `components/lists/AddGameRow.tsx`, 182 lines, `"use client"`. A debounced picker (250 ms, a request token, a three-phase `idle/searching/answered` machine) over `/api/search`: `<input type="search" aria-label="Search games to add" className={inputClass}>` (`:115-131`), a `role="alert"` for the add failure, two `role="status"` phase lines, and results as a `<ul>` of full-width `<button>`s whose click performs a DURABLE server write (`submitDurable("list-add", …)`) and then clears the query                                                                 | **No.** Its results are COMMANDS, not options: picking one does not become the field's value, it writes a row and empties the box                                                            |
+| `:410` `/tiers/new` (`CommandInput + CommandList + CommandItem + CommandEmpty`) | `app/tiers/new/PoolBuilder.tsx`, 281 lines, `"use client"`. The SAME picker, and its docblock says so ("The picker is `AddGameRow`'s, which is `QuickLog`'s … this is a copy of its behaviour, not an improvement on it"): `aria-label="Search games to rank"` `:172`, two `role="status"` counts `:180,185`, a `<ul>` of `<button>`s, a `role="alert"` `:252`. A pick appends to a pool held in component state                                                                                                                                                              | **No.** Same shape, same reason, and the pick is one of MANY (a pool of up to `itemMax`), which is not a combobox's one-value contract at all                                                |
+
+**The blocking fact at `/search` is already in thepile's own source, with the axe rule named.**
+`SearchInput.tsx:433-440`: "aria-CURRENT, not aria-selected: these are links in a page-level results
+grid, and `aria-selected` is only allowed on option/row/tab roles, so on an `<a>` it is invalid ARIA
+(axe: aria-allowed-attr, critical)". A `cmdk`-shaped `Command` makes its items `role="option"` inside
+a `role="listbox"`; **a link is not an option**, so taking the contract means the results stop being
+links - and these links are what a crawler follows to `/game/<slug>`, what open-in-new-tab uses, and
+what the local a11y scan walks. That is a product decision nobody has taken, which is the Tabs
+answer's `/settings/profile` row and the Select answer's chevron row for the third time:
+_a semantics change the product has not taken is not a family._
+
+**The mirror holds at the other two.** Their results are `<button>`s that ACT. `role="option"` on a
+button is the same defect as `aria-selected` on a link, one role over, and neither site has arrow-key
+navigation today - every result is a real tab stop at `min-h-hit`, which is the shape a list of
+commands already has in the platform. So the Checkbox/RadioGroup-shaped answer (parts carrying
+`role="combobox"`, `aria-expanded`, `aria-controls`, `aria-activedescendant` and a `listbox` of
+`option`s, no `cmdk`) has **no site that wants the contract and can take it**: one is a page of
+links, two are lists of commands.
+
+**What a new dependency would cost, measured rather than reasoned.** `cmdk` appears **zero times** in
+thepile's `pnpm-lock.yaml` and `apps/web/package.json` at `1533f084`, and it is not among this
+package's eight dependencies (`@radix-ui/react-accordion`, `-dialog`, `-label`, `-separator`,
+`-slot`, `class-variance-authority`, `clsx`, `tailwind-merge`), so it is new in BOTH repos - and 07
+§10.2 says a dependency is read by a human, never auto-merged. `/search` is the route that decides
+it: **111.1 kB / 112.5 kB, 1.4 kB headroom (1.3%)** at DL16's merged gate, read out of that gate's
+own `pnpm perf:budget` block rather than quoted (`$BATCH_SCRATCH`'s DL16 `gate0/verify.log:222`; the
+ceiling is `perf-budgets.json`'s `"/search/page": 115200` = 112.5 KiB, checked at `1533f084`). No
+combobox library fits under 1.4 kB. The other two routes are NOT budgeted (that gate's build printed
+`/lists/[id]` 150 kB and `/tiers/new` 108 kB of first-load JS, and `perf-budget: 15 route(s) within
+budget` lists neither), so there the cost is the dependency and the semantics, not a ceiling.
+
+**And the house treatment is already on two of the three, from here.** `AddGameRow`'s input is
+`className={inputClass}` and `PoolBuilder`'s two are `${inputClass} min-h-hit`, and thepile's
+`inputClass` is **byte-identical** to this package's `input.tsx:6` (`cmp` of the two lines with
+leading indent stripped, at the two base shas: identical) - the same finding the Select measurement
+made one family over. `/search`'s field is the one that departs: `w-full min-h-[48px] … pl-10 pr-12
+… focus:border-accent` (`:384`), i.e. `Input` plus a taller box and two pads for a leading `⌕` glyph
+and a trailing 44px clear button, spelled in thepile's own alias token names (not resolved here). If
+`/search` is ever consumed it is `Input` + a `className`, and the 48px is a decision somebody owes a
+reason for, since 44 is the floor.
+
+**One thing the measurement found that is NOT a library answer.** `AddGameRow` and `PoolBuilder`
+share two class strings **byte for byte** - the results list
+(`flex max-h-[50dvh] flex-col gap-1 overflow-y-auto overscroll-contain`) and the result row
+(`flex min-h-hit w-full items-center gap-3 rounded-md px-2 py-1 text-left hover:bg-raised
+disabled:opacity-50`), `cmp`'d at `1533f084` - plus a near-copy of the debounce, the request token
+and the phase machine. None of it is a Marquee part: the row holds `GameCover`, the machine is the
+product's S35 rule, the endpoint is `/api/search`, the `max-h-[50dvh]` is one product's measurement,
+and no `buttonVariants` value is this row (all five are centred and none uses a hover GROUND). If
+anything is shared there it is a thepile component over `/api/search`, and that is thepile's call to
+take, not this package's. Recorded so the reconciler's cells can say it.
+
+Nothing ships for item 3; the reconciler corrects the three cells. If the product ever decides its
+search results should be a listbox rather than a page of links, **this is the row that says so**, and
+it arrives as a product decision first.
+
+### The guards, and the runs that reddened them
+
+Both new arms of `avatar-drawing.test.tsx` were written FIRST and run RED against the base's sources
+in this worktree, before either axis existed (`$BATCH_SCRATCH/s2/red-item1.log`). Each red names the
+property the arm is about, which is the half that matters:
+
+| arm                                                                             | mutation (the base, i.e. the axis absent)            | red / green                  | the assertion message                                               |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------- |
+| "resolves the ground axis to two grounds, with the old value still the default" | `bg-surface` still in the `cva` BASE, no `ground`    | **red**, 2 failed / 9 passed | `expected [ 'var(--surface)' ] to deeply equal [ 'var(--raised)' ]` |
+| "resolves the MARK's edge axis to the two widths its own sites measure"         | `border-2` still a literal, no `avatarBadgeVariants` | **red**, same run            | `expected 2 to be 1.5`                                              |
+
+Both are resolved-VALUE assertions read out of the compiled stylesheet, never class names, and the
+mark arm additionally pins `imageAt("thin")` at 1px in the same expression so the two `thin`s cannot
+silently converge.
+
+**⚠️ AND AS FIRST WRITTEN BOTH ARMS WERE BLIND TO THE DEFECT THE AXES EXIST TO REMOVE.** Found by
+running the mutation rather than by reading, in a detached worktree of the committed head `6caae60`:
+
+| mutation (the leftover the axis is supposed to prevent)             | the arms as first written | the arms as they ship                                                                                               |
+| ------------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `bg-surface` put BACK in `avatarImageVariants`' base, `ground` kept | **GREEN**, 11 passed      | **red**, 1 failed / 10 passed: `expected [ 'var(--surface)', 'var(--raised)' ] to deeply equal [ 'var(--raised)' ]` |
+| `border-2` put BACK in `avatarBadgeVariants`' base, `edge` kept     | **GREEN**, 11 passed      | **red**, 1 failed / 10 passed: `expected [ '2px', '1.5px' ] to deeply equal [ '1.5px' ]`                            |
+
+The reason is the instrument, not the assertion: this package's own `cn` IS a real tailwind-merge,
+so a base that keeps `bg-surface` beside a `bg-raised` variant is resolved before anything renders
+and the rendered element is perfect. **The consumer these axes are for is the one whose `cn` is a
+plain JOIN** - which is the whole reason thepile writes inline declarations in the first place - and
+that consumer is handed the variant function's OUTPUT, both classes in it, with the stylesheet's
+order picking. So each arm now also resolves `avatarImageVariants({ ground })` /
+`avatarBadgeVariants({ edge })` UNMERGED against the compiled sheet, where a leftover is a second
+declaration. `alert-tone.test.tsx:36` already read its axis that way; the helper says so by name and
+quotes both GREEN runs, so the next reader does not re-derive it.
+
+The registry's byte guard is the other required step, and it was proved rather than assumed: with
+`r/avatar.json` reverted to the base's bytes in the same detached worktree,
+`registry.test.ts` reddens **1 failed / 13 passed** with
+`AssertionError: avatar: packages/ui/src/avatar.tsx is stale: expected 'import { Slot } from
+"@radix-ui/react…' to be 'import { Slot } from "@radix-ui/react…'`.
+
+### The pipeline, end to end
+
+No part was added, so **nothing in `AGENTS.md`, `README.md`, `packages/ui/package.json`,
+`registry.test.ts` (`:60`), `stories.test.tsx` (`:97`) or `fidelity.test.tsx` (`:36`) moves**: the
+counts are still **nineteen** families and **20** registry items, re-read at the base rather than
+quoted. What DID move through the pipeline:
+
+- `src/index.ts` gained `avatarBadgeVariants`, because `entry-point.test.ts` requires the barrel to
+  expose every `export const` a part file declares. (The DL17 table's fence conditions `index.ts` on
+  item 3 shipping; item 1's new export is what actually moves it. Noted as a fence widening, not a
+  breach of anyone's ownership - no sibling stream touches this repo this batch.)
+- `stories.test.tsx`'s `DECLARED_STORIES` 101 → **103** and `DECLARED_PLAYS` 72 → **74**, for the two
+  new stories (`Ground`, `MarkEdge`). Both have plays; `story-suites.ts` needed no edit because
+  `avatar` is already in the shared map and `storySuiteNames()` reads the directory.
+- `pnpm build:registry` ran for BOTH source edits, and `packages/ui/r/avatar.json` and
+  `r/alert.json` are committed with them. `registry.test.ts`'s "carries the CURRENT bytes of every
+  source it ships" is what makes that a required step rather than a tidy-up, and its red is quoted
+  in the guards section above. `packages/ui/r/registry.json` did not change - no item was added or
+  renamed.
+
+### Decisions
+
+1. **`AvatarBadge`'s `thin` edge ships 1.5px, not 1px, and not a refusal of the non-integer.** [V]
+   The axis exists so the consumer can DELETE an inline declaration; 1px would close the request by
+   moving a drawing the product measured, which is not the library's call, and refusing the
+   non-integer would leave the declaration in place and close nothing. The cost is stated in the
+   part's own docblock: how 1.5px lands on a device pixel is the browser's, and on a `rounded-full`
+   element it is anti-aliased rather than snapped - jsdom lays nothing out and this package has no
+   browser runner, so the guard asserts the DECLARED width and nothing about the screen. The
+   arithmetic that makes 1px arguable is in §1's table, recorded for Ankit rather than acted on.
+2. **The mark's axis carries two values, the image's three.** [V] One measured site each, in both
+   directions; there is no site that draws a mark with no edge, and inventing `none` would be a
+   `cva` value with nothing behind it.
+3. **No `Command` family ships**, and no `cmdk`. [V] One site is a page of LINKS whose own source
+   records the axe rule that forbids the listbox semantics; two are lists of COMMANDS whose results
+   act rather than set a value; the dependency is new in both repos; and `/search` has 1.4 kB of
+   headroom. The Checkbox/RadioGroup-shaped alternative was tested against each site and has no
+   taker.
+4. **`alert.stories.tsx`'s `Announced` docblock still carries the half-rule** ("A notice that ARRIVES
+   gets a role from its caller"). It is outside this stream's fence and it is not WRONG - the story
+   demonstrates the prop pass-through - so it was left, and is raised as a one-line prose follow-up
+   rather than edited.
+
+### thepile inputs
+
+- **At the 0.1.3 bump the wrapper drops BOTH inline declarations.**
+  `components/profile/Avatar.tsx` loses `GROUND` (`:101`, written at `:129`) for
+  `<AvatarImage ground="raised">`, and loses `MARK_EDGE` (`:83`, written at `:143`) for
+  `<AvatarBadge edge={size < 56 ? "thin" : undefined}>` or the equivalent map. Nothing on screen
+  moves: `raised` is the same `var(--raised)` and `thin` is the same 1.5px.
+- **That is TWO thepile tests in the SAME commit, and the second is not obvious.**
+  `Avatar.test.tsx:193-196` reads the VENDORED copy's SOURCE TEXT (DL16 decision 16), so it sees
+  0.1.2's `avatar.tsx` until the bump and reddens with it; and the drift test reddens for the bytes.
+  Neither can be fixed before the copy moves.
+- **Two thepile comments cite `alert.tsx:17-24` by LINE** - `login/page.test.tsx:89` and
+  `settings/steam/page.tsx:65-67` - and item 2 makes the rule longer, so both citations go stale
+  when the copy is re-added at the bump. They are prose, in files this stream must not touch; the
+  bump's stream owns them.
+- **Nothing for item 3.** The three audit cells (`docs/design-audit.md` `:358`, `:371`, `:410`) are
+  the reconciler's to correct, with §3's table as the reason per row.
+
+### Consumers
+
+**Run 1, before any code** (`$BATCH_SCRATCH/s2/scan-run1.txt`), was the scan script against an EMPTY
+diff and printed zero names by construction; it is recorded as what it is. The enumeration that did
+the work was by hand over the surface the brief named
+(`$BATCH_SCRATCH/s2/scan-run1-byhand.txt`): `avatar.tsx` and `alert.tsx` are named by
+`registry.json`, their own `r/*.json`, `packages/tokens/test/helpers/source-files.ts` (`:46`, `:47`,
+and their stories at `:79`, `:80`) and `registry.test.ts`'s item list (`:64`, `:65`), so
+`pnpm build:registry` is a REQUIRED step of each commit; the counts live in eight places, re-read at
+the base and moved by nothing here.
+
+**Run 2, at the commit point** (diff `a4040016...HEAD`, full output in
+`$BATCH_SCRATCH/s2/scan-run2.txt`):
+
+- **Scan 1, exported symbols: seven names.** `avatarBadgeVariants` is the one that is NEW; its only
+  reader is `src/index.ts`, and that reader is compulsory (`entry-point.test.ts`). `AvatarImage`,
+  `AvatarBadge` and `AvatarBadgeProps` changed signature; `AvatarBadgeProps` is read by
+  `entry-point.test.ts`'s type arm, which reads the barrel's source text. `Ground` and `MarkEdge`
+  are the two new STORY exports, consumed through `story-suites.ts` by both `stories.test.tsx` (the
+  two counters) and `tailwind-compile.test.tsx` (the compile check and the 44px floor) - neither
+  needed an edit, because the map is keyed by part and read off the directory.
+- **Scan 3, tests naming a touched path:** eleven hits, all read; the only real consumers are
+  `avatar-drawing.test.tsx` (this stream's), `entry-point.test.ts` and `registry.test.ts`. The rest
+  are basename collisions on `index` (`packages/*/package.json`, `form-wiring.test.tsx`,
+  `tailwind-compile.test.tsx`), which name no avatar and no alert symbol.
+- **Scan 4, role/aria strings: four hits, all PROSE.** `role="status"` and `role="alert"` appear only
+  inside `alert.tsx`'s docblock, one removed line and three added. No element in the diff writes,
+  removes or displaces a role, so nothing resolves differently.
+- **Scan 5, class-string literals:** the load-bearing one is `bg-surface`, which this diff MOVES out
+  of a `cva` base. It is pinned in four other files - `emitted-surface.test.ts`,
+  `choice-drawing.test.tsx`, `fidelity.test.tsx`, `fixtures/upstream-classes.json` - and **none of
+  them names avatar at all** (`choice-drawing.test.tsx:340` mentions the word in a comment about a
+  composition), so the move has exactly one consumer and it is this stream's own arm.
+  `bg-raised` and `border-[1.5px]` are pinned by nothing.
+- **CROSS: 0** (no sibling stream touches this repo this batch). **UNOWNED: 0.** **NEW between the
+  two runs: 3** - `avatarBadgeVariants`, `Ground`, `MarkEdge`, all of them this stream's own
+  additions, and the barrel requirement behind the first was already found by hand in run 1.
