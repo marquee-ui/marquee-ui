@@ -3,7 +3,13 @@ import { composeStories } from "@storybook/react-vite";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.js";
-import { Avatar, AvatarBadge, AvatarImage } from "@/avatar";
+import {
+  Avatar,
+  AvatarBadge,
+  AvatarImage,
+  avatarBadgeVariants,
+  avatarImageVariants,
+} from "@/avatar";
 import * as avatarStories from "../stories/avatar.stories.js";
 
 /**
@@ -94,6 +100,23 @@ function markAt(edge: "default" | "thin"): string[] {
   cleanup();
   return found;
 }
+
+/**
+ * ⚠️ THE VARIANT FUNCTION'S OWN OUTPUT, UNMERGED - AND THAT IS THE ONLY
+ * INSTRUMENT THAT CAN SEE THE DEFECT THESE TWO AXES EXIST TO REMOVE.
+ *
+ * Both axes were added because a value sat in a `cva` BASE (or a literal), where
+ * a consumer whose `cn` is a plain JOIN cannot displace it. This package's own
+ * `cn` is a real tailwind-merge, so a base that KEPT `bg-surface` beside a
+ * `bg-raised` variant is resolved before anything renders and the rendered
+ * element looks perfect - measured, not reasoned: both mutations (`bg-surface`
+ * back in the image's base, `border-2` back in the mark's) left the whole file
+ * GREEN at 11 passed when the arms below read only `markAt`/`groundAt`. So the
+ * arms read the STRING a plain-join consumer is handed, resolved against the
+ * compiled sheet, where a leftover shows up as a SECOND declaration.
+ * `alert-tone.test.tsx:36` reads its axis the same way.
+ */
+const tokensOf = (variants: string): string[] => variants.split(/\s+/).filter(Boolean);
 
 describe("the face's geometry, in resolved values", () => {
   it("found a real drawing to measure, and a sheet to measure it in", () => {
@@ -236,10 +259,13 @@ describe("the face's geometry, in resolved values", () => {
       "var(--surface)",
     ]);
     expect(sheet.declaredValues(groundAt("raised"), "background-color")).toEqual(["var(--raised)"]);
-    // EXACTLY one, which is the property the axis exists to produce: a base that
-    // kept `bg-surface` beside the new variant would leave both on the element
-    // and change nothing about the trap. `toEqual` on the whole list is what
-    // says so - a `toContain` would pass with two.
+    // EXACTLY ONE ground in what the VARIANT hands a caller, which is the whole
+    // property the axis exists to produce and which the two reads above cannot
+    // see (see `tokensOf`): a base that kept `bg-surface` would hand a plain-join
+    // consumer two, and leave the stylesheet's order to pick.
+    expect(
+      sheet.declaredValues(tokensOf(avatarImageVariants({ ground: "raised" })), "background-color"),
+    ).toEqual(["var(--raised)"]);
     // …and it is a MOVE rather than a new default: an image with no `ground`
     // still draws what the base used to hard-code, so no existing site moves.
     expect(sheet.declaredValues(bare().image, "background-color")).toEqual(
@@ -257,6 +283,12 @@ describe("the face's geometry, in resolved values", () => {
     // The default is what the literal hard-coded, so the three faces that take
     // the part's own value are untouched.
     expect(sheet.declared(bare().mark, "border-width")).toBe(2);
+    // …and ONE width in what the variant hands a plain-join caller, for the same
+    // reason and with the same blindness behind it: `border-2` left in the base
+    // is invisible to every read above.
+    expect(
+      sheet.declaredValues(tokensOf(avatarBadgeVariants({ edge: "thin" })), "border-width"),
+    ).toEqual(["1.5px"]);
     // ⚠️ AND `thin` HERE IS NOT `thin` ON THE IMAGE, ON PURPOSE. The mark is 40%
     // of the face, so the two axes carry the two measurements they were taken
     // from rather than one shared number: 1px on a 26px face, 1.5px on the mark
