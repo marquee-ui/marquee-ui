@@ -1,0 +1,184 @@
+import { readFileSync, readdirSync } from "node:fs";
+import { resolve } from "node:path";
+import { describe, expect, it } from "vitest";
+
+/**
+ * THE DIRECTIVE, AS A SHIPPING CONTRACT RATHER THAN A HABIT.
+ *
+ * A part file that calls a client-only React hook and does NOT open with
+ * `"use client"` is not a component with a caveat: it is a file the consumer's
+ * framework REFUSES TO BUILD the moment a server component imports it. Measured,
+ * not reasoned - the orchestrator vendored this package's `form.tsx` into a Next
+ * 15 app at `d69b5df6`, composed it in an existing Server Component page, and
+ * `pnpm --filter @thepile/web build` exited 1 with:
+ *
+ *   You're importing a component that needs createContext. This React Hook only
+ *   works in a Client Component. To fix, mark the file (or its parent) with the
+ *   "use client" directive.
+ *
+ * naming `src/components/ui/form.tsx:2:1`. Four files were in that state here
+ * (`form`, `checkbox`, `radio-group`, `description-list`) while three others
+ * (`accordion`, `sheet`, `toast`) carried the directive - so the rule existed and
+ * nothing held anyone to it. This is the thing that holds.
+ *
+ * ⚠️ `useId` IS DELIBERATELY NOT IN THE SET. React serves it on the server (it is
+ * how a server-rendered label and its input agree on an id at all), and Next's
+ * loader does not flag it. A file whose only react import is `useId` stays a
+ * server module, which is the whole point of `FormLabel`'s generated ids.
+ *
+ * ⚠️ AND THE BOUND IS STATED: this reads the `react` import list, so a client-only
+ * import from ANOTHER module (`react-dom`'s `createPortal`, a third-party hook)
+ * is invisible to it. `toast.tsx` is exactly that shape and carries the directive
+ * for its react hooks anyway. Widen the set, not the mechanism, when one arrives.
+ */
+
+const ROOT = resolve(process.cwd());
+const SRC = resolve(ROOT, "packages/ui/src");
+const MODULES = resolve(ROOT, "packages/ui/node_modules");
+
+/**
+ * The hooks whose mere IMPORT makes a module client-only, which is Next's own
+ * test: the loader reads the import, not the call.
+ */
+const CLIENT_ONLY = [
+  "createContext",
+  "useContext",
+  "useState",
+  "useEffect",
+  "useRef",
+  "useLayoutEffect",
+  "useReducer",
+  "useSyncExternalStore",
+] as const;
+
+/** Every part file on disk, so the check cannot fall behind a list. */
+const PARTS = readdirSync(SRC)
+  .filter((name) => name.endsWith(".tsx"))
+  .sort();
+
+const read = (name: string): string => readFileSync(resolve(SRC, name), "utf8");
+
+/**
+ * The RUNTIME names one file imports from `react`.
+ *
+ * `import type { … } from "react"` is skipped whole and an inline `type X` member
+ * is dropped, because neither survives compilation - a file importing only
+ * `type ComponentProps` is a server module and reads identically to one importing
+ * `useState` if the `type` keyword is ignored.
+ */
+function reactRuntimeImports(text: string): string[] {
+  const names: string[] = [];
+  for (const match of text.matchAll(/^import\s+(type\s+)?\{([^}]*)\}\s*from\s*"react";/gm)) {
+    if (match[1] !== undefined) continue;
+    for (const member of match[2]!.split(",")) {
+      const token = member.trim();
+      if (token === "" || token.startsWith("type ")) continue;
+      names.push(token.split(/\s+as\s+/)[0]!.trim());
+    }
+  }
+  return names;
+}
+
+const needsBoundary = (text: string): string[] =>
+  reactRuntimeImports(text).filter((name) => (CLIENT_ONLY as readonly string[]).includes(name));
+
+/** The directive as the FIRST statement, which is the only position it works in. */
+const opensWithDirective = (text: string): boolean => /^"use client";\r?\n/.test(text);
+
+/**
+ * The ESM entry a bare specifier resolves to, read out of the dependency's own
+ * `exports` map. Null when the package, the map or the file is not there, so a
+ * resolution that quietly fails cannot read as "not a client module" - the anchor
+ * below is what proves it resolves at all.
+ */
+function moduleEntry(specifier: string): string | null {
+  try {
+    const dir = resolve(MODULES, specifier);
+    const pkg = JSON.parse(readFileSync(resolve(dir, "package.json"), "utf8")) as {
+      exports?: Record<string, { import?: string | { default?: string }; default?: string }>;
+      module?: string;
+      main?: string;
+    };
+    const dot = pkg.exports?.["."];
+    const entry =
+      (typeof dot?.import === "string" ? dot.import : dot?.import?.default) ??
+      dot?.default ??
+      pkg.module ??
+      pkg.main;
+    if (entry === undefined) return null;
+    return readFileSync(resolve(dir, entry), "utf8");
+  } catch {
+    return null;
+  }
+}
+
+/** Every bare `@radix-ui/…` specifier one file imports. */
+const radixImports = (text: string): string[] =>
+  [...text.matchAll(/from\s*"(@radix-ui\/[a-z-]+)"/g)].map((match) => match[1]!);
+
+/** True when one of the primitives this file wraps opens with the directive itself. */
+const wrapsClientModule = (text: string): boolean =>
+  radixImports(text).some((specifier) => {
+    const entry = moduleEntry(specifier);
+    return entry !== null && opensWithDirective(entry);
+  });
+
+describe("every part that needs a client boundary declares one", () => {
+  it("found real sources, and the predicate partitions them", () => {
+    // Anchors. An empty walk, or a parser that matched nothing, makes the guard
+    // below pass by checking nothing - and that is this repository's most
+    // recurrent defect. So: the walk is real, BOTH sides of the partition are
+    // non-empty, and two named files sit on the sides they are known to be on.
+    expect(PARTS.length).toBeGreaterThan(15);
+    const client = PARTS.filter((name) => needsBoundary(read(name)).length > 0);
+    const server = PARTS.filter((name) => needsBoundary(read(name)).length === 0);
+    expect(client.length).toBeGreaterThan(0);
+    expect(server.length).toBeGreaterThan(0);
+    expect(client).toContain("form.tsx");
+    expect(server).toContain("button.tsx");
+    // …and the type-only import is really dropped: `card.tsx` imports
+    // `type ComponentProps` from react and nothing else.
+    expect(reactRuntimeImports(read("card.tsx"))).toEqual([]);
+    // …while an inline `type` member beside real hooks keeps only the hooks.
+    expect(reactRuntimeImports(read("toast.tsx"))).toEqual([
+      "createContext",
+      "useContext",
+      "useEffect",
+    ]);
+    // …and the dependency resolver reaches real bytes, in both verdicts: it is
+    // what decides the third arm, and a resolver that silently returned null
+    // would make that arm pass by knowing nothing.
+    expect(moduleEntry("@radix-ui/react-accordion")).not.toBeNull();
+    expect(wrapsClientModule(read("accordion.tsx"))).toBe(true);
+    expect(wrapsClientModule(read("switch.tsx"))).toBe(false);
+    expect(radixImports(read("switch.tsx"))).toEqual(["@radix-ui/react-slot"]);
+  });
+
+  it('opens every hook-importing file with "use client"', () => {
+    const offenders = PARTS.filter((name) => {
+      const text = read(name);
+      return needsBoundary(text).length > 0 && !opensWithDirective(text);
+    }).map((name) => `packages/ui/src/${name} (imports ${needsBoundary(read(name)).join(", ")})`);
+    expect(offenders).toEqual([]);
+  });
+
+  it("does not spend the boundary on a file that is entitled to none", () => {
+    // The other direction, and it is not symmetric. `"use client"` on a static
+    // cell costs the consumer a bundle entry and, in Next, everything below it -
+    // so a directive with nothing behind it is a defect too, just a quiet one.
+    //
+    // ⚠️ But "nothing behind it" is NOT "no react hook", and the first draft of
+    // this arm said it was: it reported `accordion.tsx` and `sheet.tsx`, which
+    // import no hook at all and are entitled to the directive all the same,
+    // because the Radix primitive each one wraps is ITSELF a client module. That
+    // is measured here rather than listed, so the day a dependency changes its
+    // mind the guard changes with it.
+    const wasteful = PARTS.filter((name) => {
+      const text = read(name);
+      return (
+        opensWithDirective(text) && needsBoundary(text).length === 0 && !wrapsClientModule(text)
+      );
+    });
+    expect(wasteful).toEqual([]);
+  });
+});

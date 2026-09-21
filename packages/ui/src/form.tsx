@@ -1,3 +1,5 @@
+"use client";
+
 import { Slot } from "@radix-ui/react-slot";
 import { Children, createContext, isValidElement, useContext, useId } from "react";
 import type { ComponentProps, ReactNode } from "react";

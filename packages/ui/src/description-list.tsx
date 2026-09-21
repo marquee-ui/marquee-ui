@@ -1,3 +1,5 @@
+"use client";
+
 import { cva, type VariantProps } from "class-variance-authority";
 import { Children, Fragment, createContext, isValidElement, useContext } from "react";
 import type { ComponentProps, ReactNode } from "react";
@@ -33,6 +35,21 @@ import { cn } from "@/lib/utils";
  * (`Ledger:223`), two 2-column grids (`reckoning:201`, `ImportPreview:214`), two
  * flex columns at `gap-2` and `gap-4` (`ScoreBlock:227`, `transparency:460`) and
  * one bare block (`admin/reports:85`). A `cva` with eight values is not an axis.
+ *
+ * ⚠️ **IT OPENS WITH `"use client"`, AND THAT IS A COST THIS FAMILY DELIBERATELY
+ * PAYS.** The two contexts below are not decoration: they are the only instrument
+ * that can see a part rendered outside its parent, and three of the eight product
+ * sites factor a group into a COMPONENT (`Ledger`'s `Cell`, `ScoreBlock`'s
+ * `RawFigure`, `reckoning`'s `Fact`), whose output a parent's walk deliberately
+ * never reads (decision 10). The alternative was measured and rejected: cloning
+ * each direct part child with a marker prop catches the bare part and the part
+ * inside a `dd`, and REFUSES all three of those component-factored groups, because
+ * their `DescriptionItem` is not a child anyone can clone. Dropping the contexts
+ * would have kept the file a server module and silently deleted five of the
+ * family's guard arms (`test/description-list-structure.test.tsx`, "a part outside
+ * its parent throws" and "a part inside a part is refused"). A static cell buying a
+ * client boundary is the lesser defect; an invalid `<dl>` that looks right is the
+ * one this family exists for.
  *
  * ⚠️ The `dd`'s UA `margin-inline-start: 40px` is Tailwind's PREFLIGHT to zero,
  * not this family's: `@import "tailwindcss"` resets margin on every element.
@@ -201,10 +218,17 @@ export const descriptionItemVariants = cva("", {
  *     `labelVariants.micro`). Composing `Label` would be wrong at five sites and
  *     the caller would override the ink at each, which is the two-`text-*`-on-one-
  *     element trap above.
- *  2. **`Label` is a client module.** It wraps `@radix-ui/react-label`, whose
- *     dist opens `"use client"` (checked, 2.1.15) - and 7 of the 8 `<dl>` sites
- *     are server components. A static cell should not buy a client boundary for
- *     four utilities.
+ *  2. ⚠️ **RETIRED, AND SAID HERE RATHER THAN DELETED.** Reason 2 used to be
+ *     "`Label` is a client module: it wraps `@radix-ui/react-label`, whose dist
+ *     opens `"use client"` (checked, 2.1.15) - and 7 of the 8 `<dl>` sites are
+ *     server components. A static cell should not buy a client boundary for four
+ *     utilities." That argument died on the day THIS file took the directive
+ *     (DL14): the boundary it refused to buy is already bought, by the two
+ *     contexts below, so it no longer separates the two options. Reason 1 - the
+ *     ink differs at five of the six sites - is the whole of the decision now,
+ *     and it is enough on its own. The cost sentence stands as a cost: a `<dl>`
+ *     of static cells IS a client component here, and undoing that means undoing
+ *     the misuse guards (see the directive's own note at the top of this file).
  *
  * The tracking is `tracking-label`, the house's own named token (0.12em), and
  * that is a TIE-BREAK rather than a majority: the five micro-caps terms spell
