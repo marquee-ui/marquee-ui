@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { createRequire } from "node:module";
+import { dirname, resolve } from "node:path";
 import postcss from "postcss";
 import tailwind from "@tailwindcss/postcss";
 
@@ -54,10 +55,64 @@ export interface CompiledSheet {
   flattened(): string;
 }
 
+/**
+ * Every `@import` the fixture opens with, resolved BEFORE the compile, because an
+ * unresolvable one is a broken instrument and not a failing assertion.
+ *
+ * `@marquee-ui/tokens/tokens.css` is BUILT output - `packages/tokens` emits
+ * `dist/` from `src/build.ts` - so on a cold checkout it does not exist, and the
+ * package's `exports` map points at a file nobody wrote yet. Tailwind then dies
+ * inside `process()` with `CssSyntaxError: … Package path ./tokens.css is
+ * exported from package … but no valid target file was found (see exports field
+ * …)`, which names a manifest key rather than the build step that fixes it.
+ *
+ * ⚠️ AND THE COST IS THE REPORTING, NOT THE EXIT CODE. The four readers call this
+ * from a `beforeAll`, so vitest attributes the throw to the FILE and marks every
+ * test inside it `skipped`. Measured on a detached cold worktree of `f960fea`
+ * (LIB-VENDOR-0.1.2): the four alone print `Test Files 4 failed (4)` /
+ * `Tests 73 skipped (73)` - not one test failed and not one passed, which is the
+ * same test-level line a deliberate `it.skip` would print. The suite IS loud at
+ * the file level and exits 1; it is the per-test line, and the exports-field
+ * error above it, that made `as-built.md`'s LOW-8 read the run as green.
+ *
+ * So: resolve first, and say the one thing that is true and actionable. The
+ * message is `merge-theme.test.ts:17-19`'s, which has had the honest form of it
+ * since before this helper existed.
+ */
+function assertImportsResolve(fixture: string, css: string): void {
+  const require_ = createRequire(fixture);
+  for (const match of css.matchAll(/@import\s+"([^"]+)"/g)) {
+    const specifier = match[1]!;
+    const relative = specifier.startsWith(".");
+    const target = relative ? resolve(dirname(fixture), specifier) : undefined;
+    if (target !== undefined ? existsSync(target) : tryResolve(require_, specifier)) continue;
+    throw new Error(
+      `the compile fixture's \`@import "${specifier}"\` resolves to nothing` +
+        (target !== undefined
+          ? `: ${target} is missing.`
+          : ". The tokens stylesheet is BUILT output, so a cold checkout has none:" +
+            " run `pnpm build` (or `pnpm --filter @marquee-ui/tokens build`) before `pnpm test`.") +
+        " Every test in this file would otherwise report as SKIPPED rather than as the broken" +
+        " instrument it is.",
+    );
+  }
+}
+
+function tryResolve(require_: ReturnType<typeof createRequire>, specifier: string): boolean {
+  try {
+    require_.resolve(specifier);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function loadCompiledSheet(): Promise<CompiledSheet> {
   const fixture = resolve(process.cwd(), "packages/ui/test/fixtures/compile.css");
   if (!existsSync(fixture)) throw new Error(`compile fixture not found at ${fixture}`);
-  const result = await postcss([tailwind()]).process(readFileSync(fixture, "utf8"), {
+  const source = readFileSync(fixture, "utf8");
+  assertImportsResolve(fixture, source);
+  const result = await postcss([tailwind()]).process(source, {
     from: fixture,
   });
   const css = result.css;

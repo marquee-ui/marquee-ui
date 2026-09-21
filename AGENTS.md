@@ -94,6 +94,12 @@ a leading comment block from a css file as a banner, so the consumer's copy woul
 differ from the registry's content forever and a `shadcn diff` drift check would
 report it as drift. Every other comment in the file survives.
 
+**A bare `pnpm test` needs `pnpm build` first.** `packages/tokens/dist` is emitted, not
+committed, and four suites compile a fixture that `@import`s it, so on a cold checkout they
+fail as a broken instrument - and because the call sits in a `beforeAll`, vitest reports their
+tests as SKIPPED rather than failed. `loadCompiledSheet` says so by name now.
+`pnpm verify` builds first and is immune.
+
 **A test can conjure the thing it is testing.** `test/fixtures/compile.css` opens
 `@import "tailwindcss" source(none)` and names its sources explicitly. With
 Tailwind's automatic detection on it scans the whole repository, which includes the
