@@ -112,25 +112,45 @@ export function Avatar({ className, asChild = false, ...props }: AvatarProps) {
 }
 
 /**
- * The edge, and the only visual axis the measurement supports.
+ * The edge and the ground: the two visual axes the measurement supports.
  *
- * Three values, one measured site each, rather than a number: ten of the eleven
- * faces draw the house's 2px line; the smallest (26px, in a byline) draws 1px and
- * its own docblock calls the proportion "the design, not an accident"; and one
- * (a top bar's, inside a gradient ring of its own) draws none. A `border-*`
- * passed through `className` could not express any of them - two border widths on
- * one element is the plain-join trap the family docblock describes - so the axis
- * is where a caller can actually reach it.
+ * **`edge`.** Three values, one measured site each, rather than a number: ten of
+ * the eleven faces draw the house's 2px line; the smallest (26px, in a byline)
+ * draws 1px and its own docblock calls the proportion "the design, not an
+ * accident"; and one (a top bar's, inside a gradient ring of its own) draws none.
+ * A `border-*` passed through `className` could not express any of them - two
+ * border widths on one element is the plain-join trap the family docblock
+ * describes - so the axis is where a caller can actually reach it.
+ *
+ * **`ground`, and it is here because the base HAD it and that was the bug.**
+ * `bg-surface` was hard-coded in this base, where a `className` cannot displace
+ * it under a plain join, so the reference consumer - whose every face is a drawn
+ * SVG with no background of its own, sitting on a card that is itself `--surface`
+ * - wrote `backgroundColor: var(--raised)` as an inline DECLARATION on all eleven
+ * of them, and said so in its own docblock: "a `bg-raised` CLASS loses
+ * (`.bg-surface` is emitted after `.bg-raised`, measured), so it is a declaration
+ * until the library grows a `ground` axis". This is that axis. Two values, two
+ * measured grounds, the role contract's own names; `surface` is the default, so
+ * the move changes no existing drawing.
+ *
+ * Why an axis rather than the custom-property seam `--avatar-mark-size` is: a
+ * seam is what the MARK'S TYPE needs, because its five values are a curve nobody
+ * can name. A ground is a role, the contract has five of them, and a caller
+ * picking one by name is exactly what `cva` is for.
  */
-export const avatarImageVariants = cva("h-full w-full rounded-full bg-surface object-cover", {
+export const avatarImageVariants = cva("h-full w-full rounded-full object-cover", {
   variants: {
     edge: {
       default: "border-2 border-border-strong",
       thin: "border border-border-strong",
       none: "",
     },
+    ground: {
+      surface: "bg-surface",
+      raised: "bg-raised",
+    },
   },
-  defaultVariants: { edge: "default" },
+  defaultVariants: { edge: "default", ground: "surface" },
 });
 
 export type AvatarImageProps = Omit<ComponentProps<"img">, "src"> &
@@ -152,12 +172,13 @@ export type AvatarImageProps = Omit<ComponentProps<"img">, "src"> &
  * than a fixed value because a face with no name beside it is a real composition
  * and would then be unnameable.
  *
- * `bg-surface` under the image is not decoration: a drawn face with a transparent
- * background (every generated set the reference product uses) otherwise sits on
- * whatever is behind the root, so the same member had two different faces
- * depending on which component drew them.
+ * A ground under the image is not decoration, which is why there is always one
+ * and the axis picks WHICH: a drawn face with a transparent background (every
+ * generated set the reference product uses) otherwise sits on whatever is behind
+ * the root, so the same member had two different faces depending on which
+ * component drew them.
  */
-export function AvatarImage({ className, edge, alt = "", ...props }: AvatarImageProps) {
+export function AvatarImage({ className, edge, ground, alt = "", ...props }: AvatarImageProps) {
   refuseAsChild(
     props,
     "AvatarImage",
@@ -169,13 +190,66 @@ export function AvatarImage({ className, edge, alt = "", ...props }: AvatarImage
     <img
       data-slot="avatar-image"
       alt={alt}
-      className={cn(avatarImageVariants({ edge }), className)}
+      className={cn(avatarImageVariants({ edge, ground }), className)}
       {...props}
     />
   );
 }
 
-export type AvatarBadgeProps = ComponentProps<"span">;
+/**
+ * The mark's edge, and the reason it is an axis on a second `cva` rather than the
+ * image's.
+ *
+ * TWO values, not the image's three, because two is what the mark's own sites
+ * measure: three of the reference product's five mark sizes take the house's 2px,
+ * and the two smallest faces (28 and 34, whose mark is a circle of 11.2 and
+ * 13.6px - the mark is 40% of the face) take 1.5px, because at 2px the ring eats
+ * the letter. There is no measured site with no edge at all: the edge is what
+ * CUTS the mark out of the face it overhangs, so `none` would be a value nobody
+ * has drawn.
+ *
+ * ⚠️ **1.5px IS NOT `AvatarImage`'s `thin`, WHICH IS 1px, AND THE TWO NAMES
+ * MEANING TWO NUMBERS IS THE DECISION RATHER THAN AN OVERSIGHT.** `thin` means
+ * "the small-face treatment" on each part, and the parts are at different scales:
+ * a 26px face wearing 1px and an ~11px mark wearing 1.5px are the two
+ * measurements, taken from two elements, and one shared number would be a number
+ * neither site drew. `avatar-drawing.test.tsx` asserts both widths in ONE arm so
+ * the asymmetry is met rather than discovered.
+ *
+ * ⚠️ **A NON-INTEGER WIDTH IS A THING THIS PACKAGE CANNOT MEASURE.** How 1.5px
+ * lands on a device pixel is the browser's, and on a `rounded-full` element it is
+ * anti-aliased rather than snapped; jsdom lays nothing out and this package has
+ * no browser runner, so the claim here is the DECLARED width and nothing about
+ * what a screen does with it. The alternative - refusing the non-integer and
+ * shipping 1px - was considered and refused for one reason: it would move a
+ * drawing the consuming product measured, and the request this axis answers is
+ * for the product to be able to DELETE its inline declaration, not to redraw.
+ */
+export const avatarBadgeVariants = cva(
+  // ⚠️ `leading-none` COMES AFTER THE FONT SIZE, AND THAT IS NOT A STYLE
+  // CHOICE. This package's own `cn` is a real tailwind-merge, and
+  // tailwind-merge's `font-size` group CONFLICTS with `leading` - because
+  // `text-sm` sets a line-height too - so a `text-*` written after
+  // `leading-none` DELETES it. Written the other way round the shipped
+  // element carried no line-height at all and nothing said so: layer 1's
+  // M16 deleted `leading-none` from this string and the suite stayed
+  // GREEN, which is how the class was found to have never been on the
+  // element. Measured with this package's own `cn`, not reasoned.
+  "absolute -right-[4%] -bottom-[4%] grid h-2/5 w-2/5 place-items-center rounded-full " +
+    "border-border-strong bg-surface " +
+    "text-[length:var(--avatar-mark-size,17cqw)] leading-none",
+  {
+    variants: {
+      edge: {
+        default: "border-2",
+        thin: "border-[1.5px]",
+      },
+    },
+    defaultVariants: { edge: "default" },
+  },
+);
+
+export type AvatarBadgeProps = ComponentProps<"span"> & VariantProps<typeof avatarBadgeVariants>;
 
 /**
  * The corner mark: a status dot, an initial, a count. WHAT it says is the
@@ -200,7 +274,7 @@ export type AvatarBadgeProps = ComponentProps<"span">;
  * it. A different mark geometry is a different composition, and the root is
  * `relative` so a caller can write one.
  */
-export function AvatarBadge({ className, ...props }: AvatarBadgeProps) {
+export function AvatarBadge({ className, edge, ...props }: AvatarBadgeProps) {
   refuseAsChild(
     props,
     "AvatarBadge",
@@ -211,21 +285,7 @@ export function AvatarBadge({ className, ...props }: AvatarBadgeProps) {
   return (
     <span
       data-slot="avatar-badge"
-      className={cn(
-        // ⚠️ `leading-none` COMES AFTER THE FONT SIZE, AND THAT IS NOT A STYLE
-        // CHOICE. This package's own `cn` is a real tailwind-merge, and
-        // tailwind-merge's `font-size` group CONFLICTS with `leading` - because
-        // `text-sm` sets a line-height too - so a `text-*` written after
-        // `leading-none` DELETES it. Written the other way round the shipped
-        // element carried no line-height at all and nothing said so: layer 1's
-        // M16 deleted `leading-none` from this string and the suite stayed
-        // GREEN, which is how the class was found to have never been on the
-        // element. Measured with this package's own `cn`, not reasoned.
-        "absolute -right-[4%] -bottom-[4%] grid h-2/5 w-2/5 place-items-center rounded-full " +
-          "border-2 border-border-strong bg-surface " +
-          "text-[length:var(--avatar-mark-size,17cqw)] leading-none",
-        className,
-      )}
+      className={cn(avatarBadgeVariants({ edge }), className)}
       {...props}
       aria-hidden="true"
     />

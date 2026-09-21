@@ -79,6 +79,22 @@ function imageAt(edge: "default" | "thin" | "none"): string[] {
   return found;
 }
 
+/** The image's classes at one value of the ground axis, read off the DOM. */
+function groundAt(ground: "surface" | "raised"): string[] {
+  const { container } = render(<AvatarImage src="/face.svg" ground={ground} />);
+  const found = classesOf(container.querySelector('[data-slot="avatar-image"]'));
+  cleanup();
+  return found;
+}
+
+/** The mark's classes at one value of ITS edge axis, read off the DOM. */
+function markAt(edge: "default" | "thin"): string[] {
+  const { container } = render(<AvatarBadge edge={edge}>n</AvatarBadge>);
+  const found = classesOf(container.querySelector('[data-slot="avatar-badge"]'));
+  cleanup();
+  return found;
+}
+
 describe("the face's geometry, in resolved values", () => {
   it("found a real drawing to measure, and a sheet to measure it in", () => {
     // Anchors: every claim below comes from these two, and both can be empty.
@@ -207,6 +223,51 @@ describe("the face's geometry, in resolved values", () => {
     // WIDTH axis and not a second colour decision.
     expect(sheet.declaredValues(imageAt("default"), "border-color")).toEqual(
       sheet.declaredValues(imageAt("thin"), "border-color"),
+    );
+  });
+
+  it("resolves the ground axis to two grounds, with the old value still the default", () => {
+    // s1's REQUEST 1, half one. `bg-surface` sat in the cva BASE, where a
+    // consumer whose `cn` is a plain join cannot reach it, so the reference
+    // product wrote `backgroundColor: var(--raised)` as an inline DECLARATION on
+    // every face it draws - a second ground on the element with the stylesheet's
+    // order picking the winner. Two measured grounds, read out of the sheet.
+    expect(sheet.declaredValues(groundAt("surface"), "background-color")).toEqual([
+      "var(--surface)",
+    ]);
+    expect(sheet.declaredValues(groundAt("raised"), "background-color")).toEqual(["var(--raised)"]);
+    // EXACTLY one, which is the property the axis exists to produce: a base that
+    // kept `bg-surface` beside the new variant would leave both on the element
+    // and change nothing about the trap. `toEqual` on the whole list is what
+    // says so - a `toContain` would pass with two.
+    // …and it is a MOVE rather than a new default: an image with no `ground`
+    // still draws what the base used to hard-code, so no existing site moves.
+    expect(sheet.declaredValues(bare().image, "background-color")).toEqual(
+      sheet.declaredValues(groundAt("surface"), "background-color"),
+    );
+  });
+
+  it("resolves the MARK's edge axis to the two widths its own sites measure", () => {
+    // s1's REQUEST 1, half two, and the same defect one part over: the mark's
+    // `border-2` is a literal in `AvatarBadge`'s class string, so the two small
+    // faces (28 and 34, whose mark is an ~11-14px circle the 2px ring eats) are
+    // drawn by an inline `borderWidth` declaration in the consumer.
+    expect(sheet.declared(markAt("default"), "border-width")).toBe(2);
+    expect(sheet.declared(markAt("thin"), "border-width")).toBe(1.5);
+    // The default is what the literal hard-coded, so the three faces that take
+    // the part's own value are untouched.
+    expect(sheet.declared(bare().mark, "border-width")).toBe(2);
+    // ⚠️ AND `thin` HERE IS NOT `thin` ON THE IMAGE, ON PURPOSE. The mark is 40%
+    // of the face, so the two axes carry the two measurements they were taken
+    // from rather than one shared number: 1px on a 26px face, 1.5px on the mark
+    // of a 28 or 34 one. Asserted side by side, so the asymmetry is a decision a
+    // reader meets rather than a typo they find.
+    expect(sheet.declared(imageAt("thin"), "border-width")).toBe(1);
+    // The ink is one role at both widths, so this is a WIDTH axis and not a
+    // second colour decision - compared rather than pinned, exactly as the
+    // image's axis compares its own two.
+    expect(sheet.declaredValues(markAt("thin"), "border-color")).toEqual(
+      sheet.declaredValues(markAt("default"), "border-color"),
     );
   });
 
