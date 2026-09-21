@@ -3068,7 +3068,9 @@ command beside any count.
   `switch`, `breadcrumb`, `pagination`, `alert` and `form`. Whoever takes the bump
   edits both lists once, for all five. ⚠️ `shadcn add form.json` writes **three**
   files, not two: `lib/utils.ts`, `label.tsx` AND `form.tsx`, because `form`
-  depends on the `label` item. thepile's `lib/utils.ts` is a DECLARED EXCLUSION
+  depends on the `label` item. **⚠️ CORRECTED (batch DL14, s1 ran it): it writes TWO and
+  SKIPS `label.tsx`** (`Skipped 1 file: (files might be identical …) - src/components/ui/label.tsx`);
+  the CLI compares the consumed copy's bytes itself, so there is one file fewer to revert. thepile's `lib/utils.ts` is a DECLARED EXCLUSION
   whose `cn` is a plain join on purpose, so `git checkout -- apps/web/src/lib/utils.ts`
   after the add - and `components/ui/label.tsx` is ALREADY CONSUMED, so the add
   will rewrite it with the identical registry bytes and that is a no-op only if
@@ -3110,8 +3112,17 @@ command beside any count.
   to read before touching is `VolatilityBanner.test.tsx:83-90`, which asserts
   `queryByRole("alert")` is NULL - it is a boxed notice, not a field message, and
   nothing in this family goes near it.
-- **`app/pile/page.tsx:98-127` is the one field that already has the whole
-  contract**, hand-written, and it is the natural first consumption: `id`,
+- **⚠️ CORRECTED (batch DL14): `app/pile/page.tsx` CANNOT be the first consumption on 0.1.1.** It is a
+  Server Component and this file had no `"use client"` at 0.1.1 while importing `createContext`; the
+  orchestrator composed exactly this field in a detached-worktree build and `next build` exited 1
+  (the error is quoted once, under "DESIGN-LIB-d: Avatar" › "The client boundary: four parts a
+  Server Component could not import"). The directive is on the library's `next` since DL14 and
+  reaches thepile with LIB-VENDOR-0.1.2; whether `/pile` should take a client boundary at all is
+  Ankit's call [V] (its docblock refuses client JavaScript on purpose). The first consumption was
+  `/login` (`LoginForm.tsx`, a client component; `docs/slices/DESIGN-LIB-f-login-form.md`). What
+  follows stands as the shape of the `/pile` consumption once 0.1.2 lands:
+  **`app/pile/page.tsx:98-127` is the one field that already has the whole
+  contract**, hand-written: `id`,
   `aria-describedby` switching between `pile-problem` and `pile-hint`, and
   `aria-invalid`. Taken, it becomes `<FormItem invalid={!!problem}>` with a
   `<FormDescription>` and a `<FormMessage>`, and the generated ids replace
@@ -5739,8 +5750,9 @@ on the mark (its position and its `aria-hidden` ARE the part).
   throw, because an `<img>` with no `src` draws the browser's broken-image glyph, and this package
   throws for the misuse whose failure is QUIET.
 - **`AvatarBadge`** - the corner mark: `absolute -right-[4%] -bottom-[4%] grid h-2/5 w-2/5
-place-items-center rounded-full border-2 border-border-strong bg-surface leading-none
-text-[length:var(--avatar-mark-size,20cqw)]`, with `aria-hidden="true"` written AFTER the caller's
+place-items-center rounded-full border-2 border-border-strong bg-surface
+text-[length:var(--avatar-mark-size,17cqw)] leading-none` (in THAT order: `leading-none` after the
+  `text-[length:…]`, the reason is the `cn` paragraph below; and `17cqw`, not the first draft's `20cqw`), with `aria-hidden="true"` written AFTER the caller's
   props so it cannot be turned off (`RadioGroupInput`'s `name` is placed the same way).
 
 **The one visual axis is the EDGE**, three values with a measured site each: `default` `border-2`
@@ -5906,7 +5918,7 @@ border-9                                     (ABSENT)
 ```
 
 `--avatar-mark-size ?` is not a gap: the seam is UNDEFINED on purpose, which is what makes the
-`20cqw` fallback the default. Every other utility resolves to the ROLE's own variable in the
+`17cqw` fallback the default (the excerpt above prints `20cqw`: it was captured at `220f5ad`, before layer 1's MED-2 moved the default; the mechanism is what it shows, not the number). Every other utility resolves to the ROLE's own variable in the
 consumer rather than to a copy of its value, and both negative controls are absent.
 
 ### Decisions
