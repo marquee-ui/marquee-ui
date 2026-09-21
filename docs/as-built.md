@@ -6264,16 +6264,22 @@ specifier through `createRequire(fixture).resolve` (which honours the same `expo
 walks), a relative one through `existsSync` - and throws `merge-theme.test.ts:17-19`'s own named
 error otherwise. One guard in the shared helper, so all four readers inherit it.
 
-| run (cold, `packages/tokens/dist` absent, detached worktree)                                                  | what the runner said                                                                                                                                                                                                                                                                                                                                   |
-| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| at `f960fea`, before                                                                                          | `CssSyntaxError: tailwindcss: … Package path ./tokens.css is exported from package … but no valid target file was found (see exports field …)`                                                                                                                                                                                                         |
-| at `8004ae1f` (the shipping sha), after                                                                       | `Error: the compile fixture's `@import "@marquee-ui/tokens/tokens.css"`resolves to nothing. The tokens stylesheet is BUILT output, so a cold checkout has none: run`pnpm build`(or`pnpm --filter @marquee-ui/tokens build`) before `pnpm test`. Every test in this file would otherwise report as SKIPPED rather than as the broken instrument it is.` |
-| the relative arm, proved separately: `src/ribbon.css` moved aside in the same detached worktree, tokens BUILT | `Error: the compile fixture's `@import "../../src/ribbon.css"` resolves to nothing: /…/packages/ui/src/ribbon.css is missing. …`                                                                                                                                                                                                                       |
-| warm, same sha                                                                                                | `Test Files 4 passed (4)` / `Tests 73 passed (73)` - the guard does not fire on a built tree                                                                                                                                                                                                                                                           |
+| run (cold, `packages/tokens/dist` absent, detached worktree)                                                  | what the runner said                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| at `f960fea`, before                                                                                          | `CssSyntaxError: tailwindcss: … Package path ./tokens.css is exported from package … but no valid target file was found (see exports field …)`                                                                                                                                                                                                                                                                                                 |
+| at `8004ae1f`, after                                                                                          | `Error: the compile fixture's `@import "@marquee-ui/tokens/tokens.css"`resolves to nothing. The tokens stylesheet is BUILT output, so a cold checkout has none: run`pnpm build`(or`pnpm --filter @marquee-ui/tokens build`) before `pnpm test`. Every test in this file reports as SKIPPED rather than failed - that is vitest's handling of a `beforeAll` throw and this guard does not change it - so this message is what tells you which.` |
+| the relative arm, proved separately: `src/ribbon.css` moved aside in the same detached worktree, tokens BUILT | `Error: the compile fixture's `@import "../../src/ribbon.css"` resolves to nothing: /…/packages/ui/src/ribbon.css is missing. …`                                                                                                                                                                                                                                                                                                               |
+| warm, same sha                                                                                                | `Test Files 4 passed (4)` / `Tests 73 passed (73)` - the guard does not fire on a built tree                                                                                                                                                                                                                                                                                                                                                   |
 
 The tests still report as `skipped` rather than `failed`: that is vitest's handling of a `beforeAll`
 throw and it is not the helper's to change. What the fix buys is the MESSAGE beside the count.
 `AGENTS.md` gained the one line it had nowhere: a bare `pnpm test` needs `pnpm build` first.
+
+⚠️ **The reader count moved inside this slice, so the record says it as a command, not a number.**
+`focus-outline.test.tsx` is a FIFTH reader, added by the next commit, so the cold run is `4 failed` /
+`73 skipped` at `f960fea` and **`5 failed` / `80 skipped`** at the head (layer 1, LOW-2, confirmed in
+its own cold worktree). `git grep -l loadCompiledSheet packages/ui/test` is the list. `AGENTS.md`
+also gained the second line it had nowhere: `pnpm --filter @marquee-ui/ui test` is a no-op.
 
 ### REQUEST A: the focus indicator survives forced colors
 
@@ -6282,8 +6288,17 @@ real browser under `emulateMedia({ forcedColors: "active" })`, with transitions 
 read `outline-style: none` and `box-shadow: none`, i.e. **no visible focus indicator at all**, while
 a plain `button` beside it under the consumer's house rule kept its 2px solid outline.
 `AccordionTrigger` carried the identical `focus-visible:outline-none focus-visible:shadow-focus-ring`
-pair. Those two were the whole of it: `command grep -rn 'outline-none' packages/ui/src` finds four
-hits, and the other two are `input.tsx:6` and `sheet.tsx:67` (below).
+pair. `command grep -rn 'outline-none' packages/ui/src` finds four hits at the base, the other two
+being `input.tsx:6` and `sheet.tsx:67` (below).
+
+⚠️ **THAT SWEEP WAS THE WRONG ONE, AND IT MISSED TWO PARTS.** `outline-none` is only one of two
+routes to "no indicator under forced colors". The other is "the focusable element is `opacity-0` and
+the row draws only a shadow", which needs no opt-out at all - and which is precisely what the
+Switch's LABEL host was. Layer 1 (HIGH-1) found it on `checkbox.tsx:77` and `radio-group.tsx:121`,
+**two of the three items this very bump adds to the registry**, by the project's own instrument. The
+sweep that finds it is the second one, and both now live in the guard rather than in a grep:
+`command grep -rno 'shadow-focus-ring' packages/ui/src` and, for each hit, whether an outline is
+declared under the SAME variant. See "The known gaps" below.
 
 **What changed**: `focus-visible:outline-none` → `focus-visible:outline-2
 focus-visible:outline-offset-2 focus-visible:outline-primary` on both sites, plus the
@@ -6316,12 +6331,37 @@ in the same list declares `outline-style: none`, a `box-shadow` is still declare
 variant-prefixed class is checked against the SELECTOR the sheet gave it, so a prefix that compiled
 to something else cannot pass by its name.
 
-⚠️ **It reads the sheet rather than a computed style, and that is measured, not preference.** jsdom
-answers `element.matches(":focus-visible")` with `true` after `.focus()`, but does not APPLY the
-matching rule: with the flattened sheet in the document the focused root still computes
-`outline-style: none` and `outline-width: 16px` (jsdom's own defaults) and `var()` never resolves.
-A `getComputedStyle` assertion here would have passed against anything. The browser half is the
-consuming product's.
+⚠️ **It reads the sheet rather than a computed style.** Two reasons, and only the first is settled.
+
+**Settled: jsdom does not resolve `var()`.** An applied declaration reads back as its literal text -
+the control returns `min-height: var(--hit-min)`, not `44px` - so `outline-style` could never be read
+as `solid` from a computed style whatever else jsdom did, because `solid` lives in an `@property`
+initial value. That alone justifies the sheet for the STYLE.
+
+**Unreconciled: whether jsdom APPLIES the `:focus-visible` rules it parses.** Layer 1 (MED-1)
+measured `outline-width: 2px` at the shipping sha and called the claim below false. Re-run twice in
+the author's worktree at the same sha, with a control, it does not reproduce:
+
+```
+sheet has the rule text: true          injected sheet cssRules count: 303
+CONTROL min-height (min-h-hit, no variant): var(--hit-min)      <- the sheet IS applying
+matches(:focus-visible)=true active=true
+FOCUSED outline-style=none width=16px color=rgba(0, 0, 0, 0) offset=0 box-shadow=
+  kept selector: .focus-visible\:shadow-focus-ring:focus-visible
+  kept selector: .focus-visible\:outline-2:focus-visible
+rules whose selector mentions focus-visible: 9
+```
+
+jsdom parsed and KEPT the nine `:focus-visible` rules, the element matches and is
+`document.activeElement`, an unvariant utility on the same element reaches it - and the focused root
+still computes `outline-style: none`, `outline-width: 16px` and an EMPTY `box-shadow`. Both reads
+are recorded because neither could be reproduced against the other, and the disagreement does not
+change the instrument: the sheet is what every other geometry claim in this package is read from.
+⚠️ **The earlier wording here - "a `getComputedStyle` assertion would have passed against anything" -
+is withdrawn**: it generalised one environment's read into a law about jsdom.
+
+**The browser half is OWED and is not claimed here**: whether the outline actually PAINTS under
+`forced-colors: active` needs a real engine, and that is the consuming product's e2e.
 
 **The four reddening mutations, RUN at the shipping sha `3d45465`, each landing `grep`-confirmed and
 each restored with `git checkout --`** (`git status --short` empty before and after every one):
@@ -6337,6 +6377,61 @@ each restored with `git checkout --`** (`git status --short` empty before and af
 pins `accordion-trigger`'s EXACT class list (`NEW_PARTS`), so the outline reddened it as
 `expected [ 'flex', …(16) ] to deeply equal [ 'flex', …(14) ]`. The list was updated in the same
 commit; it is the third instrument on the same change, and the switch host has no such row.
+
+### The known gaps: `Checkbox` and `RadioGroupItem` ship the same defect, RECORDED not fixed
+
+Layer 1's HIGH-1, reproduced with the guard this slice added. `checkbox.tsx:77` and
+`radio-group.tsx:121` are the same construction as the Switch's label host:
+
+```
+"group/checkbox relative inline-flex min-h-hit cursor-pointer items-center gap-3 has-focus-visible:shadow-focus-ring has-disabled:…"
+"group/radio    relative inline-flex min-h-hit cursor-pointer items-center gap-3 has-focus-visible:shadow-focus-ring has-disabled:…"
+```
+
+a `<label>` row with a real input inside it at `opacity-0`, and the ring drawn on the ROW because -
+`checkbox.tsx:72`'s own words - "the input's own ring is invisible at `opacity-0`". So the UA's
+default outline is invisible too and the row's ENTIRE focus indicator is a `box-shadow`, which
+`forced-colors: active` drops. **A keyboard user in forced-colors mode gets no focus indicator at
+all**, which is verbatim the failure recorded above for the Switch. Both parts are among the three
+items `0.1.2` adds, so this bump is the release that first makes the defect installable.
+
+**Not fixed here**: `packages/ui/src/checkbox.tsx` and `radio-group.tsx` are outside
+LIB-VENDOR-0.1.2's fence (other parts' files), so this is a hand-back to the orchestrator and a
+later bump's work - the same three classes under `has-focus-visible:`, a registry rebuild, and the
+two rows added to `HOSTS`.
+
+**What DID ship, so the gap cannot sit unnoticed.** `focus-outline.test.tsx` no longer trusts its
+hand-written `HOSTS` table for completeness (layer 1 MED-3: a length anchor pins a table against
+SHRINKING, never against being INCOMPLETE - which is exactly how these two sat green). A second
+describe block DERIVES the set from the sources: every `packages/ui/src/*.tsx` whose class strings
+declare a `box-shadow` under a focus variant is enumerated, and each must declare an
+`outline-width` under the SAME variant. `checkbox.tsx` and `radio-group.tsx` are listed in
+`KNOWN_GAPS` with their reason, in `marquee-drift.test.ts`'s declared-exclusion shape - **and the
+entry asserts the gap is STILL THERE, so the fix's own commit is the one that deletes it.**
+
+Both arms reddened before they shipped, run in a detached worktree of `f3721e9`:
+
+| mutation                                                                  | red                 | the assertion message                                                                                                                                         |
+| ------------------------------------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkbox.tsx`'s `KNOWN_GAPS` entry deleted (the gap goes unnamed)        | 1 failed / 8 passed | `a part draws its focus ring with a box-shadow and no outline, so it has NO indicator under forced-colors: active … expected [ Array(1) ] to deeply equal []` |
+| the FIX applied to `checkbox.tsx` while its entry is still declared       | 1 failed / 8 passed | `checkbox.tsx now declares an outline under has-focus-visible: delete its KNOWN_GAPS entry, the defect it excuses is fixed: expected 2 to be null`            |
+| `ringSites()` collapsed to `[]`                                           | 1 failed / 8 passed | `no part declares a focus ring at all: the walk found nothing: expected 0 to be greater than or equal to 4`                                                   |
+| `accordion.tsx` reduced to a shadow-only ring (a ring site with no entry) | 2 failed / 7 passed | the derived arm AND the `AccordionTrigger` row, `no class under this variant declares an outline-width`                                                       |
+
+And layer 1's two GREEN rows on `under()` are closed, re-run at `f3721e9` and now RED (MED-2):
+`selectorsOf` rewriting every `:focus-visible` to `:has(:focus-visible)` fails 4 tests, and weakening
+`VARIANTS["has-focus-visible"]` to the plain pseudo fails 3. `toContain` is `endsWith` now, because
+`":has(:focus-visible)"` CONTAINS `":focus-visible"` and the two are different selectors - a row's
+indicator that fires on any DESCENDANT's focus is not the same behaviour as its own.
+
+### The tarball does not move for any of this
+
+The layer-1 commit touches `AGENTS.md`, `packages/ui/test/focus-outline.test.tsx` and
+`test/helpers/compiled-sheet.ts` only, and `files` is `["r","src"]`. Re-packed to a scratch
+directory at the fixed head and compared: **92751 bytes and sha256
+`09f05aa6a3d8333e0027bc7101114894334d82fbb11855e19b1e05cb8620024a`, byte-identical to the vendored
+one.** So thepile's `vendor/` tarball and lockfile stand as committed; `pnpm pack` is deterministic
+across these commits, which is checked rather than assumed.
 
 ### `input.tsx:6` and `sheet.tsx:67`: measured, recorded, NOT edited [V]
 
@@ -6433,11 +6528,11 @@ So the 92751 bytes above cannot be bytes that disagree with `src/`.
 `pnpm verify` at the library head, foreground: **exit 0**, the runner's own lines being
 `All matched files use Prettier code style!`, both packages' `typecheck: Done`,
 `✔ Building registry.`, `└  Storybook build completed successfully` and
-`Test Files 31 passed (31)` / `Tests 549 passed (549)`. `git status --short` empty before and after,
+`Test Files 31 passed (31)` / `Tests 551 passed (551)`. `git status --short` empty before and after,
 so the committed `packages/ui/r` is exactly what `build:registry` produces at `0.1.2`.
 
-That is **+1 file / +7 tests** on DL14's closure (30 / 542), which is this stream's
-`focus-outline.test.tsx` and nothing else. Two earlier runs are worth recording because each was a
+That is **+1 file / +9 tests** on DL14's closure (30 / 542), which is this stream's
+`focus-outline.test.tsx` and nothing else (7 tests at the bump, 9 after layer 1's derived arm). Two earlier runs are worth recording because each was a
 real finding rather than a flake: `JSX.Element` in the new test's type annotation failed
 `packages/ui typecheck` with `TS2503: Cannot find namespace 'JSX'` under this repo's React 19 JSX
 transform (now `ReactElement`), and `fidelity.test.tsx`'s pinned class list reddened as described
