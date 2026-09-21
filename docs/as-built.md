@@ -3117,8 +3117,9 @@ command beside any count.
   orchestrator composed exactly this field in a detached-worktree build and `next build` exited 1
   (the error is quoted once, under "DESIGN-LIB-d: Avatar" › "The client boundary: four parts a
   Server Component could not import"). The directive is on the library's `next` since DL14 and
-  reaches thepile with LIB-VENDOR-0.1.2; whether `/pile` should take a client boundary at all is
-  Ankit's call [V] (its docblock refuses client JavaScript on purpose). The first consumption was
+  reaches thepile with LIB-VENDOR-0.1.2. **Ankit decided (2026-09-21): `/pile` stays hand-written and takes
+  no Form family** (its docblock refuses client JavaScript on purpose, and its hand-written field is the one
+  this family was derived from; thepile's `docs/design-audit.md` `/pile` cell records it). The first consumption was
   `/login` (`LoginForm.tsx`, a client component; `docs/slices/DESIGN-LIB-f-login-form.md`). What
   follows stands as the shape of the `/pile` consumption once 0.1.2 lands:
   **`app/pile/page.tsx:98-127` is the one field that already has the whole
