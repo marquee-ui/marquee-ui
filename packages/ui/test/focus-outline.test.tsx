@@ -1,3 +1,5 @@
+import { readFileSync, readdirSync } from "node:fs";
+import { resolve } from "node:path";
 import { cleanup, render } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { composeStories } from "@storybook/react-vite";
@@ -22,14 +24,29 @@ import * as switchStories from "../stories/switch.stories.js";
  * the opt-out and declaring the outline; the shadow ring is KEPT beside it,
  * because it is the dark inner separator that makes the ring readable over art.
  *
- * ⚠️ WHY THIS READS THE SHEET AND NOT A COMPUTED STYLE. Measured on this tree:
- * jsdom answers `element.matches(":focus-visible")` with `true` after `.focus()`,
- * but its CSSOM does not APPLY the matching rule - with the flattened sheet in
- * the document the focused root still computes `outline-style: none` and
- * `outline-width: 16px` (jsdom's own default), and `var()` never resolves. So a
- * `getComputedStyle` assertion here would read jsdom's defaults and pass no
- * matter what the part declares. The emitted CSS is the honest instrument in this
- * package, and the browser half is the consuming product's e2e.
+ * ⚠️ WHY THIS READS THE SHEET AND NOT A COMPUTED STYLE.
+ *
+ * The part that holds everywhere: **jsdom does not resolve `var()`**. An applied
+ * declaration reads back as its literal text - the control below returns
+ * `min-height: var(--hit-min)`, not `44px` - so `outline-style` could never be
+ * read as `solid` from a computed style whatever else jsdom did. `solid` lives in
+ * an `@property` initial value, which is exactly what the sheet read below
+ * resolves.
+ *
+ * The part that is environment-dependent, and is recorded rather than asserted:
+ * on this tree jsdom also does not APPLY the `:focus-visible` rules it parses.
+ * Measured at the shipping sha with a control, twice - the flattened sheet
+ * injected (303 `cssRules`, 9 of whose selectors mention `focus-visible`,
+ * including `.focus-visible\:outline-2:focus-visible`), the story focused,
+ * `document.activeElement` the root and `root.matches(":focus-visible")` true -
+ * and the focused root still computes `outline-style: none`, `outline-width:
+ * 16px` and an EMPTY `box-shadow`, while the unvariant `min-h-hit` on the same
+ * element does reach it. ⚠️ Layer 1 (MED-1) read `outline-width: 2px` at the same
+ * sha and could not be reproduced here; unreconciled, both commands in
+ * `docs/as-built.md`. Either way the sheet is the instrument this package already
+ * uses for every other geometry claim, and the browser half - does the outline
+ * actually PAINT under forced colors - is owed to the consuming product's e2e and
+ * is not claimed here.
  *
  * ⚠️ Every class name below is read off the RENDERED story, never typed:
  * `test/fixtures/compile.css` opens `source(none)` and names `src` and `stories`
@@ -75,9 +92,21 @@ function under(classes: readonly string[], variant: Variant): string[] {
     const selectors = sheet.selectorsOf(token);
     expect(selectors.length, `${token} compiled to no selector at all`).toBeGreaterThan(0);
     for (const selector of selectors) {
-      expect(selector, `${token} does not compile to a ${VARIANTS[variant]} rule`).toContain(
-        VARIANTS[variant],
-      );
+      // ⚠️ ENDS WITH, never `toContain`. `":has(:focus-visible)"` CONTAINS
+      // `":focus-visible"`, so a `focus-visible:` utility that compiled to a
+      // `:has()` rule - a genuinely different selector, matching on a
+      // DESCENDANT's focus rather than the element's own - passed a `toContain`
+      // check, and so did weakening the `has-focus-visible` expectation to the
+      // plain pseudo. Both were proved green at layer 1 (MED-2). `endsWith`
+      // separates them: `":has(:focus-visible)"` ends in `)`.
+      expect(
+        selector.endsWith(VARIANTS[variant]),
+        `${token} compiles to \`${selector}\`, which does not end in ${VARIANTS[variant]}. ` +
+          `If the declarations below are still right, this is the COMPILER's selector shape ` +
+          `moving rather than the focus indicator: Tailwind 4.3.2 nests the pseudo inside the ` +
+          `rule body (\`&:focus-visible\`) where 4.3.3 appends it to the selector, and this ` +
+          `walk records only the outer selector (layer 1, LOW-5).`,
+      ).toBe(true);
     }
   }
   return prefixed;
@@ -204,5 +233,113 @@ describe("every keyboard host declares an outline, not only a shadow", () => {
     // readable over cover art. Dropping the shadow is a regression too.
     const shadows = sheet.declaredValues(under(classesFor(host), host.variant), "box-shadow");
     expect(shadows.length, "no box-shadow declared under this variant").toBeGreaterThan(0);
+  });
+});
+
+/**
+ * DECIDED, NOT FORGOTTEN, and it EXPIRES. Parts that draw a focus ring on a row
+ * and declare no outline under the same variant, with the reason - the shape
+ * `DECLARED_EXCLUSIONS` uses in thepile's `scripts/marquee-drift.test.ts` and
+ * that this repo's preset checks use for a knowingly-short contrast pair: the
+ * entry asserts the gap is STILL THERE, so closing the gap reddens this file and
+ * the excuse dies with the fix rather than outliving it.
+ *
+ * Both were found by layer 1 (HIGH-1) after the sweep that produced the table
+ * above missed them, and both are outside the fence of the slice that added this
+ * file (`LIB-VENDOR-0.1.2`; `packages/ui/src/checkbox.tsx` and `radio-group.tsx`
+ * are other parts' files), so they are RECORDED here and handed back rather than
+ * edited.
+ */
+const KNOWN_GAPS: Readonly<Record<string, { variant: Variant; reason: string }>> = {
+  "checkbox.tsx": {
+    variant: "has-focus-visible",
+    reason:
+      "The Checkbox row is the same construction as the Switch's label host that REQUEST A fixed: " +
+      "a <label> row with a real input inside it at opacity-0, and the ring drawn on the ROW " +
+      "because (checkbox.tsx's own words) the input's own ring is invisible at opacity-0. So the " +
+      "row's ENTIRE focus indicator is a box-shadow, and forced-colors: active drops box-shadow - " +
+      "a keyboard user in that mode gets no focus indicator at all. It needs the same three " +
+      "outline classes under has-focus-visible:. Outside LIB-VENDOR-0.1.2's fence, so it rides a " +
+      "later bump (layer 1 HIGH-1, batch DL15).",
+  },
+  "radio-group.tsx": {
+    variant: "has-focus-visible",
+    reason:
+      "RadioGroupItem's row is byte-for-byte the same construction and the same defect as the " +
+      "checkbox entry above: an opacity-0 input inside a <label> row whose only focus indicator " +
+      "is a box-shadow, which forced-colors: active drops. Same fix, same bump, same fence " +
+      "(layer 1 HIGH-1, batch DL15).",
+  },
+};
+
+describe("the invariant, over every part rather than a hand-written table", () => {
+  /**
+   * ⚠️ THIS IS THE ARM THE TABLE ABOVE CANNOT BE. `HOSTS` is three hand-written
+   * rows behind a length anchor: the anchor pins it against SHRINKING and
+   * nothing pins it against being INCOMPLETE, which is exactly how two parts
+   * carrying this defect sat in the same package, in the same release, with the
+   * file green (layer 1, MED-3). So the set is DERIVED from the sources: every
+   * part that declares a focus ring at all is enumerated, and the invariant is
+   * checked against the COMPILED sheet, not against the class name.
+   */
+  const ringSites = (): { file: string; variant: Variant; tokens: string[] }[] => {
+    const dir = resolve(process.cwd(), "packages/ui/src");
+    const sites: { file: string; variant: Variant; tokens: string[] }[] = [];
+    for (const file of readdirSync(dir).filter((name) => name.endsWith(".tsx"))) {
+      const source = readFileSync(resolve(dir, file), "utf8");
+      // Only class STRINGS, never a comment: a docblock that names a utility
+      // would otherwise invent a site. Tailwind reads the same literals.
+      const tokens = [...source.matchAll(/"([^"\n]*\b(?:has-)?focus-visible:[^"\n]*)"/g)]
+        .flatMap((match) => match[1]!.split(/\s+/))
+        .filter(Boolean);
+      for (const variant of Object.keys(VARIANTS) as Variant[]) {
+        const mine = tokens.filter((token) => token.startsWith(`${variant}:`));
+        if (mine.some((token) => sheet.declaredValues([token], "box-shadow").length > 0)) {
+          sites.push({ file, variant, tokens: mine });
+        }
+      }
+    }
+    return sites;
+  };
+
+  it("finds every part that draws a focus ring, and knows which ones are short", () => {
+    const sites = ringSites();
+    // Anchors: the walk found sources, and it found the two parts this slice
+    // fixed. A walk that returned nothing would make every check below vacuous.
+    expect(
+      sites.length,
+      "no part declares a focus ring at all: the walk found nothing",
+    ).toBeGreaterThanOrEqual(4);
+    expect(sites.map((site) => site.file)).toContain("switch.tsx");
+    expect(sites.map((site) => site.file)).toContain("accordion.tsx");
+    for (const name of Object.keys(KNOWN_GAPS)) {
+      expect(
+        sites.map((site) => site.file),
+        `${name} is no longer a ring site at all`,
+      ).toContain(name);
+      expect(KNOWN_GAPS[name]!.reason.length, `${name}'s gap needs a reason`).toBeGreaterThan(80);
+    }
+  });
+
+  it("gives every focus ring an outline beside it, or names it as a known gap", () => {
+    const short: string[] = [];
+    for (const site of ringSites()) {
+      const width = sheet.declared(site.tokens, "outline-width");
+      const gap = KNOWN_GAPS[site.file];
+      if (gap?.variant === site.variant) {
+        // The entry EXPIRES: when the gap closes this fails, and the fix's own
+        // commit is the one that deletes the entry.
+        expect(
+          width,
+          `${site.file} now declares an outline under ${site.variant}: delete its KNOWN_GAPS entry, the defect it excuses is fixed`,
+        ).toBeNull();
+        continue;
+      }
+      if (width !== 2) short.push(`${site.file} (${site.variant}): outline-width ${width}`);
+    }
+    expect(
+      short,
+      "a part draws its focus ring with a box-shadow and no outline, so it has NO indicator under forced-colors: active. Add the outline trio under the same variant, or declare it in KNOWN_GAPS with a reason",
+    ).toEqual([]);
   });
 });

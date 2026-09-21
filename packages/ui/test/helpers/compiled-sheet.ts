@@ -66,14 +66,18 @@ export interface CompiledSheet {
  * exported from package … but no valid target file was found (see exports field
  * …)`, which names a manifest key rather than the build step that fixes it.
  *
- * ⚠️ AND THE COST IS THE REPORTING, NOT THE EXIT CODE. The four readers call this
- * from a `beforeAll`, so vitest attributes the throw to the FILE and marks every
- * test inside it `skipped`. Measured on a detached cold worktree of `f960fea`
- * (LIB-VENDOR-0.1.2): the four alone print `Test Files 4 failed (4)` /
- * `Tests 73 skipped (73)` - not one test failed and not one passed, which is the
- * same test-level line a deliberate `it.skip` would print. The suite IS loud at
- * the file level and exits 1; it is the per-test line, and the exports-field
- * error above it, that made `as-built.md`'s LOW-8 read the run as green.
+ * ⚠️ AND THE COST IS THE REPORTING, NOT THE EXIT CODE. Every reader calls this
+ * from a `beforeAll` (`git grep -l loadCompiledSheet packages/ui/test` is the
+ * list; it was four files when this was written and five by the end of the same
+ * slice, which is why the count is a command and not a number here). vitest
+ * attributes the throw to the FILE and marks every test inside it `skipped`, so
+ * a cold tree prints `Test Files N failed (N)` / `Tests M skipped (M)` - not one
+ * test failed and not one passed, which is the same test-level line a deliberate
+ * `it.skip` would print. Measured on detached cold worktrees (LIB-VENDOR-0.1.2):
+ * `4 failed` / `73 skipped` at `f960fea`, `5 failed` / `80 skipped` at the head.
+ * The suite IS loud at the file level and exits 1; it is the per-test line, and
+ * the exports-field error above it, that made `as-built.md`'s LOW-8 read the run
+ * as green.
  *
  * So: resolve first, and say the one thing that is true and actionable. The
  * message is `merge-theme.test.ts:17-19`'s, which has had the honest form of it
@@ -92,8 +96,9 @@ function assertImportsResolve(fixture: string, css: string): void {
           ? `: ${target} is missing.`
           : ". The tokens stylesheet is BUILT output, so a cold checkout has none:" +
             " run `pnpm build` (or `pnpm --filter @marquee-ui/tokens build`) before `pnpm test`.") +
-        " Every test in this file would otherwise report as SKIPPED rather than as the broken" +
-        " instrument it is.",
+        " Every test in this file reports as SKIPPED rather than failed - that is vitest's" +
+        " handling of a `beforeAll` throw and this guard does not change it - so this message is" +
+        " what tells you which.",
     );
   }
 }
