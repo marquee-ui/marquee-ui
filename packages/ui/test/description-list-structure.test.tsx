@@ -1,5 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import { lazy } from "react";
+import type { ComponentType, ReactElement } from "react";
 
 import {
   DescriptionDetails,
@@ -221,6 +223,67 @@ describe("the item refuses every child that is not one of its two parts", () => 
     );
     expect(screen.getByRole("term")).toHaveTextContent("Streak");
     expect(screen.getAllByRole("definition")).toHaveLength(1);
+  });
+});
+
+describe("a part created across a client boundary is named as that, not as a third child", () => {
+  /**
+   * ⚠️ THE SHAPE HERE IS MEASURED, NOT INVENTED. A Next 15 Server Component
+   * composing this family exits the build at prerender, and the instrumented
+   * walk read `child.type` as React's LAZY wrapper: `typeof "object"`, own keys
+   * exactly `["$$typeof", "_payload", "_init"]`, `$$typeof` =
+   * `Symbol.for("react.lazy")` (DL16, `$BATCH_SCRATCH/s2/probe.run5.log:47`).
+   * `lazy()` is the public API that produces exactly that object, so this is the
+   * boundary's own shape and not a stand-in for it. The wrapper never resolves:
+   * the item throws while walking its children, before React renders one.
+   */
+  const acrossTheBoundary = <P extends object>(part: (props: P) => ReactElement) =>
+    lazy(async () => ({ default: part as unknown as ComponentType<P> }));
+
+  it("throws a message naming the boundary, for a group that IS one term and one detail", () => {
+    const ServerTerm = acrossTheBoundary(DescriptionTerm);
+    const ServerDetails = acrossTheBoundary(DescriptionDetails);
+    let message = "";
+    try {
+      render(
+        <DescriptionList>
+          <DescriptionItem>
+            <ServerTerm>Played</ServerTerm>
+            <ServerDetails>6</ServerDetails>
+          </DescriptionItem>
+        </DescriptionList>,
+      );
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    // The composition is LEGAL - exactly one term, exactly one detail - so the
+    // old message ("a div inside a dl is a group, and any third child…") named a
+    // cause the caller could not act on. That is the half this arm pins.
+    expect(message).toContain("React lazy wrapper");
+    expect(message).toContain('"use client"');
+    expect(message).not.toContain("any third child makes the list invalid");
+  });
+
+  it("still names the ordinary third child as a third child", () => {
+    // The other side of the split: a plain stray child must NOT acquire the
+    // boundary explanation, which would send the next caller looking for a
+    // boundary that is not there.
+    let message = "";
+    try {
+      render(
+        <DescriptionList>
+          <DescriptionItem>
+            <DescriptionTerm>Followers</DescriptionTerm>
+            <DescriptionDetails>128</DescriptionDetails>
+            <a href="#followers">128 followers</a>
+          </DescriptionItem>
+        </DescriptionList>,
+      );
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    expect(message).toContain("may hold only <DescriptionTerm> and <DescriptionDetails>");
+    expect(message).not.toContain("React lazy wrapper");
   });
 });
 

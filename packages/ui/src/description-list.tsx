@@ -51,6 +51,17 @@ import { cn } from "@/lib/utils";
  * client boundary is the lesser defect; an invalid `<dl>` that looks right is the
  * one this family exists for.
  *
+ * ⚠️ **AND THE COST IS BIGGER THAN A BUNDLE ENTRY, MEASURED IN DL16: A SERVER
+ * COMPONENT CANNOT COMPOSE THESE PARTS AT ALL.** Not "should not" - the Next 15
+ * build EXITS 1 at prerender. An element a Server Component creates arrives here
+ * as a client reference, which React hands over as its lazy wrapper, so
+ * `child.type === DescriptionTerm` is false for every term and every detail and
+ * the item's walk below refuses a group that is exactly one term and one detail.
+ * **The family's Server-Component form is therefore an ISLAND: one `"use client"`
+ * component that owns the whole `<dl>` and creates every element in it** - proved
+ * to build, in the same probe, with the same parts. The walk says so itself now;
+ * the reading, the log and the two shapes are in `docs/as-built.md`.
+ *
  * ⚠️ The `dd`'s UA `margin-inline-start: 40px` is Tailwind's PREFLIGHT to zero,
  * not this family's: `@import "tailwindcss"` resets margin on every element.
  * That is the same bet `BreadcrumbList` and `PaginationContent` already make -
@@ -226,9 +237,12 @@ export const descriptionItemVariants = cva("", {
  *     (DL14): the boundary it refused to buy is already bought, by the two
  *     contexts below, so it no longer separates the two options. Reason 1 - the
  *     ink differs at five of the six sites - is the whole of the decision now,
- *     and it is enough on its own. The cost sentence stands as a cost: a `<dl>`
- *     of static cells IS a client component here, and undoing that means undoing
- *     the misuse guards (see the directive's own note at the top of this file).
+ *     and it is enough on its own. The cost sentence stands as a cost, and DL16
+ *     made it a larger one than "a client component": a `<dl>` of static cells is
+ *     a client component here AND cannot be composed from a Server Component at
+ *     all - it goes inside one `"use client"` island, which is what the directive's
+ *     own note at the top of this file now records. Undoing the boundary means
+ *     undoing the misuse guards.
  *
  * The tracking is `tracking-label`, the house's own named token (0.12em), and
  * that is a TIE-BREAK rather than a majority: the five micro-caps terms spell
@@ -360,6 +374,38 @@ export function DescriptionList({ className, children, ...props }: DescriptionLi
   );
 }
 
+/**
+ * THE CLIENT BOUNDARY, WHICH THE WALK ABOVE CANNOT SEE THROUGH - AND SAYS SO.
+ *
+ * Measured, not reasoned (DL16, the orchestrator's probe rebuilt with the walk
+ * instrumented; log at `$BATCH_SCRATCH/s2/probe.run5.log:47-56`, the finding is
+ * written up in `docs/as-built.md`). A Next 15 Server Component composing the
+ * 0.1.2 copy of this family exits the build at prerender, and the reason is in
+ * `child.type`: an element a SERVER component creates reaches this `"use
+ * client"` module as a client reference, which React hands over as its LAZY
+ * wrapper - `typeof child.type === "object"`, own keys exactly
+ * `["$$typeof", "_payload", "_init"]`, `$$typeof` the public
+ * `Symbol.for("react.lazy")`, and no name, no `displayName`, no `$$id` of its
+ * own. It is not the module's export and `===` is false against every part. The
+ * same composition inside ONE `"use client"` island read `child.type` as this
+ * module's own function, identity true, and built.
+ *
+ * So the lazy wrapper is the only thing the element keeps, there is no marker to
+ * compare instead (decision: as-built, DL16 item 1), and what changes here is
+ * the MESSAGE: the third-child refusal named a cause that was not the caller's
+ * ("a div inside a dl…") for a composition with exactly one term and one detail.
+ */
+const REACT_LAZY = Symbol.for("react.lazy");
+
+/** True for a child whose type arrived as React's lazy wrapper. */
+function crossedAClientBoundary(type: unknown): boolean {
+  return (
+    typeof type === "object" &&
+    type !== null &&
+    (type as { $$typeof?: unknown }).$$typeof === REACT_LAZY
+  );
+}
+
 export type DescriptionItemProps = ComponentProps<"div"> &
   VariantProps<typeof descriptionItemVariants>;
 
@@ -398,6 +444,16 @@ export function DescriptionItem({ className, layout, children, ...props }: Descr
     // (layer 1, LOW-3: the first draft threw and its message named a failure that
     // does not apply to these two).
     if (child.type === "script" || child.type === "template") continue;
+    if (crossedAClientBoundary(child.type)) {
+      throw new Error(
+        `<DescriptionItem> holds a child whose type is a React lazy wrapper, which is what a ` +
+          `part element created in a SERVER component looks like from inside this "use client" ` +
+          `module: React hands the client reference over lazily, so it is never === ` +
+          `<DescriptionTerm>. Compose the whole <DescriptionList> inside one "use client" ` +
+          `component - that island is this family's Server-Component form. A deliberately ` +
+          `lazy() child is refused by the same rule: a group holds a term and its detail.`,
+      );
+    }
     if (child.type === DescriptionTerm) {
       if (details > 0) {
         throw new Error(
