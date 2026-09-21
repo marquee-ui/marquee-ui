@@ -6777,8 +6777,8 @@ changed, so `pnpm build:registry` ran and `packages/ui/r/description-list.json` 
 are committed with them. `registry.test.ts`'s "carries the CURRENT bytes of every source it ships"
 is the arm that makes that a required step rather than a tidy-up, and it is green.
 
-`pnpm test` at the head: **31 files / 560 tests**, against **31 / 555** at the base (`as-built.md`
-at `0b135c1`, re-read). The `+5` is exactly this stream's: 2 arms in
+`pnpm test` at the head: **31 files / 560 tests**, against **31 / 555** at the base - the base
+number MEASURED in the detached worktree at `1fd163d` rather than quoted from an earlier section. The `+5` is exactly this stream's: 2 arms in
 `description-list-structure.test.tsx` and 3 in `form-wiring.test.tsx`. `focus-outline.test.tsx`
 stays at 13 - LOW-2 widened a predicate rather than adding an arm, which is why its red had to be
 run in a detached worktree to exist at all.
