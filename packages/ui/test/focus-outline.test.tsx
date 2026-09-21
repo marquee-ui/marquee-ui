@@ -7,6 +7,8 @@ import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.js";
 import * as accordionStories from "../stories/accordion.stories.js";
+import * as checkboxStories from "../stories/checkbox.stories.js";
+import * as radioStories from "../stories/radio-group.stories.js";
 import * as switchStories from "../stories/switch.stories.js";
 
 /**
@@ -63,6 +65,8 @@ afterEach(cleanup);
 
 const switches = composeStories(switchStories);
 const accordions = composeStories(accordionStories);
+const checkboxes = composeStories(checkboxStories);
+const radios = composeStories(radioStories);
 
 const classesOf = (element: Element | null): string[] =>
   (element?.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
@@ -157,6 +161,22 @@ const HOSTS = [
     tag: "BUTTON",
     variant: "focus-visible",
   },
+  // Both added by HIGH-1's fix; the reason they were missing is in KNOWN_GAPS'
+  // docblock. Same construction as the Switch's label host.
+  {
+    name: "Checkbox row (label host)",
+    story: () => <checkboxes.Default />,
+    slot: "checkbox",
+    tag: "LABEL",
+    variant: "has-focus-visible",
+  },
+  {
+    name: "RadioGroupItem row (label host)",
+    story: () => <radios.Default />,
+    slot: "radio-group-item",
+    tag: "LABEL",
+    variant: "has-focus-visible",
+  },
 ] as const satisfies readonly {
   name: string;
   story: () => ReactElement;
@@ -179,12 +199,12 @@ function classesFor(host: Host): string[] {
 }
 
 describe("every keyboard host declares an outline, not only a shadow", () => {
-  it("found a sheet and three real hosts to measure", () => {
+  it("found a sheet and five real hosts to measure", () => {
     // Anchors: every assertion below is a lookup in one of these two, and both
     // can be empty - an empty class list would make every `under()` loop run
     // zero times and every `toContain` below assert nothing.
     expect(sheet.css.length).toBeGreaterThan(10_000);
-    expect(HOSTS.length).toBe(3);
+    expect(HOSTS.length).toBe(5);
     for (const host of HOSTS) {
       const classes = classesFor(host);
       expect(classes.length, `${host.name}: no classes at all`).toBeGreaterThan(5);
@@ -244,33 +264,18 @@ describe("every keyboard host declares an outline, not only a shadow", () => {
  * entry asserts the gap is STILL THERE, so closing the gap reddens this file and
  * the excuse dies with the fix rather than outliving it.
  *
- * Both were found by layer 1 (HIGH-1) after the sweep that produced the table
- * above missed them, and both are outside the fence of the slice that added this
- * file (`LIB-VENDOR-0.1.2`; `packages/ui/src/checkbox.tsx` and `radio-group.tsx`
- * are other parts' files), so they are RECORDED here and handed back rather than
- * edited.
+ * ⚠️ IT IS EMPTY, AND THAT IS THE POINT. It held `checkbox.tsx` and
+ * `radio-group.tsx` for exactly one commit: layer 1 (HIGH-1, batch DL15) found
+ * both carrying the Switch's forced-colors hole by a second route, the
+ * orchestrator widened the slice's fence to cover them (2026-09-21 ~18:55 IST),
+ * and the entries were deleted by the commit that fixed them. That deletion was
+ * not a courtesy: applying the fix with the entries still in place reddened this
+ * file through the expiry assertion below (`checkbox.tsx now declares an outline
+ * under has-focus-visible: … expected 2 to be null`), which is the behaviour the
+ * assertion exists to force. Leave the map here - the next part that has to ship
+ * short needs somewhere honest to say so.
  */
-const KNOWN_GAPS: Readonly<Record<string, { variant: Variant; reason: string }>> = {
-  "checkbox.tsx": {
-    variant: "has-focus-visible",
-    reason:
-      "The Checkbox row is the same construction as the Switch's label host that REQUEST A fixed: " +
-      "a <label> row with a real input inside it at opacity-0, and the ring drawn on the ROW " +
-      "because (checkbox.tsx's own words) the input's own ring is invisible at opacity-0. So the " +
-      "row's ENTIRE focus indicator is a box-shadow, and forced-colors: active drops box-shadow - " +
-      "a keyboard user in that mode gets no focus indicator at all. It needs the same three " +
-      "outline classes under has-focus-visible:. Outside LIB-VENDOR-0.1.2's fence, so it rides a " +
-      "later bump (layer 1 HIGH-1, batch DL15).",
-  },
-  "radio-group.tsx": {
-    variant: "has-focus-visible",
-    reason:
-      "RadioGroupItem's row is byte-for-byte the same construction and the same defect as the " +
-      "checkbox entry above: an opacity-0 input inside a <label> row whose only focus indicator " +
-      "is a box-shadow, which forced-colors: active drops. Same fix, same bump, same fence " +
-      "(layer 1 HIGH-1, batch DL15).",
-  },
-};
+const KNOWN_GAPS: Readonly<Record<string, { variant: Variant; reason: string }>> = {};
 
 describe("the invariant, over every part rather than a hand-written table", () => {
   /**
@@ -312,6 +317,8 @@ describe("the invariant, over every part rather than a hand-written table", () =
     ).toBeGreaterThanOrEqual(4);
     expect(sites.map((site) => site.file)).toContain("switch.tsx");
     expect(sites.map((site) => site.file)).toContain("accordion.tsx");
+    // Vacuous while the map is empty, and kept anyway: the moment somebody adds
+    // an entry it has to name a real ring site and carry a real reason.
     for (const name of Object.keys(KNOWN_GAPS)) {
       expect(
         sites.map((site) => site.file),
@@ -319,6 +326,16 @@ describe("the invariant, over every part rather than a hand-written table", () =
       ).toContain(name);
       expect(KNOWN_GAPS[name]!.reason.length, `${name}'s gap needs a reason`).toBeGreaterThan(80);
     }
+    // …so THIS is the live anchor: the exact set of ring sites the walk found.
+    // A part that stops declaring a ring, or a new one that starts, moves this
+    // list - which is the review the derived sweep exists to force.
+    expect(sites.map((site) => `${site.file} (${site.variant})`).sort()).toEqual([
+      "accordion.tsx (focus-visible)",
+      "checkbox.tsx (has-focus-visible)",
+      "radio-group.tsx (has-focus-visible)",
+      "switch.tsx (focus-visible)",
+      "switch.tsx (has-focus-visible)",
+    ]);
   });
 
   it("gives every focus ring an outline beside it, or names it as a known gap", () => {
