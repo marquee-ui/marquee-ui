@@ -14,12 +14,12 @@ import tailwind from "@tailwindcss/postcss";
  * cannot compile itself into existence.
  *
  * ⚠️ It is a MODULE rather than a third copy of the same forty lines.
- * `switch-drawing.test.tsx` and `tailwind-compile.test.tsx` each carry their own,
- * and the package has already paid once for one idea living in two files it could
- * disagree with (the story suites map, layer 1 of the Switch, MED-2). Those two
- * are outside this slice's fence; moving them onto this module is the next
- * library stream's tidy, and is recorded in `docs/as-built.md` rather than done
- * here.
+ * `switch-drawing.test.tsx` and `tailwind-compile.test.tsx` each carried their
+ * own, and the package has already paid once for one idea living in two files it
+ * could disagree with (the story suites map, layer 1 of the Switch, MED-2). Both
+ * were moved onto this module in DL14 (DL13's decision 12, a REQUEST the next
+ * library stream was asked to honour), so there is ONE resolver now and the four
+ * readers cannot disagree about what a length is.
  */
 export interface CompiledSheet {
   /** The emitted CSS, verbatim. */
@@ -28,6 +28,15 @@ export interface CompiledSheet {
   rule(name: string): string;
   /** Every selector this class appears in. */
   selectorsOf(name: string): string[];
+  /**
+   * Whether the compile emitted a rule for this class AT ALL.
+   *
+   * ⚠️ Not `rule(name) !== ""`, and the difference is real: a class whose rule
+   * body is empty - a variant that declares nothing, a `@media` shell - compiles
+   * and would read as absent. The set is filled by the same walk that fills the
+   * declarations, so the two cannot disagree about what exists.
+   */
+  has(name: string): boolean;
   /** Custom properties declared in the sheet's own `:root` blocks. */
   rootVars(): Map<string, string>;
   /** A CSS length in px, resolving `var()` and Tailwind's `calc()` spacing shape. */
@@ -50,6 +59,7 @@ export async function loadCompiledSheet(): Promise<CompiledSheet> {
 
   const declarations = new Map<string, string[]>();
   const selectors = new Map<string, string[]>();
+  const emitted = new Set<string>();
   postcss.parse(css).walkRules((node) => {
     const body = node.nodes
       .map((child) => child.toString())
@@ -57,6 +67,7 @@ export async function loadCompiledSheet(): Promise<CompiledSheet> {
       .trim();
     for (const match of node.selector.matchAll(/\.((?:\\.|[^\s.,:>+~(){}[\]])+)/g)) {
       const name = match[1]!.replace(/\\(.)/g, "$1");
+      emitted.add(name);
       declarations.set(name, [...(declarations.get(name) ?? []), body]);
       selectors.set(name, [...(selectors.get(name) ?? []), node.selector]);
     }
@@ -118,11 +129,18 @@ export async function loadCompiledSheet(): Promise<CompiledSheet> {
 
   /**
    * jsdom implements no cascade LAYERS and Tailwind 4 emits every utility inside
-   * `@layer utilities`, so an unflattened sheet applies NOTHING. Unwrapping is
-   * the only thing done to it - every selector and every declaration is the
-   * compiler's own - and it is faithful for every rule inside a layer, which is
-   * every rule these tests read. It is not faithful in general: after
-   * flattening, specificity decides where layer order used to.
+   * `@layer utilities`, so an unflattened sheet applies NOTHING: measured on this
+   * tree, injecting the compiled sheet as-is left a switch track at
+   * `position: static` and `background-color: rgba(0, 0, 0, 0)` - not one rule
+   * applied. Unwrapping is the only thing done to it - every selector and every
+   * declaration is the compiler's own, so nothing here can conjure a rule the
+   * build does not ship - and it is faithful for every rule INSIDE a layer, which
+   * is every rule these tests read.
+   *
+   * It is not faithful in general: after flattening, specificity decides where
+   * layer order used to, and this sheet carries two UNLAYERED class rules
+   * (`.mq-marquee`) whose precedence it therefore inverts (`switch-drawing`'s
+   * layer 1, LOW-1). No class any of the readers measures touches them.
    */
   const flattened = (): string => {
     const root = postcss.parse(css);
@@ -141,6 +159,7 @@ export async function loadCompiledSheet(): Promise<CompiledSheet> {
     css,
     rule,
     selectorsOf: (name) => selectors.get(name) ?? [],
+    has: (name) => emitted.has(name),
     rootVars,
     lengthPx,
     declared,
