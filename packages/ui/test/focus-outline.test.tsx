@@ -286,6 +286,32 @@ describe("the invariant, over every part rather than a hand-written table", () =
    * file green (layer 1, MED-3). So the set is DERIVED from the sources: every
    * part that declares a focus ring at all is enumerated, and the invariant is
    * checked against the COMPILED sheet, not against the class name.
+   *
+   * ⚠️ AND "DECLARES A FOCUS RING" IS A SHADOW **OR** AN OUTLINE (DL15 layer 2,
+   * LOW-2). The first edition asked for a `box-shadow` only, which made the
+   * sweep blind in exactly the direction it exists to look: a part shipping
+   * `focus-visible:outline-none` and NO shadow contributed no site, so the arm
+   * below had nothing to find it short on. Run rather than argued, in a detached
+   * worktree of `1fd163d`: a scratch part carrying that one class string left
+   * this file GREEN at 13 passed, and reddened BOTH arms once the predicate read
+   * an `outline-style` too - the exact-set anchor gained
+   * `low2-probe.tsx (focus-visible)` and the invariant reported
+   * `low2-probe.tsx (focus-visible): outline-width null`. The five shipping sites
+   * did not move, which is how the widening was known to be a widening and not a
+   * change of subject.
+   *
+   * ⚠️ `focus:` IS DELIBERATELY NOT A THIRD VARIANT, AND THE COST WAS MEASURED
+   * RATHER THAN GUESSED. `input.tsx:6` and `sheet.tsx:67` are the only two
+   * `focus:` sites in the package and neither declares an outline, so admitting
+   * the variant would enter both as short sites needing a `KNOWN_GAPS` entry
+   * apiece - `input.tsx`'s ring is Ankit's open [V] from DL15 and `sheet.tsx`'s
+   * is a decided non-target, so neither is this slice's to excuse. Measured in
+   * the same worktree, and it takes TWO edits, not one: adding
+   * `focus: ":focus"` to `VARIANTS` alone changed NOTHING, because the token
+   * walk below only reads a class string that already contains a
+   * `focus-visible:` token. With the regex widened as well, the sweep gained
+   * exactly `input.tsx (focus)` and `sheet.tsx (focus)`. The day either ring is
+   * this slice's, both halves move together.
    */
   const ringSites = (): { file: string; variant: Variant; tokens: string[] }[] => {
     const dir = resolve(process.cwd(), "packages/ui/src");
@@ -299,7 +325,13 @@ describe("the invariant, over every part rather than a hand-written table", () =
         .filter(Boolean);
       for (const variant of Object.keys(VARIANTS) as Variant[]) {
         const mine = tokens.filter((token) => token.startsWith(`${variant}:`));
-        if (mine.some((token) => sheet.declaredValues([token], "box-shadow").length > 0)) {
+        if (
+          mine.some(
+            (token) =>
+              sheet.declaredValues([token], "box-shadow").length > 0 ||
+              sheet.declaredValues([token], "outline-style").length > 0,
+          )
+        ) {
           sites.push({ file, variant, tokens: mine });
         }
       }
