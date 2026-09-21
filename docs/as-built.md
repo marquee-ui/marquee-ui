@@ -6489,6 +6489,15 @@ the change moves the focused look of every field in every consumer, which is Ank
 dialog surface, a programmatically focused container with no keyboard target, which is Radix's own
 pattern.
 
+⚠️ **OBSERVED IN A BROWSER since (batch DL16, 2026-09-22; layer 2 HIGH-1).** The consequence this section calls
+"reasoned, not observed" was measured by FOLLOWUPS-5's layer 1 on thepile's built app: `/login`'s email field under
+`forced-colors: active` reads `outline-style: none`, and the `focus:border-primary` fallback is flattened by the mode
+too, so every text field in that product has NO focus indicator there (ten non-test sites carry the class). **The fix
+can only originate HERE**: thepile's `components/ui/form-styles.ts:36` is pinned byte-equal to this file's `input.tsx:6`
+by its `form-styles.test.ts`, and its drift test byte-compares the `input` copy against `r/input.json`. Ankit's [V]
+above is therefore the decision that unblocks both repos (in-tier: every field's focused look), and the widened
+`ringSites()` sweep (DESIGN-LIB-d-select, item 2) stays blind to the `focus:` variant until it is taken.
+
 ### The packed tarball, as measured
 
 ```
@@ -6843,6 +6852,23 @@ consumption needs, each count read hit by hit with the command that produced it,
   `components/ui/form-styles.ts`, and that `/admin/reports` keeps its native control.
 - `form-styles.test.ts` is the guard that keeps thepile's `inputClass` equal to this package's, and
   it is the reason the Select answer is a refusal rather than a deferral. It is not touched.
+
+### Recorded for the next library stream (DL16 layer 2 and the reconciler, 2026-09-22)
+
+- **MED-4, FIXED here by the reconciler**: the boundary docblock at `description-list.tsx:387-390` (and one line in
+  `form.tsx`) had `$typeof`/`$id` where the code and React spell `$$typeof`/`$$id`; the spelling was in the rebuilt
+  `r/description-list.json` too. Corrected in both files, `pnpm build:registry`, the library's `pnpm verify` re-run.
+- **MED-2, the Alert family's rule carries half of what its two thepile call sites now establish.** `alert.tsx:17-24`
+  says a notice on the page from the start is not a live region and "pass the role when the notice ARRIVES"; thepile's
+  `/login` notice DOES arrive (a soft navigation, measured) and takes no role either, because a region inserted together
+  with its content is not announced reliably, while `/settings/steam`'s does not arrive (a document navigation,
+  measured). The rule text should say both halves: a role belongs on a region that exists, empty, before its content
+  does. The copy is consumed (`alert` in thepile's `CONSUMED`), so the docblock change rides the 0.1.3 bump and
+  re-adds the copy.
+- **s1's REQUEST 1 (DESIGN-LIB-f-members-avatar)**: `AvatarImage` owes a `ground` axis and `AvatarBadge` an `edge` axis;
+  both values sit in a `cva` BASE today, unreachable by a plain-join consumer, which is why thepile's wrapper holds
+  `--raised` and the 1.5px mark edge by inline declarations. Red-first through `avatar-drawing.test.tsx`.
+- With the messages of item 1 and the widened sweep of item 2, these are the 0.1.3 bump's.
 
 ### Consumers
 

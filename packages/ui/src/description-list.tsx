@@ -384,10 +384,10 @@ export function DescriptionList({ className, children, ...props }: DescriptionLi
  * `child.type`: an element a SERVER component creates reaches this `"use
  * client"` module as a client reference, which React hands over as its LAZY
  * wrapper - `typeof child.type === "object"`, own keys exactly
- * `["$typeof", "_payload", "_init"]` (the PRODUCTION flight client's shape;
+ * `["$$typeof", "_payload", "_init"]` (the PRODUCTION flight client's shape;
  * React's development build appends a `_debugInfo`, which is why only
- * `$typeof` is read below), `$typeof` the public `Symbol.for("react.lazy")`,
- * and no name, no `displayName`, no `$id` of its own. It is not the module's export and `===` is false against every part. The
+ * `$$typeof` is read below), `$$typeof` the public `Symbol.for("react.lazy")`,
+ * and no name, no `displayName`, no `$$id` of its own. It is not the module's export and `===` is false against every part. The
  * same composition inside ONE `"use client"` island read `child.type` as this
  * module's own function, identity true, and built.
  *

@@ -226,7 +226,7 @@ export function FormItem({ className, invalid = false, children, ...props }: For
         // ⚠️ AND IT CANNOT TELL THE TWO LAZIES APART, SO IT SAYS SO (layer 1,
         // MED-1, reproduced). A deliberate `lazy()` decoration beside a missing
         // control sets the same flag - React's own flight client discriminates a
-        // client reference by exactly this `$typeof` and nothing finer is
+        // client reference by exactly this `$$typeof` and nothing finer is
         // reachable from userland - so the sentence names both readings instead
         // of asserting the one it cannot know. All three halves are pinned in
         // test/form-wiring.test.tsx, including a field whose unrecognised child
