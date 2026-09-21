@@ -7,6 +7,7 @@ import { composeStories } from "@storybook/react-vite";
 import type { ReactElement } from "react";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.js";
 import { ALERT_TONES } from "@/alert";
 import { inputClass } from "@/input";
 import { STORY_SUITES } from "./helpers/story-suites.js";
@@ -40,113 +41,77 @@ const storiesOf = (module: object): [string, PlayableStory][] =>
     PlayableStory,
   ][];
 
-const FIXTURE = resolve(process.cwd(), "packages/ui/test/fixtures/compile.css");
-if (!existsSync(FIXTURE)) throw new Error(`compile fixture not found at ${FIXTURE}`);
-
-let css = "";
-/** Every class name the compile actually produced, unescaped. */
-const compiled = new Set<string>();
-/** class name -> the declaration bodies of every rule whose selector uses it. */
-const declarations = new Map<string, string[]>();
-
+let sheet: CompiledSheet;
 beforeAll(async () => {
-  const result = await postcss([tailwind()]).process(readFileSync(FIXTURE, "utf8"), {
-    from: FIXTURE,
-  });
-  css = result.css;
-  postcss.parse(css).walkRules((node) => {
-    const body = node.nodes
-      .map((child) => child.toString())
-      .join("; ")
-      .trim();
-    for (const match of node.selector.matchAll(/\.((?:\\.|[^\s.,:>+~(){}[\]])+)/g)) {
-      const name = match[1]!.replace(/\\(.)/g, "$1");
-      compiled.add(name);
-      declarations.set(name, [...(declarations.get(name) ?? []), body]);
-    }
-  });
+  sheet = await loadCompiledSheet();
 }, 60_000);
-
-/**
- * Every declaration Tailwind emitted for a class, joined.
- *
- * Built by WALKING the parsed stylesheet and unescaping each selector, not by
- * building a regex out of the class name: a name like
- * `transition-[transform,box-shadow]` escapes into a pattern that is not a valid
- * regex at all, and one like `hover:-translate-y-0.5` escapes into one that matches
- * the wrong rule. The walk is the same one that fills `compiled`, so the two cannot
- * disagree about what exists.
- */
-function rule(name: string): string {
-  return declarations.get(name)?.join(" ") ?? "";
-}
 
 describe("the emitted stylesheet compiles", () => {
   it("produces a stylesheet at all", () => {
     // Anchor: every assertion below is a substring check, and they all pass
     // vacuously against a compile that silently produced nothing.
-    expect(css.length).toBeGreaterThan(10_000);
-    expect(css).toContain("--primary:");
+    expect(sheet.css.length).toBeGreaterThan(10_000);
+    expect(sheet.css).toContain("--primary:");
     // NOT @font-face: the faces are their own sheet since a3, and this compile
     // imports only the tokens. `--font-display` is the equivalent anchor.
-    expect(css).toContain("--font-display:");
+    expect(sheet.css).toContain("--font-display:");
   });
 
   it("resolves colour roles straight to their :root variable, not to a copy", () => {
     // `@theme inline` is why: a plain `@theme` would emit `--color-primary` into
     // the theme layer and the utility would read THAT, so a preset swapping
     // `--primary` at runtime would move nothing.
-    expect(rule("bg-primary")).toContain("var(--primary)");
-    expect(rule("text-foreground")).toContain("var(--foreground)");
-    expect(rule("text-foreground-2")).toContain("var(--foreground-2)");
-    expect(rule("bg-brand")).toContain("var(--brand)");
-    expect(rule("border-border-strong")).toContain("var(--border-strong)");
-    expect(rule("bg-scrim")).toContain("var(--scrim)");
-    expect(rule("text-primary-ink")).toContain("var(--primary-ink)");
+    expect(sheet.rule("bg-primary")).toContain("var(--primary)");
+    expect(sheet.rule("text-foreground")).toContain("var(--foreground)");
+    expect(sheet.rule("text-foreground-2")).toContain("var(--foreground-2)");
+    expect(sheet.rule("bg-brand")).toContain("var(--brand)");
+    expect(sheet.rule("border-border-strong")).toContain("var(--border-strong)");
+    expect(sheet.rule("bg-scrim")).toContain("var(--scrim)");
+    expect(sheet.rule("text-primary-ink")).toContain("var(--primary-ink)");
   });
 
   it("resolves the depth roles, including the offset block", () => {
-    expect(rule("shadow-lift")).toContain("var(--shadow-lift)");
-    expect(rule("shadow-band")).toContain("var(--shadow-band)");
-    expect(rule("shadow-lg")).toContain("var(--shadow-lg)");
+    expect(sheet.rule("shadow-lift")).toContain("var(--shadow-lift)");
+    expect(sheet.rule("shadow-band")).toContain("var(--shadow-band)");
+    expect(sheet.rule("shadow-lg")).toContain("var(--shadow-lg)");
     // The form that actually ships: nothing writes `shadow-focus-ring` bare, and
     // asserting the bare name only worked while Tailwind was extracting candidates
     // out of this very file.
-    expect(rule("focus-visible:shadow-focus-ring")).toContain("var(--shadow-focus-ring)");
+    expect(sheet.rule("focus-visible:shadow-focus-ring")).toContain("var(--shadow-focus-ring)");
     // …and does NOT re-emit them into the theme layer as self-references.
-    expect(css).not.toContain("--shadow-lift: var(--shadow-lift)");
+    expect(sheet.css).not.toContain("--shadow-lift: var(--shadow-lift)");
   });
 
   it("resolves the skeleton: the tap floor, the type scale and the tracking", () => {
-    expect(rule("min-h-hit")).toContain("var(--hit-min)");
-    expect(rule("text-3xs")).toContain("var(--text-3xs)");
-    expect(rule("text-2xs")).toContain("var(--text-2xs)");
-    expect(rule("tracking-label")).toContain("var(--tracking-label)");
-    expect(rule("rounded-md")).toContain("var(--radius-md)");
+    expect(sheet.rule("min-h-hit")).toContain("var(--hit-min)");
+    expect(sheet.rule("text-3xs")).toContain("var(--text-3xs)");
+    expect(sheet.rule("text-2xs")).toContain("var(--text-2xs)");
+    expect(sheet.rule("tracking-label")).toContain("var(--tracking-label)");
+    expect(sheet.rule("rounded-md")).toContain("var(--radius-md)");
   });
 
   it("resolves the three faces", () => {
-    expect(rule("font-display")).toContain("var(--font-display)");
-    expect(rule("font-mono")).toContain("var(--font-mono)");
+    expect(sheet.rule("font-display")).toContain("var(--font-display)");
+    expect(sheet.rule("font-mono")).toContain("var(--font-mono)");
     // The literal family name reaches the compile through the TOKEN, not through
     // an `@font-face`: the faces are their own sheet since a3 and this compile
     // imports only the tokens. Loading the file is the consumer's job.
-    expect(css).toContain('--font-display: "Boldonse"');
-    expect(css).not.toContain("@font-face");
+    expect(sheet.css).toContain('--font-display: "Boldonse"');
+    expect(sheet.css).not.toContain("@font-face");
   });
 
   it("ships the component stylesheet the ribbon imports", () => {
-    expect(rule("mq-marquee")).toContain("max-content");
-    expect(css).toContain("@keyframes mq-marquee");
+    expect(sheet.rule("mq-marquee")).toContain("max-content");
+    expect(sheet.css).toContain("@keyframes mq-marquee");
     // The duration is per instance, so only the seam for a hand-rolled track.
-    expect(rule("mq-marquee")).toContain("--mq-marquee-duration");
+    expect(sheet.rule("mq-marquee")).toContain("--mq-marquee-duration");
   });
 
   it("can tell a missing utility from a present one", () => {
     // The instrument's own reddening case: a name no `@theme` declares compiles
-    // to nothing, and `rule()` returns "" rather than throwing.
-    expect(rule("bg-primary")).not.toBe("");
-    expect(rule("bg-no-such-role")).toBe("");
+    // to nothing, and `sheet.rule()` returns "" rather than throwing.
+    expect(sheet.rule("bg-primary")).not.toBe("");
+    expect(sheet.rule("bg-no-such-role")).toBe("");
   });
 });
 
@@ -190,14 +155,14 @@ describe("every class the parts render is a utility that compiles", () => {
   });
 
   it("compiles every one of them", () => {
-    const missing = [...rendered].filter((token) => !compiled.has(token)).sort();
+    const missing = [...rendered].filter((token) => !sheet.has(token)).sort();
     expect(missing).toEqual([]);
   });
 
   it("would notice a class that compiles to nothing", () => {
     // The instrument proved against its own violating sample.
-    expect(compiled.has("bg-primary")).toBe(true);
-    expect(compiled.has("bg-not-a-role")).toBe(false);
+    expect(sheet.has("bg-primary")).toBe(true);
+    expect(sheet.has("bg-not-a-role")).toBe(false);
   });
 });
 
@@ -215,39 +180,6 @@ describe("every class the parts render is a utility that compiles", () => {
  * else's product.
  */
 const TAP_FLOOR_PX = 44;
-
-/** Custom properties declared in the compiled sheet's `:root` blocks. */
-function rootVars(): Map<string, string> {
-  const vars = new Map<string, string>();
-  for (const block of css.matchAll(/:root\s*(?:,[^{]*)?\{([^}]*)\}/g)) {
-    for (const line of block[1]!.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/gi)) {
-      if (!vars.has(line[1]!)) vars.set(line[1]!, line[2]!.trim());
-    }
-  }
-  return vars;
-}
-
-/**
- * A CSS length in px. Resolves `var()` against the sheet's own `:root`, and the one
- * `calc()` shape Tailwind's spacing scale emits (`calc(var(--spacing) * 11)`), which
- * is how `h-11` and `min-h-11` are written and therefore how three real controls in
- * this package declare their height. Null if it is not a length at all.
- */
-function lengthPx(value: string, vars: Map<string, string>): number | null {
-  const resolved = value
-    .replace(/var\((--[a-z0-9-]+)\)/gi, (_, name: string) => vars.get(name) ?? "")
-    .trim();
-  const plain = /^(-?\d*\.?\d+)(px|rem)$/.exec(resolved);
-  if (plain) return Number(plain[1]) * (plain[2] === "rem" ? 16 : 1);
-  const scaled =
-    /^calc\(\s*(-?\d*\.?\d+)(px|rem)\s*\*\s*(-?\d*\.?\d+)\s*\)$/.exec(resolved) ??
-    /^calc\(\s*(-?\d*\.?\d+)\s*\*\s*(-?\d*\.?\d+)(px|rem)\s*\)$/.exec(resolved);
-  if (!scaled) return null;
-  const [a, b, c] = [scaled[1]!, scaled[2]!, scaled[3]!];
-  return /^\d/.test(b)
-    ? Number(a) * Number(b) * (c === "rem" ? 16 : 1)
-    : Number(a) * Number(c) * (b === "rem" ? 16 : 1);
-}
 
 /**
  * The class list shared by every element a selector matches in one story - and
@@ -270,25 +202,11 @@ function slotTokens(module: object, storyName: string, selector: string): string
   return lists[0]!.split(/\s+/).filter(Boolean);
 }
 
-/** Every value the compiled sheet declares for one property across a class list. */
-function declaredValues(classes: readonly string[], property: string): string[] {
-  const out: string[] = [];
-  for (const token of classes) {
-    for (const match of rule(token).matchAll(
-      new RegExp(`(?:^|[;\\s])${property}\\s*:\\s*([^;]+)`, "g"),
-    )) {
-      out.push(match[1]!.trim());
-    }
-  }
-  return out;
-}
-
 describe("every interactive element clears the 44px tap floor", () => {
   const offenders: string[] = [];
   const checked: string[] = [];
 
   beforeAll(() => {
-    const vars = rootVars();
     const suites = STORY_SUITES;
     for (const module of Object.values(suites)) {
       for (const [, Story] of storiesOf(module)) {
@@ -300,7 +218,7 @@ describe("every interactive element clears the 44px tap floor", () => {
           const tokens = (element.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
           let best = 0;
           for (const token of tokens) {
-            const body = rule(token);
+            const body = sheet.rule(token);
             // Anchored: unanchored, `height` also matches inside `line-height:` and
             // `max-height:`, and every one of this package's controls carries a
             // `text-*` utility that emits a line-height (layer 1, LOW-3 - latent
@@ -308,7 +226,7 @@ describe("every interactive element clears the 44px tap floor", () => {
             for (const declaration of body.matchAll(
               /(?:^|[;\s])(?:min-height|height)\s*:\s*([^;]+)/g,
             )) {
-              const px = lengthPx(declaration[1]!, vars);
+              const px = sheet.lengthPx(declaration[1]!);
               if (px !== null && px > best) best = px;
             }
           }
@@ -325,12 +243,12 @@ describe("every interactive element clears the 44px tap floor", () => {
     // Anchor: an empty candidate list, or a resolver that returns null for
     // everything, would make the assertion below vacuous.
     expect(checked.length).toBeGreaterThan(20);
-    expect(rootVars().get("--hit-min")).toBe("44px");
-    expect(lengthPx("var(--hit-min)", rootVars())).toBe(TAP_FLOOR_PX);
-    expect(lengthPx("2.75rem", rootVars())).toBe(TAP_FLOOR_PX);
+    expect(sheet.rootVars().get("--hit-min")).toBe("44px");
+    expect(sheet.lengthPx("var(--hit-min)")).toBe(TAP_FLOOR_PX);
+    expect(sheet.lengthPx("2.75rem")).toBe(TAP_FLOOR_PX);
     // The spelling three real controls here use, via `h-11` / `min-h-11`.
-    expect(lengthPx("calc(var(--spacing) * 11)", rootVars())).toBe(TAP_FLOOR_PX);
-    expect(lengthPx("auto", rootVars())).toBeNull();
+    expect(sheet.lengthPx("calc(var(--spacing) * 11)")).toBe(TAP_FLOOR_PX);
+    expect(sheet.lengthPx("auto")).toBeNull();
   });
 
   it("measures every one of them at or above the floor", () => {
@@ -366,8 +284,8 @@ describe("the trail's one line and the pager's two axes, in resolved declaration
     // pass vacuously. One positive read and one negative, in the same shapes.
     const item = slotTokens(crumb(), "Trail", '[data-slot="breadcrumb-item"]');
     expect(item.length).toBeGreaterThan(2);
-    expect(declaredValues(item, "flex-shrink")).not.toEqual([]);
-    expect(declaredValues(item, "border-collapse")).toEqual([]);
+    expect(sheet.declaredValues(item, "flex-shrink")).not.toEqual([]);
+    expect(sheet.declaredValues(item, "border-collapse")).toEqual([]);
   });
 
   it("lets only the step you are standing on give way", () => {
@@ -375,32 +293,31 @@ describe("the trail's one line and the pager's two axes, in resolved declaration
     const pageItem = slotTokens(crumb(), "Trail", '[data-slot="breadcrumb-page-item"]');
     // The linked steps: pinned at their own width, so a 44px tap band can never
     // end up over a neighbour's visible text.
-    expect(declaredValues(item, "flex-shrink")).toEqual(["0"]);
-    expect(declaredValues(item, "min-width")).toEqual([]);
+    expect(sheet.declaredValues(item, "flex-shrink")).toEqual(["0"]);
+    expect(sheet.declaredValues(item, "min-width")).toEqual([]);
     // The current step: allowed to shrink, and below its content, which is what
     // the truncation needs. A flex item's automatic minimum size is its content,
     // so `min-width: 0` is the whole difference between truncating and overflowing.
-    expect(declaredValues(pageItem, "flex-shrink")).toEqual([]);
+    expect(sheet.declaredValues(pageItem, "flex-shrink")).toEqual([]);
     expect(
-      declaredValues(pageItem, "min-width").map((value) => lengthPx(value, rootVars())),
+      sheet.declaredValues(pageItem, "min-width").map((value) => sheet.lengthPx(value)),
     ).toEqual([0]);
   });
 
   it("truncates the current step rather than wrapping the trail", () => {
     const page = slotTokens(crumb(), "Trail", '[data-slot="breadcrumb-page"]');
-    expect(declaredValues(page, "overflow")).toEqual(["hidden"]);
-    expect(declaredValues(page, "text-overflow")).toEqual(["ellipsis"]);
-    expect(declaredValues(page, "white-space")).toEqual(["nowrap"]);
+    expect(sheet.declaredValues(page, "overflow")).toEqual(["hidden"]);
+    expect(sheet.declaredValues(page, "text-overflow")).toEqual(["ellipsis"]);
+    expect(sheet.declaredValues(page, "white-space")).toEqual(["nowrap"]);
   });
 
   it("gives every tappable step of the trail the floor, in pixels", () => {
     const link = slotTokens(crumb(), "Trail", '[data-slot="breadcrumb-link"]');
-    const heights = declaredValues(link, "min-height").map((value) => lengthPx(value, rootVars()));
+    const heights = sheet.declaredValues(link, "min-height").map((value) => sheet.lengthPx(value));
     expect(heights).toEqual([TAP_FLOOR_PX]);
   });
 
   it("gives the pager's cells the floor on BOTH axes, which no other guard reads", () => {
-    const vars = rootVars();
     // Both kinds of cell, because the page you are on is drawn from a different
     // string and a floor that moved with the state would be a floor nobody has.
     for (const [what, selector] of [
@@ -409,11 +326,11 @@ describe("the trail's one line and the pager's two axes, in resolved declaration
     ] as const) {
       const link = slotTokens(pager(), "Window", selector);
       expect(
-        declaredValues(link, "min-height").map((value) => lengthPx(value, vars)),
+        sheet.declaredValues(link, "min-height").map((value) => sheet.lengthPx(value)),
         `${what}: min-height`,
       ).toEqual([TAP_FLOOR_PX]);
       expect(
-        declaredValues(link, "min-width").map((value) => lengthPx(value, vars)),
+        sheet.declaredValues(link, "min-width").map((value) => sheet.lengthPx(value)),
         `${what}: min-width`,
       ).toEqual([TAP_FLOOR_PX]);
     }
@@ -453,8 +370,8 @@ describe("the notice's tone, in resolved declarations", () => {
     // from each other without these two.
     const classes = box("Default");
     expect(classes.length).toBeGreaterThan(4);
-    expect(declaredValues(classes, "border-color")).not.toEqual([]);
-    expect(declaredValues(classes, "border-collapse")).toEqual([]);
+    expect(sheet.declaredValues(classes, "border-color")).not.toEqual([]);
+    expect(sheet.declaredValues(classes, "border-collapse")).toEqual([]);
     // …and the table below is not a hand-typed list that tolerates zero rows:
     // emptying it left this file byte-identically green, and a SIXTH tone in the
     // part reached neither of this family's two tables (layer 1, MED-2, HIGH-2).
@@ -465,29 +382,32 @@ describe("the notice's tone, in resolved declarations", () => {
   it("resolves every tone's line AND ink to the role's own variable", () => {
     for (const [story, line, ink] of TONES) {
       const classes = box(story);
-      expect(declaredValues(classes, "border-color"), `${story}: line`).toEqual([`var(${line})`]);
-      expect(declaredValues(classes, "color"), `${story}: ink`).toEqual([`var(${ink})`]);
+      expect(sheet.declaredValues(classes, "border-color"), `${story}: line`).toEqual([
+        `var(${line})`,
+      ]);
+      expect(sheet.declaredValues(classes, "color"), `${story}: ink`).toEqual([`var(${ink})`]);
     }
   });
 
   it("draws the house line weight and the house radius, in pixels", () => {
-    const vars = rootVars();
     const classes = box("Default");
-    expect(declaredValues(classes, "border-width").map((v) => lengthPx(v, vars))).toEqual([2]);
-    expect(declaredValues(classes, "padding").map((v) => lengthPx(v, vars))).toEqual([12]);
-    expect(declaredValues(classes, "border-radius")).toEqual(["var(--radius-md)"]);
+    expect(sheet.declaredValues(classes, "border-width").map((v) => sheet.lengthPx(v))).toEqual([
+      2,
+    ]);
+    expect(sheet.declaredValues(classes, "padding").map((v) => sheet.lengthPx(v))).toEqual([12]);
+    expect(sheet.declaredValues(classes, "border-radius")).toEqual(["var(--radius-md)"]);
   });
 
   it("lets the tone reach the prose AND the headline: neither declares an ink", () => {
     const description = slotTokens(alert(), "Default", '[data-slot="alert-description"]');
     // The box HAS an ink (asserted above), and this element does not - which is
     // what makes a destructive notice destructive all the way down.
-    expect(declaredValues(box("Default"), "color")).toEqual(["var(--foreground-2)"]);
-    expect(declaredValues(description, "color")).toEqual([]);
+    expect(sheet.declaredValues(box("Default"), "color")).toEqual(["var(--foreground-2)"]);
+    expect(sheet.declaredValues(description, "color")).toEqual([]);
     // The headline is a weight, never a second colour that could disagree.
     const title = slotTokens(alert(), "Default", '[data-slot="alert-title"]');
-    expect(declaredValues(title, "color")).toEqual([]);
-    expect(declaredValues(title, "font-weight")).not.toEqual([]);
+    expect(sheet.declaredValues(title, "color")).toEqual([]);
+    expect(sheet.declaredValues(title, "font-weight")).not.toEqual([]);
   });
 
   it("is the flex column both docblocks say it is", () => {
@@ -496,11 +416,10 @@ describe("the notice's tone, in resolved declarations", () => {
     // being a child) and the owner of the gutter between the parts. Deleting
     // `flex flex-col gap-2` left the WHOLE suite green - jsdom lays nothing out,
     // so nothing else here can see it (layer 1, MED-3).
-    const vars = rootVars();
     const classes = box("Default");
-    expect(declaredValues(classes, "display")).toEqual(["flex"]);
-    expect(declaredValues(classes, "flex-direction")).toEqual(["column"]);
-    expect(declaredValues(classes, "gap").map((v) => lengthPx(v, vars))).toEqual([8]);
+    expect(sheet.declaredValues(classes, "display")).toEqual(["flex"]);
+    expect(sheet.declaredValues(classes, "flex-direction")).toEqual(["column"]);
+    expect(sheet.declaredValues(classes, "gap").map((v) => sheet.lengthPx(v))).toEqual([8]);
   });
 
   it("decides no width, no outer margin and no tap floor", () => {
@@ -525,7 +444,7 @@ describe("the notice's tone, in resolved declarations", () => {
     // notice decides nothing about its place in the page".
     const declared = new Set<string>();
     for (const token of box("Default")) {
-      for (const match of rule(token).matchAll(/(?:^|[;\s])([a-z-]+)\s*:/g)) {
+      for (const match of sheet.rule(token).matchAll(/(?:^|[;\s])([a-z-]+)\s*:/g)) {
         declared.add(match[1]!);
       }
     }
@@ -571,8 +490,8 @@ describe("the field's stack and its two inks, in resolved declarations", () => {
     // property nothing declares read the same without both of these.
     const classes = item("Default");
     expect(classes.length).toBeGreaterThan(2);
-    expect(declaredValues(classes, "display")).not.toEqual([]);
-    expect(declaredValues(classes, "border-collapse")).toEqual([]);
+    expect(sheet.declaredValues(classes, "display")).not.toEqual([]);
+    expect(sheet.declaredValues(classes, "border-collapse")).toEqual([]);
   });
 
   it("is the 4px-grid column the docblock says it is", () => {
@@ -580,35 +499,33 @@ describe("the field's stack and its two inks, in resolved declarations", () => {
     // 4px spacing grid, which AGENTS.md names as skeleton. In pixels, so a
     // silent move to another step is a number that changes rather than a class
     // name that still reads plausibly.
-    const vars = rootVars();
     const classes = item("Default");
-    expect(declaredValues(classes, "display")).toEqual(["flex"]);
-    expect(declaredValues(classes, "flex-direction")).toEqual(["column"]);
-    expect(declaredValues(classes, "gap").map((v) => lengthPx(v, vars))).toEqual([4]);
+    expect(sheet.declaredValues(classes, "display")).toEqual(["flex"]);
+    expect(sheet.declaredValues(classes, "flex-direction")).toEqual(["column"]);
+    expect(sheet.declaredValues(classes, "gap").map((v) => sheet.lengthPx(v))).toEqual([4]);
   });
 
   it("owns the type size, and the control overrides it with the 16px floor", () => {
-    const vars = rootVars();
     // The item carries the size once, for the label, the description and the
     // message together - `Alert`'s arrangement with the two axes swapped.
-    expect(declaredValues(item("Default"), "font-size").map((v) => lengthPx(v, vars))).toEqual([
-      14,
-    ]);
+    expect(
+      sheet.declaredValues(item("Default"), "font-size").map((v) => sheet.lengthPx(v)),
+    ).toEqual([14]);
     // …and the control must NOT inherit it: anything under 16px makes iOS Safari
     // zoom the viewport on focus and never zoom back, which is why `Input`
     // declares `text-base` on itself. Read off the rendered control, not typed.
     const control = slotTokens(form(), "Default", "input");
-    expect(declaredValues(control, "font-size").map((v) => lengthPx(v, vars))).toEqual([16]);
+    expect(sheet.declaredValues(control, "font-size").map((v) => sheet.lengthPx(v))).toEqual([16]);
   });
 
   it("resolves the description's and the message's ink to the role's own variable", () => {
     const description = slotTokens(form(), "Described", '[data-slot="form-description"]');
-    expect(declaredValues(description, "color")).toEqual(["var(--muted)"]);
+    expect(sheet.declaredValues(description, "color")).toEqual(["var(--muted)"]);
     const message = slotTokens(form(), "Invalid", '[data-slot="form-message"]');
-    expect(declaredValues(message, "color")).toEqual(["var(--destructive)"]);
+    expect(sheet.declaredValues(message, "color")).toEqual(["var(--destructive)"]);
     // Neither declares a size of its own: the item owns that (the arm above).
-    expect(declaredValues(description, "font-size")).toEqual([]);
-    expect(declaredValues(message, "font-size")).toEqual([]);
+    expect(sheet.declaredValues(description, "font-size")).toEqual([]);
+    expect(sheet.declaredValues(message, "font-size")).toEqual([]);
   });
 
   it("puts no drawing at all on the control slot", () => {
@@ -626,7 +543,7 @@ describe("the field's stack and its two inks, in resolved declarations", () => {
     expect(control).toEqual(inputClass.split(" "));
     // The positive anchor: this really is the drawn control, so the equality
     // above is a statement about a rendered element and not about two empties.
-    expect(declaredValues(control, "border-width").length).toBeGreaterThan(0);
+    expect(sheet.declaredValues(control, "border-width").length).toBeGreaterThan(0);
   });
 
   it("declares exactly the properties the stack needs, and nothing else", () => {
@@ -644,7 +561,7 @@ describe("the field's stack and its two inks, in resolved declarations", () => {
     // anyone having had to think of its spelling first.
     const declared = new Set<string>();
     for (const token of item("Default")) {
-      for (const match of rule(token).matchAll(/(?:^|[;\s])([a-z-]+)\s*:/g)) {
+      for (const match of sheet.rule(token).matchAll(/(?:^|[;\s])([a-z-]+)\s*:/g)) {
         declared.add(match[1]!);
       }
     }
@@ -735,7 +652,8 @@ describe("the description list's parts, in resolved declarations", () => {
   const declaredProperties = (classes: readonly string[]): string[] => {
     const found = new Set<string>();
     for (const token of classes) {
-      for (const match of rule(token).matchAll(/(?:^|[;\s])([a-z-]+)\s*:/g)) found.add(match[1]!);
+      for (const match of sheet.rule(token).matchAll(/(?:^|[;\s])([a-z-]+)\s*:/g))
+        found.add(match[1]!);
     }
     return [...found].sort();
   };
@@ -745,8 +663,8 @@ describe("the description list's parts, in resolved declarations", () => {
     // property nothing declares read the same without both of these.
     const term = slotTokens(dl(), "Default", '[data-slot="description-term"]');
     expect(term.length).toBeGreaterThan(3);
-    expect(declaredValues(term, "color")).not.toEqual([]);
-    expect(declaredValues(term, "border-collapse")).toEqual([]);
+    expect(sheet.declaredValues(term, "color")).not.toEqual([]);
+    expect(sheet.declaredValues(term, "border-collapse")).toEqual([]);
   });
 
   it("the list contributes nothing: every class on the dl is the caller's", () => {
@@ -772,19 +690,18 @@ describe("the description list's parts, in resolved declarations", () => {
   });
 
   it("the term is the house micro-label, in resolved values", () => {
-    const vars = rootVars();
     const term = slotTokens(dl(), "Default", '[data-slot="description-term"]');
     // The NAMED tracking token, not one of the four literals the product spells:
     // `--tracking-label` exists for exactly this treatment.
-    expect(declaredValues(term, "letter-spacing")).toEqual(["var(--tracking-label)"]);
-    expect(vars.get("--tracking-label")).toBe("0.12em");
+    expect(sheet.declaredValues(term, "letter-spacing")).toEqual(["var(--tracking-label)"]);
+    expect(sheet.rootVars().get("--tracking-label")).toBe("0.12em");
     // The ink resolves to the ROLE's own variable, never to a copy of its value.
-    expect(declaredValues(term, "color")).toEqual(["var(--muted)"]);
-    expect(declaredValues(term, "font-family")).toEqual(["var(--font-mono)"]);
-    expect(declaredValues(term, "text-transform")).toEqual(["uppercase"]);
+    expect(sheet.declaredValues(term, "color")).toEqual(["var(--muted)"]);
+    expect(sheet.declaredValues(term, "font-family")).toEqual(["var(--font-mono)"]);
+    expect(sheet.declaredValues(term, "text-transform")).toEqual(["uppercase"]);
     // In pixels, so a silent move to another step is a number that changes rather
     // than a class name that still reads plausibly.
-    expect(declaredValues(term, "font-size").map((v) => lengthPx(v, vars))).toEqual([9.6]);
+    expect(sheet.declaredValues(term, "font-size").map((v) => sheet.lengthPx(v))).toEqual([9.6]);
   });
 
   it("declares exactly the properties the term needs, and nothing else", () => {
@@ -811,25 +728,24 @@ describe("the description list's parts, in resolved declarations", () => {
     // to fight in a consumer whose `cn` is a join rather than a merge.
     const plain = slotTokens(dl(), "Prose", '[data-slot="description-term"]');
     expect(plain).toEqual(["font-semibold", "text-foreground"]);
-    expect(declaredValues(plain, "text-transform")).toEqual([]);
-    expect(declaredValues(plain, "font-family")).toEqual([]);
+    expect(sheet.declaredValues(plain, "text-transform")).toEqual([]);
+    expect(sheet.declaredValues(plain, "font-family")).toEqual([]);
   });
 
   it("the group's two layouts are two different resolved drawings", () => {
-    const vars = rootVars();
     // `Prose` and `Inline` both pass no className on the item, so each set is the
     // variant's own contribution. The pair is the instrument: two values that
     // resolved the same would make every layout claim vacuous.
     const stack = slotTokens(dl(), "Prose", '[data-slot="description-item"]');
     const inline = slotTokens(dl(), "Inline", '[data-slot="description-item"]');
-    expect(declaredValues(stack, "flex-direction")).toEqual(["column"]);
-    expect(declaredValues(inline, "flex-direction")).toEqual([]);
-    expect(declaredValues(inline, "align-items")).toEqual(["baseline"]);
-    expect(declaredValues(stack, "align-items")).toEqual([]);
+    expect(sheet.declaredValues(stack, "flex-direction")).toEqual(["column"]);
+    expect(sheet.declaredValues(inline, "flex-direction")).toEqual([]);
+    expect(sheet.declaredValues(inline, "align-items")).toEqual(["baseline"]);
+    expect(sheet.declaredValues(stack, "align-items")).toEqual([]);
     // The 4px grid, in pixels: 4 stacked, 8 inline. Both on the grid AGENTS.md
     // names as skeleton, which is what broke both ties in the derivation.
-    expect(declaredValues(stack, "gap").map((v) => lengthPx(v, vars))).toEqual([4]);
-    expect(declaredValues(inline, "gap").map((v) => lengthPx(v, vars))).toEqual([8]);
+    expect(sheet.declaredValues(stack, "gap").map((v) => sheet.lengthPx(v))).toEqual([4]);
+    expect(sheet.declaredValues(inline, "gap").map((v) => sheet.lengthPx(v))).toEqual([8]);
   });
 
   it("declares exactly the properties each layout needs, and nothing else", () => {

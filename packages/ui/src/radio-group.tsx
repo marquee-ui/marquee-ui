@@ -1,3 +1,5 @@
+"use client";
+
 import { Slot } from "@radix-ui/react-slot";
 import { Children, createContext, isValidElement, useContext, useId } from "react";
 import type { ComponentProps, ReactNode } from "react";
@@ -226,7 +228,11 @@ export function RadioGroupInput({ className, ...props }: RadioGroupInputProps) {
         "and radios without one are not a group - every one of them can be checked at once.",
     );
   }
-  if ("name" in props) {
+  // `!== undefined` rather than `in`, which is `refuseAsChild`'s form above and
+  // for the same reason: `{...rest}` from a caller that destructured `name` off
+  // its own props carries the key with no value, and `in` calls that a name
+  // (DL13 layer 2, LOW-7).
+  if ((props as { name?: unknown }).name !== undefined) {
     throw new Error(
       '<RadioGroupInput> does not take "name": the group owns it, so a second spelling here would ' +
         "split one group into two. Pass it to <RadioGroup name=…> instead.",

@@ -1,12 +1,9 @@
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import postcss from "postcss";
-import tailwind from "@tailwindcss/postcss";
 import { cleanup, render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { composeStories } from "@storybook/react-vite";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
+import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.js";
 import { Switch, SwitchInput, SwitchThumb, SwitchTrack } from "@/switch";
 import * as switchStories from "../stories/switch.stories.js";
 
@@ -39,82 +36,13 @@ import * as switchStories from "../stories/switch.stories.js";
  * geometry test that types its own class names measures its own typing.
  */
 
-const FIXTURE = resolve(process.cwd(), "packages/ui/test/fixtures/compile.css");
-if (!existsSync(FIXTURE)) throw new Error(`compile fixture not found at ${FIXTURE}`);
-
-let css = "";
-/** class name -> the declaration bodies of every rule whose selector uses it. */
-const declarations = new Map<string, string[]>();
-/** class name -> every selector it appears in. */
-const selectors = new Map<string, string[]>();
-
+let sheet: CompiledSheet;
 beforeAll(async () => {
-  const result = await postcss([tailwind()]).process(readFileSync(FIXTURE, "utf8"), {
-    from: FIXTURE,
-  });
-  css = result.css;
-  postcss.parse(css).walkRules((node) => {
-    const body = node.nodes
-      .map((child) => child.toString())
-      .join("; ")
-      .trim();
-    for (const match of node.selector.matchAll(/\.((?:\\.|[^\s.,:>+~(){}[\]])+)/g)) {
-      const name = match[1]!.replace(/\\(.)/g, "$1");
-      declarations.set(name, [...(declarations.get(name) ?? []), body]);
-      selectors.set(name, [...(selectors.get(name) ?? []), node.selector]);
-    }
-  });
+  sheet = await loadCompiledSheet();
 }, 60_000);
-
-const rule = (name: string): string => declarations.get(name)?.join(" ") ?? "";
-
-/** Custom properties declared in the compiled sheet's `:root` blocks. */
-function rootVars(): Map<string, string> {
-  const vars = new Map<string, string>();
-  for (const block of css.matchAll(/:root\s*(?:,[^{]*)?\{([^}]*)\}/g)) {
-    for (const line of block[1]!.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/gi)) {
-      if (!vars.has(line[1]!)) vars.set(line[1]!, line[2]!.trim());
-    }
-  }
-  return vars;
-}
-
-/**
- * A CSS length in px, resolving `var()` against the sheet's own `:root` and the
- * `calc(var(--spacing) * n)` shape Tailwind's spacing scale emits. Null if the
- * value is not a length, so a property nobody declared cannot read as 0.
- */
-function lengthPx(value: string, vars: Map<string, string>): number | null {
-  const resolved = value
-    .replace(/var\((--[a-z0-9-]+)\)/gi, (_, name: string) => vars.get(name) ?? "")
-    .trim();
-  const plain = /^(-?\d*\.?\d+)(px|rem)$/.exec(resolved);
-  if (plain) return Number(plain[1]) * (plain[2] === "rem" ? 16 : 1);
-  const scaled = /^calc\(\s*(-?\d*\.?\d+)(px|rem)\s*\*\s*(-?\d*\.?\d+)\s*\)$/.exec(resolved);
-  if (!scaled) return null;
-  return Number(scaled[1]) * Number(scaled[3]) * (scaled[2] === "rem" ? 16 : 1);
-}
 
 const classesOf = (element: Element | null): string[] =>
   (element?.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
-
-/**
- * The px value a set of classes declares for one property: every class is looked
- * up in the compiled sheet and the property read out of it. Null when no class
- * declares it, which is the difference between "0px" and "nobody said".
- */
-function declared(classes: string[], property: string): number | null {
-  const vars = rootVars();
-  for (const token of classes) {
-    for (const match of rule(token).matchAll(
-      new RegExp(`(?:^|[;\\s])${property}\\s*:\\s*([^;]+)`, "g"),
-    )) {
-      const px = lengthPx(match[1]!, vars);
-      if (px !== null) return px;
-    }
-  }
-  return null;
-}
 
 const stories = composeStories(switchStories);
 
@@ -145,35 +73,35 @@ afterEach(cleanup);
 describe("the switch's drawing, in resolved pixels", () => {
   it("found a real drawing to measure, and a sheet to measure it in", () => {
     // Anchors: every number below comes from these two, and both can be empty.
-    expect(css.length).toBeGreaterThan(10_000);
+    expect(sheet.css.length).toBeGreaterThan(10_000);
     const parts = drawing();
     expect(parts.track.length).toBeGreaterThan(5);
     expect(parts.thumb.length).toBeGreaterThan(5);
-    expect(rootVars().get("--hit-min")).toBe("44px");
-    expect(lengthPx("calc(var(--spacing) * 11)", rootVars())).toBe(44);
-    expect(lengthPx("auto", rootVars())).toBeNull();
+    expect(sheet.rootVars().get("--hit-min")).toBe("44px");
+    expect(sheet.lengthPx("calc(var(--spacing) * 11)")).toBe(44);
+    expect(sheet.lengthPx("auto")).toBeNull();
   });
 
   it("draws a 44x24 track with a 2px edge and a 16px thumb", () => {
     const parts = drawing();
-    expect(declared(parts.track, "width")).toBe(44);
-    expect(declared(parts.track, "height")).toBe(24);
-    expect(declared(parts.track, "border-width")).toBe(2);
-    expect(declared(parts.thumb, "width")).toBe(16);
-    expect(declared(parts.thumb, "height")).toBe(16);
+    expect(sheet.declared(parts.track, "width")).toBe(44);
+    expect(sheet.declared(parts.track, "height")).toBe(24);
+    expect(sheet.declared(parts.track, "border-width")).toBe(2);
+    expect(sheet.declared(parts.thumb, "width")).toBe(16);
+    expect(sheet.declared(parts.thumb, "height")).toBe(16);
   });
 
   it("insets the thumb equally on both axes, inside the track's padding box", () => {
     // The thumb is positioned against the track's PADDING box, so the border is
     // already excluded: 24 - 2*2 - 16 = 4, which is 2px of air above and below.
     const parts = drawing();
-    const left = declared(parts.thumb, "left");
-    const top = declared(parts.thumb, "top");
+    const left = sheet.declared(parts.thumb, "left");
+    const top = sheet.declared(parts.thumb, "top");
     expect(left).toBe(2);
     expect(top).toBe(left);
-    const trackH = declared(parts.track, "height")!;
-    const border = declared(parts.track, "border-width")!;
-    expect(trackH - 2 * border - 2 * top!).toBe(declared(parts.thumb, "height"));
+    const trackH = sheet.declared(parts.track, "height")!;
+    const border = sheet.declared(parts.track, "border-width")!;
+    expect(trackH - 2 * border - 2 * top!).toBe(sheet.declared(parts.thumb, "height"));
   });
 
   it("travels exactly the width the track leaves it", () => {
@@ -181,14 +109,14 @@ describe("the switch's drawing, in resolved pixels", () => {
     // not pinned: pinning all five numbers and then re-deriving one of them is a
     // line that cannot fail.
     const parts = drawing();
-    const travel = declared(
+    const travel = sheet.declared(
       triggered(parts.thumb, "group-aria-checked/switch"),
       "--tw-translate-x",
     );
-    const trackW = declared(parts.track, "width")!;
-    const border = declared(parts.track, "border-width")!;
-    const inset = declared(parts.thumb, "left")!;
-    const thumbW = declared(parts.thumb, "width")!;
+    const trackW = sheet.declared(parts.track, "width")!;
+    const border = sheet.declared(parts.track, "border-width")!;
+    const inset = sheet.declared(parts.thumb, "left")!;
+    const thumbW = sheet.declared(parts.thumb, "width")!;
     expect(travel).toBe(trackW - 2 * border - 2 * inset - thumbW);
     expect(travel).toBeGreaterThan(0);
   });
@@ -197,11 +125,11 @@ describe("the switch's drawing, in resolved pixels", () => {
     // The track is 24px tall, so the track can never be the control. Both hosts'
     // controls declare the floor: the button root, and the native overlay input.
     const parts = drawing();
-    expect(declared(parts.root, "min-height")).toBe(44);
+    expect(sheet.declared(parts.root, "min-height")).toBe(44);
     const { container } = render(<stories.NativeCheckbox />);
     const input = container.querySelector('[data-slot="switch-input"]');
     expect(input?.tagName).toBe("INPUT");
-    expect(declared(classesOf(input), "min-height")).toBe(44);
+    expect(sheet.declared(classesOf(input), "min-height")).toBe(44);
     cleanup();
   });
 });
@@ -225,8 +153,8 @@ describe("one drawing, two hosts", () => {
       // Compared by the DECLARATIONS they produce, not by their names: a colour
       // changed on one host and not the other reddens here rather than in a
       // screenshot somebody notices.
-      expect(has.map((token) => rule(token)).sort()).toEqual(
-        aria.map((token) => rule(token)).sort(),
+      expect(has.map((token) => sheet.rule(token)).sort()).toEqual(
+        aria.map((token) => sheet.rule(token)).sort(),
       );
     }
   });
@@ -252,17 +180,17 @@ describe("one drawing, two hosts", () => {
     for (const token of triggered(parts.track, ARIA)) {
       // An ancestor carrying the state, not the element itself: the drawing is
       // inside the control, and the control is what the platform marks.
-      expect(selectors.get(token)?.join(" ")).toContain('[aria-checked="true"]');
+      expect(sheet.selectorsOf(token).join(" ")).toContain('[aria-checked="true"]');
     }
     for (const token of triggered(parts.track, HAS)) {
-      expect(selectors.get(token)?.join(" ")).toContain(":has(:checked)");
+      expect(sheet.selectorsOf(token).join(" ")).toContain(":has(:checked)");
     }
     // …and ALL FOUR combinations are scoped to this part's own named group, so a
     // switch inside some other `.group` that contains a checked box is not lit
     // up by it. (Two of the four went unchecked in the first edition.)
     for (const [, classes] of both) {
       for (const token of [...triggered(classes, ARIA), ...triggered(classes, HAS)]) {
-        expect(selectors.get(token)?.join(" "), token).toContain(".group\\/switch");
+        expect(sheet.selectorsOf(token).join(" "), token).toContain(".group\\/switch");
       }
     }
   });
@@ -281,47 +209,21 @@ describe("one drawing, two hosts", () => {
     expect(host.length, "the root has no disabled treatment for a disabled descendant").toBe(
       self.length,
     );
-    expect(host.map((token) => rule(token)).sort()).toEqual(
-      self.map((token) => rule(token)).sort(),
+    expect(host.map((token) => sheet.rule(token)).sort()).toEqual(
+      self.map((token) => sheet.rule(token)).sort(),
     );
     // …and the descendant spelling really is the `:has()` one, so it can reach a
     // control the root is not.
-    for (const token of host) expect(selectors.get(token)?.join(" ")).toContain(":has(:disabled)");
+    for (const token of host)
+      expect(sheet.selectorsOf(token).join(" ")).toContain(":has(:disabled)");
   });
 });
 
 describe("the drawing follows the state, in a real cascade", () => {
-  /**
-   * jsdom implements no cascade LAYERS, and Tailwind 4 emits every utility
-   * inside `@layer utilities`: measured on this tree, injecting the compiled
-   * sheet as-is left the track at `position: static` and
-   * `background-color: rgba(0, 0, 0, 0)` - not one rule applied. Unwrapping the
-   * layer blocks is faithful for every rule INSIDE `@layer utilities`, which is
-   * every rule this file reads. It is not faithful in general - after flattening,
-   * specificity decides where layer order used to, and this sheet carries two
-   * unlayered class rules (`.mq-marquee`) whose precedence it therefore inverts,
-   * neither of which any switch class touches (layer 1, LOW-1). What carries the
-   * weight is this: unwrapping is the ONLY thing done to the sheet, every
-   * selector and every declaration is the compiler's own, so nothing here can
-   * conjure a rule that the build does not ship.
-   */
-  function flattenLayers(source: string): string {
-    const root = postcss.parse(source);
-    let unwrapped = 0;
-    root.walkAtRules("layer", (at) => {
-      unwrapped++;
-      if (at.nodes && at.nodes.length > 0) at.replaceWith(at.nodes);
-      else at.remove();
-    });
-    if (unwrapped === 0)
-      throw new Error("no @layer in the compiled sheet: flattening is measuring nothing");
-    return root.toString();
-  }
-
   /** The compiled sheet in the document, flattened, for one test. */
   function withSheet<T>(read: () => T): T {
     const style = document.createElement("style");
-    style.textContent = flattenLayers(css);
+    style.textContent = sheet.flattened();
     document.head.append(style);
     try {
       return read();
@@ -340,7 +242,7 @@ describe("the drawing follows the state, in a real cascade", () => {
    *  vanished: without this the red is a type complaint about `null`, which names
    *  nothing and proves nothing (found by running the mutation). */
   const declares = (name: string, property: string) => {
-    const match = new RegExp(`(?:^|[;\\s])${property}\\s*:\\s*([^;]+)`).exec(rule(name));
+    const match = new RegExp(`(?:^|[;\\s])${property}\\s*:\\s*([^;]+)`).exec(sheet.rule(name));
     expect(match, `${name} declares no ${property} in the compiled sheet`).not.toBeNull();
     return match![1]!.trim();
   };
@@ -352,7 +254,7 @@ describe("the drawing follows the state, in a real cascade", () => {
     // This one does its own injection rather than using the harness above,
     // because the sheet has to stay in the document ACROSS the click.
     const style = document.createElement("style");
-    style.textContent = flattenLayers(css);
+    style.textContent = sheet.flattened();
     document.head.append(style);
     try {
       const { container } = render(<stories.Off />);
