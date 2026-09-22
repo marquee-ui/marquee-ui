@@ -7286,6 +7286,19 @@ the base and moved by nothing here.
   `avatar-drawing.test.tsx` (this stream's), `entry-point.test.ts` and `registry.test.ts`. The rest
   are basename collisions on `index` (`packages/*/package.json`, `form-wiring.test.tsx`,
   `tailwind-compile.test.tsx`), which name no avatar and no alert symbol.
+  ⚠️ **In THIS repo the scan-3 snippet the brief carries is too NARROW, and its `scripts` pathspec
+  is dead.** There is no `scripts/` directory here, but `git grep` does not error on it: measured at
+  this head, the loop returns byte-identical output with and without it (the same one file, both
+  ways), so dropping it changes nothing. The real loss is the file set. Run as written
+  (`'*.test.ts' '*.test.tsx' '*.spec.ts' scripts`) it returns **one** file,
+  `packages/ui/test/entry-point.test.ts`, because this package's consumers-by-path are not tests:
+  they are the registry items and the shared helpers. Re-run over `'*.test.ts' '*.test.tsx' '*.ts'
+'*.json'` it returns **nine** - `packages/tokens/package.json`,
+  `packages/tokens/test/helpers/source-files.ts`, `packages/ui/package.json`,
+  `packages/ui/r/{alert,avatar,registry}.json`, `packages/ui/test/entry-point.test.ts`,
+  `packages/ui/test/helpers/story-suites.ts`, `registry.json` - every one already named above, and
+  the same nine r6 got independently. Recorded so the next library stream widens the pathspec
+  instead of trusting the count.
 - **Scan 4, role/aria strings: four hits, all PROSE.** `role="status"` and `role="alert"` appear only
   inside `alert.tsx`'s docblock, one removed line and three added. No element in the diff writes,
   removes or displaces a role, so nothing resolves differently.
@@ -7298,3 +7311,103 @@ the base and moved by nothing here.
 - **CROSS: 0** (no sibling stream touches this repo this batch). **UNOWNED: 0.** **NEW between the
   two runs: 3** - `avatarBadgeVariants`, `Ground`, `MarkEdge`, all of them this stream's own
   additions, and the barrel requirement behind the first was already found by hand in run 1.
+
+## Layer 1 (reviewer r6, detached worktree of af0353608a580a8fc2c3a47e86ec6f46491a3945, marquee-ui, no database)
+
+**6 findings: 0 HIGH, 2 MED, 4 LOW**, over **22 mutations**, of which **5 stayed GREEN** - three
+fixed below, two recorded with their reason. Its full report is `$BATCH_SCRATCH/r6/report.md`. Its
+baseline on the untouched committed head was `pnpm test` **31 files / 566 tests** (exit 0),
+`pnpm typecheck` `packages/tokens: Done` + `packages/ui: Done` (exit 0), `pnpm lint`
+`All matched files use Prettier code style!` (exit 0), and `pnpm build:registry` followed by
+`git status --short` **EMPTY** - the committed `r/` is byte-for-byte what the sources produce.
+Re-confirmed after its last revert: `31 passed (31)` / `566 passed (566)`, `git status --short`
+empty. It re-ran scans 1, 2, 3 and 5 independently and found **0 names this section's list misses**.
+The table is its own, verbatim:
+
+| file                                       | test                                                                            | mutation applied                                                               | red / GREEN                                                                                                                                                                                                          | what it asserts now                                                                                                                                                                                       |
+| ------------------------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` "resolves the ground axis…" + `stories` `avatar/Ground`        | drop `ground` from `avatarImageVariants({ edge, ground })`                     | red — `AssertionError: expected [ 'var(--surface)' ] to deeply equal [ 'var(--raised)' ]` (+ `expected [ 'h-full', 'w-full', …(5) ] to include 'bg-raised'`); 3 failed / 132 passed                                  | —                                                                                                                                                                                                         |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` "resolves the MARK's edge axis…" + `stories` `avatar/MarkEdge` | `avatarBadgeVariants({ edge })` → `avatarBadgeVariants({})`                    | red — `AssertionError: expected 2 to be 1.5 // Object.is equality` (+ `… to include 'border-[1.5px]'`); 3 failed / 132 passed                                                                                        | —                                                                                                                                                                                                         |
+| `packages/ui/test/avatar-drawing.test.tsx` | both new arms                                                                   | `tokensOf` collapsed to `() => []`                                             | red — `expected [] to deeply equal [ 'var(--raised)' ]` and `expected [] to deeply equal [ '1.5px' ]`; 2 failed / 9 passed                                                                                           | —                                                                                                                                                                                                         |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` (whole file)                                                   | delete EVERY `border-border-strong` — image `default`, image `thin`, mark base | **GREEN** in `avatar-drawing.test.tsx` (11 passed). Gate: 3 failed / 563 passed, the only behavioural catcher being `avatar/MarkEdge` `… to include 'border-border-strong'`                                          | the file still asserts both border WIDTHS (2/1.5/1/null) and that the two marks agree with each other; it asserts nothing about the ink existing — all three `border-color` lines are `[] === []` (MED-1) |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` ×2 + `stories` `avatar/Ground`                                 | drop `ground: "surface"` from `avatarImageVariants`' `defaultVariants`         | red — `expected [] to deeply equal [ 'var(--surface)' ]` (twice) + `… to include 'bg-surface'`; 4 failed / 131 passed                                                                                                | —                                                                                                                                                                                                         |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` ×2 + `stories` `avatar/MarkEdge`                               | `avatarBadgeVariants`' `defaultVariants` → `{}`                                | red — `expected null to be 2 // Object.is equality` (twice) + `… to include 'border-2'`; 4 failed / 131 passed                                                                                                       | —                                                                                                                                                                                                         |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` "resolves the ground axis…"                                    | put `bg-surface` BACK in `avatarImageVariants`' base, keep the axis            | red — `expected [ 'var(--surface)', 'var(--raised)' ] to deeply equal [ 'var(--raised)' ]`; gate 2 failed / 564 passed. `avatar/Ground` stayed GREEN                                                                 | reproduces the stream's claim exactly; the story's `not.toContain("bg-surface")` is blind to it (this package's `cn` merges)                                                                              |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` "resolves the MARK's edge axis…"                               | put `border-2` BACK in `avatarBadgeVariants`' base, keep the axis              | red — `expected [ '2px', '1.5px' ] to deeply equal [ '1.5px' ]`; gate 2 failed / 564 passed. `avatar/MarkEdge` stayed GREEN                                                                                          | reproduces the stream's claim exactly; same blindness in the story                                                                                                                                        |
+| `packages/ui/src/avatar.tsx`               | (none)                                                                          | `AvatarBadgeProps`' `VariantProps<…>` → `{ edge?: unknown }`                   | **GREEN** in `pnpm test` (565 passed, registry byte guard only). `pnpm typecheck` red — `src/avatar.tsx(288,43): error TS2322: Type 'unknown' is not assignable to type '"default" \| "thin" \| null \| undefined'.` | no test observes the axis is typed; `tsc` is the whole instrument (LOW-4)                                                                                                                                 |
+| `packages/ui/src/index.ts`                 | `entry-point` "re-exports every value each part file exports, by name"          | drop `avatarBadgeVariants` from the barrel                                     | red — `expected [ Array(1) ] to deeply equal []`; 1 failed / 565 passed                                                                                                                                              | —                                                                                                                                                                                                         |
+| `packages/ui/r/alert.json`                 | `registry` "carries the CURRENT bytes of every source it ships"                 | revert to the base's bytes                                                     | red — `AssertionError: alert: packages/ui/src/alert.tsx is stale: expected 'import { Slot } from "@radix-ui/react…' to be 'import { Slot } from "@radix-ui/react…'`; 1 failed / 13 passed                            | —                                                                                                                                                                                                         |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` "cuts the mark out of the face…"                               | delete `leading-none` from `avatarBadgeVariants`' base                         | red — `expected [] to include '1'`; gate 2 failed / 564 passed                                                                                                                                                       | —                                                                                                                                                                                                         |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` "cuts the mark out of the face…"                               | move `leading-none` BEFORE `text-[length:…]` (the docblock's own claim)        | red — `expected [] to include '1'`; gate 2 failed / 564 passed                                                                                                                                                       | —                                                                                                                                                                                                         |
+| `packages/ui/src/avatar.tsx`               | (none)                                                                          | stop destructuring `ground`; leave it in `{...props}`                          | **GREEN** — 565 passed / 1 failed (registry byte guard only); `pnpm typecheck` `Done`. Probe: `<img … class="… bg-raised" ground="raised" src="/f.svg">`                                                             | nothing asserts the variant props stay off the DOM; the class list is still correct, so every class-based arm passes (LOW-1)                                                                              |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` + `stories` + `tailwind-compile`                               | `raised: "bg-raised"` → `"bg-raisedd"`                                         | red — `expected [] to deeply equal [ 'var(--raised)' ]`, `… to include 'bg-raised'`, `expected [ 'bg-raisedd' ] to deeply equal []`; 5 failed                                                                        | —                                                                                                                                                                                                         |
+| `packages/ui/stories/avatar.stories.tsx`   | `stories` `avatar/Ground`                                                       | delete all three `await expect(…)` in the `Ground` play                        | **GREEN** — `Test Files 31 passed (31)` / `Tests 566 passed (566)`                                                                                                                                                   | the story still RENDERS (a throw in render would redden) and still counts toward `DECLARED_PLAYS`; it asserts nothing about the ground (LOW-2)                                                            |
+| `packages/ui/stories/avatar.stories.tsx`   | `stories` `avatar/MarkEdge`                                                     | delete all five `await expect(…)` in the `MarkEdge` play                       | **GREEN** — `Test Files 31 passed (31)` / `Tests 566 passed (566)`                                                                                                                                                   | same; and this is the deletion that removes the family's only guard for `border-border-strong` (MED-1)                                                                                                    |
+| `packages/ui/stories/avatar.stories.tsx`   | `stories` "runs all 74 play functions…"                                         | delete the `play:` key from `Ground`                                           | red — `stories whose play was composed: expected [ … ] to have a length of 74 but got 73`; 1 failed / 565 passed                                                                                                     | —                                                                                                                                                                                                         |
+| `packages/ui/stories/avatar.stories.tsx`   | `stories` counters ×2                                                           | delete the whole `Ground` story                                                | red — `expected [ … ] to have a length of 103 but got 102` and `… to have a length of 74 but got 73`; 2 failed / 563 passed                                                                                          | —                                                                                                                                                                                                         |
+| `packages/ui/stories/avatar.stories.tsx`   | `stories` "covers all nineteen part families…"                                  | ADD a story (`ReviewerProbe`), leave `DECLARED_STORIES` at 103                 | red — `expected [ 'accordion/Single', …(103) ] to have a length of 103 but got 104`; 1 failed / 566 passed                                                                                                           | —                                                                                                                                                                                                         |
+| `packages/ui/stories/avatar.stories.tsx`   | `stories` `avatar/Ground`                                                       | remove `ground="raised"` from the `Ground` render                              | red — `expected [ 'h-full', 'w-full', …(5) ] to include 'bg-raised'`; 2 failed / 122 passed                                                                                                                          | —                                                                                                                                                                                                         |
+| `packages/ui/stories/avatar.stories.tsx`   | `stories` `avatar/MarkEdge`                                                     | remove `edge="thin"` from the `MarkEdge` render                                | red — `expected [ 'absolute', '-right-[4%]', …(15) ] to include 'border-[1.5px]'`; 2 failed / 122 passed                                                                                                             | —                                                                                                                                                                                                         |
+
+### What each GREEN row cost, and what changed
+
+**MED-1 (GREEN row 4): the ink assertions were three compare-two-empties, and the family could lose
+its ring colour entirely with the drawing file fully green.** Three arms in `avatar-drawing.test.tsx`
+compared one part's `border-color` to another's, and `sheet.declaredValues` answers `[]` for a
+property nobody declares - so `[] === []` passed. Deleting EVERY `border-border-strong` from
+`avatar.tsx` (the image's `default` and `thin` edges and the mark's base) left the file whose own
+docblock says it reads "every number the drawing is MADE of" at **11 passed**, and the only
+behavioural catcher in the whole gate was this diff's own new story play, itself a class-name
+assertion and itself deletable (LOW-2). Fixed: the ink is pinned ONCE, to a new module constant
+`RING_INK = ["var(--border-strong)"]`, and all three arms read it. The value was **measured off the
+compiled sheet, not typed** - the probe asserted `["PROBE"]` and read back
+`expected [ 'var(--border-strong)' ] to deeply equal [ 'PROBE' ]`. The property the comparisons were
+reaching for - that the mark's ink and the face's are ONE role - is now the shared constant itself,
+and the docblock on it carries the finding.
+
+**LOW-1 (GREEN row 14): nothing observed that the variant props are kept off the DOM.** `ground` and
+`edge` are stripped from the element only by being destructured out of `...props`. Leaving `ground`
+in the spread shipped
+`<img data-slot="avatar-image" … class="… bg-raised" ground="raised">` to every registry consumer -
+an invalid attribute plus React's "does not recognize the prop" warning - with `pnpm test` at **565
+passed** (the one red being the registry BYTE digest, which fires for any edit) and `pnpm typecheck`
+`Done`. Fixed: a new arm in `avatar-structure.test.tsx`, "keeps the variant props OFF both elements,
+which only the destructure does", which anchors `bg-raised` and `border-[1.5px]` **positively first**
+
+- so an arm whose render silently drew nothing cannot pass on two absences - and then reads both
+  attributes back off both elements. **Its reddening mutation was RUN**, in the detached worktree
+  `/home/ankit/Code/mq-probe-s2` at the committed head `cffc1a09`, and the red is the one predicted:
+  `AssertionError: image keeps ground off the DOM: expected 'raised' to be null`, **1 failed / 4
+  passed**. That worktree was `git reset --hard` back to `cffc1a09` immediately after, with
+  `git status --short` empty.
+
+**MED-2 and LOW-3 (not GREEN rows - factual, and both corrected in `cffc1a0`).** `alert.tsx`'s new
+docblock, which ships verbatim to every consumer through `r/alert.json`, said the rule was "measured
+at the reference product's two sites". There is exactly ONE `<Alert>` site at thepile `1533f084`
+(`git grep -ln 'from "@/components/ui/alert"' -- apps/web/src` → `app/login/page.tsx` alone);
+`/settings/steam` renders a raw `<p data-testid="steam-link-notice">` and only CITES the rule. And
+`/login` carries BOTH halves by itself, so the honest sentence is "one site, both paths", plus a
+second non-`Alert` notice that took the same decision. The as-built bullet had the same error
+backwards: it cited "the notice is there at first paint" as the REASON the role was dropped, which
+is the sentence `login/page.tsx:63-65` flags in its own ⚠️ - **"AND THIS NOTICE DOES ARRIVE, SO 'IT
+IS THERE FROM FIRST PAINT' IS NOT THE REASON (layer 1 caught exactly that sentence here, and it was
+false)"**. Both now say it the one way round the source supports: `/login` arrives by soft navigation
+and declines because the region is inserted with its sentence; first paint is the typed-or-reloaded
+path, a second reason.
+
+**LOW-2 (GREEN rows 16 and 17): RECORDED, not fixed.** Deleting all three `await expect(…)` in the
+`Ground` play, and all five in `MarkEdge`, each leave the gate at `31 passed (31)` / `566 passed
+(566)`. This is the documented limitation of `stories.test.tsx:57-73` - `DECLARED_PLAYS` counts plays
+that exist and RAN, not plays that assert, and "no self-counting mechanism inside a file can defend
+that file against being edited to lie about itself". It is pre-existing for all 74 plays, and the
+counters do catch the two structural cases (removing the `play:` key, removing the story). MED-1's
+fix removed the one thing that made it matter here: `MarkEdge` was the family's ONLY guard for the
+mark's border ink, and `RING_INK` is now that guard, in the file that reads resolved values.
+
+**LOW-4 (GREEN row 9): RECORDED.** Widening `AvatarBadgeProps`' `VariantProps` to `unknown` leaves
+`pnpm test` at 565 passed and is caught by `pnpm typecheck` alone
+(`src/avatar.tsx(288,43): error TS2322`). `entry-point.test.ts`'s type arm reads the barrel's source
+text for the type NAME and cannot see its shape. `tsc` is the whole instrument and it is in the gate;
+this is recorded so nothing in this doc credits a test with it.
+
+Nothing the reviewer raised was declined.
