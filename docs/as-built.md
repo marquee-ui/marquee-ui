@@ -8290,3 +8290,25 @@ diff confirmed before the run, `git status --short` empty after (logs `$BATCH_SC
 | I8               | confirmation  | the unmerged read is what catches P17 - arm 4 is load-bearing, not vacuous                                                                                                                                              | recorded                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 The file now has **five** arms and the suite **578** tests (+2 on 576: arm 5, and the registry arm).
+
+### The gate
+
+**ONE run, detached, read from its sentinel** (`$BATCH_SCRATCH/s2/verify.exit`), at head
+`7062eb50f66236dfdcbf56e7e0591aff93337ddf` - both items, layer 1's fixes and their record. **Exit 0**,
+in **13 s** wall clock (a warm tree: `node_modules` and the Storybook cache already there). The
+runner's own lines: `All matched files use Prettier code style!`, `packages/tokens typecheck: Done` +
+`packages/ui typecheck: Done`, `packages/tokens build: wrote 5 files`, `✔ Building registry.`,
+`└  Storybook build completed successfully`, and **`Test Files 33 passed (33)` / `Tests 578 passed
+(578)`**.
+
+`git status --short` was EMPTY before the gate and after it, and the gate runs `build:registry`
+itself, so the committed `packages/ui/r` is byte-for-byte what these sources produce.
+
+That is **+1 file / +8 tests** on the base's 32 / 570: the new `textarea-drawing.test.tsx` (five
+arms), the `textarea` story suite (its "has stories" arm and `textarea/Default`), and the registry
+arm that derives each item's dependencies. The paragraph you are reading landed in one more
+docs-only commit after this run; the stream's report quotes a re-run at that final head.
+
+No push, no tag, no `npm publish`, no PR: the freeze holds, and `packages/ui/package.json`'s version
+line is still `0.1.3`. `Textarea` is the 0.1.4 bump's, and reaches thepile only through a
+LIB-VENDOR-0.1.4 slice.
