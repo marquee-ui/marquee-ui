@@ -220,7 +220,7 @@ describe("Textarea: Input's field, plus the pad a multi-line field owes", () => 
 
   it("carries its slot, and appends the caller's class after the field's rather than replacing it", () => {
     // layer 1, MED-4 and LOW-1: dropping `className` from the `cn` call, or
-    // renaming the slot, was GREEN. Four of the five product sites pass their
+    // renaming the slot, was GREEN. Three of the five product sites pass their
     // extras (`mt-1`, a taller `min-h-*`) through `className`.
     render(<Textarea aria-label="Notes" className="probe-caller" rows={2} />);
     const field = screen.getByRole("textbox", { name: "Notes" });
