@@ -7747,6 +7747,16 @@ defect as a broken reader, so it now counts only the placements that exist whate
 does (`unconditional` > 100, `conditional` > 10), and the test-1 arm stays green under every
 defect mutation above.
 
+**The tarball does NOT move, and that is measured, not argued.** Since the packed head `a885aea`
+the only files changed are `packages/ui/test/forced-colors-state.test.tsx` and this document;
+`git diff --stat a885aea HEAD -- packages/ui/r packages/ui/src packages/ui/package.json` prints
+nothing, and a re-pack at `8f28657` into a scratch directory hashes
+`bdb07c212963b7af53227115191cd29538ca2e3d934a71c0994c8d5eaffd31a8`, byte-identical to the one the
+consumer vendored. So the consumer's tarball, lockfile and copies all stand. `pnpm verify` at
+`8f28657`: **exit 0**, `Test Files 32 passed (32)` / `Tests 570 passed (570)` - the same counts as
+at `a885aea`, because MED-3 rewrote the guard's three tests rather than adding any - with
+`git status --short` empty around it.
+
 `pnpm verify` at the new head `a885aea`: **exit 0**, `Test Files 32 passed (32)` / `Tests 570 passed
 (570)` - +1 file / +3 tests on this bump's own earlier 31 / 567, all of it this guard -
 `git status --short` empty before and after, so the committed `r/` is what `build:registry` produces.
