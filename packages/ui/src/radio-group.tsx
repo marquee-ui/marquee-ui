@@ -146,9 +146,31 @@ const inputClass =
 const circleClass =
   "relative grid size-6 shrink-0 place-items-center rounded-full border-2 border-border-strong bg-surface group-has-checked/radio:border-primary group-has-checked/radio:bg-primary";
 
-/** The dot, in the ink the fill guarantees. */
+/**
+ * The dot, in the ink the fill guarantees.
+ *
+ * ⚠️ THE `forced-colors:` BORDER IS THE WHOLE CHECKED STATE IN THAT MODE, AND
+ * NOTHING ELSE HERE CARRIES IT. Forced colors collapses every paint into two
+ * system colours - a foreground (`color`, `stroke`, `border-color`) to
+ * `CanvasText` and `background-color` to `Canvas` - so a dot whose only paint is
+ * a background sits Canvas on Canvas inside a circle whose fill went Canvas too,
+ * and CHECKED AND UNCHECKED BECOME THE SAME PICTURE. The consuming product
+ * measured exactly that before this line existed: the two circles hashed
+ * identical, where the native radio they replaced did not. `Checkbox` escapes
+ * because its tick is an SVG `stroke` and `Switch` because its thumb MOVES; this
+ * family was the only one signalling state in `background-color` alone.
+ *
+ * `border-4` on a `size-2` box is a SOLID disc, not a ring: the box is 8px,
+ * `border-box` sizing is the preflight default, and 4px of border on every side
+ * meets in the middle - so the mode draws the same dot the native control does,
+ * in the user's own ink. It is scoped to `forced-colors:` because the normal
+ * drawing must not move: outside that media query this string is byte-for-byte
+ * what it was, which is what the consumer's measurement table and its e2e arm
+ * are written against. `test/forced-colors-state.test.tsx` derives the invariant
+ * over every part rather than listing this one.
+ */
 const indicatorClass =
-  "pointer-events-none absolute size-2 rounded-full bg-primary-foreground opacity-0 group-has-checked/radio:opacity-100";
+  "pointer-events-none absolute size-2 rounded-full bg-primary-foreground opacity-0 group-has-checked/radio:opacity-100 forced-colors:border-4";
 
 function refuseAsChild(props: object, part: string, element: string): void {
   if ("asChild" in props && (props as { asChild?: unknown }).asChild !== undefined) {
