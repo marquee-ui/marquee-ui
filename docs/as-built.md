@@ -6005,16 +6005,31 @@ the Switch's shape, with every count read HIT BY HIT rather than by `grep -c`.
 
 **The two siblings and the grid, DECIDED - the consumption's call, with the part's allowance stated:**
 
-- `home/Byline.tsx` `MemberGlyph` (26px, 1px edge, no mark) → **takes the part**:
+- `home/Byline.tsx` `MemberGlyph` (26px, 1px edge, no mark) → ~~**takes the part**~~ (⚠️ MEASURED OUT, thepile DL19, see below):
   `<Avatar className="h-[26px] w-[26px]"><AvatarImage src={…} edge="thin"/></Avatar>`. The `edge`
   axis exists FOR this face. Its `data-testid="member-glyph"` rides on `AvatarImage`'s prop spread,
   which keeps `FeedItem.test.tsx:106` and `e2e/feed.spec.ts:300` green with no library change.
-- `shell/TopBar.tsx:163-190` (36px, gradient ring wrapper, no edge, no mark) → **takes the part**:
+- `shell/TopBar.tsx:163-190` (36px, gradient ring wrapper, no edge, no mark) → ~~**takes the part**~~ (⚠️ MEASURED OUT, thepile DL19, see below):
   the gradient span IS `<Avatar className="h-9 w-9 overflow-hidden rounded-full bg-gradient-to-br …">`
   and the `<img>` is `<AvatarImage edge="none" className="bg-raised"/>`. ⚠️ `bg-raised` over the
   part's `bg-surface` is a second `background-color` on one element under a join `cn`; the
   consumption either drops it (the wrapper's gradient is already behind the face) or the part owes a
   ground seam. **The part allows the composition; it does not allow the override.**
+  ⚠️ **BOTH SIBLINGS MEASURED OUT (thepile batch DL19, 2026-09-23; `docs/slices/DESIGN-LIB-f-shell-faces.md` there), and
+  neither is a library defect.** The glyph: `SearchInput` is its ONE client consumer, so the part's client bytes
+  (this module plus `class-variance-authority`) join `/search`'s first load and put it 1.1 to 1.2 kB OVER its budget
+  in every form tried on four builds (root + root, root + image-only, the top bar untouched + root, image-only with
+  the box as inline declarations); it stays hand-drawn until that budget is raised, the consuming product's
+  decision. The top bar: the image-only form (`AvatarImage edge="none" ground="raised"` inside the untouched
+  gradient span, the FacePicker form above) draws a 1px accent ring at the rim - the part's `rounded-full`
+  softens the image's edge and the span's gradient shows through it (122 of 1,936 pixels, max channel delta 89,
+  `border-radius` 0 → 9999px the one style that moved) - and the shell pays +2.8 kB gzipped on EVERY page (this
+  module, a chunk carrying `@radix-ui/react-slot`, the root layout re-split), which the product's
+  `perf-budget.mjs` cannot see because it counts no root-layout chunk. The ring's mechanism is a part that
+  rounds itself inside a caller's clip; a radius seam on `AvatarImage` would close the ring and not the
+  bytes, so it is recorded here and not taken. The `ground` axis the bullet above asked for shipped at 0.1.3
+  (DESIGN-LIB-d-command §1) and stands; the `className="bg-raised"` override it warned against is no longer
+  what a consumer would write.
 - `profile/FacePicker.tsx:318-347` the face grid → **takes `AvatarImage` and NOT `Avatar`**: there
   is no mark and no positioning to establish, and DL13 already gave the `<li>` to
   `RadioGroupItem` + `RadioGroupInput`. The selected ring is
