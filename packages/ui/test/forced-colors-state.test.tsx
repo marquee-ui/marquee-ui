@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import postcss, { type AtRule, type Container, type Document, type Rule } from "postcss";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.js";
@@ -43,19 +44,91 @@ import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.
  */
 
 /**
- * Properties forced colors keeps as a FOREGROUND, i.e. paints in `CanvasText`
- * where a background lands in `Canvas`. A revealed element needs one of these,
- * or geometry, to be distinguishable from whatever it sits on.
+ * WHERE a declaration sits, which is what decides whether forced colors ever
+ * applies it.
  *
- * `border-color` and `outline-color` are deliberately NOT here on their own: a
- * colour with no width paints nothing, and the width is what this reads. The
- * same cut is why `background-color` cannot appear at all - it is the bucket the
- * problem is made of.
+ * ⚠️ THIS FILE USED TO ASK ONLY WHAT A CLASS DECLARES, AND THAT COULD NOT FAIL
+ * (DL18 layer 2, MED-3, proved green in its own worktree). The shared helper
+ * files every rule under its class name whatever media query or state selector
+ * wraps it, so `hover:border-4`, `print:border-4` and `forced-colors:border-4`
+ * all read as "declares a 4px border", `text-primary-foreground` read as a
+ * foreground paint, `border-none` beside the fix went unseen - and the clause
+ * that looked for `@media (forced-colors: active)` never decided anything,
+ * because the flat read had already said yes. Each of those stayed `3 passed`.
+ *
+ * So every declaration is PLACED here, by walking the emitted css with postcss:
+ *
+ *   - `unconditional` - a bare `.class` rule under no media query and no state
+ *                       selector. It applies in every mode, forced colors too.
+ *   - `forced`        - a bare `.class` rule inside `@media (forced-colors:
+ *                       active)` and nothing else. The mode's own treatment.
+ *   - `conditional`   - anything else: another media query (`print`, `hover`),
+ *                       a pseudo on the selector (`:hover`), a nested rule. It
+ *                       may never apply while the checked state is on screen.
+ *
+ * Only the first two can save a revealed element, and the helper stays as it is:
+ * its flat view is the right instrument for the geometry every other reader of
+ * it measures.
  */
-const FOREGROUND_PAINT = ["stroke", "color", "border-width", "outline-width"] as const;
+type Placement = "unconditional" | "forced" | "conditional";
+type Placed = { property: string; value: string; placement: Placement };
+
+const BARE_CLASS = /^\.((?:\\.|[^\s.,:>+~(){}[\]])+)$/;
+
+function placeAll(css: string): Map<string, Placed[]> {
+  const out = new Map<string, Placed[]>();
+  postcss.parse(css).walkDecls((decl) => {
+    const media: string[] = [];
+    let otherAt = false;
+    let owner: Rule | null = null;
+    let nested = false;
+    for (
+      let node: Container | Document | undefined = decl.parent;
+      node && node.type !== "root" && node.type !== "document";
+      node = node.parent
+    ) {
+      if (node.type === "atrule") {
+        const at = node as AtRule;
+        if (at.name === "media") media.push(at.params.replace(/\s+/g, " ").trim());
+        else if (at.name !== "layer") otherAt = true;
+      } else if (node.type === "rule") {
+        const rule = node as Rule;
+        if (
+          owner === null &&
+          /\.(?:\\.|[^\s.,:>+~(){}[\]])+/.test(rule.selector) &&
+          !rule.selector.includes("&")
+        ) {
+          owner = rule;
+        } else if (owner === null) {
+          nested = true;
+        }
+      }
+    }
+    if (owner === null) return;
+    const bare = BARE_CLASS.exec(owner.selector.trim());
+    const placement: Placement =
+      bare === null || nested || otherAt
+        ? "conditional"
+        : media.length === 0
+          ? "unconditional"
+          : media.length === 1 && media[0] === "(forced-colors: active)"
+            ? "forced"
+            : "conditional";
+    for (const match of owner.selector.matchAll(/\.((?:\\.|[^\s.,:>+~(){}[\]])+)/g)) {
+      const name = match[1]!.replace(/\\(.)/g, "$1");
+      const placed = out.get(name) ?? [];
+      placed.push({ property: decl.prop, value: decl.value.trim(), placement });
+      out.set(name, placed);
+    }
+  });
+  return out;
+}
 
 /** Geometry, which forced colors does not touch. The Switch's whole mechanism. */
 const MOVEMENT = ["translate", "transform", "rotate", "scale"] as const;
+
+/** A border or outline style that paints nothing. */
+const NO_STYLE = /^(?:none|hidden)$/;
 
 /**
  * A part whose revealed element is knowingly short, with the reason. Empty, and
@@ -70,8 +143,10 @@ type Site = { file: string; tokens: string[] };
 
 describe("a checked state survives forced-colors: active", () => {
   let sheet: CompiledSheet;
+  let placed: Map<string, Placed[]>;
   beforeAll(async () => {
     sheet = await loadCompiledSheet();
+    placed = placeAll(sheet.css);
   });
 
   /**
@@ -96,60 +171,66 @@ describe("a checked state survives forced-colors: active", () => {
     return sites;
   };
 
-  /** What a token declares, with its variant prefix stripped for the lookup. */
+  /** What a token declares, flat - kept for the reads that are about a CLASS, not a mode. */
   const declares = (tokens: readonly string[], property: string): string[] =>
     sheet.declaredValues(tokens, property);
 
-  /**
-   * ⚠️ A WIDTH OF ZERO IS NOT A PAINT, and this was a hole in this very file
-   * until the mutation pass found it: `forced-colors:border-0` compiles, lands
-   * inside the media block, declares `border-width` - and paints nothing at all.
-   * So a width property has to RESOLVE above zero through the sheet's own length
-   * reader, while `stroke` and `color` are asked only whether they are declared,
-   * a colour having no width to be zero.
-   */
-  const paints = (tokens: readonly string[], property: string): boolean => {
-    if (!property.endsWith("-width")) return declares(tokens, property).length > 0;
-    const px = sheet.declared(tokens, property);
-    return px !== null && px > 0;
-  };
-
-  const paintsAForeground = (tokens: readonly string[]): boolean =>
-    FOREGROUND_PAINT.some((property) => paints(tokens, property));
-
-  const moves = (tokens: readonly string[]): boolean =>
-    MOVEMENT.some((property) => declares(tokens, property).length > 0);
-
-  /**
-   * A treatment the mode itself opted into. The rule has to sit inside
-   * `@media (forced-colors: active)` in the EMITTED css - a token merely named
-   * `forced-colors:…` proves nothing, because the guard would then pass on a
-   * class Tailwind never compiled.
-   */
-  /**
-   * The registered default for `--tw-border-style`, read rather than typed.
-   * ⚠️ A WIDTH IS NOT A BORDER. Tailwind v4 emits `border-4` as
-   * `border-style: var(--tw-border-style); border-width: 4px`, and a 4px border
-   * whose style resolved to `none` paints exactly as much as no border at all -
-   * which is the same trap `focus-outline.test.tsx` reads the outline property
-   * for. So the bucket test below is only worth something while this is `solid`.
-   */
-  const borderStyleDefault = (): string | null => {
-    const block = /@property\s+--tw-border-style\s*\{([^}]*)\}/.exec(sheet.css);
+  /** The registered default of a `--tw-*` style property, read rather than typed. */
+  const propertyInitial = (name: string): string | null => {
+    const block = new RegExp(`@property\\s+${name}\\s*\\{([^}]*)\\}`).exec(sheet.css);
     const initial = block && /initial-value\s*:\s*([^;]+)/.exec(block[1]!);
     return initial ? initial[1]!.trim() : null;
   };
 
-  const declaresUnderForcedColors = (tokens: readonly string[]): boolean =>
-    tokens.some((token) => {
-      if (!token.startsWith("forced-colors:")) return false;
-      const escaped = token.replace(/[.[\]()/\\]/g, "\\$&").replace(/:/g, "\\:");
-      const block = new RegExp(
-        `@media\\s*\\(forced-colors\\s*:\\s*active\\)[^{]*\\{(?:[^{}]|\\{[^{}]*\\})*\\.${escaped}[\\s,{]`,
-      );
-      // In the block, compiled, AND actually painting: the same zero-width trap.
-      return block.test(sheet.css) && sheet.has(token) && paintsAForeground([token]);
-    });
+  /**
+   * Whether a set of tokens PAINTS a foreground, counting only declarations whose
+   * placement is one of `kinds`. The style half reads everything that applies in
+   * forced mode (unconditional or forced), because a `border-none` anywhere on the
+   * element kills a border declared anywhere else on it.
+   *
+   * ⚠️ THREE WAYS TO LOOK LIKE A PAINT AND NOT BE ONE, each a hole this file had:
+   *   - a WIDTH OF ZERO (`border-0`): resolved through the sheet's length reader;
+   *   - a width whose STYLE resolves to none (`border-none` beside it, or a
+   *     `--tw-border-style` of none): Tailwind v4 writes the style through that
+   *     variable, so it is resolved against the element's own tokens first and
+   *     the registered initial value second;
+   *   - `color` ON ITS OWN: it paints text and `currentColor`, and a dot has
+   *     neither, so it is not in the set at all.
+   */
+  const paintsIn = (tokens: readonly string[], kinds: readonly Placement[]): boolean => {
+    const all = tokens.flatMap((token) => placed.get(token) ?? []);
+    const applies = all.filter((d) => d.placement !== "conditional");
+    const mine = all.filter((d) => kinds.includes(d.placement));
+
+    if (mine.some((d) => d.property === "stroke" && !NO_STYLE.test(d.value))) return true;
+
+    for (const edge of ["border", "outline"] as const) {
+      const variable = `--tw-${edge}-style`;
+      const overrides = applies.filter((d) => d.property === variable).map((d) => d.value);
+      const resolvedVar = overrides.some((v) => NO_STYLE.test(v))
+        ? "none"
+        : (overrides[0] ?? propertyInitial(variable) ?? "none");
+      const isStyle = (d: Placed) => new RegExp(`^${edge}(?:-[a-z]+)*-style$`).test(d.property);
+      const styles = applies
+        .filter(isStyle)
+        .map((d) => (d.value === `var(${variable})` ? resolvedVar : d.value));
+      if (styles.length === 0 || styles.some((v) => NO_STYLE.test(v))) continue;
+      const widths = mine.filter((d) => new RegExp(`^${edge}(?:-[a-z]+)*-width$`).test(d.property));
+      if (widths.some((d) => (sheet.lengthPx(d.value) ?? 0) > 0)) return true;
+    }
+    return false;
+  };
+
+  /** Saved by the mode's own treatment: the paint sits inside `@media (forced-colors: active)`. */
+  const savedUnderForcedColors = (tokens: readonly string[]): boolean =>
+    paintsIn(tokens, ["forced"]);
+
+  /** Saved in every mode: an unconditional foreground paint, which is `Checkbox`'s SVG stroke. */
+  const savedUnconditionally = (tokens: readonly string[]): boolean =>
+    paintsIn(tokens, ["unconditional"]);
+
+  const moves = (tokens: readonly string[]): boolean =>
+    MOVEMENT.some((property) => declares(tokens, property).length > 0);
 
   it("found a sheet and the revealed elements to measure", () => {
     // Anchors first. A walk that returned nothing, or a sheet that compiled
@@ -167,18 +248,34 @@ describe("a checked state survives forced-colors: active", () => {
     for (const site of sites) {
       expect(site.tokens, `${site.file} site`).not.toContain("on");
     }
+    // ...and the placement walk CLASSIFIES, independent of any one fix: most of
+    // the package is bare top-level utilities and a good share is behind a state
+    // or a media query. (It does NOT count `forced` here - the only forced-colors
+    // rule in the package is the fix itself, and an instrument anchor that failed
+    // whenever a defect came back would report the defect as a broken reader.)
+    const kinds = [...placed.values()].flat().map((d) => d.placement);
+    expect(
+      kinds.filter((k) => k === "unconditional").length,
+      "the walk placed nothing unconditional",
+    ).toBeGreaterThan(100);
+    expect(
+      kinds.filter((k) => k === "conditional").length,
+      "the walk placed nothing conditional",
+    ).toBeGreaterThan(10);
   });
 
-  it("tells the two passing mechanisms apart rather than passing everything", () => {
+  it("tells the mechanisms apart rather than passing everything", () => {
     // Without this the invariant could be satisfied by a predicate that returns
     // true, and the file would certify nothing. Each named part is pinned to the
     // mechanism it actually uses, read from the sheet.
     const tick = revealedSites().find((site) => site.file === "checkbox.tsx")!;
-    expect(declares(tick.tokens, "stroke").length, "the tick paints no stroke").toBeGreaterThan(0);
+    expect(savedUnconditionally(tick.tokens), "the tick paints no unconditional stroke").toBe(true);
     expect(declares(tick.tokens, "background-color"), "the tick paints a background").toEqual([]);
 
     // The Switch reveals nothing - it MOVES - so it is not a revealed site at
-    // all, and its mechanism is asserted where it lives.
+    // all, and its mechanism is asserted where it lives. Movement does not save
+    // a REVEALED element (an invisible thing that moves is still invisible), so
+    // `moves` is not part of the invariant below.
     const thumb = readFileSync(resolve(process.cwd(), "packages/ui/src/switch.tsx"), "utf8");
     const thumbTokens = [...thumb.matchAll(/"([^"\n]*group-has-checked\/switch:[^"\n]*)"/g)]
       .flatMap((match) => match[1]!.split(/\s+/))
@@ -186,33 +283,51 @@ describe("a checked state survives forced-colors: active", () => {
     expect(moves(thumbTokens), "the switch thumb no longer moves on checked").toBe(true);
     expect(revealedSites().map((site) => site.file)).not.toContain("switch.tsx");
 
-    // ...and a border declared under `forced-colors:` only counts while the
-    // registered style default paints. Read from the sheet, never typed.
-    expect(borderStyleDefault(), "--tw-border-style has no solid default").toBe("solid");
+    // A border only counts while the registered style default paints.
+    expect(propertyInitial("--tw-border-style"), "--tw-border-style has no solid default").toBe(
+      "solid",
+    );
 
-    // ⚠️ THE BUCKET CUT IS THE WHOLE EXPECTATION, so it is anchored on the
-    // PREDICATE'S behaviour and not by asserting the table against itself. The
-    // mutation pass proved why: adding `background-color` to FOREGROUND_PAINT
-    // quietly passed the unfixed dot, because the arm below then believed a
-    // background paints a foreground. These two reads say it cannot, in the two
-    // utilities one character apart that the two families actually use.
+    // ⚠️ THE BUCKET CUT, anchored on the PREDICATE'S behaviour rather than a
+    // table asserted against itself: a background is not a foreground, a stroke
+    // is, and `color` alone paints nothing on a box with no text.
     expect(
-      paintsAForeground(["bg-primary-foreground"]),
-      "a background counts as a foreground: the bucket cut is gone",
+      savedUnconditionally(["bg-primary-foreground"]),
+      "a background counts as a foreground",
     ).toBe(false);
+    expect(savedUnconditionally(["stroke-primary-foreground"]), "a stroke no longer counts").toBe(
+      true,
+    );
+    expect(savedUnconditionally(["text-primary-foreground"]), "color alone counts as a paint").toBe(
+      false,
+    );
+
+    // ⚠️ AND THE PLACEMENT, which is MED-3 itself. Fix-independent first: a
+    // `hover:` utility the package really ships (`button.tsx`) is placed behind
+    // its state and is NOT unconditional - the exact shape that used to pass.
+    const hover = placed.get("hover:border-border-strong") ?? [];
+    expect(hover.length, "hover:border-border-strong did not compile").toBeGreaterThan(0);
     expect(
-      paintsAForeground(["stroke-primary-foreground"]),
-      "a stroke no longer counts as a foreground",
+      hover.map((d) => d.placement),
+      "a hover: rule reads as unconditional",
+    ).not.toContain("unconditional");
+    // Then the fix: it must read as the mode's own treatment and NOT as an
+    // unconditional paint. This pin names TODAY'S mechanism; if `RadioGroup`
+    // moves to another one (an SVG stroke, say), rewrite this pair, don't drop it.
+    expect(
+      savedUnderForcedColors(["forced-colors:border-4"]),
+      "the fix is not placed under forced colors",
     ).toBe(true);
+    expect(
+      savedUnconditionally(["forced-colors:border-4"]),
+      "a forced-colors rule reads as unconditional",
+    ).toBe(false);
   });
 
   it("gives every revealed element a foreground or a forced-colors treatment", () => {
     const short: string[] = [];
     for (const site of revealedSites()) {
-      const ok =
-        paintsAForeground(site.tokens) ||
-        moves(site.tokens) ||
-        declaresUnderForcedColors(site.tokens);
+      const ok = savedUnderForcedColors(site.tokens) || savedUnconditionally(site.tokens);
       const gap = KNOWN_GAPS[site.file];
       if (gap !== undefined) {
         expect(

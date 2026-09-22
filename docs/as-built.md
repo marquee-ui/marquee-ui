@@ -5143,7 +5143,16 @@ apps/web/src/lib/utils.ts` after the add.
 row is `inline-flex`; every one of the seven product rows is `flex ... justify-between`.
 thepile's `cn` does not merge, so both land and the stylesheet's later rule (`inline-flex`)
 wins - which shrinks the label to fit and leaves `justify-between` nothing to distribute.
-**Every consuming row passes `w-full`** (DL7 layer 2, MED-3, proved on the Switch).
+~~**Every consuming row passes `w-full`** (DL7 layer 2, MED-3, proved on the Switch).~~
+⚠️ **STRUCK (DL18 layer 2, LOW-5): `w-full` is needed only where the row is NOT a flex item,
+and measured inert twice where it is.** The shrink above is real on the Switch's DL7 sites,
+where the row sits in ordinary block flow and `inline-flex` sizes it to its content - that is
+the case the rule was proved on, and it still holds there. But a row that is itself a FLEX
+ITEM has its outer display blockified by its parent (`inline-flex` computes to `flex`) and its
+width set by the parent's layout, so `w-full` adds nothing: DL17's onboarding consent row read
+**358 / 358 px** with and without it, and DL18's report-sheet radio row **310 / 310 px**
+(both measured by the consuming streams on built pages, relayed here, not re-measured by this
+block). So: a row that is a flex item needs nothing; a row that is not one passes `w-full`.
 
 **Checkbox, site by site.** All seven keep their own row classes through `className`;
 `min-h-hit`, the named group, the focus ring and the disabled treatment come from the part
@@ -5186,7 +5195,10 @@ and should be deleted from the row's own string.
 - `components/reports/ReportSheet.tsx:104-155`: `<ul role="radiogroup" aria-label=…>`
   becomes `<RadioGroup asChild aria-label="Which rule does it break?">` around the same
   `<ul>`, so the `<li>`s and the deep-link `<Link>` beside each label are untouched; each
-  `<label htmlFor>` becomes `<RadioGroupItem className="w-full flex-1 …">`, each `<input>`
+  `<label htmlFor>` becomes ~~`<RadioGroupItem className="w-full flex-1 …">`~~
+  `<RadioGroupItem className="flex-1 …">` (⚠️ `w-full` STRUCK, DL18 layer 2 LOW-5: the row is
+  a flex item of the `<li>`, so `flex-1` sizes it and `w-full` was measured inert, 310 / 310 px;
+  the reason and the one case it still applies are at the Checkbox paragraph above), each `<input>`
   becomes `<RadioGroupInput value={guideline.value} checked={selected} onChange={…} />`,
   and the drawing becomes `<RadioGroupCircle><RadioGroupIndicator/></RadioGroupCircle>`.
   **`useId` and `name={groupId}` and every `id`/`htmlFor` pair GO**: the group owns the
@@ -7687,6 +7699,63 @@ device `focus-outline.test.tsx` uses.
 | the site walk collapsed to `[]`                                | red 2/3                         | `no part reveals anything on checked: the walk found nothing: expected 0 to be greater than or equal to 2`                                                                                                    |
 | `FOREGROUND_PAINT` gains `background-color`, fix removed       | **GREEN** → **FIXED** → red 1/3 | the bucket cut IS the expectation, so it is anchored on the predicate's behaviour rather than by asserting the table against itself: `a background counts as a foreground: the bucket cut is gone`            |
 | `paints()`'s width check collapsed to declared-only            | **GREEN**                       | carried by the sibling suites: `sheet.declared` is pinned many times over by `avatar-drawing`, `switch-drawing` and `choice-drawing`, and a broken reader reddens there (DL15's layer 1 measured 8 tests)     |
+
+⚠️ **AND A THIRD HOLE, WHICH LAYER 2 FOUND AFTER THIS STREAM'S OWN MUTATION PASS HAD CLOSED TWO**
+(DL18 layer 2, MED-3). The guard landed after r6's review, so layer 2 was the first reviewer to
+probe it, and it proved the guard green where it must be red. The shared helper files every rule
+under its class name WHATEVER media query or state selector wraps it, so the guard's flat read
+counted a border declared under any prefix as a paint - and the clause that looked for
+`@media (forced-colors: active)` never decided anything, because the flat read had already said
+yes. Reproduced here in a detached worktree of `d591120` before any change, each of these left the
+guard at `Tests 3 passed (3)`: `forced-colors:border-4` → `hover:border-4`; → `print:border-4`; →
+`text-primary-foreground`; `border-none` added beside the fix.
+
+**The emitted shapes, read before the rewrite:** `forced-colors:border-4` is a bare `.class` rule
+inside `@media (forced-colors: active)`; `print:border-4` a bare rule inside `@media print`;
+`hover:border-4` is `.hover\:border-4:hover`, a pseudo on the selector; `border-none` is a
+top-level `--tw-border-style: none; border-style: none`.
+
+**The fix is in the guard, not the helper.** Every declaration is now PLACED by walking the emitted
+css with postcss: `unconditional` (a bare `.class` rule under no media query and no state
+selector), `forced` (a bare `.class` rule inside `@media (forced-colors: active)` and nothing else)
+or `conditional` (anything else). Only the first two can save a revealed element. The style half
+resolves `--tw-border-style` against the element's own tokens before the registered initial value,
+so a `border-none` beside a border kills it; `color` alone is out of the paint set, a dot having no
+text; and movement is out of the invariant, since an invisible thing that moves is still
+invisible. The helper is untouched - its flat view is right for the geometry its other readers
+measure. Two anchors pin the placement itself: a `hover:` utility the package really ships
+(`button.tsx`'s `hover:border-border-strong`) must not read as unconditional, and the fix must read
+as `forced` and NOT as `unconditional`.
+
+**Every mutation, run in a detached worktree of the committed head `3dab7ea`, landing confirmed by
+`grep`, restored with `git checkout --`:**
+
+| mutation                                                              | before (d591120) | after (3dab7ea) | what reddens                                                                                                                                                                                      |
+| --------------------------------------------------------------------- | ---------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `forced-colors:border-4` → `hover:border-4`                           | GREEN 3/3        | **red 2 of 3**  | the invariant, `radio-group.tsx: revealed on checked, paints background-color ["var(--primary-foreground)"] and nothing the mode keeps`, and `the fix is not placed under forced colors`          |
+| → `print:border-4`                                                    | GREEN 3/3        | **red 2 of 3**  | the same two                                                                                                                                                                                      |
+| → `text-primary-foreground`                                           | GREEN 3/3        | **red 2 of 3**  | the same two                                                                                                                                                                                      |
+| `border-none` added beside the fix                                    | GREEN 3/3        | **red 1 of 3**  | the invariant alone: the fix still compiles and places as `forced`, and the style resolution is what refuses it                                                                                   |
+| the fix removed                                                       | red              | **red 2 of 3**  | the invariant, naming `radio-group.tsx` as above - still reddens                                                                                                                                  |
+| `savedUnderForcedColors` collapsed to `false`                         | GREEN 3/3        | **red 2 of 3**  | the invariant, and `the fix is not placed under forced colors`                                                                                                                                    |
+| every declaration placed `unconditional` (the OLD flat view restored) | -                | **red 2 of 3**  | the two ANCHORS: `the walk placed nothing conditional` and `a hover: rule reads as unconditional`. The invariant itself PASSES here - that is MED-3 reproduced, and exactly why the anchors exist |
+
+⚠️ **One more finding on the way, in the hardened file's own first version**: its instrument anchor
+counted declarations placed `forced`, and the only forced-colors rule in the package IS the fix, so
+removing the fix also reported a broken instrument. An anchor that fires on a defect reports the
+defect as a broken reader, so it now counts only the placements that exist whatever any one fix
+does (`unconditional` > 100, `conditional` > 10), and the test-1 arm stays green under every
+defect mutation above.
+
+**The tarball does NOT move, and that is measured, not argued.** Since the packed head `a885aea`
+the only files changed are `packages/ui/test/forced-colors-state.test.tsx` and this document;
+`git diff --stat a885aea HEAD -- packages/ui/r packages/ui/src packages/ui/package.json` prints
+nothing, and a re-pack at `8f28657` into a scratch directory hashes
+`bdb07c212963b7af53227115191cd29538ca2e3d934a71c0994c8d5eaffd31a8`, byte-identical to the one the
+consumer vendored. So the consumer's tarball, lockfile and copies all stand. `pnpm verify` at
+`8f28657`: **exit 0**, `Test Files 32 passed (32)` / `Tests 570 passed (570)` - the same counts as
+at `a885aea`, because MED-3 rewrote the guard's three tests rather than adding any - with
+`git status --short` empty around it.
 
 `pnpm verify` at the new head `a885aea`: **exit 0**, `Test Files 32 passed (32)` / `Tests 570 passed
 (570)` - +1 file / +3 tests on this bump's own earlier 31 / 567, all of it this guard -
