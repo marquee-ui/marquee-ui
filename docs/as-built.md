@@ -8019,3 +8019,148 @@ would merge a leftover away before the rendered arms could see it (the d-command
 
 The derived `8` in the first message is the arithmetic above coming out of the sheet, not a typed
 number. Then `` `${inputClass} py-2` `` → `Tests 4 passed (4)` (`green-textarea.log`).
+
+**Then every guard the part stands on, reddened in a DETACHED worktree of the committed head**
+(`../marquee-ui-s2-mut` at `341f9e9`, `pnpm install --frozen-lockfile` + the tokens build; each
+mutation confirmed LANDED by its own diff before the run, and `git checkout -- .` after; logs
+`$BATCH_SCRATCH/s2/mut-M*.log`, the driver `mutate.sh` beside them):
+
+| id  | mutation                                                                | run over                                | red / GREEN                    | the assertion that reddened                                                                                                                                                                                                                                |
+| --- | ----------------------------------------------------------------------- | --------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | `textareaClass = inputClass` (the pad gone)                             | `textarea-drawing`                      | **red**, 2 failed / 2 passed   | `the rendered pad: expected [] to deeply equal [ 8 ]`; `expected [] to have a length of 1 but got +0`                                                                                                                                                      |
+| M2  | `` `${inputClass} p-3 py-2` `` (the story's pad left beside the part's) | `textarea-drawing`                      | **red**, 3 failed / 1 passed   | `the textarea's padding-inline is not the field's: expected [] to deeply equal [ 'calc(var(--spacing) * 3)' ]` (this package's `cn` merged `px-3` away); `a second padding: expected [ 'calc(var(--spacing) * 3)' ] to deeply equal []` (the UNMERGED arm) |
+| M3  | `` `${inputClass} py-3` `` (a pad, the wrong one)                       | `textarea-drawing`                      | **red**, 1 failed / 3 passed   | `the rendered pad: expected [ 12 ] to deeply equal [ 8 ]`                                                                                                                                                                                                  |
+| M4  | `border-2` → `border` inside the textarea's string only                 | `textarea-drawing`                      | **red**, 1 failed / 3 passed   | `the textarea's border-width is not the field's: expected [ '1px' ] to deeply equal [ '2px' ]`                                                                                                                                                             |
+| M5  | `min-h-hit` dropped from the textarea's string only                     | `textarea-drawing` + `tailwind-compile` | **red**, 2 failed / 42 passed  | the floor sweep: `textarea[data-slot=form-control] "" -> 0px` and `textarea[data-slot=textarea] "" -> 0px` (both stories, the Form one through `FormControl`); `the textarea's min-height is not the field's`                                              |
+| M6  | a comment added to `textarea.tsx`, `r/` NOT rebuilt                     | `registry`                              | **red**, 1 failed / 13 passed  | `textarea: packages/ui/src/textarea.tsx is stale`                                                                                                                                                                                                          |
+| M7  | the barrel's `textarea` line deleted                                    | `entry-point`                           | **red**, 1 failed / 3 passed   | `"packages/ui/src/textarea.tsx: textareaClass"`, `"packages/ui/src/textarea.tsx: Textarea"` missing                                                                                                                                                        |
+| M8  | `textarea` deleted from `STORY_SUITES`                                  | `stories` + `tailwind-compile`          | **red**, 2 failed / 162 passed | the suite map against the files on disk (19 keys, 20 names); `stories whose play was composed: … to have a length of 75 but got 74`                                                                                                                        |
+
+M3 reddens arm 3 alone, by design: arm 4 asks that the pad be there ONCE and agree with the rendered
+one, and a wrong single pad does both - the VALUE is arm 3's. Nothing here stayed green; the collapse
+pass over the new files is layer 1's.
+
+### The pipeline, end to end
+
+AGENTS.md "Adding a part", all nine steps, each re-read at the base rather than taken from the
+brief's line numbers (they held: `registry.test.ts:60` and `:151`, `README.md:19,24`,
+`packages/ui/package.json:4`, `AGENTS.md:51`):
+
+1. `packages/ui/src/textarea.tsx` - no `cva` (there is no visual axis) and no `asChild` (above).
+2. `packages/ui/stories/textarea.stories.tsx`, one story (`Default`), with a play.
+3. `packages/tokens/test/helpers/source-files.ts`: both paths, in order.
+4. `packages/ui/src/index.ts`: `Textarea` and `textareaClass` (`entry-point.test.ts` requires every
+   `export const` / `export function` of a part file; M7 above is its red).
+5. `story-suites.ts` gains `textarea`; `stories.test.tsx` `DECLARED_STORIES` 103 → **104**,
+   `DECLARED_PLAYS` 74 → **75**, the family count 19 → **20** (the arm's title and its
+   `toHaveLength`).
+6. `registry.test.ts`: the item list gains `textarea` and its title says twenty; the
+   `registryDependencies` count 20 → **22** (the item names two); the compared-files count 21 → **22**.
+7. `registry.json` (the item, explicit `target`), then `pnpm build:registry`, which wrote
+   `r/textarea.json` and rewrote `r/registry.json`; both committed. (Formatted BEFORE the build:
+   `r/registry.json` is asserted byte-equal to the root file.)
+8. "nineteen" → "twenty" in `README.md` (`:19`, and `:24`, whose list gains `Textarea`),
+   `packages/ui/package.json:4`'s description and `AGENTS.md:51` - and in
+   `packages/ui/test/fidelity.test.tsx:36`'s docblock ("Eight of the twenty part families were lifted
+   out of a real product"), a prose count the brief's list did not name but `git grep -i nineteen`
+   does; comment-only, and `Textarea` is not one of the eight (it was not lifted from a thepile
+   `components/ui` file, so `fidelity.test.tsx` has nothing to pin for it: its field IS `Input`'s,
+   which that file already pins).
+9. `pnpm verify` - below.
+
+The version line stays `0.1.3`. `Textarea` rides the 0.1.4 bump.
+
+### Decisions
+
+1. **No `Collapsible` family ships**, native or Radix. [V] Radix serves a closed tail without its
+   anchors and a `<button>` trigger (measured); a native family would draw only the product's
+   quiet-control pair, and the one refusal it could make is inverted by this registry's own `cn`.
+2. **`Textarea` ships.** [V] `inputClass` is complete on a `<select>` and INCOMPLETE on a
+   `<textarea>` (no vertical pad; preflight zeroes it), so every site hand-writes the missing half in
+   two values; the part owns it once.
+3. **The pad is `py-2`, not the story's `p-3`.** [V] Five of six product sites, and the spacing-grid
+   step nearest the 7.6px at which an `Input` centres its text; `p-3` is 4.4px off it. This moves the
+   Form story's drawn pad by 4px on each block edge (no consumer renders that story).
+4. **`textareaClass` is built ON `inputClass`**, not a copy, with `@marquee/input` as a registry
+   dependency. One definition of the field: Input's open forced-colors [V] is decided in `input.tsx`
+   for both parts, and nothing here pre-empts it.
+5. **No `field-sizing`, no `resize`, no height.** Preflight already makes a textarea
+   `resize: vertical`; no site auto-grows; `rows` sets the height, and the docblock warns that a
+   plain-join caller's `min-h-*` loses to `min-h-hit` by emitted order (measured).
+6. **CommentForm is a HOLD, not a consumer**, until Input's ring [V] is taken - the measurement is §2.
+7. **`fidelity.test.tsx:36`'s prose count moved** with the others. A declared fence note: the brief
+   names the counters "where the package describes itself", and a docblock count is one; no assertion
+   in that file moved.
+
+### thepile inputs
+
+- **Arrival.** `Textarea` reaches thepile only through a LIB-VENDOR-0.1.4 slice: 0.1.3 is vendored
+  (`vendor/marquee-ui/`, byte-pinned by `scripts/marquee-drift.test.ts`) and 0.1.4 is unreleased. The
+  bump carries one NEW item (`textarea`, and `r/registry.json` changes with it), so the drift test
+  gains an entry only if the consumer installs the copy (`shadcn add` from the vendored tarball's
+  `r/textarea.json`, into `components/ui/textarea.tsx`); the copy imports `./input`, which thepile
+  already has. Nothing in this slice predicts a screenshot.
+- **The five sites that can take it**, each `"use client"`, each `inputClass` plus a pad the part
+  now carries: `lists/ListForm.tsx:83`, `play/PlayForm.tsx:174`, `profile/ProfileEditForm.tsx:87`
+  (plus `min-h-[88px]`), `log/LogForm.tsx:668` (plus `mt-1 min-h-32`) and `:917` (plus `mt-1`).
+- **⚠️ Two of those extras are already dead, and the part does not change that.** Under thepile's
+  plain-join `cn`, `min-h-32` (`LogForm.tsx:668`) and `min-h-[88px]` (`ProfileEditForm.tsx:87`) sit
+  beside `inputClass`'s `min-h-hit` TODAY, and in THIS package's sheet `min-h-hit` is emitted after
+  both (8929, 9036 < 9082), so if thepile's sheet orders them the same way the field's 44px wins at
+  both sites. It is invisible, because `rows` already exceeds both floors (5 rows at this package's
+  1.55 leading: 144px against 128; 3 rows: 94.4px against 88). **Unmeasured on thepile's built page**:
+  the consumption slice reads the resolved `min-height` at the two sites and decides whether the
+  extras go (they are dead) or become `rows`.
+- **CommentForm (`comments/CommentForm.tsx:83`) HOLDS** until Input's forced-colors [V] is taken (§2):
+  it is the product's one textarea whose keyboard focus keeps an outline, and neither `cn` can keep it
+  once the field string's `focus:outline-none` is on the element.
+- **The instruments a consumption slice re-runs**, read at `d67eab8f`: `CommentForm.test.tsx:154-155`
+  (`tagName` TEXTAREA, `id` `comment-body` - the part spreads both), `LogModal.test.tsx:1189` (the
+  dialog's `input, select, textarea` walk) and `:1240` (`maxlength` 2000 on "private notes"),
+  `components/ui/form-styles.test.ts` (pins `inputClass` to the copy; a `textareaClass` literal there
+  would be that module's choice), `e2e/log-modal.spec.ts:431` (the review field `toBeInViewport`),
+  `e2e/profile-edit.spec.ts:39` (`getByLabel("Bio")`), `e2e/reflow.spec.ts:123` (the control
+  selector names `textarea`), and every `getByLabel("Your review")` (`account`, `admin`, `comments`,
+  `home`, `log-modal`, `rate-limit`, `review-likes`, `reviews` specs), which resolve through the
+  site's own `<label htmlFor>`, not through the part.
+- **For the reconciler, from item 1**: the three `Collapsible` cells (`:350`, `:353`, `:393`, §1);
+  and `log/LogForm.tsx:183-184`'s comment ("jsdom does not implement summary toggling") is false
+  against thepile's own jsdom 29.1.1, measured - a thepile comment, reported rather than edited.
+- **For the reconciler, from item 2**: `:393`'s "Textarea … for CommentForm" becomes the HOLD above,
+  and `:399`'s "Textarea" for ProfileEditForm names the part at the 0.1.4 bump.
+
+### Consumers
+
+**Run 1, before any code** (`$BATCH_SCRATCH/s2/scan-run1.txt`): the scan script against an EMPTY
+diff, zero names by construction, recorded as what it is. The enumeration that did the work was by
+hand over the surface this slice was going to touch (`scan-run1-byhand.txt`): `inputClass` is read
+by `input.tsx`, `index.ts`, `fidelity.test.tsx:19,342`, `tailwind-compile.test.tsx:12,543` and the
+fixture extractor (`checkbox.tsx:96` and `radio-group.tsx:142` declare their OWN module-local
+`inputClass`, a name collision, not a reader); `form.stories.tsx` is named by `source-files.ts` and
+`story-suites.ts`; the Form story's raw textarea string is pinned nowhere but itself; no file in
+`packages/` held a `<summary>`, a `<details>` or `list-item`.
+
+**Run 2, at the commit point** (diff `f28d56e...341f9e9`, `scan-run2.txt` and `scan-run2-byhand.txt`):
+
+- **Scan 1, exported symbols: three names.** `Textarea` and `textareaClass` are NEW; their readers are
+  `index.ts` (compulsory), the two stories, the drawing test and `registry.json`. `Default` is a new
+  STORY export; its other 17 hits are the other families' own `Default` stories, the four drawing
+  and compile tests that compose them, and one comment word in `button.tsx:84` - name collisions,
+  not consumers. The textarea one is consumed through `story-suites.ts`.
+- **Scan 3, files naming a touched path:** eleven, all read: `packages/tokens/package.json` (its own `./src/index.ts` export,
+  a basename collision) and `packages/ui/package.json` (its `index.ts` export and its description), `source-files.ts`, `index.ts`,
+  the two story files, `client-boundary.test.ts` (matched on `package.json`, which it reads for each
+  dependency; it also walks every part file on disk, so it saw `textarea.tsx` and passed: no hook,
+  no directive owed), `entry-point.test.ts`, `registry.test.ts`,
+  `textarea-drawing.test.tsx`, `registry.json`. ⚠️ The scan's relative-import arm spells `./<stem>"`
+  and this package's story modules are imported as `…/<stem>.js"` from another directory, so it MISSES
+  `story-suites.ts`; the by-hand run names it and its three readers (`stories.test.tsx`,
+  `tailwind-compile.test.tsx`, itself), all of which moved or were run above.
+- **Scan 4, role/aria strings: none in the diff.** The Form story's raw `<textarea>` became the part's
+  `<textarea>`: implicit role `textbox` before and after, and nothing in `packages/` resolves a
+  `textbox` by role.
+- **Scan 5, class strings.** The part's one new class is `py-2` inside a template literal; it is pinned
+  by no test or JSON as a textarea's (its three hits are the toast's upstream fixture string and two
+  prose lines of `tailwind-compile.test.tsx`). The REMOVED Form-story string is pinned nowhere.
+- **CROSS: 0** (no sibling stream touches this repository this batch). **UNOWNED: 0.** **NEW between
+  the two runs: 3** - `Textarea`, `textareaClass` and the `Default` story, all this stream's own.
