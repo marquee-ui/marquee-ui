@@ -152,6 +152,35 @@ describe("registry.json", () => {
     expect(checked).toBe(22);
   });
 
+  it("declares exactly the registry dependencies its sources import", () => {
+    // The count above cannot say WHICH: swapping `textarea`'s `@marquee/input` for
+    // `@marquee/label` was GREEN, and a consumer's `shadcn add textarea` would then
+    // write a copy whose `./input` resolves to nothing (DL19 layer 1, MED-3). So the
+    // set is DERIVED from each shipped source's own imports - a sibling part by
+    // `./<name>`, the shared lib by `@/lib/utils` - and compared, per item.
+    let derived = 0;
+    for (const item of registry.items) {
+      const required = new Set<string>();
+      for (const file of item.files.filter((f) => /\.tsx?$/.test(f.path))) {
+        const text = readFileSync(resolve(root, file.path), "utf8");
+        for (const match of text.matchAll(/from "(\.\/[^"]+|@\/lib\/utils)"/g)) {
+          const specifier = match[1]!;
+          required.add(
+            specifier === "@/lib/utils"
+              ? "@marquee/utils"
+              : `@marquee/${specifier.slice(2).replace(/\.js$/, "")}`,
+          );
+        }
+      }
+      expect([...(item.registryDependencies ?? [])].sort(), item.name).toEqual(
+        [...required].sort(),
+      );
+      derived += required.size;
+    }
+    // Anchor: the same total the count above holds, reached from the imports.
+    expect(derived).toBe(22);
+  });
+
   it("keeps no stylesheet's first token a comment", () => {
     // MEASURED: `shadcn add` strips a LEADING comment block from a stylesheet as
     // a banner, so a css file that opens with one lands in the consumer already

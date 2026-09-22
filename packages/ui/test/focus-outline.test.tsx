@@ -312,6 +312,11 @@ describe("the invariant, over every part rather than a hand-written table", () =
    * `focus-visible:` token. With the regex widened as well, the sweep gained
    * exactly `input.tsx (focus)` and `sheet.tsx (focus)`. The day either ring is
    * this slice's, both halves move together.
+   *
+   * ⚠️ A THIRD PART DRAWS `input.tsx`'s RING WITHOUT WRITING IT (DL19): `textarea.tsx`
+   * builds its string by interpolating `inputClass`, so a walk of LITERALS will
+   * never list it, widened or not. Input's [V], taken inside `inputClass`, reaches
+   * it for free; taken per file or as a `KNOWN_GAPS` entry, it would miss it.
    */
   /**
    * What makes a class list a RING SITE, as a function rather than a condition

@@ -1,10 +1,11 @@
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { composeStories } from "@storybook/react-vite";
+import postcss, { type AtRule, type Node, type Rule } from "postcss";
 import type { ReactElement } from "react";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.js";
-import { textareaClass } from "@/textarea";
+import { Textarea, textareaClass } from "@/textarea";
 import * as inputStories from "../stories/input.stories.js";
 import * as textareaStories from "../stories/textarea.stories.js";
 
@@ -14,9 +15,11 @@ import * as textareaStories from "../stories/textarea.stories.js";
  *
  * Three claims, each read out of the compiled stylesheet:
  *
- *   1. in every property `Input`'s field declares - box, line, ground, ink,
- *      placeholder, both focus declarations - the textarea declares the same
- *      values, so the two are one field and not two that happen to agree today;
+ *   1. the textarea declares EXACTLY the field's declarations - each one keyed by
+ *      the state it applies under (at rest, `:focus`, `::placeholder`), so a
+ *      focus colour moved to rest or to `:hover` is a difference - plus
+ *      `padding-block` and nothing else, so it cannot grow a face, a resize or a
+ *      ring the field does not have;
  *   2. its first line starts where an `Input` puts its text: the input centres
  *      one line in its 44px box, and the textarea's `padding-block` is the
  *      spacing-grid step nearest that inset - derived here from the sheet's own
@@ -71,6 +74,53 @@ function propertiesOf(classes: readonly string[]): string[] {
 
 const px = (values: readonly string[]): (number | null)[] => values.map((v) => sheet.lengthPx(v));
 
+const CLASS = /\.((?:\\.|[^\s.,:>+~(){}[\]])+)/g;
+
+/**
+ * Every declaration a class list makes, as `<state> { <property>: <value> }`,
+ * where the state is the rule's selector with the class itself written as `&`
+ * (so `&`, `&:focus`, `&::placeholder`) plus any enclosing at-rule other than a
+ * layer. `sheet.declaredValues` pools a property's values across every
+ * selector, which cannot tell a focus colour from a resting one (layer 1,
+ * MED-1: rest and focus borders swapped was GREEN); this keys on the state.
+ */
+function declarationsOf(classes: readonly string[]): string[] {
+  const wanted = new Set(classes);
+  const out: string[] = [];
+  /** The at-rules and rules strictly between `from` and `to`, outermost first, layers dropped. */
+  const between = (from: Node, to: Node | undefined): string => {
+    const parts: string[] = [];
+    for (
+      let at = from.parent as Node | undefined;
+      at && at !== to;
+      at = at.parent as Node | undefined
+    ) {
+      if (at.type === "atrule" && (at as AtRule).name !== "layer") {
+        parts.unshift(`@${(at as AtRule).name} ${(at as AtRule).params}`);
+      } else if (at.type === "rule") {
+        parts.unshift((at as Rule).selector);
+      }
+    }
+    return parts.join(" ");
+  };
+  postcss.parse(sheet.css).walkRules((rule) => {
+    for (const match of rule.selector.matchAll(CLASS)) {
+      if (!wanted.has(match[1]!.replace(/\\(.)/g, "$1"))) continue;
+      // An enclosing `@media` belongs to the state as much as a pseudo-class does.
+      const state = [between(rule, undefined), rule.selector.replace(match[0], "&")]
+        .filter(Boolean)
+        .join(" ");
+      rule.walkDecls((decl) => {
+        const inner = between(decl, rule);
+        out.push(`${state}${inner ? ` ${inner}` : ""} { ${decl.prop}: ${decl.value} }`);
+      });
+    }
+  });
+  return out.sort();
+}
+
+const propertyOf = (declaration: string): string => /\{ ([^:]+):/.exec(declaration)![1]!;
+
 /**
  * The line box of a `text-*` utility in px. Tailwind 4 declares it as
  * `var(--tw-leading, var(--text-<step>--line-height))`, a unitless ratio the
@@ -97,6 +147,12 @@ describe("Textarea: Input's field, plus the pad a multi-line field owes", () => 
     const textarea = drawn(textareas.Default, "textarea");
     expect(input.length).toBeGreaterThan(5);
     expect(textarea.length).toBeGreaterThan(5);
+    // Two DIFFERENT elements' lists (layer 1, LOW-4: a reader that returned the
+    // input's list for both left this arm and the next one green).
+    expect(textarea, "the textarea's classes are the input's").not.toEqual(input);
+    // A positive read through `declaredValues`, which the negative premise below
+    // relies on: a blind reader would pass the premise for nothing.
+    expect(sheet.declaredValues(input, "min-height")).toHaveLength(1);
     expect(propertiesOf(input)).toEqual(
       expect.arrayContaining(["min-height", "border-width", "padding-inline", "font-size"]),
     );
@@ -106,17 +162,26 @@ describe("Textarea: Input's field, plus the pad a multi-line field owes", () => 
     expect(sheet.declaredValues(input, "padding")).toEqual([]);
   });
 
-  it("declares every property Input's field declares, with the same values", () => {
+  it("declares exactly the field's declarations in every state, plus the pad and nothing else", () => {
     const input = drawn(inputs.Default, "input");
     const textarea = drawn(textareas.Default, "textarea");
-    const properties = propertiesOf(input);
-    expect(properties.length).toBeGreaterThan(8);
-    for (const property of properties) {
-      expect(
-        [...sheet.declaredValues(textarea, property)].sort(),
-        `the textarea's ${property} is not the field's`,
-      ).toEqual([...sheet.declaredValues(input, property)].sort());
-    }
+    const field = declarationsOf(input);
+    const own = declarationsOf(textarea);
+    // Anchors: a real field with states, and a list that is not the field's own.
+    expect(field.length).toBeGreaterThan(8);
+    expect(field.some((d) => d.startsWith("&:focus "))).toBe(true);
+    expect(field.some((d) => d.startsWith("&::placeholder "))).toBe(true);
+    expect(
+      field.filter((d) => !own.includes(d)),
+      "a field declaration the textarea lacks, or makes in another state",
+    ).toEqual([]);
+    // BOTH directions (layer 1, MED-2: a one-way check let `font-mono
+    // resize-none` through). What the textarea adds is one property; its VALUE
+    // is the next arm's.
+    expect(
+      own.filter((d) => !field.includes(d)).map(propertyOf),
+      "what the textarea declares beyond the field",
+    ).toEqual(["padding-block"]);
   });
 
   it("starts its first line where an Input puts its text: the grid step nearest that inset", () => {
@@ -144,9 +209,27 @@ describe("Textarea: Input's field, plus the pad a multi-line field owes", () => 
     expect(px(sheet.declaredValues(handed, "padding-block")), "the handed pad").toEqual(
       px(sheet.declaredValues(rendered, "padding-block")),
     );
-    expect(sheet.declaredValues(handed, "padding-block")).toHaveLength(1);
+    expect(
+      sheet.declaredValues(handed, "padding-block"),
+      "padding-block declarations",
+    ).toHaveLength(1);
     for (const property of ["padding", "padding-top", "padding-bottom"]) {
       expect(sheet.declaredValues(handed, property), `a second ${property}`).toEqual([]);
     }
+  });
+
+  it("carries its slot, and appends the caller's class after the field's rather than replacing it", () => {
+    // layer 1, MED-4 and LOW-1: dropping `className` from the `cn` call, or
+    // renaming the slot, was GREEN. Four of the five product sites pass their
+    // extras (`mt-1`, a taller `min-h-*`) through `className`.
+    render(<Textarea aria-label="Notes" className="probe-caller" rows={2} />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    expect(field.getAttribute("data-slot")).toBe("textarea");
+    const classes = (field.getAttribute("class") ?? "").split(/\s+/);
+    expect(classes.at(-1), "the caller's class, last").toBe("probe-caller");
+    expect(classes.slice(0, -1), "the field's own string, intact").toEqual(
+      textareaClass.split(/\s+/),
+    );
+    expect(field).toHaveAttribute("rows", "2");
   });
 });
