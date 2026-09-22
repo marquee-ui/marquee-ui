@@ -100,8 +100,22 @@ describe("a checked state survives forced-colors: active", () => {
   const declares = (tokens: readonly string[], property: string): string[] =>
     sheet.declaredValues(tokens, property);
 
+  /**
+   * ⚠️ A WIDTH OF ZERO IS NOT A PAINT, and this was a hole in this very file
+   * until the mutation pass found it: `forced-colors:border-0` compiles, lands
+   * inside the media block, declares `border-width` - and paints nothing at all.
+   * So a width property has to RESOLVE above zero through the sheet's own length
+   * reader, while `stroke` and `color` are asked only whether they are declared,
+   * a colour having no width to be zero.
+   */
+  const paints = (tokens: readonly string[], property: string): boolean => {
+    if (!property.endsWith("-width")) return declares(tokens, property).length > 0;
+    const px = sheet.declared(tokens, property);
+    return px !== null && px > 0;
+  };
+
   const paintsAForeground = (tokens: readonly string[]): boolean =>
-    FOREGROUND_PAINT.some((property) => declares(tokens, property).length > 0);
+    FOREGROUND_PAINT.some((property) => paints(tokens, property));
 
   const moves = (tokens: readonly string[]): boolean =>
     MOVEMENT.some((property) => declares(tokens, property).length > 0);
@@ -133,7 +147,8 @@ describe("a checked state survives forced-colors: active", () => {
       const block = new RegExp(
         `@media\\s*\\(forced-colors\\s*:\\s*active\\)[^{]*\\{(?:[^{}]|\\{[^{}]*\\})*\\.${escaped}[\\s,{]`,
       );
-      return block.test(sheet.css) && sheet.has(token);
+      // In the block, compiled, AND actually painting: the same zero-width trap.
+      return block.test(sheet.css) && sheet.has(token) && paintsAForeground([token]);
     });
 
   it("found a sheet and the revealed elements to measure", () => {
