@@ -7448,3 +7448,31 @@ text for the type NAME and cannot see its shape. `tsc` is the whole instrument a
 this is recorded so nothing in this doc credits a test with it.
 
 Nothing the reviewer raised was declined.
+
+### The gate
+
+**ONE run, detached under a batch gate token, read from its sentinel**
+(`$BATCH_SCRATCH/s2/verify.exit`), at head `72f8cfaa6a8f67a786c87e9164a3a77399d1dc5b` -
+the head with both docs commits and the relayed citations on it. **Exit 0**, in **16 s** wall clock
+(a warm tree: `node_modules` and the Storybook cache were already there; the same gate cold at the
+0.1.2 bump took 2.6 minutes). The runner's own lines:
+`All matched files use Prettier code style!`, `packages/tokens typecheck: Done` +
+`packages/ui typecheck: Done`, `packages/tokens build: wrote 5 files`, `✔ Building registry.`,
+`└  Storybook build completed successfully`, and
+**`Test Files 31 passed (31)` / `Tests 567 passed (567)`**.
+
+`git status --short` was EMPTY before the gate and after it - and the gate runs `build:registry`
+itself, so that empty status is the proof that the committed `packages/ui/r` is byte-for-byte what
+these sources produce, including the two docblocks this stream re-cited.
+
+That is **+5 tests on 31 unchanged files** against the base (`a4040016`, 31 / 562, measured at
+DL16's own closure above): four for the two new axes (two drawing arms, two story plays) and one for
+layer 1's LOW-1 structure arm. No file was added to the suite, because every new arm belongs to a
+file that already existed.
+
+Pre-gate, bare and repo-wide, each read from its OWN exit rather than from a filter: `pnpm lint`
+exit 0, `pnpm typecheck` exit 0.
+
+No push, no tag, no `npm publish`, no PR: the freeze holds, and `packages/ui/package.json` is still
+`0.1.2`. Everything on this branch belongs to the 0.1.3 bump, including the two re-citations, which
+cannot reach thepile before it.
