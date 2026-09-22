@@ -7700,6 +7700,53 @@ device `focus-outline.test.tsx` uses.
 | `FOREGROUND_PAINT` gains `background-color`, fix removed       | **GREEN** → **FIXED** → red 1/3 | the bucket cut IS the expectation, so it is anchored on the predicate's behaviour rather than by asserting the table against itself: `a background counts as a foreground: the bucket cut is gone`            |
 | `paints()`'s width check collapsed to declared-only            | **GREEN**                       | carried by the sibling suites: `sheet.declared` is pinned many times over by `avatar-drawing`, `switch-drawing` and `choice-drawing`, and a broken reader reddens there (DL15's layer 1 measured 8 tests)     |
 
+⚠️ **AND A THIRD HOLE, WHICH LAYER 2 FOUND AFTER THIS STREAM'S OWN MUTATION PASS HAD CLOSED TWO**
+(DL18 layer 2, MED-3). The guard landed after r6's review, so layer 2 was the first reviewer to
+probe it, and it proved the guard green where it must be red. The shared helper files every rule
+under its class name WHATEVER media query or state selector wraps it, so the guard's flat read
+counted a border declared under any prefix as a paint - and the clause that looked for
+`@media (forced-colors: active)` never decided anything, because the flat read had already said
+yes. Reproduced here in a detached worktree of `d591120` before any change, each of these left the
+guard at `Tests 3 passed (3)`: `forced-colors:border-4` → `hover:border-4`; → `print:border-4`; →
+`text-primary-foreground`; `border-none` added beside the fix.
+
+**The emitted shapes, read before the rewrite:** `forced-colors:border-4` is a bare `.class` rule
+inside `@media (forced-colors: active)`; `print:border-4` a bare rule inside `@media print`;
+`hover:border-4` is `.hover\:border-4:hover`, a pseudo on the selector; `border-none` is a
+top-level `--tw-border-style: none; border-style: none`.
+
+**The fix is in the guard, not the helper.** Every declaration is now PLACED by walking the emitted
+css with postcss: `unconditional` (a bare `.class` rule under no media query and no state
+selector), `forced` (a bare `.class` rule inside `@media (forced-colors: active)` and nothing else)
+or `conditional` (anything else). Only the first two can save a revealed element. The style half
+resolves `--tw-border-style` against the element's own tokens before the registered initial value,
+so a `border-none` beside a border kills it; `color` alone is out of the paint set, a dot having no
+text; and movement is out of the invariant, since an invisible thing that moves is still
+invisible. The helper is untouched - its flat view is right for the geometry its other readers
+measure. Two anchors pin the placement itself: a `hover:` utility the package really ships
+(`button.tsx`'s `hover:border-border-strong`) must not read as unconditional, and the fix must read
+as `forced` and NOT as `unconditional`.
+
+**Every mutation, run in a detached worktree of the committed head `3dab7ea`, landing confirmed by
+`grep`, restored with `git checkout --`:**
+
+| mutation                                                              | before (d591120) | after (3dab7ea) | what reddens                                                                                                                                                                                      |
+| --------------------------------------------------------------------- | ---------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `forced-colors:border-4` → `hover:border-4`                           | GREEN 3/3        | **red 2 of 3**  | the invariant, `radio-group.tsx: revealed on checked, paints background-color ["var(--primary-foreground)"] and nothing the mode keeps`, and `the fix is not placed under forced colors`          |
+| → `print:border-4`                                                    | GREEN 3/3        | **red 2 of 3**  | the same two                                                                                                                                                                                      |
+| → `text-primary-foreground`                                           | GREEN 3/3        | **red 2 of 3**  | the same two                                                                                                                                                                                      |
+| `border-none` added beside the fix                                    | GREEN 3/3        | **red 1 of 3**  | the invariant alone: the fix still compiles and places as `forced`, and the style resolution is what refuses it                                                                                   |
+| the fix removed                                                       | red              | **red 2 of 3**  | the invariant, naming `radio-group.tsx` as above - still reddens                                                                                                                                  |
+| `savedUnderForcedColors` collapsed to `false`                         | GREEN 3/3        | **red 2 of 3**  | the invariant, and `the fix is not placed under forced colors`                                                                                                                                    |
+| every declaration placed `unconditional` (the OLD flat view restored) | -                | **red 2 of 3**  | the two ANCHORS: `the walk placed nothing conditional` and `a hover: rule reads as unconditional`. The invariant itself PASSES here - that is MED-3 reproduced, and exactly why the anchors exist |
+
+⚠️ **One more finding on the way, in the hardened file's own first version**: its instrument anchor
+counted declarations placed `forced`, and the only forced-colors rule in the package IS the fix, so
+removing the fix also reported a broken instrument. An anchor that fires on a defect reports the
+defect as a broken reader, so it now counts only the placements that exist whatever any one fix
+does (`unconditional` > 100, `conditional` > 10), and the test-1 arm stays green under every
+defect mutation above.
+
 `pnpm verify` at the new head `a885aea`: **exit 0**, `Test Files 32 passed (32)` / `Tests 570 passed
 (570)` - +1 file / +3 tests on this bump's own earlier 31 / 567, all of it this guard -
 `git status --short` empty before and after, so the committed `r/` is what `build:registry` produces.
