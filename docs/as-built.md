@@ -7261,6 +7261,43 @@ quoted. What DID move through the pipeline:
 - **Nothing for item 3.** The three audit cells (`docs/design-audit.md` `:358`, `:371`, `:410`) are
   the reconciler's to correct, with §3's table as the reason per row.
 
+### Relayed citations (DL17)
+
+Two thepile streams found stale thepile citations inside THIS package's docblocks. They ship
+verbatim to every consumer through `r/*.json` and are byte-pinned on the thepile side, so neither
+stream could fix its own finding: only the library can, and only at the 0.1.3 bump. Both are
+docblock text, no behaviour, and both now name a FILE AND A SYMBOL rather than a line - a line
+number is exactly what rotted, inside one batch.
+
+- **s1's LOW-1, `description-list.tsx`.** `MemberRow:171` (the 3-column grid with a border per
+  cell) and `MemberRow.tsx:80` (one of the two records of the plain-join `cn` two-`text-*` trap)
+  both moved at DL17: the consuming product factored that `<dl>` into
+  `components/profile/MemberStats.tsx`, a `"use client"` island on this family, whose
+  `<DescriptionList>` carries the grid and whose `CELL` const draws the per-cell edge, and whose
+  "NO `CELL_LABEL` HERE" docblock restates the trap. Read read-only at
+  `a62bc3c7690e33233556c48089f495ff1cb60ffc`; `MemberRow.tsx` now renders `<MemberStats>` and its
+  `:80` is prose about the follow-button slot. (`docs/as-built.md:3774`'s table cell also names
+  `MemberRow.tsx:80`; that is a DL-era measurement recorded with its date and is left as history.)
+- **s3's LOW-6, `checkbox.tsx`.** `OnboardingForm.tsx:171-173`, cited as "the consuming product's
+  own house box", was **wrong at the base as well as now**: at `1533f084` those three lines are the
+  display-name `FormItem`, and the box was `:229`'s
+  `h-6 w-6 … rounded-sm border-2 border-line-strong bg-surface` on the `usageConsent` input. At
+  `cb3d415c2783ca445e7d0e5949abb5fd8135a6c5` that row renders `Checkbox`, `CheckboxInput`,
+  `CheckboxBox` and `CheckboxIndicator`, so the treatment's own source is now a consumer of the
+  part. The docblock names the row by its `name`, which does not move.
+
+`pnpm build:registry` re-ran for both, so `r/description-list.json` and `r/checkbox.json` carry the
+new bytes (`registry.test.ts`'s "carries the CURRENT bytes" is why that is a required step, not a
+tidy-up). Scan 5 over the two touched sources: **no test pins either docblock's bytes** - the
+`.test.ts*` files naming them (`source-files.ts`'s walk, `form-wiring`, `choice-drawing`,
+`client-boundary`, `focus-outline`) read paths and rendered output, not comments; the only
+byte-level consumer is `registry.test.ts` through `r/`. Probe run after the edit, before the gate:
+`Test Files 31 passed (31)` / `Tests 567 passed (567)`, exit 0.
+
+**This is a declared FENCE WIDENING**, not a breach: the fence's write list named `avatar.tsx`,
+`alert.tsx` and `r/**`, and this adds the two docblocks (no code in either file - the diff is
+comment lines only, checked). No sibling stream touches this repo this batch.
+
 ### Consumers
 
 **Run 1, before any code** (`$BATCH_SCRATCH/s2/scan-run1.txt`), was the scan script against an EMPTY
