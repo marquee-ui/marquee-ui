@@ -7619,10 +7619,19 @@ nothing unless the region is in the document, empty, before its text is, and it 
 actually demonstrates: the prop reaching the box. The story's `args`, its `play` and its assertions
 are untouched.
 
-Stories are not in `files`, so this does not move the tarball; it moves the docs site and
-`stories.test.tsx`, which composes and renders every story. Probe after the edit:
+Stories are not in `files`, so this does not move the tarball; it moves the docs site and nothing
+else. ⚠️ **AND NO TEST OBSERVES IT, WHICH IS WORTH SAYING BECAUSE THE OBVIOUS SENTENCE IS WRONG**
+(layer 1 MED-1, proved rather than argued): `stories.test.tsx` composes and renders every story, so
+it is easy to write that a docblock edit "rides the existing suite". It does not. Deleting the added
+paragraph leaves `Test Files 31 passed (31)` / `Tests 567 passed (567)`; deleting the ENTIRE
+`Announced` docblock leaves the same 567, and `prettier --check` and `eslint` both pass a
+160-character comment line. **The only instrument that reads this prose is
+`packages/tokens/test/brand-guard.test.ts`, and only for brand vocabulary** - inserting the
+consuming product's name into the paragraph reddens `ships no brand string of the consuming app`,
+and nothing else can tell the rule from its opposite. So the probes below are evidence that the
+STORY still renders and that the prose carries no product noun, and are evidence about nothing else:
 `Test Files 2 passed (2)` / `Tests 129 passed (129)` over `stories.test.tsx` + `alert-tone.test.tsx`,
-and `brand-guard.test.ts` (which walks `stories/` as well as `src/`) `2 passed`.
+and `brand-guard.test.ts` `2 passed`.
 
 ### Two things measured here and deliberately NOT fixed
 
@@ -7632,8 +7641,9 @@ and `brand-guard.test.ts` (which walks `stories/` as well as `src/`) `2 passed`.
   prose, so the sentence is half right. Not fixed: `packages/ui/src/**` is outside this stream's
   fence, and an edit there moves `description-list`'s shipped bytes and re-packs the tarball whose
   five-item measurement this whole slice rests on. For the next bump, with the number.
-- **The DESIGN-LIB-d-command "thepile inputs" bullet's THREE.** Corrected in place with a one-line
-  forward pointer only - a **declared FENCE WIDENING**, the fence having named a new block in this
+- **The DESIGN-LIB-d-command "thepile inputs" bullet's THREE.** Corrected in place with a two-line
+  forward pointer and NO deletion (the diff's `-` side over that bullet is empty, checked) - a
+  **declared FENCE WIDENING**, the fence having named a new block in this
   file rather than an edit to an old one. The bullet's own reasoning is left standing as the dated
   reading it was; leaving it uncorrected is how a number gets repeated as fact, which is the failure
   this file exists to stop.
