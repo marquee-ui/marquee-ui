@@ -7260,6 +7260,12 @@ quoted. What DID move through the pipeline:
   bump's stream owns them.
 - **Nothing for item 3.** The three audit cells (`docs/design-audit.md` `:358`, `:371`, `:410`) are
   the reconciler's to correct, with §3's table as the reason per row.
+- **The 0.1.3 bump reddens THREE drift items in thepile, not one** (DL17 layer 2, LOW-1): `avatar` for
+  the two axes, and `description-list` and `checkbox` for the two relayed docblocks below, whose
+  `r/*.json` this stream rebuilt. thepile's `scripts/marquee-drift.test.ts` pins all twelve copies
+  byte for byte, so the bump's stream re-adds three items in the same commit as the bump. One nit
+  for that pass: `description-list.tsx`'s replacement text says both old numbers "came to point at
+  unrelated prose"; at thepile `70796720` `MemberRow.tsx` is 171 lines, so `:171` is its closing brace.
 
 ### Relayed citations (DL17)
 
