@@ -7783,3 +7783,116 @@ unchanged; the delta is one source, one registry item and nothing else. The cons
   file rather than an edit to an old one. The bullet's own reasoning is left standing as the dated
   reading it was; leaving it uncorrected is how a number gets repeated as fact, which is the failure
   this file exists to stop.
+
+## DESIGN-LIB-d-disclosure: the `Collapsible` measurement, and `Textarea` (2026-09-23)
+
+Batch DL19, stream s2, on the library's `next` at `f28d56e` (32 files / 570 tests, re-measured at
+this base by `pnpm build && pnpm test` before anything moved). thepile is read-only throughout, at
+`d67eab8f` (`next`, the commit carrying the DL19 table; `git diff --stat 1f7ab1ad d67eab8f` names
+`docs/slices/DESIGN-LIB.md` and nothing else, so every source below reads as it does at the DL18
+head), by `git -C … show <sha>:<path>`. Under the push freeze: LOCAL commits on
+`s/design-lib-d-disclosure`, no tag, no publish, and `packages/ui/package.json`'s version line stays
+`0.1.3`. Whatever ships here rides the 0.1.4 bump.
+
+Every probe below ran in a DETACHED worktree of the base (`../marquee-ui-s2-probe`, `pnpm install
+--frozen-lockfile` and the tokens build), as a scratch test plus a scratch source file naming the
+probed classes - the compile fixture is `source(none)`, so a class nobody names does not compile and
+a probe has to name it in a source directory, never in a test string (AGENTS.md). Outputs under
+`$BATCH_SCRATCH/s2/probe/`.
+
+### 1. The `Collapsible` measurement, and the answer
+
+**No `Collapsible` family ships.** The audit's three rows reproduce at thepile `d67eab8f`
+(`awk -F'|' '$4 ~ /Collapsible/ {print NR}' docs/design-audit.md` → `:350`, `:353`, `:393`), and
+every site was read in full, plus the fourth disclosure no row names:
+
+| audit row                                 | what it actually is                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | wants the part?                                                                                                                                                            |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `:350` `/browse/games` ("More platforms") | `components/browse/FilterBar.tsx`, NO directive, a Server Component. `<details open={tailIsActive} className="flex flex-col gap-1">` `:153`, `open` computed on the server (`:121`, its comment `:149-152`); `<summary id={TAIL_LABEL_ID} className="w-fit min-h-11 cursor-pointer list-inside rounded-md px-3 py-3 text-sm text-text-secondary transition-colors hover:text-text">` `:157-162`; the tail `FacetRow` of anchors `:163-172`. The why is `:95-103` and `:154-156` ("giving it `display:flex` would silently remove it")                                                                                                                              | **No.** Its summary is drawn as the bar's third quiet control, beside the chips and the Clear link it sits among, not as a disclosure                                      |
+| `:353` `/game/[slug]` (the breakdown)     | `components/game/ScoreBlock.tsx`, NO directive. `BreakdownDisclosure` `:183-274`: `<details data-testid="rating-breakdown" className="max-w-[34rem] rounded-md border-2 border-line-strong bg-surface">` `:209-212`, `<summary data-testid="rating-breakdown-summary" className="min-h-11 cursor-pointer list-item px-3 py-3 font-mono text-xs uppercase tracking-label text-text-secondary hover:text-text">` `:213-220` ("`list-item` keeps the native disclosure triangle, so no `flex` here", `:214-215`), the panel `<div>` `:221-269`. `ScoreBlock.test.tsx:623-634` reads the SOURCE for `"use client"`, `useState` and `onClick` and requires none of them | **No.** Same reason, and the panel is the one content wrapper among all the sites                                                                                          |
+| `:393` `/[username]/review/[slug]`        | `components/review/SpoilerShield.tsx`, `"use client"` `:1`, **74 lines**. A ONE-WAY reveal: `revealed` state `:13` and no way back; the content stays in the DOM under `aria-hidden="true" inert className="select-none blur-sm"` `:62` for the SSR permalink; a `<button className="absolute inset-0 …">` `:65-71`; focus moved INTO the revealed content `:35-37` (A11Y-2). TWO consumers: `review/ReviewBody.tsx:26` and the permalink's own `SpoilerContext` (`app/[username]/review/[slug]/page.tsx:182-189`), which wraps the COMMENT THREAD                                                                                                                 | **No - it is not a disclosure.** A disclosure closes again, announces `aria-expanded`, and hides its content from assistive tech while closed; this does none of the three |
+| (no row) the log sheet's Details          | `components/log/LogForm.tsx:183-225`, `Section`, inside a `"use client"` form: a hand-built `<button aria-expanded aria-controls={open ? id : undefined}>` whose panel is conditionally RENDERED (`{open && …}` `:218`), with React state behind it. Its stated reason for not being `<details>` (`:183-184`, "jsdom does not implement summary toggling") is measured FALSE below                                                                                                                                                                                                                                                                                 | **No.** A client disclosure with state is `Accordion`'s shape, not a native one's                                                                                          |
+
+**The Radix answer, measured rather than reasoned.** `@radix-ui/react-collapsible` 1.1.20 is already
+in this repository's store (a dependency of `@radix-ui/react-accordion` 1.2.20, not of this
+package), and its `dist/index.mjs` opens with `"use client";`. Rendered to static markup with a tail
+anchor inside, the way the server would serve it (`$BATCH_SCRATCH/s2/probe/probe-out3.txt`):
+
+```
+closed:     <div data-state="closed"><button type="button" aria-expanded="false" data-state="closed">More platforms</button><div data-state="closed" id="radix-_R_0_" hidden=""></div></div>
+open:       <div data-state="open"><button type="button" aria-controls="radix-_R_0_" aria-expanded="true" data-state="open">More platforms</button><div data-state="open" id="radix-_R_0_"><a href="/x?platform=23">PC-98</a></div></div>
+forceMount: <div data-state="closed"><button type="button" aria-expanded="false" data-state="closed">More platforms</button><div data-state="closed" id="radix-_R_0_"><a href="/x?platform=23">PC-98</a></div></div>
+```
+
+So it fails all three of row 350's conditions on the served bytes: it is a client module; closed, the
+anchor is **not in the HTML at all**, which is the crawler condition and the thing
+`e2e/browse-filters.spec.ts:209` asserts (`platform=23` in the body, closed or not); and the only way
+to put it back, `forceMount`, serves the tail with **no `hidden`**, i.e. visibly OPEN until hydration
+hides it. Its trigger is a `<button>`, and the same spec's `:202` asserts the bar's served HTML
+carries no `<button` at all.
+
+**The native answer: what a `<details>`/`<summary>`/`<div>` family would draw.** Measured in the same
+worktree (`probe-out.txt`, `probe-out2.txt`): a part with no directive and no hooks renders `<details
+open="">` from a plain `open` prop and keeps a closed tail's anchors in the markup (`renderToStaticMarkup`,
+both shapes), so it passes all three conditions by construction. The question is what it DRAWS:
+
+- **The two `<details>` share nothing** (`flex flex-col gap-1` against a bordered opaque panel), and
+  only one site has a content wrapper at all.
+- **The two summaries share SIX tokens, not two** - `min-h-11 cursor-pointer px-3 py-3
+text-text-secondary hover:text-text` (the composition's "`min-h-11 cursor-pointer` and nothing
+  else" is wrong, class B, corrected here) - and those six are not a disclosure treatment. They are
+  the product's QUIET-CONTROL pair: 12 single-line class strings in 10 files carry the 44px floor
+  plus `text-text-secondary` plus `hover:text-text` (`git grep -E 'min-h-(11|hit)'` over
+  `apps/web/src/**/*.tsx` less tests, filtered for both inks; list at
+  `$BATCH_SCRATCH/s2/probe/quiet-control-lines.txt`). Two are the summaries; the other ten are
+  four `Link`s, four `button`s and two named class constants (`FollowButton.tsx:118`,
+  `Door.tsx:20`), each read - FilterBar's own Clear link `:197` among them, while its `Chip`
+  `:82-83` wears the same pair split across two `cn` arguments. Each summary is drawn to match its NEIGHBOURS, and the other five or six
+  tokens on each (a chip's `w-fit rounded-md text-sm transition-colors` against the house micro-label's
+  `font-mono text-xs uppercase tracking-label`) disagree.
+- **The library's own disclosure is drawn differently again.** `AccordionTrigger` is `flex … w-full
+justify-between text-sm font-semibold text-foreground hover:text-primary-ink`, NO marker (it is
+  `flex`), and the house ring. A native family would be a second disclosure idiom beside `Accordion`
+  with a second look, or the same look imposed on two sites whose drawing is a product decision
+  (MOBILE-3, quoted in row 350: the native marker kept, "replacing it is a design call").
+
+**The one thing a family could REFUSE, and why this library cannot.** Both files name one hazard in
+their own comments: a `display` on the `<summary>` silently drops the marker. A class string cannot
+refuse it and a part might - so it was measured:
+
+```
+cn("list-item", "flex")        -> "flex"             this package's own cn: the marker's display is DISCARDED
+cn("list-item", "grid")        -> "grid"
+cn("!list-item", "flex")       -> "!list-item flex"  kept both; .\!list-item emits display: list-item !important
+compiled order, flattened css: .block 7398 < .flex 7433 < .grid 7466 < .inline-flex 7571 < .list-item 7618
+```
+
+So a `CollapsibleTrigger` carrying `list-item` would GUARD the marker under thepile's plain-join `cn`
+(`list-item` is emitted after every other display utility, so it wins) and would silently STRIP it
+under the `cn` this registry ships (tailwind-merge puts both in one group and keeps the last) - one
+part, opposite behaviour, decided by which `utils.ts` the consumer has. Only `!list-item` holds in
+both, and an `!important` display in a part forbids the product the one call MOBILE-3 reserved for
+it. And the marker does not need a part to keep it: Tailwind's preflight in this very sheet declares
+`summary { display: list-item; }` (compiled line 112-113), so every summary keeps its triangle until
+somebody writes a display on it; `ScoreBlock`'s explicit `list-item` is the plain-join guard above,
+already in place, and `FilterBar` rests on preflight and says so.
+
+**Two smaller things the measurement found.** The 44px floor sweep does not see a `<summary>`
+(`tailwind-compile.test.tsx:215`, `'button, a[href], input, select, textarea, [role="button"]'`), so
+a shipped trigger would have needed that selector widened to be guarded at all. And **LogForm's
+reason is false against its own test runner**: a click on a `<summary>` toggles `open` in thepile's
+jsdom **29.1.1** and in this repository's **30.0.1** alike (`probe/jsdom-summary.cjs`, run against
+each installed copy: `{"before":false,"afterNative":true,"afterDispatched":false}` for both, the
+second click closing it again), and `user-event` clicks toggle it too, though its Enter and Space do
+not (`probe-out2.txt`). It changes nothing here - `Section` is a stateful client disclosure either
+way - and it is thepile's comment, recorded for the reconciler rather than edited.
+
+**The answer.** The sites already draw the treatment, the treatment they share is the product's
+quiet-control pair rather than a disclosure's, and the one refusal a family could make is one this
+registry's own `cn` would silently undo: _a part with nothing to draw is a rename_ (the Select
+answer), and _a guard the consumer's `cn` can invert is not a guard_. Nothing ships for item 1.
+**The reconciler corrects three cells**: `:350`'s and `:353`'s `Collapsible` phrases (the native
+`<details>` stays; no family ships, this section), and `:393`'s "Collapsible for SpoilerShield" with
+its why cell ("the same mechanism with the state handled" is false against the file: a one-way
+reveal, not a disclosure). If the product ever decides to draw its own marker, **this is the row
+that says so**, and it arrives as a product decision first.
