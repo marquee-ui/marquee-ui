@@ -11,6 +11,7 @@ export {
   Avatar,
   AvatarBadge,
   AvatarImage,
+  avatarBadgeVariants,
   avatarImageVariants,
   type AvatarBadgeProps,
   type AvatarImageProps,

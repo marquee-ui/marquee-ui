@@ -6987,3 +6987,492 @@ would be copied into every consumer's tree by the registry and read by none of t
 at `docs/as-built.md`, which is what `form.tsx`'s equivalent already did.
 
 Nothing the reviewer raised was declined.
+
+## DESIGN-LIB-d-command: the two Avatar axes, the Alert rule's second half, and the `Command` measurement (2026-09-22)
+
+Batch DL17, stream s2, on the library's `next` at `a4040016`. thepile is read-only throughout, at
+`1533f084` (`next`, the commit carrying the DL17 table), by `git -C … show <sha>:<path>` - no file
+in that tree moves for any of the three items. Under the push freeze: three LOCAL commits on
+`s/design-lib-d-command`, no tag, no publish, and `packages/ui/package.json`'s version line stays
+`0.1.2`. Everything here is the 0.1.3 bump's.
+
+### 1. The two Avatar axes, measured at the consumer
+
+**s1's REQUEST 1 (`DESIGN-LIB-f-members-avatar`, DL16), and the defect is one defect wearing two
+costumes.** `avatarImageVariants` hard-coded `bg-surface` in its `cva` BASE and `AvatarBadge` had no
+`cva` at all, its `border-2 border-border-strong bg-surface` inside a literal class string. Neither
+value is reachable by a consumer whose `cn` is a plain JOIN - a `className` lands BESIDE the part's
+class and the emitted stylesheet's order picks the winner - so thepile's wrapper
+(`apps/web/src/components/profile/Avatar.tsx`, read at `1533f084`) holds both as inline STYLE
+declarations, and says so in its own two docblocks:
+
+| the wrapper's line | what it writes                                                                      | why, in its own words                                                                                                                                                                                                                                                                                            |
+| ------------------ | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `:101` → `:129`    | `GROUND` = `{ backgroundColor: "var(--raised)" }` on **every** face it draws        | "`bg-surface` … is `--surface`, `#12140c`, which is also `MemberRow.tsx`'s card … taking the part's value would sink every face into the card behind it … A `bg-raised` CLASS loses (`.bg-surface` is emitted after `.bg-raised`, measured), so it is a declaration **until the library grows a `ground` axis**" |
+| `:83` → `:143`     | `MARK_EDGE` = `1.5px` on the **28 and 34** faces only, as `style={{ borderWidth }}` | "Below 56 the badge is an ~11-14px circle and the part's 2px border eats the letter, so the two small faces get 1.5px … `AvatarBadge` has no `edge` axis (`AvatarImage` does, and this is the same gap on the other part), which is REQUEST 1"                                                                   |
+
+Every line number above was read at `1533f084` and is as the DL17 table states it.
+
+**The mark's geometry, computed from the consumer's own two maps** (`SIZE` `:37-46`, `MARK_SIZE`
+`:68-74`) and the part's `h-2/5`, because the choice of thin value turns on it and nothing in the
+record had the arithmetic. Rem is converted at a 16px root, which is this package's own convention
+(`compiled-sheet.ts`'s `lengthPx` multiplies rem by 16):
+
+| face | mark ø (40%) | mark font-size  | interior ø at 2px | interior ÷ glyph at 2px | at 1.5px | at 1px |
+| ---- | ------------ | --------------- | ----------------- | ----------------------- | -------- | ------ |
+| 28   | 11.2px       | 0.36rem 5.76px  | 7.2px             | **1.25**                | 1.42     | 1.60   |
+| 34   | 13.6px       | 0.42rem 6.72px  | 9.6px             | **1.43**                | 1.58     | 1.73   |
+| 56   | 22.4px       | 0.6rem 9.6px    | 18.4px            | 1.92                    | -        | -      |
+| 64   | 25.6px       | 0.68rem 10.88px | 21.6px            | 1.99                    | -        | -      |
+| 96   | 38.4px       | 0.95rem 15.2px  | 34.4px            | 2.26                    | -        | -      |
+
+So "the 2px ring eats the letter" is a real discontinuity and not a taste note: the three large
+faces sit at 1.9-2.3 interior-to-glyph and the two small ones at 1.25-1.43. **It also shows the 1px
+alternative is arguable**, because 1px is what brings the two small marks NEAREST the proportion the
+three large ones draw (1.60 and 1.73). It is recorded and not taken; the reason is decision 1 below.
+
+**What shipped.** `avatarImageVariants` gains `ground` (`surface` the default, `raised`) and
+`bg-surface` LEAVES the base, so exactly one ground lands on the element at either value.
+`AvatarBadge` gains `avatarBadgeVariants`, a new exported `cva` carrying the whole of its old literal
+plus `edge` (`default` `border-2`, `thin` `border-[1.5px]`), and `AvatarBadgeProps` gains that
+axis's `VariantProps`. `avatarBadgeVariants` is exported and re-exported from `src/index.ts`, which
+is not optional: `entry-point.test.ts` walks `packages/ui/src` on disk, parses every
+`export const` out of every part file and requires the barrel to expose each one.
+
+**TWO values on the mark's axis and not the image's three.** The image's `edge` is three values
+because three sites measure three (2px on ten faces, 1px on the 26px byline glyph, none on the top
+bar's gradient ring). The mark's sites measure two, and there is no site with no edge at all -
+the edge is what CUTS the mark out of the face it overhangs, so a `none` would be a value nobody
+has drawn. The family's own rule ("one measured site each, rather than a number") is what decides
+the count, in both directions.
+
+**`thin` is 1.5px on the mark and 1px on the image, on purpose**, and the drawing test asserts both
+in ONE arm so the asymmetry is met rather than found. `thin` means "the small-face treatment" on
+each part; the parts are at different scales (the mark is 40% of the face), so one shared number
+would be a number neither site drew. The part's docblock says it, at length, because a reader who
+meets only one of the two will otherwise read the other as a typo.
+
+### 2. The Alert rule's second half
+
+DL16 layer 2's MED-2. `alert.tsx` said a notice on the page from the start is not a live region and
+to "pass the role when the notice ARRIVES" - one of the two ways to write a region nobody hears.
+Both thepile sites were re-read at `1533f084` rather than taken from the DL16 note, and both
+establish the missing half in their own source:
+
+- **`app/login/page.tsx` is the product's ONE `<Alert>` site, and it carries BOTH halves.** (Layer 1
+  MED-2 and LOW-3 are exactly this: the first draft of both this bullet and the docblock said "two
+  sites", and the second of them is not an `Alert` at all. At `1533f084`,
+  `git grep -ln 'from "@/components/ui/alert"' -- apps/web/src` prints `app/login/page.tsx` and
+  nothing else.) It renders `<Alert tone="destructive" className="text-text-secondary">` with NO
+  role, and its comment `:55-89` is careful about WHY in a way the first draft got backwards: its
+  own ⚠️ says **"AND THIS NOTICE DOES ARRIVE, SO 'IT IS THERE FROM FIRST PAINT' IS NOT THE REASON
+  (layer 1 caught exactly that sentence here, and it was false)"** - both routes to the URL are
+  `router.push` + `router.refresh()` from `"use client"` components, instrumented on the built page
+  as same-document with 0 load events. The reason it declines is the half the library was missing:
+  "the region would be inserted TOGETHER with its sentence, and 'a live region inserted together
+  with its content is unreliably announced' … **A region that announces has to EXIST, empty, before
+  the text does**". The first-paint sentence is the TYPED-OR-RELOADED path, a second reason, which
+  is what makes one site enough. Its unit arm `page.test.tsx:88-100` ("puts no live region on that
+  notice, in any spelling") is the instrument.
+- **`app/settings/steam/page.tsx:63-92` is the other measurement and is NOT this part**: it renders a
+  raw `<p data-testid="steam-link-notice" className="rounded-md border-2 p-3 text-sm …">`, and only
+  CITES `components/ui/alert.tsx:17-24` as the rule it is following. Its navigation is measured -
+  every writer of `?link=` is a DOCUMENT navigation, instrumented through
+  `e2e/steam-import.spec.ts:302-313` (a `window` marker gone afterwards, 3 document load events, the
+  surviving navigation entry `{"name":".../settings/steam?link=rejected","type":"navigate"}`) - so
+  it is the pure first-paint case. Its comment already points forward at this edit: "a
+  soft-navigated notice earns a role only when the region exists, empty, before its content does
+  (DL16 layer 2, MED-2)".
+
+So the rule now says both: a role belongs on a region that exists, EMPTY, before its content does;
+a region inserted together with its sentence is one mutation nothing was watching, and a
+conditionally mounted `<Alert role="status">` is that case wearing the other case's fix. It names
+the shape that does work - an always-mounted, usually `sr-only` region whose TEXT changes, with
+`<Alert>` beside it as the visible half - and says `role` on THIS box is right only when the box is
+already mounted and empty before the notice is written into it. Docblock only: no class, no prop, no
+element, no test moved (scan 5 found nothing pinning the text).
+
+### 3. The `Command` measurement, and the answer
+
+**No `Command` family ships.** The audit's three rows reproduce at thepile `1533f084`
+(`awk -F'|' '$4 ~ /Command/ { print NR": "$2 }' docs/design-audit.md` → `:358`, `:371`, `:410`), and
+all three sites were read in full - including `AddGameRow.tsx`, which the composition marked unread:
+
+| audit row                                                                       | what it actually is                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | wants the part?                                                                                                                                                                              |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `:371` `/search` ("the whole input + grouped results")                          | `components/search/SearchInput.tsx`, 568 lines, `"use client"`. It is a RESULTS PAGE, not a popup: `<input type="search" autoFocus aria-label="Search games">` (`:369-385`) and then FOUR permanent groups - Games as a `<ul className="grid grid-cols-3 … md:grid-cols-6">` of `next/link`, then Players, Lists and Tier lists as `<ul>`s of link rows - each under its own `<h2>` (`ResultGroup`, `:101-108`). Arrow keys move a highlight (`onKeyDown` `:280-292`) and Enter NAVIGATES. An always-mounted `sr-only` `<p role="status">` at `:359` carries the announcement | **No.** There is no popup whose expanded state the input owns and no value an option could set: activating a result navigates. And the source already recorded the blocking fact - see below |
+| `:358` `/lists/[id]` (`AddGameRow`)                                             | `components/lists/AddGameRow.tsx`, 182 lines, `"use client"`. A debounced picker (250 ms, a request token, a three-phase `idle/searching/answered` machine) over `/api/search`: `<input type="search" aria-label="Search games to add" className={inputClass}>` (`:115-131`), a `role="alert"` for the add failure, two `role="status"` phase lines, and results as a `<ul>` of full-width `<button>`s whose click performs a DURABLE server write (`submitDurable("list-add", …)`) and then clears the query                                                                 | **No.** Its results are COMMANDS, not options: picking one does not become the field's value, it writes a row and empties the box                                                            |
+| `:410` `/tiers/new` (`CommandInput + CommandList + CommandItem + CommandEmpty`) | `app/tiers/new/PoolBuilder.tsx`, 281 lines, `"use client"`. The SAME picker, and its docblock says so ("The picker is `AddGameRow`'s, which is `QuickLog`'s … this is a copy of its behaviour, not an improvement on it"): `aria-label="Search games to rank"` `:172`, two `role="status"` counts `:180,185`, a `<ul>` of `<button>`s, a `role="alert"` `:252`. A pick appends to a pool held in component state                                                                                                                                                              | **No.** Same shape, same reason, and the pick is one of MANY (a pool of up to `itemMax`), which is not a combobox's one-value contract at all                                                |
+
+**The blocking fact at `/search` is already in thepile's own source, with the axe rule named.**
+`SearchInput.tsx:433-440`: "aria-CURRENT, not aria-selected: these are links in a page-level results
+grid, and `aria-selected` is only allowed on option/row/tab roles, so on an `<a>` it is invalid ARIA
+(axe: aria-allowed-attr, critical)". A `cmdk`-shaped `Command` makes its items `role="option"` inside
+a `role="listbox"`; **a link is not an option**, so taking the contract means the results stop being
+links - and these links are what a crawler follows to `/game/<slug>`, what open-in-new-tab uses, and
+what the local a11y scan walks. That is a product decision nobody has taken, which is the Tabs
+answer's `/settings/profile` row and the Select answer's chevron row for the third time:
+_a semantics change the product has not taken is not a family._
+
+**The mirror holds at the other two.** Their results are `<button>`s that ACT. `role="option"` on a
+button is the same defect as `aria-selected` on a link, one role over, and neither site has arrow-key
+navigation today - every result is a real tab stop at `min-h-hit`, which is the shape a list of
+commands already has in the platform. So the Checkbox/RadioGroup-shaped answer (parts carrying
+`role="combobox"`, `aria-expanded`, `aria-controls`, `aria-activedescendant` and a `listbox` of
+`option`s, no `cmdk`) has **no site that wants the contract and can take it**: one is a page of
+links, two are lists of commands.
+
+**What a new dependency would cost, measured rather than reasoned.** `cmdk` appears **zero times** in
+thepile's `pnpm-lock.yaml` and `apps/web/package.json` at `1533f084`, and it is not among this
+package's eight dependencies (`@radix-ui/react-accordion`, `-dialog`, `-label`, `-separator`,
+`-slot`, `class-variance-authority`, `clsx`, `tailwind-merge`), so it is new in BOTH repos - and 07
+§10.2 says a dependency is read by a human, never auto-merged. `/search` is the route that decides
+it: **111.1 kB / 112.5 kB, 1.4 kB headroom (1.3%)** at DL16's merged gate, read out of that gate's
+own `pnpm perf:budget` block rather than quoted (`$BATCH_SCRATCH`'s DL16 `gate0/verify.log:222`; the
+ceiling is `perf-budgets.json`'s `"/search/page": 115200` = 112.5 KiB, checked at `1533f084`). No
+combobox library fits under 1.4 kB. The other two routes are NOT budgeted (that gate's build printed
+`/lists/[id]` 150 kB and `/tiers/new` 108 kB of first-load JS, and `perf-budget: 15 route(s) within
+budget` lists neither), so there the cost is the dependency and the semantics, not a ceiling.
+
+**And the house treatment is already on two of the three, from here.** `AddGameRow`'s input is
+`className={inputClass}` and `PoolBuilder`'s two are `${inputClass} min-h-hit`, and thepile's
+`inputClass` is **byte-identical** to this package's `input.tsx:6` (`cmp` of the two lines with
+leading indent stripped, at the two base shas: identical) - the same finding the Select measurement
+made one family over. `/search`'s field is the one that departs: `w-full min-h-[48px] … pl-10 pr-12
+… focus:border-accent` (`:384`), i.e. `Input` plus a taller box and two pads for a leading `⌕` glyph
+and a trailing 44px clear button, spelled in thepile's own alias token names (not resolved here). If
+`/search` is ever consumed it is `Input` + a `className`, and the 48px is a decision somebody owes a
+reason for, since 44 is the floor.
+
+**One thing the measurement found that is NOT a library answer.** `AddGameRow` and `PoolBuilder`
+share two class strings **byte for byte** - the results list
+(`flex max-h-[50dvh] flex-col gap-1 overflow-y-auto overscroll-contain`) and the result row
+(`flex min-h-hit w-full items-center gap-3 rounded-md px-2 py-1 text-left hover:bg-raised
+disabled:opacity-50`), `cmp`'d at `1533f084` - plus a near-copy of the debounce, the request token
+and the phase machine. None of it is a Marquee part: the row holds `GameCover`, the machine is the
+product's S35 rule, the endpoint is `/api/search`, the `max-h-[50dvh]` is one product's measurement,
+and no `buttonVariants` value is this row (four of the five are centred blocks and the fifth,
+`ghost`, is sized to its text; none is a full-width LEFT-aligned row and none uses a hover GROUND -
+they change a border and an ink). If
+anything is shared there it is a thepile component over `/api/search`, and that is thepile's call to
+take, not this package's. Recorded so the reconciler's cells can say it.
+
+Nothing ships for item 3; the reconciler corrects the three cells. If the product ever decides its
+search results should be a listbox rather than a page of links, **this is the row that says so**, and
+it arrives as a product decision first.
+
+### The guards, and the runs that reddened them
+
+Both new arms of `avatar-drawing.test.tsx` were written FIRST and run RED against the base's sources
+in this worktree, before either axis existed (`$BATCH_SCRATCH/s2/red-item1.log`). Each red names the
+property the arm is about, which is the half that matters:
+
+| arm                                                                             | mutation (the base, i.e. the axis absent)            | red / green                  | the assertion message                                               |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------- |
+| "resolves the ground axis to two grounds, with the old value still the default" | `bg-surface` still in the `cva` BASE, no `ground`    | **red**, 2 failed / 9 passed | `expected [ 'var(--surface)' ] to deeply equal [ 'var(--raised)' ]` |
+| "resolves the MARK's edge axis to the two widths its own sites measure"         | `border-2` still a literal, no `avatarBadgeVariants` | **red**, same run            | `expected 2 to be 1.5`                                              |
+
+Both are resolved-VALUE assertions read out of the compiled stylesheet, never class names, and the
+mark arm additionally pins `imageAt("thin")` at 1px in the same expression so the two `thin`s cannot
+silently converge.
+
+**⚠️ AND AS FIRST WRITTEN BOTH ARMS WERE BLIND TO THE DEFECT THE AXES EXIST TO REMOVE.** Found by
+running the mutation rather than by reading, in a detached worktree of the committed head `6caae60`:
+
+| mutation (the leftover the axis is supposed to prevent)             | the arms as first written | the arms as they ship                                                                                               |
+| ------------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `bg-surface` put BACK in `avatarImageVariants`' base, `ground` kept | **GREEN**, 11 passed      | **red**, 1 failed / 10 passed: `expected [ 'var(--surface)', 'var(--raised)' ] to deeply equal [ 'var(--raised)' ]` |
+| `border-2` put BACK in `avatarBadgeVariants`' base, `edge` kept     | **GREEN**, 11 passed      | **red**, 1 failed / 10 passed: `expected [ '2px', '1.5px' ] to deeply equal [ '1.5px' ]`                            |
+
+The reason is the instrument, not the assertion: this package's own `cn` IS a real tailwind-merge,
+so a base that keeps `bg-surface` beside a `bg-raised` variant is resolved before anything renders
+and the rendered element is perfect. **The consumer these axes are for is the one whose `cn` is a
+plain JOIN** - which is the whole reason thepile writes inline declarations in the first place - and
+that consumer is handed the variant function's OUTPUT, both classes in it, with the stylesheet's
+order picking. So each arm now also resolves `avatarImageVariants({ ground })` /
+`avatarBadgeVariants({ edge })` UNMERGED against the compiled sheet, where a leftover is a second
+declaration. `alert-tone.test.tsx:36` already read its axis that way; the helper says so by name and
+quotes both GREEN runs, so the next reader does not re-derive it.
+
+The registry's byte guard is the other required step, and it was proved rather than assumed: with
+`r/avatar.json` reverted to the base's bytes in the same detached worktree,
+`registry.test.ts` reddens **1 failed / 13 passed** with
+`AssertionError: avatar: packages/ui/src/avatar.tsx is stale: expected 'import { Slot } from
+"@radix-ui/react…' to be 'import { Slot } from "@radix-ui/react…'`.
+
+### The pipeline, end to end
+
+No part was added, so **nothing in `AGENTS.md`, `README.md`, `packages/ui/package.json`,
+`registry.test.ts` (`:60`), `stories.test.tsx` (`:97`) or `fidelity.test.tsx` (`:36`) moves**: the
+counts are still **nineteen** families and **20** registry items, re-read at the base rather than
+quoted. What DID move through the pipeline:
+
+- `src/index.ts` gained `avatarBadgeVariants`, because `entry-point.test.ts` requires the barrel to
+  expose every `export const` a part file declares. (The DL17 table's fence conditions `index.ts` on
+  item 3 shipping; item 1's new export is what actually moves it. Noted as a fence widening, not a
+  breach of anyone's ownership - no sibling stream touches this repo this batch.)
+- `stories.test.tsx`'s `DECLARED_STORIES` 101 → **103** and `DECLARED_PLAYS` 72 → **74**, for the two
+  new stories (`Ground`, `MarkEdge`). Both have plays; `story-suites.ts` needed no edit because
+  `avatar` is already in the shared map and `storySuiteNames()` reads the directory.
+- `pnpm build:registry` ran for BOTH source edits, and `packages/ui/r/avatar.json` and
+  `r/alert.json` are committed with them. `registry.test.ts`'s "carries the CURRENT bytes of every
+  source it ships" is what makes that a required step rather than a tidy-up, and its red is quoted
+  in the guards section above. `packages/ui/r/registry.json` did not change - no item was added or
+  renamed.
+
+### Decisions
+
+1. **`AvatarBadge`'s `thin` edge ships 1.5px, not 1px, and not a refusal of the non-integer.** [V]
+   The axis exists so the consumer can DELETE an inline declaration; 1px would close the request by
+   moving a drawing the product measured, which is not the library's call, and refusing the
+   non-integer would leave the declaration in place and close nothing. The cost is stated in the
+   part's own docblock: how 1.5px lands on a device pixel is the browser's, and on a `rounded-full`
+   element it is anti-aliased rather than snapped - jsdom lays nothing out and this package has no
+   browser runner, so the guard asserts the DECLARED width and nothing about the screen. The
+   arithmetic that makes 1px arguable is in §1's table, recorded for Ankit rather than acted on.
+2. **The mark's axis carries two values, the image's three.** [V] One measured site each, in both
+   directions; there is no site that draws a mark with no edge, and inventing `none` would be a
+   `cva` value with nothing behind it.
+3. **No `Command` family ships**, and no `cmdk`. [V] One site is a page of LINKS whose own source
+   records the axe rule that forbids the listbox semantics; two are lists of COMMANDS whose results
+   act rather than set a value; the dependency is new in both repos; and `/search` has 1.4 kB of
+   headroom. The Checkbox/RadioGroup-shaped alternative was tested against each site and has no
+   taker.
+4. **`alert.stories.tsx`'s `Announced` docblock still carries the half-rule** ("A notice that ARRIVES
+   gets a role from its caller"). It is outside this stream's fence and it is not WRONG - the story
+   demonstrates the prop pass-through - so it was left, and is raised as a one-line prose follow-up
+   rather than edited.
+
+### thepile inputs
+
+- **At the 0.1.3 bump the wrapper drops BOTH inline declarations.**
+  `components/profile/Avatar.tsx` loses `GROUND` (`:101`, written at `:129`) for
+  `<AvatarImage ground="raised">`, and loses `MARK_EDGE` (`:83`, written at `:143`) for
+  `<AvatarBadge edge={size < 56 ? "thin" : undefined}>` or the equivalent map. Nothing on screen
+  moves: `raised` is the same `var(--raised)` and `thin` is the same 1.5px.
+- **That is TWO thepile tests in the SAME commit, and the second is not obvious.**
+  `Avatar.test.tsx:193-196` reads the VENDORED copy's SOURCE TEXT (DL16 decision 16), so it sees
+  0.1.2's `avatar.tsx` until the bump and reddens with it; and the drift test reddens for the bytes.
+  Neither can be fixed before the copy moves.
+- **Two thepile comments cite `alert.tsx:17-24` by LINE** - `login/page.test.tsx:89` and
+  `settings/steam/page.tsx:65-67` - and item 2 makes the rule longer, so both citations go stale
+  when the copy is re-added at the bump. They are prose, in files this stream must not touch; the
+  bump's stream owns them.
+- **Nothing for item 3.** The three audit cells (`docs/design-audit.md` `:358`, `:371`, `:410`) are
+  the reconciler's to correct, with §3's table as the reason per row.
+
+### Relayed citations (DL17)
+
+Two thepile streams found stale thepile citations inside THIS package's docblocks. They ship
+verbatim to every consumer through `r/*.json` and are byte-pinned on the thepile side, so neither
+stream could fix its own finding: only the library can, and only at the 0.1.3 bump. Both are
+docblock text, no behaviour, and both now name a FILE AND A SYMBOL rather than a line - a line
+number is exactly what rotted, inside one batch.
+
+- **s1's LOW-1, `description-list.tsx`.** `MemberRow:171` (the 3-column grid with a border per
+  cell) and `MemberRow.tsx:80` (one of the two records of the plain-join `cn` two-`text-*` trap)
+  both moved at DL17: the consuming product factored that `<dl>` into
+  `components/profile/MemberStats.tsx`, a `"use client"` island on this family, whose
+  `<DescriptionList>` carries the grid and whose `CELL` const draws the per-cell edge, and whose
+  "NO `CELL_LABEL` HERE" docblock restates the trap. Read read-only at
+  `a62bc3c7690e33233556c48089f495ff1cb60ffc`; `MemberRow.tsx` now renders `<MemberStats>` and its
+  `:80` is prose about the follow-button slot. (`docs/as-built.md:3774`'s table cell also names
+  `MemberRow.tsx:80`; that is a DL-era measurement recorded with its date and is left as history.)
+- **s3's LOW-6, `checkbox.tsx`.** `OnboardingForm.tsx:171-173`, cited as "the consuming product's
+  own house box", was **wrong at the base as well as now**: at `1533f084` those three lines are the
+  display-name `FormItem`, and the box was `:229`'s
+  `h-6 w-6 … rounded-sm border-2 border-line-strong bg-surface` on the `usageConsent` input. At
+  `cb3d415c2783ca445e7d0e5949abb5fd8135a6c5` that row renders `Checkbox`, `CheckboxInput`,
+  `CheckboxBox` and `CheckboxIndicator`, so the treatment's own source is now a consumer of the
+  part. The docblock names the row by its `name`, which does not move.
+
+`pnpm build:registry` re-ran for both, so `r/description-list.json` and `r/checkbox.json` carry the
+new bytes (`registry.test.ts`'s "carries the CURRENT bytes" is why that is a required step, not a
+tidy-up). Scan 5 over the two touched sources: **no test pins either docblock's bytes** - the
+`.test.ts*` files naming them (`source-files.ts`'s walk, `form-wiring`, `choice-drawing`,
+`client-boundary`, `focus-outline`) read paths and rendered output, not comments; the only
+byte-level consumer is `registry.test.ts` through `r/`. Probe run after the edit, before the gate:
+`Test Files 31 passed (31)` / `Tests 567 passed (567)`, exit 0.
+
+**This is a declared FENCE WIDENING**, not a breach: the fence's write list named `avatar.tsx`,
+`alert.tsx` and `r/**`, and this adds the two docblocks (no code in either file - the diff is
+comment lines only, checked). No sibling stream touches this repo this batch.
+
+### Consumers
+
+**Run 1, before any code** (`$BATCH_SCRATCH/s2/scan-run1.txt`), was the scan script against an EMPTY
+diff and printed zero names by construction; it is recorded as what it is. The enumeration that did
+the work was by hand over the surface the brief named
+(`$BATCH_SCRATCH/s2/scan-run1-byhand.txt`): `avatar.tsx` and `alert.tsx` are named by
+`registry.json`, their own `r/*.json`, `packages/tokens/test/helpers/source-files.ts` (`:46`, `:47`,
+and their stories at `:79`, `:80`) and `registry.test.ts`'s item list (`:64`, `:65`), so
+`pnpm build:registry` is a REQUIRED step of each commit; the counts live in eight places, re-read at
+the base and moved by nothing here.
+
+**Run 2, at the commit point** (diff `a4040016...HEAD`, full output in
+`$BATCH_SCRATCH/s2/scan-run2.txt`):
+
+- **Scan 1, exported symbols: seven names.** `avatarBadgeVariants` is the one that is NEW; its only
+  reader is `src/index.ts`, and that reader is compulsory (`entry-point.test.ts`). `AvatarImage`,
+  `AvatarBadge` and `AvatarBadgeProps` changed signature; `AvatarBadgeProps` is read by
+  `entry-point.test.ts`'s type arm, which reads the barrel's source text. `Ground` and `MarkEdge`
+  are the two new STORY exports, consumed through `story-suites.ts` by both `stories.test.tsx` (the
+  two counters) and `tailwind-compile.test.tsx` (the compile check and the 44px floor) - neither
+  needed an edit, because the map is keyed by part and read off the directory.
+- **Scan 3, tests naming a touched path:** eleven hits, all read; the only real consumers are
+  `avatar-drawing.test.tsx` (this stream's), `entry-point.test.ts` and `registry.test.ts`. The rest
+  are basename collisions on `index` (`packages/*/package.json`, `form-wiring.test.tsx`,
+  `tailwind-compile.test.tsx`), which name no avatar and no alert symbol.
+  ⚠️ **In THIS repo the scan-3 snippet the brief carries is too NARROW, and its `scripts` pathspec
+  is dead.** There is no `scripts/` directory here, but `git grep` does not error on it: measured at
+  this head, the loop returns byte-identical output with and without it (the same one file, both
+  ways), so dropping it changes nothing. The real loss is the file set. Run as written
+  (`'*.test.ts' '*.test.tsx' '*.spec.ts' scripts`) it returns **one** file,
+  `packages/ui/test/entry-point.test.ts`, because this package's consumers-by-path are not tests:
+  they are the registry items and the shared helpers. Re-run over `'*.test.ts' '*.test.tsx' '*.ts'
+'*.json'` it returns **nine** - `packages/tokens/package.json`,
+  `packages/tokens/test/helpers/source-files.ts`, `packages/ui/package.json`,
+  `packages/ui/r/{alert,avatar,registry}.json`, `packages/ui/test/entry-point.test.ts`,
+  `packages/ui/test/helpers/story-suites.ts`, `registry.json` - every one already named above, and
+  the same nine r6 got independently. Recorded so the next library stream widens the pathspec
+  instead of trusting the count.
+- **Scan 4, role/aria strings: four hits, all PROSE.** `role="status"` and `role="alert"` appear only
+  inside `alert.tsx`'s docblock, one removed line and three added. No element in the diff writes,
+  removes or displaces a role, so nothing resolves differently.
+- **Scan 5, class-string literals:** the load-bearing one is `bg-surface`, which this diff MOVES out
+  of a `cva` base. It is pinned in four other files - `emitted-surface.test.ts`,
+  `choice-drawing.test.tsx`, `fidelity.test.tsx`, `fixtures/upstream-classes.json` - and **none of
+  them names avatar at all** (`choice-drawing.test.tsx:340` mentions the word in a comment about a
+  composition), so the move has exactly one consumer and it is this stream's own arm.
+  `bg-raised` and `border-[1.5px]` are pinned by nothing.
+- **CROSS: 0** (no sibling stream touches this repo this batch). **UNOWNED: 0.** **NEW between the
+  two runs: 3** - `avatarBadgeVariants`, `Ground`, `MarkEdge`, all of them this stream's own
+  additions, and the barrel requirement behind the first was already found by hand in run 1.
+
+## Layer 1 (reviewer r6, detached worktree of af0353608a580a8fc2c3a47e86ec6f46491a3945, marquee-ui, no database)
+
+**6 findings: 0 HIGH, 2 MED, 4 LOW**, over **22 mutations**, of which **5 stayed GREEN** - three
+fixed below, two recorded with their reason. Its full report is `$BATCH_SCRATCH/r6/report.md`. Its
+baseline on the untouched committed head was `pnpm test` **31 files / 566 tests** (exit 0),
+`pnpm typecheck` `packages/tokens: Done` + `packages/ui: Done` (exit 0), `pnpm lint`
+`All matched files use Prettier code style!` (exit 0), and `pnpm build:registry` followed by
+`git status --short` **EMPTY** - the committed `r/` is byte-for-byte what the sources produce.
+Re-confirmed after its last revert: `31 passed (31)` / `566 passed (566)`, `git status --short`
+empty. It re-ran scans 1, 2, 3 and 5 independently and found **0 names this section's list misses**.
+The table is its own, verbatim:
+
+| file                                       | test                                                                            | mutation applied                                                               | red / GREEN                                                                                                                                                                                                          | what it asserts now                                                                                                                                                                                       |
+| ------------------------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` "resolves the ground axis…" + `stories` `avatar/Ground`        | drop `ground` from `avatarImageVariants({ edge, ground })`                     | red — `AssertionError: expected [ 'var(--surface)' ] to deeply equal [ 'var(--raised)' ]` (+ `expected [ 'h-full', 'w-full', …(5) ] to include 'bg-raised'`); 3 failed / 132 passed                                  | —                                                                                                                                                                                                         |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` "resolves the MARK's edge axis…" + `stories` `avatar/MarkEdge` | `avatarBadgeVariants({ edge })` → `avatarBadgeVariants({})`                    | red — `AssertionError: expected 2 to be 1.5 // Object.is equality` (+ `… to include 'border-[1.5px]'`); 3 failed / 132 passed                                                                                        | —                                                                                                                                                                                                         |
+| `packages/ui/test/avatar-drawing.test.tsx` | both new arms                                                                   | `tokensOf` collapsed to `() => []`                                             | red — `expected [] to deeply equal [ 'var(--raised)' ]` and `expected [] to deeply equal [ '1.5px' ]`; 2 failed / 9 passed                                                                                           | —                                                                                                                                                                                                         |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` (whole file)                                                   | delete EVERY `border-border-strong` — image `default`, image `thin`, mark base | **GREEN** in `avatar-drawing.test.tsx` (11 passed). Gate: 3 failed / 563 passed, the only behavioural catcher being `avatar/MarkEdge` `… to include 'border-border-strong'`                                          | the file still asserts both border WIDTHS (2/1.5/1/null) and that the two marks agree with each other; it asserts nothing about the ink existing — all three `border-color` lines are `[] === []` (MED-1) |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` ×2 + `stories` `avatar/Ground`                                 | drop `ground: "surface"` from `avatarImageVariants`' `defaultVariants`         | red — `expected [] to deeply equal [ 'var(--surface)' ]` (twice) + `… to include 'bg-surface'`; 4 failed / 131 passed                                                                                                | —                                                                                                                                                                                                         |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` ×2 + `stories` `avatar/MarkEdge`                               | `avatarBadgeVariants`' `defaultVariants` → `{}`                                | red — `expected null to be 2 // Object.is equality` (twice) + `… to include 'border-2'`; 4 failed / 131 passed                                                                                                       | —                                                                                                                                                                                                         |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` "resolves the ground axis…"                                    | put `bg-surface` BACK in `avatarImageVariants`' base, keep the axis            | red — `expected [ 'var(--surface)', 'var(--raised)' ] to deeply equal [ 'var(--raised)' ]`; gate 2 failed / 564 passed. `avatar/Ground` stayed GREEN                                                                 | reproduces the stream's claim exactly; the story's `not.toContain("bg-surface")` is blind to it (this package's `cn` merges)                                                                              |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` "resolves the MARK's edge axis…"                               | put `border-2` BACK in `avatarBadgeVariants`' base, keep the axis              | red — `expected [ '2px', '1.5px' ] to deeply equal [ '1.5px' ]`; gate 2 failed / 564 passed. `avatar/MarkEdge` stayed GREEN                                                                                          | reproduces the stream's claim exactly; same blindness in the story                                                                                                                                        |
+| `packages/ui/src/avatar.tsx`               | (none)                                                                          | `AvatarBadgeProps`' `VariantProps<…>` → `{ edge?: unknown }`                   | **GREEN** in `pnpm test` (565 passed, registry byte guard only). `pnpm typecheck` red — `src/avatar.tsx(288,43): error TS2322: Type 'unknown' is not assignable to type '"default" \| "thin" \| null \| undefined'.` | no test observes the axis is typed; `tsc` is the whole instrument (LOW-4)                                                                                                                                 |
+| `packages/ui/src/index.ts`                 | `entry-point` "re-exports every value each part file exports, by name"          | drop `avatarBadgeVariants` from the barrel                                     | red — `expected [ Array(1) ] to deeply equal []`; 1 failed / 565 passed                                                                                                                                              | —                                                                                                                                                                                                         |
+| `packages/ui/r/alert.json`                 | `registry` "carries the CURRENT bytes of every source it ships"                 | revert to the base's bytes                                                     | red — `AssertionError: alert: packages/ui/src/alert.tsx is stale: expected 'import { Slot } from "@radix-ui/react…' to be 'import { Slot } from "@radix-ui/react…'`; 1 failed / 13 passed                            | —                                                                                                                                                                                                         |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` "cuts the mark out of the face…"                               | delete `leading-none` from `avatarBadgeVariants`' base                         | red — `expected [] to include '1'`; gate 2 failed / 564 passed                                                                                                                                                       | —                                                                                                                                                                                                         |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` "cuts the mark out of the face…"                               | move `leading-none` BEFORE `text-[length:…]` (the docblock's own claim)        | red — `expected [] to include '1'`; gate 2 failed / 564 passed                                                                                                                                                       | —                                                                                                                                                                                                         |
+| `packages/ui/src/avatar.tsx`               | (none)                                                                          | stop destructuring `ground`; leave it in `{...props}`                          | **GREEN** — 565 passed / 1 failed (registry byte guard only); `pnpm typecheck` `Done`. Probe: `<img … class="… bg-raised" ground="raised" src="/f.svg">`                                                             | nothing asserts the variant props stay off the DOM; the class list is still correct, so every class-based arm passes (LOW-1)                                                                              |
+| `packages/ui/src/avatar.tsx`               | `avatar-drawing` + `stories` + `tailwind-compile`                               | `raised: "bg-raised"` → `"bg-raisedd"`                                         | red — `expected [] to deeply equal [ 'var(--raised)' ]`, `… to include 'bg-raised'`, `expected [ 'bg-raisedd' ] to deeply equal []`; 5 failed                                                                        | —                                                                                                                                                                                                         |
+| `packages/ui/stories/avatar.stories.tsx`   | `stories` `avatar/Ground`                                                       | delete all three `await expect(…)` in the `Ground` play                        | **GREEN** — `Test Files 31 passed (31)` / `Tests 566 passed (566)`                                                                                                                                                   | the story still RENDERS (a throw in render would redden) and still counts toward `DECLARED_PLAYS`; it asserts nothing about the ground (LOW-2)                                                            |
+| `packages/ui/stories/avatar.stories.tsx`   | `stories` `avatar/MarkEdge`                                                     | delete all five `await expect(…)` in the `MarkEdge` play                       | **GREEN** — `Test Files 31 passed (31)` / `Tests 566 passed (566)`                                                                                                                                                   | same; and this is the deletion that removes the family's only guard for `border-border-strong` (MED-1)                                                                                                    |
+| `packages/ui/stories/avatar.stories.tsx`   | `stories` "runs all 74 play functions…"                                         | delete the `play:` key from `Ground`                                           | red — `stories whose play was composed: expected [ … ] to have a length of 74 but got 73`; 1 failed / 565 passed                                                                                                     | —                                                                                                                                                                                                         |
+| `packages/ui/stories/avatar.stories.tsx`   | `stories` counters ×2                                                           | delete the whole `Ground` story                                                | red — `expected [ … ] to have a length of 103 but got 102` and `… to have a length of 74 but got 73`; 2 failed / 563 passed                                                                                          | —                                                                                                                                                                                                         |
+| `packages/ui/stories/avatar.stories.tsx`   | `stories` "covers all nineteen part families…"                                  | ADD a story (`ReviewerProbe`), leave `DECLARED_STORIES` at 103                 | red — `expected [ 'accordion/Single', …(103) ] to have a length of 103 but got 104`; 1 failed / 566 passed                                                                                                           | —                                                                                                                                                                                                         |
+| `packages/ui/stories/avatar.stories.tsx`   | `stories` `avatar/Ground`                                                       | remove `ground="raised"` from the `Ground` render                              | red — `expected [ 'h-full', 'w-full', …(5) ] to include 'bg-raised'`; 2 failed / 122 passed                                                                                                                          | —                                                                                                                                                                                                         |
+| `packages/ui/stories/avatar.stories.tsx`   | `stories` `avatar/MarkEdge`                                                     | remove `edge="thin"` from the `MarkEdge` render                                | red — `expected [ 'absolute', '-right-[4%]', …(15) ] to include 'border-[1.5px]'`; 2 failed / 122 passed                                                                                                             | —                                                                                                                                                                                                         |
+
+### What each GREEN row cost, and what changed
+
+**MED-1 (GREEN row 4): the ink assertions were three compare-two-empties, and the family could lose
+its ring colour entirely with the drawing file fully green.** Three arms in `avatar-drawing.test.tsx`
+compared one part's `border-color` to another's, and `sheet.declaredValues` answers `[]` for a
+property nobody declares - so `[] === []` passed. Deleting EVERY `border-border-strong` from
+`avatar.tsx` (the image's `default` and `thin` edges and the mark's base) left the file whose own
+docblock says it reads "every number the drawing is MADE of" at **11 passed**, and the only
+behavioural catcher in the whole gate was this diff's own new story play, itself a class-name
+assertion and itself deletable (LOW-2). Fixed: the ink is pinned ONCE, to a new module constant
+`RING_INK = ["var(--border-strong)"]`, and all three arms read it. The value was **measured off the
+compiled sheet, not typed** - the probe asserted `["PROBE"]` and read back
+`expected [ 'var(--border-strong)' ] to deeply equal [ 'PROBE' ]`. The property the comparisons were
+reaching for - that the mark's ink and the face's are ONE role - is now the shared constant itself,
+and the docblock on it carries the finding.
+
+**LOW-1 (GREEN row 14): nothing observed that the variant props are kept off the DOM.** `ground` and
+`edge` are stripped from the element only by being destructured out of `...props`. Leaving `ground`
+in the spread shipped
+`<img data-slot="avatar-image" … class="… bg-raised" ground="raised">` to every registry consumer -
+an invalid attribute plus React's "does not recognize the prop" warning - with `pnpm test` at **565
+passed** (the one red being the registry BYTE digest, which fires for any edit) and `pnpm typecheck`
+`Done`. Fixed: a new arm in `avatar-structure.test.tsx`, "keeps the variant props OFF both elements,
+which only the destructure does", which anchors `bg-raised` and `border-[1.5px]` **positively first**
+
+- so an arm whose render silently drew nothing cannot pass on two absences - and then reads both
+  attributes back off both elements. **Its reddening mutation was RUN**, in the detached worktree
+  `/home/ankit/Code/mq-probe-s2` at the committed head `cffc1a09`, and the red is the one predicted:
+  `AssertionError: image keeps ground off the DOM: expected 'raised' to be null`, **1 failed / 4
+  passed**. That worktree was `git reset --hard` back to `cffc1a09` immediately after, with
+  `git status --short` empty.
+
+**MED-2 and LOW-3 (not GREEN rows - factual, and both corrected in `cffc1a0`).** `alert.tsx`'s new
+docblock, which ships verbatim to every consumer through `r/alert.json`, said the rule was "measured
+at the reference product's two sites". There is exactly ONE `<Alert>` site at thepile `1533f084`
+(`git grep -ln 'from "@/components/ui/alert"' -- apps/web/src` → `app/login/page.tsx` alone);
+`/settings/steam` renders a raw `<p data-testid="steam-link-notice">` and only CITES the rule. And
+`/login` carries BOTH halves by itself, so the honest sentence is "one site, both paths", plus a
+second non-`Alert` notice that took the same decision. The as-built bullet had the same error
+backwards: it cited "the notice is there at first paint" as the REASON the role was dropped, which
+is the sentence `login/page.tsx:63-65` flags in its own ⚠️ - **"AND THIS NOTICE DOES ARRIVE, SO 'IT
+IS THERE FROM FIRST PAINT' IS NOT THE REASON (layer 1 caught exactly that sentence here, and it was
+false)"**. Both now say it the one way round the source supports: `/login` arrives by soft navigation
+and declines because the region is inserted with its sentence; first paint is the typed-or-reloaded
+path, a second reason.
+
+**LOW-2 (GREEN rows 16 and 17): RECORDED, not fixed.** Deleting all three `await expect(…)` in the
+`Ground` play, and all five in `MarkEdge`, each leave the gate at `31 passed (31)` / `566 passed
+(566)`. This is the documented limitation of `stories.test.tsx:57-73` - `DECLARED_PLAYS` counts plays
+that exist and RAN, not plays that assert, and "no self-counting mechanism inside a file can defend
+that file against being edited to lie about itself". It is pre-existing for all 74 plays, and the
+counters do catch the two structural cases (removing the `play:` key, removing the story). MED-1's
+fix removed the one thing that made it matter here: `MarkEdge` was the family's ONLY guard for the
+mark's border ink, and `RING_INK` is now that guard, in the file that reads resolved values.
+
+**LOW-4 (GREEN row 9): RECORDED.** Widening `AvatarBadgeProps`' `VariantProps` to `unknown` leaves
+`pnpm test` at 565 passed and is caught by `pnpm typecheck` alone
+(`src/avatar.tsx(288,43): error TS2322`). `entry-point.test.ts`'s type arm reads the barrel's source
+text for the type NAME and cannot see its shape. `tsc` is the whole instrument and it is in the gate;
+this is recorded so nothing in this doc credits a test with it.
+
+Nothing the reviewer raised was declined.
+
+### The gate
+
+**ONE run, detached under a batch gate token, read from its sentinel**
+(`$BATCH_SCRATCH/s2/verify.exit`), at head `72f8cfaa6a8f67a786c87e9164a3a77399d1dc5b` -
+the head with both docs commits and the relayed citations on it. **Exit 0**, in **16 s** wall clock
+(a warm tree: `node_modules` and the Storybook cache were already there; the same gate cold at the
+0.1.2 bump took 2.6 minutes). The runner's own lines:
+`All matched files use Prettier code style!`, `packages/tokens typecheck: Done` +
+`packages/ui typecheck: Done`, `packages/tokens build: wrote 5 files`, `✔ Building registry.`,
+`└  Storybook build completed successfully`, and
+**`Test Files 31 passed (31)` / `Tests 567 passed (567)`**.
+
+`git status --short` was EMPTY before the gate and after it - and the gate runs `build:registry`
+itself, so that empty status is the proof that the committed `packages/ui/r` is byte-for-byte what
+these sources produce, including the two docblocks this stream re-cited.
+
+That is **+5 tests on 31 unchanged files** against the base (`a4040016`, 31 / 562, measured at
+DL16's own closure above): four for the two new axes (two drawing arms, two story plays) and one for
+layer 1's LOW-1 structure arm. No file was added to the suite, because every new arm belongs to a
+file that already existed.
+
+Pre-gate, bare and repo-wide, each read from its OWN exit rather than from a filter: `pnpm lint`
+exit 0, `pnpm typecheck` exit 0.
+
+No push, no tag, no `npm publish`, no PR: the freeze holds, and `packages/ui/package.json` is still
+`0.1.2`. Everything on this branch belongs to the 0.1.3 bump, including the two re-citations, which
+cannot reach thepile before it.

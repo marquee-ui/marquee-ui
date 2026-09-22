@@ -18,10 +18,38 @@ import { cn } from "@/lib/utils";
  *   look, and the same drawing carries both in the wild. Announcing is about WHEN
  *   a notice arrives, not what colour it is, so the tone cannot decide it either:
  *   a `destructive` box rendered with the page is not assertive, and a `default`
- *   one that appears after an action is worth announcing. A notice that is on the
- *   page from the start is not a live region at all, and that is the majority
- *   case, so writing one by default would add a live region to every page that
- *   renders a hint. Pass `role="status"` or `role="alert"` when the notice ARRIVES.
+ *   one that appears after an action is worth announcing.
+ *
+ *   ⚠️ **AND "WHEN IT ARRIVES" IS HALF THE RULE. A ROLE BELONGS ON A REGION THAT
+ *   EXISTS, EMPTY, BEFORE ITS CONTENT DOES.** A screen reader announces a
+ *   MUTATION inside a region it is already watching, so there are two ways to
+ *   write a live region nobody hears, and this note used to name only the first:
+ *
+ *     - a notice that is on the page from first paint has no mutation to
+ *       announce. That is the majority case, which is why a role by default would
+ *       put a live region on every page that renders a hint; and
+ *     - a notice INSERTED together with its text is announced unreliably, because
+ *       the region and its sentence arrive in the SAME mutation and nothing was
+ *       watching the region when they did. A conditionally mounted
+ *       `<Alert role="status">` is this case wearing the other case's fix.
+ *
+ *   The shape that does announce is a region that is in the document, empty, from
+ *   first paint and whose TEXT later changes. That is usually a different element
+ *   from this one - an `sr-only` paragraph that holds the sentence for the
+ *   reader - with `<Alert>` beside it as the visible half. Pass `role="status"`
+ *   or `role="alert"` HERE only when this box itself is already mounted and empty
+ *   before the notice is written into it.
+ *
+ *   Measured at the reference product rather than reasoned, and its ONE site
+ *   for this part carries both halves at once. That notice DOES arrive - both
+ *   routes to the URL are client-side soft navigations, instrumented on the
+ *   built page as same-document with zero load events - and it declines the role
+ *   anyway, because the region would be inserted together with its sentence; and
+ *   on the typed-or-reloaded path the same box is there at first paint, where
+ *   there is nothing to announce either. So the attribute could do its job on
+ *   neither path. A second notice elsewhere in that product - NOT drawn by this
+ *   part, and reached by a document navigation it measured - declined for the
+ *   first-paint half alone.
  * - **its width and its outer margin**. A part that caps its own line length has
  *   decided the column it sits in, and one that sets its own margin has decided
  *   its relationship to a sibling it does not own. Both are the page's.

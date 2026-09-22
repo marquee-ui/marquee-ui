@@ -31,7 +31,8 @@ import { cn } from "@/lib/utils";
  * The one thing a caller ALWAYS owns is the list's layout, because the product
  * has eight and no two agree: a 2-column grid with gridlines drawn by `gap-px`
  * over a coloured backdrop (`game/[slug]:757`), a 3-column grid with a border
- * per cell (`MemberRow:171`), a 10-column grid at `gap-[2px]`
+ * per cell (`MemberStats`'s `<DescriptionList>`, whose `CELL` const draws the
+ * per-cell edge), a 10-column grid at `gap-[2px]`
  * (`Ledger:223`), two 2-column grids (`reckoning:201`, `ImportPreview:214`), two
  * flex columns at `gap-2` and `gap-4` (`ScoreBlock:227`, `transparency:460`) and
  * one bare block (`admin/reports:85`). A `cva` with eight values is not an axis.
@@ -201,9 +202,18 @@ function refuseRole(props: object, part: string, element: string): void {
  * `lib/utils.ts` is a declared exclusion from this registry), so
  * `className="flex-row"` over a part that already says `flex-col` leaves both on
  * the element with the stylesheet's order picking the winner. That trap is
- * recorded twice in the consuming product (`micro-label.ts`, `MemberRow.tsx:80`)
- * and it has shipped a wrong colour once. Mutually exclusive strings cannot do
- * it.
+ * recorded twice in the consuming product (`micro-label.ts`, and the "NO
+ * `CELL_LABEL` HERE" docblock on `MemberStats.tsx`) and it has shipped a wrong
+ * colour once. Mutually exclusive strings cannot do it.
+ *
+ * ⚠️ **BOTH SITES ABOVE ARE NAMED BY SYMBOL, NOT BY LINE, AND THAT IS THE
+ * FINDING.** They were `MemberRow:171` and `MemberRow.tsx:80` until DL17, when
+ * the consuming product factored that `<dl>` into `MemberStats`, a client island
+ * on this very family - and both numbers came to point at unrelated prose in the
+ * file they still named. A docblock in this package ships verbatim to every
+ * consumer through `r/description-list.json` and is byte-pinned on the other
+ * side, so only a bump can correct it: a line number here rots a whole release
+ * out of reach.
  */
 export const descriptionItemVariants = cva("", {
   variants: {

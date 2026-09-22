@@ -98,8 +98,17 @@ const inputClass =
 
 /**
  * The box. `size-6` and `rounded-sm` and a 2px edge are the consuming product's
- * own house box (`OnboardingForm.tsx:171-173`, the one of its seven rows that
- * stopped using the browser's); the fill flips with the state.
+ * own house box - `OnboardingForm.tsx`'s `usageConsent` row, the one of its
+ * seven that stopped using the browser's; the fill flips with the state.
+ *
+ * ⚠️ **THE ROW IS NAMED, NOT A LINE RANGE, AND THE RANGE IT REPLACES WAS WRONG
+ * WHEN IT WAS WRITTEN.** `OnboardingForm.tsx:171-173` held that form's display-
+ * name `FormItem`, never the box; the box was one `h-6 w-6 … rounded-sm
+ * border-2` input further down, and since DL17 that row renders these four parts
+ * instead, so the treatment's source is now a consumer of it. This docblock
+ * ships verbatim through `r/checkbox.json` and is byte-pinned on the consuming
+ * side, so a stale number here survives until a bump; the row's `name` does
+ * not move.
  *
  * No `transition-colors`, and that is derived rather than forgotten: the site
  * this is taken from has none, and a fill has no distance to cross. `SwitchTrack`

@@ -3,7 +3,13 @@ import { composeStories } from "@storybook/react-vite";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.js";
-import { Avatar, AvatarBadge, AvatarImage } from "@/avatar";
+import {
+  Avatar,
+  AvatarBadge,
+  AvatarImage,
+  avatarBadgeVariants,
+  avatarImageVariants,
+} from "@/avatar";
 import * as avatarStories from "../stories/avatar.stories.js";
 
 /**
@@ -37,6 +43,26 @@ const stories = composeStories(avatarStories);
 
 const classesOf = (element: Element | null): string[] =>
   (element?.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
+
+/**
+ * The ring's ink, resolved, and PINNED rather than compared - layer 1's MED-1.
+ *
+ * Three arms here used to compare one part's `border-color` to another's and
+ * call that an assertion. `declaredValues` answers `[]` for a property nobody
+ * declares, so `[] === []` passes: the reviewer deleted EVERY
+ * `border-border-strong` in the family - the image's two edges and the mark's
+ * base, so nothing in it has a ring ink at all - and this file, whose own
+ * docblock claims it reads "every number the drawing is MADE of", stayed at
+ * **11 passed**. The whole gate caught it only through a class-name assertion
+ * in one story play.
+ *
+ * So the ink is anchored to a VALUE, once, and all three arms read this. The
+ * property the comparisons were reaching for - that the mark's ink and the
+ * face's are ONE role, so moving the role moves both - is now the shared
+ * constant: a role rename is one line here, and a part that stopped agreeing
+ * with it reddens on its own arm rather than on nobody's.
+ */
+const RING_INK = ["var(--border-strong)"];
 
 /**
  * A CSS percentage as a fraction, in the two shapes Tailwind 4 emits for the
@@ -78,6 +104,39 @@ function imageAt(edge: "default" | "thin" | "none"): string[] {
   cleanup();
   return found;
 }
+
+/** The image's classes at one value of the ground axis, read off the DOM. */
+function groundAt(ground: "surface" | "raised"): string[] {
+  const { container } = render(<AvatarImage src="/face.svg" ground={ground} />);
+  const found = classesOf(container.querySelector('[data-slot="avatar-image"]'));
+  cleanup();
+  return found;
+}
+
+/** The mark's classes at one value of ITS edge axis, read off the DOM. */
+function markAt(edge: "default" | "thin"): string[] {
+  const { container } = render(<AvatarBadge edge={edge}>n</AvatarBadge>);
+  const found = classesOf(container.querySelector('[data-slot="avatar-badge"]'));
+  cleanup();
+  return found;
+}
+
+/**
+ * ⚠️ THE VARIANT FUNCTION'S OWN OUTPUT, UNMERGED - AND THAT IS THE ONLY
+ * INSTRUMENT THAT CAN SEE THE DEFECT THESE TWO AXES EXIST TO REMOVE.
+ *
+ * Both axes were added because a value sat in a `cva` BASE (or a literal), where
+ * a consumer whose `cn` is a plain JOIN cannot displace it. This package's own
+ * `cn` is a real tailwind-merge, so a base that KEPT `bg-surface` beside a
+ * `bg-raised` variant is resolved before anything renders and the rendered
+ * element looks perfect - measured, not reasoned: both mutations (`bg-surface`
+ * back in the image's base, `border-2` back in the mark's) left the whole file
+ * GREEN at 11 passed when the arms below read only `markAt`/`groundAt`. So the
+ * arms read the STRING a plain-join consumer is handed, resolved against the
+ * compiled sheet, where a leftover shows up as a SECOND declaration.
+ * `alert-tone.test.tsx:36` reads its axis the same way.
+ */
+const tokensOf = (variants: string): string[] => variants.split(/\s+/).filter(Boolean);
 
 describe("the face's geometry, in resolved values", () => {
   it("found a real drawing to measure, and a sheet to measure it in", () => {
@@ -164,12 +223,12 @@ describe("the face's geometry, in resolved values", () => {
     // sits on whatever is behind the root, which is how one member gets two
     // different faces from two components.
     expect(sheet.declaredValues(parts.image, "background-color")).toEqual(["var(--surface)"]);
-    // The mark's edge is what CUTS it out of the face it overhangs - compared to
-    // the image's ink rather than pinned, so one role moving moves both.
+    // The mark's edge is what CUTS it out of the face it overhangs, so both the
+    // width and the INK are read - the ink against `RING_INK`, which is the one
+    // thing that makes "the mark's ink is the face's" an assertion at all.
     expect(sheet.declared(parts.mark, "border-width")).toBe(2);
-    expect(sheet.declaredValues(parts.mark, "border-color")).toEqual(
-      sheet.declaredValues(parts.image, "border-color"),
-    );
+    expect(sheet.declaredValues(parts.mark, "border-color")).toEqual(RING_INK);
+    expect(sheet.declaredValues(parts.image, "border-color")).toEqual(RING_INK);
     // …and it is a centred box, not a corner of text: `place-items` is the only
     // thing putting the glyph in the middle of it, and `line-height: 1` the only
     // thing stopping a mono ascent pushing it off centre.
@@ -204,10 +263,63 @@ describe("the face's geometry, in resolved values", () => {
     expect(sheet.declared(imageAt("thin"), "border-width")).toBe(1);
     expect(sheet.declared(imageAt("none"), "border-width")).toBeNull();
     // …and the ink is the same role in the two that have one, so the axis is a
-    // WIDTH axis and not a second colour decision.
-    expect(sheet.declaredValues(imageAt("default"), "border-color")).toEqual(
-      sheet.declaredValues(imageAt("thin"), "border-color"),
+    // WIDTH axis and not a second colour decision. Both read against `RING_INK`:
+    // comparing them to each other passed with neither of them having an ink.
+    expect(sheet.declaredValues(imageAt("default"), "border-color")).toEqual(RING_INK);
+    expect(sheet.declaredValues(imageAt("thin"), "border-color")).toEqual(RING_INK);
+  });
+
+  it("resolves the ground axis to two grounds, with the old value still the default", () => {
+    // s1's REQUEST 1, half one. `bg-surface` sat in the cva BASE, where a
+    // consumer whose `cn` is a plain join cannot reach it, so the reference
+    // product wrote `backgroundColor: var(--raised)` as an inline DECLARATION on
+    // every face it draws - a second ground on the element with the stylesheet's
+    // order picking the winner. Two measured grounds, read out of the sheet.
+    expect(sheet.declaredValues(groundAt("surface"), "background-color")).toEqual([
+      "var(--surface)",
+    ]);
+    expect(sheet.declaredValues(groundAt("raised"), "background-color")).toEqual(["var(--raised)"]);
+    // EXACTLY ONE ground in what the VARIANT hands a caller, which is the whole
+    // property the axis exists to produce and which the two reads above cannot
+    // see (see `tokensOf`): a base that kept `bg-surface` would hand a plain-join
+    // consumer two, and leave the stylesheet's order to pick.
+    expect(
+      sheet.declaredValues(tokensOf(avatarImageVariants({ ground: "raised" })), "background-color"),
+    ).toEqual(["var(--raised)"]);
+    // …and it is a MOVE rather than a new default: an image with no `ground`
+    // still draws what the base used to hard-code, so no existing site moves.
+    expect(sheet.declaredValues(bare().image, "background-color")).toEqual(
+      sheet.declaredValues(groundAt("surface"), "background-color"),
     );
+  });
+
+  it("resolves the MARK's edge axis to the two widths its own sites measure", () => {
+    // s1's REQUEST 1, half two, and the same defect one part over: the mark's
+    // `border-2` is a literal in `AvatarBadge`'s class string, so the two small
+    // faces (28 and 34, whose mark is an ~11-14px circle the 2px ring eats) are
+    // drawn by an inline `borderWidth` declaration in the consumer.
+    expect(sheet.declared(markAt("default"), "border-width")).toBe(2);
+    expect(sheet.declared(markAt("thin"), "border-width")).toBe(1.5);
+    // The default is what the literal hard-coded, so the three faces that take
+    // the part's own value are untouched.
+    expect(sheet.declared(bare().mark, "border-width")).toBe(2);
+    // …and ONE width in what the variant hands a plain-join caller, for the same
+    // reason and with the same blindness behind it: `border-2` left in the base
+    // is invisible to every read above.
+    expect(
+      sheet.declaredValues(tokensOf(avatarBadgeVariants({ edge: "thin" })), "border-width"),
+    ).toEqual(["1.5px"]);
+    // ⚠️ AND `thin` HERE IS NOT `thin` ON THE IMAGE, ON PURPOSE. The mark is 40%
+    // of the face, so the two axes carry the two measurements they were taken
+    // from rather than one shared number: 1px on a 26px face, 1.5px on the mark
+    // of a 28 or 34 one. Asserted side by side, so the asymmetry is a decision a
+    // reader meets rather than a typo they find.
+    expect(sheet.declared(imageAt("thin"), "border-width")).toBe(1);
+    // The ink is one role at both widths, so this is a WIDTH axis and not a
+    // second colour decision - both read against `RING_INK` for the reason that
+    // constant carries.
+    expect(sheet.declaredValues(markAt("thin"), "border-color")).toEqual(RING_INK);
+    expect(sheet.declaredValues(markAt("default"), "border-color")).toEqual(RING_INK);
   });
 
   it("keeps the story's own box on the root, which is what a consumer copies", () => {

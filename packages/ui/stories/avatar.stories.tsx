@@ -110,6 +110,76 @@ export const Edges: Story = {
 };
 
 /**
+ * The ground axis, on the composition that needs it: a drawn face with no
+ * background of its own, on a card that is already `surface`.
+ *
+ * Left takes the default and disappears into the card - the ring between the head
+ * and the rim is the same colour as the page behind it. Right names `raised` and
+ * the face reads as a face. This is the story a consumer copies, so it shows the
+ * two side by side rather than the good one alone.
+ */
+export const Ground: Story = {
+  render: () => (
+    <div className="flex items-center gap-4 rounded-md bg-surface p-4">
+      <Avatar className="h-16 w-16">
+        <AvatarImage src={FACE} />
+      </Avatar>
+      <Avatar className="h-16 w-16">
+        <AvatarImage src={FACE} ground="raised" />
+      </Avatar>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    // Class tokens, not resolved colours: this package proves the DECLARATIONS a
+    // utility produces in `avatar-drawing.test.tsx` against the compiled sheet
+    // (which is where both grounds are read back), and jsdom has no cascade to
+    // ask. What a story can say is that the two faces do not wear the same one.
+    const [fallback, raised] = [
+      ...canvasElement.querySelectorAll('[data-slot="avatar-image"]'),
+    ].map((element) => element.getAttribute("class")!.split(/\s+/));
+    await expect(fallback).toContain("bg-surface");
+    await expect(raised).toContain("bg-raised");
+    await expect(raised).not.toContain("bg-surface");
+  },
+};
+
+/**
+ * The MARK's edge axis: the house's 2px, and the 1.5px the two smallest faces
+ * draw because at 2px the ring eats the letter out of an ~11px circle.
+ *
+ * The boxes are the reference product's own 64 and 28, with its own mark sizes
+ * on the seam, so the pair reads at the size the decision was taken at.
+ */
+export const MarkEdge: Story = {
+  render: () => (
+    <div className="flex items-end gap-4">
+      <Avatar className="h-16 w-16 [--avatar-mark-size:0.68rem]">
+        <AvatarImage src={FACE} />
+        <AvatarBadge className="font-mono font-bold uppercase text-primary-ink">n</AvatarBadge>
+      </Avatar>
+      <Avatar className="h-7 w-7 [--avatar-mark-size:0.36rem]">
+        <AvatarImage src={FACE} />
+        <AvatarBadge edge="thin" className="font-mono font-bold uppercase text-primary-ink">
+          n
+        </AvatarBadge>
+      </Avatar>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const [thick, thin] = [...canvasElement.querySelectorAll('[data-slot="avatar-badge"]')].map(
+      (element) => element.getAttribute("class")!.split(/\s+/),
+    );
+    await expect(thick).toContain("border-2");
+    await expect(thin).toContain("border-[1.5px]");
+    await expect(thin).not.toContain("border-2");
+    // Both marks keep the part's own ink and its seam: the axis moves the WIDTH
+    // and nothing else, which is what makes it a width axis.
+    await expect(thin).toContain("border-border-strong");
+    await expect(thin).toContain("text-[length:var(--avatar-mark-size,17cqw)]");
+  },
+};
+
+/**
  * The mark's type, resized by ONE declaration on the root.
  *
  * `--avatar-mark-size` is the seam, and it exists because a consumer's `cn` may
