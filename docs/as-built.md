@@ -8135,10 +8135,16 @@ The version line stays `0.1.3`. `Textarea` rides the 0.1.4 bump.
 
 - **Arrival.** `Textarea` reaches thepile only through a LIB-VENDOR-0.1.4 slice: 0.1.3 is vendored
   (`vendor/marquee-ui/`, byte-pinned by `scripts/marquee-drift.test.ts`) and 0.1.4 is unreleased. The
-  bump carries one NEW item (`textarea`, and `r/registry.json` changes with it), so the drift test
-  gains an entry only if the consumer installs the copy (`shadcn add` from the vendored tarball's
-  `r/textarea.json`, into `components/ui/textarea.tsx`); the copy imports `./input`, which thepile
-  already has. Nothing in this slice predicts a screenshot.
+  bump carries one NEW item (`textarea`, and `r/registry.json` changes with it), so thepile's drift
+  test reddens at the bump ITSELF, before any copy is installed (⚠️ corrected by the reconciler, DL19
+  layer 2 LOW-3; the first edition said it gains an entry only once the copy is installed): its
+  exact-complement arm (`scripts/marquee-drift.test.ts:156-167` at thepile `7cc04ecd`, seven
+  non-consumed names) reads the shipped index and sees an eighth, and its self-count arm's `NUMBER`
+  map has no entry for 21 and its regex cannot read a hyphenated count word (a replica of both
+  expressions against this head's `r/registry.json`: complement `false`, shipped 21). So
+  LIB-VENDOR-0.1.4 edits the arm and its lists in ONE commit with the bump, then installs the copy
+  (`shadcn add` from the vendored tarball's `r/textarea.json`, into `components/ui/textarea.tsx`);
+  the copy imports `./input`, which thepile already has. Nothing in this slice predicts a screenshot.
 - **The five sites that can take it**, each `"use client"`, each `inputClass` plus a pad the part
   now carries: `lists/ListForm.tsx:83`, `play/PlayForm.tsx:174`, `profile/ProfileEditForm.tsx:87`
   (plus `min-h-[88px]`), `log/LogForm.tsx:668` (plus `mt-1 min-h-32`) and `:917` (plus `mt-1`).
