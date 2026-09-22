@@ -189,6 +189,21 @@ describe("a checked state survives forced-colors: active", () => {
     // ...and a border declared under `forced-colors:` only counts while the
     // registered style default paints. Read from the sheet, never typed.
     expect(borderStyleDefault(), "--tw-border-style has no solid default").toBe("solid");
+
+    // ⚠️ THE BUCKET CUT IS THE WHOLE EXPECTATION, so it is anchored on the
+    // PREDICATE'S behaviour and not by asserting the table against itself. The
+    // mutation pass proved why: adding `background-color` to FOREGROUND_PAINT
+    // quietly passed the unfixed dot, because the arm below then believed a
+    // background paints a foreground. These two reads say it cannot, in the two
+    // utilities one character apart that the two families actually use.
+    expect(
+      paintsAForeground(["bg-primary-foreground"]),
+      "a background counts as a foreground: the bucket cut is gone",
+    ).toBe(false);
+    expect(
+      paintsAForeground(["stroke-primary-foreground"]),
+      "a stroke no longer counts as a foreground",
+    ).toBe(true);
   });
 
   it("gives every revealed element a foreground or a forced-colors treatment", () => {
