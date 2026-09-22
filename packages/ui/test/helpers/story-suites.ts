@@ -19,6 +19,7 @@ import * as ribbon from "../../stories/ribbon.stories.js";
 import * as separator from "../../stories/separator.stories.js";
 import * as sheet from "../../stories/sheet.stories.js";
 import * as switchPart from "../../stories/switch.stories.js";
+import * as textarea from "../../stories/textarea.stories.js";
 import * as toast from "../../stories/toast.stories.js";
 
 /**
@@ -51,6 +52,7 @@ export const STORY_SUITES = {
   separator,
   sheet,
   switch: switchPart,
+  textarea,
   toast,
 };
 

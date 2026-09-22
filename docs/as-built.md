@@ -7896,3 +7896,126 @@ answer), and _a guard the consumer's `cn` can invert is not a guard_. Nothing sh
 its why cell ("the same mechanism with the state handled" is false against the file: a one-way
 reveal, not a disclosure). If the product ever decides to draw its own marker, **this is the row
 that says so**, and it arrives as a product decision first.
+
+### 2. The `Textarea` measurement, and what shipped
+
+**A `Textarea` family ships**: one part, `Textarea`, and its string, `textareaClass`. The audit's
+column names two rows (`awk -F'|' '$4 ~ /Textarea/ {print NR}'` → `:393` CommentForm, `:399`
+ProfileEditForm); the tree has SIX `<textarea>` sites (`git grep -n '<textarea' -- 'apps/web/src/**/*.tsx'`
+at `d67eab8f`, less `ui/form.tsx:30`, a comment), every one read, all six in `"use client"` files:
+
+| site                                 | class string                                                                                                                                                                                                       | rows | vertical pad |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | ------------ |
+| `lists/ListForm.tsx:77-84`           | `` `${inputClass} py-2` `` (`:83`)                                                                                                                                                                                 | 3    | `py-2`       |
+| `play/PlayForm.tsx:168-175`          | `` `${inputClass} py-2` `` (`:174`)                                                                                                                                                                                | 3    | `py-2`       |
+| `profile/ProfileEditForm.tsx:80-88`  | `` `${inputClass} min-h-[88px] py-2` `` (`:87`)                                                                                                                                                                    | 3    | `py-2`       |
+| `log/LogForm.tsx:656-669` (review)   | `cn(inputClass, "mt-1 min-h-32 py-2")` (`:668`)                                                                                                                                                                    | 5    | `py-2`       |
+| `log/LogForm.tsx:909-918` (notes)    | `cn(inputClass, "mt-1 py-2")` (`:917`)                                                                                                                                                                             | 2    | `py-2`       |
+| `comments/CommentForm.tsx:70-84`     | its own: `min-h-[88px] w-full rounded-md border-2 border-line bg-surface p-3 text-base text-text placeholder:text-text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2` (`:83`) | 3    | `p-3`        |
+| this package, `form.stories.tsx:179` | raw `<textarea className="min-h-hit w-full rounded-md border-2 border-border bg-surface p-3 text-base …">` in the Form family's `Textarea` story                                                                   | 3    | `p-3`        |
+
+thepile's `inputClass` (`components/ui/form-styles.ts:35-36`) is byte-identical to this package's
+`input.tsx:5-6` (`diff` of the two string lines, leading indent stripped: identical), and
+`form-styles.test.ts` pins it to the vendored copy, so five of six sites draw **this package's
+field** plus a pad they each add by hand.
+
+**The measurement that makes it a part and not the Select answer again.** On a `<select>`,
+`inputClass` is COMPLETE: the control centres its one line itself, so a `NativeSelect` would have
+been `Input` with another tag. On a `<textarea>` it is not. Read out of the compiled sheet
+(`probe-out.txt`):
+
+```
+inputClass tokens, padding-block declared:   []
+inputClass tokens, padding-top declared:     []
+inputClass tokens, padding-inline declared:  ["calc(var(--spacing) * 3)"]
+preflight: *, ::after, ::before, ::backdrop, ::file-selector-button { … margin: 0; padding: 0; … }
+```
+
+So the field string alone draws a textarea whose first line is FLUSH against the top border, and
+every site in both repositories pays for that by hand, in two values: `py-2` five times, `p-3` twice
+(CommentForm and this package's own story - the one a consumer copies). A part owns that pad once.
+That is something to draw, which is the line the Select answer drew ("a part with nothing to draw is
+a rename").
+
+**Which pad, measured rather than voted.** An `Input` centres its line in the `min-h-hit` box, so its
+text sits `(44 - 2 * 2 - 16 * 1.55) / 2` = **7.6px** under the top border (`--hit-min: 44px`,
+`--border-width: 2px`, `--text-base: 1rem`, `--text-base--line-height: 1.55`, all from the emitted
+`tokens.css`). `py-2` is 8px, 0.4px off, the spacing-grid step nearest it; the story's `p-3` is 12px,
+4.4px off. So `py-2` - the five sites' value - is also the one that starts a textarea's first line
+where the input above it starts its text, and the part takes it; the story's `p-3` was the outlier,
+and moves (below).
+
+**Three things measured and NOT drawn, because the platform or the sheet already does them:**
+
+- **Resize.** Preflight declares `textarea { resize: vertical; }` (compiled line 156-157), so a
+  `w-full` field already cannot be dragged wider than its column. No utility owed.
+- **The floor.** `min-h-hit` rides in from `inputClass`, and the 44px sweep's selector already names
+  `textarea` (`tailwind-compile.test.tsx:215`). With the pad, even `rows={1}` is 44.8px.
+- **A height.** `rows` decides it. ⚠️ And a taller `min-h-*` in `className` is a TRAP for a plain-join
+  consumer: this package's `cn` merges a caller's `min-h-32` over `min-h-hit`, but the compiled sheet
+  emits `.min-h-11` 8868 < `.min-h-32` 8929 < `.min-h-[88px]` 9036 < `.min-h-hit` 9082
+  (`probe-out5.txt`), so under a join the field's 44px floor WINS and the caller's floor is dead. The
+  part's docblock says "prefer `rows`" for exactly this. No `field-sizing: content` either: no site
+  auto-grows, and that is a behaviour the product has not taken.
+
+**The one site that must NOT take the part yet: CommentForm, and why it is a measurement.** Its
+departure is not only the pad and the pre-a4 alias names (`border-line`, `text-text`,
+`placeholder:text-text-muted`): it is the ONE textarea whose keyboard focus keeps an OUTLINE -
+thepile's shared ring (`app/globals.css:602-606`, `outline: 2px solid var(--accent)`, `summary` and
+`textarea` both in its selector) plus its own restatement - where `inputClass` kills the outline with
+`focus:outline-none` and leaves a border colour, which is **Input's open forced-colors [V]** (this
+file, "`input.tsx:6` and `sheet.tsx:67`", observed on thepile's `/login` in DL16 layer 2's HIGH-1).
+And the outline cannot be kept by passing CommentForm's classes to the part, in either `cn`:
+
+```
+.focus\:outline-none:focus          { --tw-outline-style: none; outline-style: none }   emitted at 25871
+.focus-visible\:outline:focus-visible { outline-style: var(--tw-outline-style); outline-width: 1px }  26200
+cn(inputClass, "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2")
+  -> "… focus:border-primary focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
+```
+
+On a keyboard focus both selectors match, so the `var()` the outline reads is the `none` the other
+rule set on the same element (read from the sheet; the paint is not observed here); and this
+package's `cn` drops `focus-visible:outline` outright. So moving CommentForm onto `Textarea` today is
+a forced-colors regression for the one field that does not have the defect. It waits for Input's
+[V], and when that is taken in `input.tsx`, `Textarea` inherits the fix with no edit of its own -
+which is why `textareaClass` is BUILT on `inputClass` rather than copied from it.
+
+**What shipped.**
+
+- `packages/ui/src/textarea.tsx`: `textareaClass` = `` `${inputClass} py-2` ``, importing
+  `inputClass` from `./input` (the `form.tsx` → `./label` shape), and `Textarea`, a
+  `<textarea data-slot="textarea">` over `cn(textareaClass, className)` with every prop spread. No
+  directive and no hook, so a Server Component can render it (`client-boundary.test.ts` walks it and
+  agrees); no `asChild`, because a textarea's element IS its semantics (`Input` has none either).
+- `packages/ui/stories/textarea.stories.tsx`: `Default`, whose play types two lines through Enter and
+  reads `"first line\nsecond line"` back - the one behaviour that makes it not an `Input`.
+- `packages/ui/stories/form.stories.tsx`: the Form family's `Textarea` story composes the part
+  (imported as `TextareaField`, because that file already exports a story named `Textarea`), so the
+  story a consumer copies now draws `px-3 py-2` where it drew `p-3`. No consumer renders that story.
+- `registry.json`: the `textarea` item, `target` `components/ui/textarea.tsx`, `registryDependencies`
+  `@marquee/utils` and `@marquee/input` (the import is real, and a consumer who adds `textarea` gets
+  the `input` copy it reads). `packages/ui/r/textarea.json` and `r/registry.json` rebuilt and
+  committed.
+
+### The guards, and the runs that reddened them
+
+`test/textarea-drawing.test.tsx`, four arms, every value read off the compiled sheet from a RENDERED
+story or the part's own export: (1) anchors - both fields render, the input declares no vertical
+padding (the premise of the arithmetic); (2) in every property `Input`'s field declares, the
+textarea declares the same values; (3) the rendered pad is the grid step nearest the input's inset,
+derived from `min-height`, `border-width`, `font-size`, the `line-height` fallback and `--spacing`;
+(4) the pad is in `textareaClass` UNMERGED, exactly once, with no `padding` / `padding-top` /
+`padding-bottom` beside it - the plain-join consumer's string, because this package's own `cn`
+would merge a leftover away before the rendered arms could see it (the d-command block's lesson).
+
+**Red first, in the working tree, before the pad existed** (`textareaClass = inputClass`,
+`$BATCH_SCRATCH/s2/red-textarea.log`): `Tests 2 failed | 2 passed (4)`, and each red names the pad:
+
+| arm                                                                  | red message                                                           |
+| -------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| "starts its first line where an Input puts its text…"                | `AssertionError: the rendered pad: expected [] to deeply equal [ 8 ]` |
+| "carries that pad exactly once in the string a plain-join consumer…" | `AssertionError: expected [] to have a length of 1 but got +0`        |
+
+The derived `8` in the first message is the arithmetic above coming out of the sheet, not a typed
+number. Then `` `${inputClass} py-2` `` → `Tests 4 passed (4)` (`green-textarea.log`).

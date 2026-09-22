@@ -57,7 +57,7 @@ const uiPkg = JSON.parse(readFileSync(resolve(root, "packages/ui/package.json"),
 const uiDeps = uiPkg.dependencies;
 
 describe("registry.json", () => {
-  it("declares the nineteen part families plus the one shared lib", () => {
+  it("declares the twenty part families plus the one shared lib", () => {
     // Anchor: every loop below is vacuous against an empty item list.
     expect(registry.items.map((item) => item.name).sort()).toEqual([
       "accordion",
@@ -78,6 +78,7 @@ describe("registry.json", () => {
       "separator",
       "sheet",
       "switch",
+      "textarea",
       "toast",
       "utils",
     ]);
@@ -148,7 +149,7 @@ describe("registry.json", () => {
         checked++;
       }
     }
-    expect(checked).toBe(20);
+    expect(checked).toBe(22);
   });
 
   it("keeps no stylesheet's first token a comment", () => {
@@ -216,7 +217,7 @@ describe("the built registry in packages/ui/r", () => {
         compared++;
       }
     }
-    expect(compared).toBe(21);
+    expect(compared).toBe(22);
   });
 
   it("carries the title, description and both dependency lists into the item file", () => {
