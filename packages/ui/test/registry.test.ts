@@ -57,7 +57,7 @@ const uiPkg = JSON.parse(readFileSync(resolve(root, "packages/ui/package.json"),
 const uiDeps = uiPkg.dependencies;
 
 describe("registry.json", () => {
-  it("declares the nineteen part families plus the one shared lib", () => {
+  it("declares the twenty part families plus the one shared lib", () => {
     // Anchor: every loop below is vacuous against an empty item list.
     expect(registry.items.map((item) => item.name).sort()).toEqual([
       "accordion",
@@ -78,6 +78,7 @@ describe("registry.json", () => {
       "separator",
       "sheet",
       "switch",
+      "textarea",
       "toast",
       "utils",
     ]);
@@ -148,7 +149,36 @@ describe("registry.json", () => {
         checked++;
       }
     }
-    expect(checked).toBe(20);
+    expect(checked).toBe(22);
+  });
+
+  it("declares exactly the registry dependencies its sources import", () => {
+    // The count above cannot say WHICH: swapping `textarea`'s `@marquee/input` for
+    // `@marquee/label` was GREEN, and a consumer's `shadcn add textarea` would then
+    // write a copy whose `./input` resolves to nothing (DL19 layer 1, MED-3). So the
+    // set is DERIVED from each shipped source's own imports - a sibling part by
+    // `./<name>`, the shared lib by `@/lib/utils` - and compared, per item.
+    let derived = 0;
+    for (const item of registry.items) {
+      const required = new Set<string>();
+      for (const file of item.files.filter((f) => /\.tsx?$/.test(f.path))) {
+        const text = readFileSync(resolve(root, file.path), "utf8");
+        for (const match of text.matchAll(/from "(\.\/[^"]+|@\/lib\/utils)"/g)) {
+          const specifier = match[1]!;
+          required.add(
+            specifier === "@/lib/utils"
+              ? "@marquee/utils"
+              : `@marquee/${specifier.slice(2).replace(/\.js$/, "")}`,
+          );
+        }
+      }
+      expect([...(item.registryDependencies ?? [])].sort(), item.name).toEqual(
+        [...required].sort(),
+      );
+      derived += required.size;
+    }
+    // Anchor: the same total the count above holds, reached from the imports.
+    expect(derived).toBe(22);
   });
 
   it("keeps no stylesheet's first token a comment", () => {
@@ -216,7 +246,7 @@ describe("the built registry in packages/ui/r", () => {
         compared++;
       }
     }
-    expect(compared).toBe(21);
+    expect(compared).toBe(22);
   });
 
   it("carries the title, description and both dependency lists into the item file", () => {

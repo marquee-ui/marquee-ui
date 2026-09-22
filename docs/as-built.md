@@ -7783,3 +7783,532 @@ unchanged; the delta is one source, one registry item and nothing else. The cons
   file rather than an edit to an old one. The bullet's own reasoning is left standing as the dated
   reading it was; leaving it uncorrected is how a number gets repeated as fact, which is the failure
   this file exists to stop.
+
+## DESIGN-LIB-d-disclosure: the `Collapsible` measurement, and `Textarea` (2026-09-23)
+
+Batch DL19, stream s2, on the library's `next` at `f28d56e` (32 files / 570 tests, re-measured at
+this base by `pnpm build && pnpm test` before anything moved). thepile is read-only throughout, at
+`d67eab8f` (`next`, the commit carrying the DL19 table; `git diff --stat 1f7ab1ad d67eab8f` names
+`docs/slices/DESIGN-LIB.md` and nothing else, so every source below reads as it does at the DL18
+head), by `git -C … show <sha>:<path>`. Under the push freeze: LOCAL commits on
+`s/design-lib-d-disclosure`, no tag, no publish, and `packages/ui/package.json`'s version line stays
+`0.1.3`. Whatever ships here rides the 0.1.4 bump.
+
+Every probe below ran in a DETACHED worktree of the base (`../marquee-ui-s2-probe`, `pnpm install
+--frozen-lockfile` and the tokens build), as a scratch test plus a scratch source file naming the
+probed classes - the compile fixture is `source(none)`, so a class nobody names does not compile and
+a probe has to name it in a source directory, never in a test string (AGENTS.md). Outputs under
+`$BATCH_SCRATCH/s2/probe/`, the probe sources themselves under `probe/src/`.
+
+### 1. The `Collapsible` measurement, and the answer
+
+**No `Collapsible` family ships.** The audit's three rows reproduce at thepile `d67eab8f`
+(`awk -F'|' '$4 ~ /Collapsible/ {print NR}' docs/design-audit.md` → `:350`, `:353`, `:393`), and
+every site was read in full, plus the fourth disclosure no row names:
+
+| audit row                                 | what it actually is                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | wants the part?                                                                                                                                                            |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `:350` `/browse/games` ("More platforms") | `components/browse/FilterBar.tsx`, NO directive, a Server Component. `<details open={tailIsActive} className="flex flex-col gap-1">` `:153`, `open` computed on the server (`:121`, its comment `:149-152`); `<summary id={TAIL_LABEL_ID} className="w-fit min-h-11 cursor-pointer list-inside rounded-md px-3 py-3 text-sm text-text-secondary transition-colors hover:text-text">` `:157-162`; the tail `FacetRow` of anchors `:163-172`. The why is `:95-103` and `:154-156` ("giving it `display:flex` would silently remove it")                                                                                                                              | **No.** Its summary is drawn as the bar's third quiet control, beside the chips and the Clear link it sits among, not as a disclosure                                      |
+| `:353` `/game/[slug]` (the breakdown)     | `components/game/ScoreBlock.tsx`, NO directive. `BreakdownDisclosure` `:183-274`: `<details data-testid="rating-breakdown" className="max-w-[34rem] rounded-md border-2 border-line-strong bg-surface">` `:209-212`, `<summary data-testid="rating-breakdown-summary" className="min-h-11 cursor-pointer list-item px-3 py-3 font-mono text-xs uppercase tracking-label text-text-secondary hover:text-text">` `:213-220` ("`list-item` keeps the native disclosure triangle, so no `flex` here", `:214-215`), the panel `<div>` `:221-269`. `ScoreBlock.test.tsx:623-634` reads the SOURCE for `"use client"`, `useState` and `onClick` and requires none of them | **No.** Same reason, and the panel is the one content wrapper among all the sites                                                                                          |
+| `:393` `/[username]/review/[slug]`        | `components/review/SpoilerShield.tsx`, `"use client"` `:1`, **74 lines**. A ONE-WAY reveal: `revealed` state `:13` and no way back; the content stays in the DOM under `aria-hidden="true" inert className="select-none blur-sm"` `:62` for the SSR permalink; a `<button className="absolute inset-0 …">` `:65-71`; focus moved INTO the revealed content `:35-37` (A11Y-2). TWO consumers: `review/ReviewBody.tsx:26` and the permalink's own `SpoilerContext` (`app/[username]/review/[slug]/page.tsx:182-189`), which wraps the COMMENT THREAD                                                                                                                 | **No - it is not a disclosure.** A disclosure closes again, announces `aria-expanded`, and hides its content from assistive tech while closed; this does none of the three |
+| (no row) the log sheet's Details          | `components/log/LogForm.tsx:183-225`, `Section`, inside a `"use client"` form: a hand-built `<button aria-expanded aria-controls={open ? id : undefined}>` whose panel is conditionally RENDERED (`{open && …}` `:218`), with React state behind it. Its stated reason for not being `<details>` (`:183-184`, "jsdom does not implement summary toggling") is measured FALSE below                                                                                                                                                                                                                                                                                 | **No.** A client disclosure with state is `Accordion`'s shape, not a native one's                                                                                          |
+
+**The Radix answer, measured rather than reasoned.** `@radix-ui/react-collapsible` 1.1.20 is already
+in this repository's store (a dependency of `@radix-ui/react-accordion` 1.2.20, not of this
+package), and its `dist/index.mjs` opens with `"use client";`. Rendered to static markup with a tail
+anchor inside, the way the server would serve it (`$BATCH_SCRATCH/s2/probe/probe-out3.txt`):
+
+```
+closed:     <div data-state="closed"><button type="button" aria-expanded="false" data-state="closed">More platforms</button><div data-state="closed" id="radix-_R_0_" hidden=""></div></div>
+open:       <div data-state="open"><button type="button" aria-controls="radix-_R_0_" aria-expanded="true" data-state="open">More platforms</button><div data-state="open" id="radix-_R_0_"><a href="/x?platform=23">PC-98</a></div></div>
+forceMount: <div data-state="closed"><button type="button" aria-expanded="false" data-state="closed">More platforms</button><div data-state="closed" id="radix-_R_0_"><a href="/x?platform=23">PC-98</a></div></div>
+```
+
+So it fails all three of row 350's conditions on the served bytes: it is a client module; closed, the
+anchor is **not in the HTML at all**, which is the crawler condition and the thing
+`e2e/browse-filters.spec.ts:209` asserts (`platform=23` in the body, closed or not); and the only way
+to put it back, `forceMount`, serves the tail with **no `hidden`**, i.e. visibly OPEN until hydration
+hides it. Its trigger is a `<button>`, and the same spec's `:202` asserts the bar's served HTML
+carries no `<button` at all.
+
+**The native answer: what a `<details>`/`<summary>`/`<div>` family would draw.** Measured in the same
+worktree (`probe-out.txt`, `probe-out2.txt`): a part with no directive and no hooks renders `<details
+open="">` from a plain `open` prop and keeps a closed tail's anchors in the markup (`renderToStaticMarkup`,
+both shapes), so it passes all three conditions by construction. The question is what it DRAWS:
+
+- **The two `<details>` share nothing** (`flex flex-col gap-1` against a bordered opaque panel), and
+  only one site has a content wrapper at all.
+- **The two summaries share SIX tokens, not two** - `min-h-11 cursor-pointer px-3 py-3
+text-text-secondary hover:text-text` (the composition's "`min-h-11 cursor-pointer` and nothing
+  else" is wrong, class B, corrected here) - and those six are not a disclosure treatment. They are
+  the product's QUIET-CONTROL pair: 12 single-line class strings in 10 files carry the 44px floor
+  plus `text-text-secondary` plus `hover:text-text` (`git grep -E 'min-h-(11|hit)'` over
+  `apps/web/src/**/*.tsx` less tests, filtered for both inks; list at
+  `$BATCH_SCRATCH/s2/probe/quiet-control-lines.txt`). Two are the summaries; the other ten are
+  four `Link`s, four `button`s and two named class constants (`FollowButton.tsx:118`,
+  `Door.tsx:20`), each read - FilterBar's own Clear link `:197` among them, while its `Chip`
+  `:82-83` wears the same pair split across two `cn` arguments. Each summary is drawn to match its NEIGHBOURS, and the other FIVE
+  tokens on each (a chip's `w-fit rounded-md text-sm transition-colors` against the house micro-label's
+  `font-mono text-xs uppercase tracking-label`) disagree.
+- **The library's own disclosure is drawn differently again.** `AccordionTrigger` is `flex … w-full
+justify-between text-sm font-semibold text-foreground hover:text-primary-ink`, NO marker (it is
+  `flex`), and the house ring. A native family would be a second disclosure idiom beside `Accordion`
+  with a second look, or the same look imposed on two sites whose drawing is a product decision
+  (MOBILE-3, quoted in row 350: the native marker kept, "replacing it is a design call").
+
+**The one thing a family could REFUSE, and why this library cannot.** Both files name one hazard in
+their own comments: a `display` on the `<summary>` silently drops the marker. A class string cannot
+refuse it and a part might - so it was measured:
+
+```
+cn("list-item", "flex")        -> "flex"             this package's own cn: the marker's display is DISCARDED
+cn("list-item", "grid")        -> "grid"
+cn("!list-item", "flex")       -> "!list-item flex"  kept both; .\!list-item emits display: list-item !important
+compiled order, RAW sheet:    .block 7398 < .flex 7433 < .grid 7466 < .inline-flex 7571 < .list-item 7618
+```
+
+So a `CollapsibleTrigger` carrying `list-item` would GUARD the marker under thepile's plain-join `cn`
+(`list-item` is emitted after `block`, `flex`, `grid` and `inline-flex`, the displays a layout reaches
+for, so it wins over those - though NOT over `table` or `table-cell`, which come after it, layer 1
+LOW-6) and would silently STRIP it
+under the `cn` this registry ships (tailwind-merge puts both in one group and keeps the last) - one
+part, opposite behaviour, decided by which `utils.ts` the consumer has. Only `!list-item` holds in
+both, and an `!important` display in a part forbids the product the one call MOBILE-3 reserved for
+it. And the marker does not need a part to keep it: Tailwind's preflight in this very sheet declares
+`summary { display: list-item; }` (compiled line 112-113), so every summary keeps its triangle until
+somebody writes a display on it; `ScoreBlock`'s explicit `list-item` is the plain-join guard above,
+already in place, and `FilterBar` rests on preflight and says so.
+
+**Two smaller things the measurement found.** The 44px floor sweep does not see a `<summary>`
+(`tailwind-compile.test.tsx:215`, `'button, a[href], input, select, textarea, [role="button"]'`), so
+a shipped trigger would have needed that selector widened to be guarded at all. And **LogForm's
+reason is false against its own test runner**: a click on a `<summary>` toggles `open` in thepile's
+jsdom **29.1.1** and in this repository's **30.0.1** alike (`probe/jsdom-summary.cjs`, run against
+each installed copy: `{"before":false,"afterNative":true,"afterDispatched":false}` for both, the
+second click closing it again; the 29.1.1 run is this stream's alone - layer 1's brief forbade it to
+execute anything under thepile, and it reproduced the 30.0.1 half), and `user-event` clicks toggle it too, though its Enter and Space do
+not (`probe-out2.txt`). It changes nothing here - `Section` is a stateful client disclosure either
+way - and it is thepile's comment, recorded for the reconciler rather than edited.
+
+**The answer.** The sites already draw the treatment, the treatment they share is the product's
+quiet-control pair rather than a disclosure's, and the one refusal a family could make is one this
+registry's own `cn` would silently undo: _a part with nothing to draw is a rename_ (the Select
+answer), and _a guard the consumer's `cn` can invert is not a guard_. Nothing ships for item 1.
+**The reconciler corrects three cells**: `:350`'s and `:353`'s `Collapsible` phrases (the native
+`<details>` stays; no family ships, this section), and `:393`'s "Collapsible for SpoilerShield" with
+its why cell ("the same mechanism with the state handled" is false against the file: a one-way
+reveal, not a disclosure). If the product ever decides to draw its own marker, **this is the row
+that says so**, and it arrives as a product decision first.
+
+### 2. The `Textarea` measurement, and what shipped
+
+**A `Textarea` family ships**: one part, `Textarea`, and its string, `textareaClass`. The audit's
+column names two rows (`awk -F'|' '$4 ~ /Textarea/ {print NR}'` → `:393` CommentForm, `:399`
+ProfileEditForm); the tree has SIX `<textarea>` sites (`git grep -n '<textarea' -- 'apps/web/src/**/*.tsx'`
+at `d67eab8f`, less `ui/form.tsx:30`, a comment), every one read, all six in `"use client"` files:
+
+| site                                 | class string                                                                                                                                                                                                       | rows | vertical pad |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | ------------ |
+| `lists/ListForm.tsx:77-84`           | `` `${inputClass} py-2` `` (`:83`)                                                                                                                                                                                 | 3    | `py-2`       |
+| `play/PlayForm.tsx:168-175`          | `` `${inputClass} py-2` `` (`:174`)                                                                                                                                                                                | 3    | `py-2`       |
+| `profile/ProfileEditForm.tsx:80-88`  | `` `${inputClass} min-h-[88px] py-2` `` (`:87`)                                                                                                                                                                    | 3    | `py-2`       |
+| `log/LogForm.tsx:656-669` (review)   | `cn(inputClass, "mt-1 min-h-32 py-2")` (`:668`)                                                                                                                                                                    | 5    | `py-2`       |
+| `log/LogForm.tsx:909-918` (notes)    | `cn(inputClass, "mt-1 py-2")` (`:917`)                                                                                                                                                                             | 2    | `py-2`       |
+| `comments/CommentForm.tsx:70-84`     | its own: `min-h-[88px] w-full rounded-md border-2 border-line bg-surface p-3 text-base text-text placeholder:text-text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2` (`:83`) | 3    | `p-3`        |
+| this package, `form.stories.tsx:179` | raw `<textarea className="min-h-hit w-full rounded-md border-2 border-border bg-surface p-3 text-base …">` in the Form family's `Textarea` story                                                                   | 3    | `p-3`        |
+
+thepile's `inputClass` (`components/ui/form-styles.ts:35-36`) is byte-identical to this package's
+`input.tsx:5-6` (`diff` of the two string lines, leading indent stripped: identical), and
+`form-styles.test.ts` pins it to the vendored copy, so five of six sites draw **this package's
+field** plus a pad they each add by hand.
+
+**The measurement that makes it a part and not the Select answer again.** On a `<select>`,
+`inputClass` is COMPLETE: the control centres its one line itself, so a `NativeSelect` would have
+been `Input` with another tag. On a `<textarea>` it is not. Read out of the compiled sheet
+(`probe-out.txt`):
+
+```
+inputClass tokens, padding-block declared:   []
+inputClass tokens, padding-top declared:     []
+inputClass tokens, padding-inline declared:  ["calc(var(--spacing) * 3)"]
+preflight: *, ::after, ::before, ::backdrop, ::file-selector-button { … margin: 0; padding: 0; … }
+```
+
+So the field string alone draws a textarea whose first line is FLUSH against the top border, and
+every site in both repositories pays for that by hand, in two values: `py-2` five times, `p-3` twice
+(CommentForm and this package's own story - the one a consumer copies). A part owns that pad once.
+That is something to draw, which is the line the Select answer drew ("a part with nothing to draw is
+a rename").
+
+**Which pad, measured rather than voted.** An `Input` centres its line in the `min-h-hit` box, so its
+text sits `(44 - 2 * 2 - 16 * 1.55) / 2` = **7.6px** under the top border (`--hit-min: 44px`,
+`--text-base: 1rem` and `--text-base--line-height: 1.55` from the emitted `tokens.css`, and the 2px
+of `border-2`, whose compiled rule declares a LITERAL `border-width: 2px` rather than the
+`--border-width` token - layer 1 LOW-8; the test reads the declared value, so it follows whichever). `py-2` is 8px, 0.4px off, the spacing-grid step nearest it; the story's `p-3` is 12px,
+4.4px off. So `py-2` - the five sites' value - is also the one that starts a textarea's first line
+where the input above it starts its text, and the part takes it; the story's `p-3` was the outlier,
+and moves (below).
+
+**Three things measured and NOT drawn, because the platform or the sheet already does them:**
+
+- **Resize.** Preflight declares `textarea { resize: vertical; }` (compiled line 156-157), so a
+  `w-full` field already cannot be dragged wider than its column. No utility owed.
+- **The floor.** `min-h-hit` rides in from `inputClass`, and the 44px sweep's selector already names
+  `textarea` (`tailwind-compile.test.tsx:215`). With the pad, even `rows={1}` is 44.8px.
+- **A height.** `rows` decides it. ⚠️ And a taller `min-h-*` in `className` is a TRAP for a plain-join
+  consumer: this package's `cn` merges a caller's `min-h-32` over `min-h-hit` (measured:
+  `cn(textareaClass, "min-h-32")` keeps `min-h-32` and drops `min-h-hit`, `probe-out6.txt`), but the compiled sheet
+  emits `.min-h-11` 8868 < `.min-h-32` 8929 < `.min-h-[88px]` 9036 < `.min-h-hit` 9082
+  (`probe-out5.txt`), so under a join the field's 44px floor WINS and the caller's floor is dead. The
+  part's docblock says "prefer `rows`" for exactly this. No `field-sizing: content` either: no site
+  auto-grows, and that is a behaviour the product has not taken.
+
+**The one site that must NOT take the part yet: CommentForm, and why it is a measurement.** Its
+departure is not only the pad and the pre-a4 alias names (`border-line`, `text-text`,
+`placeholder:text-text-muted`): it is the ONE textarea whose keyboard focus keeps an OUTLINE -
+thepile's shared ring (`app/globals.css:602-606`, `outline: 2px solid var(--accent)`, `summary` and
+`textarea` both in its selector) plus its own restatement - where `inputClass` kills the outline with
+`focus:outline-none` and leaves a border colour, which is **Input's open forced-colors [V]** (this
+file, "`input.tsx:6` and `sheet.tsx:67`", observed on thepile's `/login` in DL16 layer 2's HIGH-1).
+And the outline cannot be kept by passing CommentForm's classes to the part, in either `cn`:
+
+```
+.focus\:outline-none:focus          { --tw-outline-style: none; outline-style: none }   emitted at 25871
+.focus-visible\:outline:focus-visible { outline-style: var(--tw-outline-style); outline-width: 1px }  26200
+cn(inputClass, "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2")
+  -> "… focus:border-primary focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
+```
+
+On a keyboard focus both selectors match, so the `var()` the outline reads is the `none` the other
+rule set on the same element (read from the sheet; the paint is not observed here); and this
+package's `cn` drops `focus-visible:outline` outright. So moving CommentForm onto `Textarea` today is
+a forced-colors regression for the one field that does not have the defect. It waits for Input's
+[V], and when that is taken in `input.tsx`, `Textarea` inherits the fix with no edit of its own -
+which is why `textareaClass` is BUILT on `inputClass` rather than copied from it.
+
+**What shipped.**
+
+- `packages/ui/src/textarea.tsx`: `textareaClass` = `` `${inputClass} py-2` ``, importing
+  `inputClass` from `./input` (the `form.tsx` → `./label` shape), and `Textarea`, a
+  `<textarea data-slot="textarea">` over `cn(textareaClass, className)` with every prop spread. No
+  directive and no hook, so a Server Component can render it (`client-boundary.test.ts` walks it and
+  agrees); no `asChild`, because a textarea's element IS its semantics (`Input` has none either).
+- `packages/ui/stories/textarea.stories.tsx`: `Default`, whose play types two lines through Enter and
+  reads `"first line\nsecond line"` back - the one behaviour that makes it not an `Input`.
+- `packages/ui/stories/form.stories.tsx`: the Form family's `Textarea` story composes the part
+  (imported as `TextareaField`, because that file already exports a story named `Textarea`), so the
+  story a consumer copies now draws `px-3 py-2` where it drew `p-3`. No consumer renders that story.
+- `registry.json`: the `textarea` item, `target` `components/ui/textarea.tsx`, `registryDependencies`
+  `@marquee/utils` and `@marquee/input` (the import is real, and a consumer who adds `textarea` gets
+  the `input` copy it reads). `packages/ui/r/textarea.json` and `r/registry.json` rebuilt and
+  committed.
+
+### The guards, and the runs that reddened them
+
+`test/textarea-drawing.test.tsx`, FIVE arms as they ship (four at `341f9e9`; layer 1 rewrote arm 2
+and added arm 5, see its section), every value read off the compiled sheet from a RENDERED story or
+the part's own export: (1) anchors - both fields render, their class lists DIFFER, `declaredValues`
+answers a positive read, and the input declares no vertical padding (the premise of the arithmetic);
+(2) the textarea declares EXACTLY the field's declarations, each keyed by the state it applies under
+(`& { … }`, `&:focus { … }`, `&::placeholder { … }`, from the compiled rules' own selectors), in BOTH
+directions, with `padding-block` the only extra property; (3) the rendered pad is the grid step
+nearest the input's inset, derived from `min-height`, `border-width`, `font-size`, the `line-height`
+fallback and `--spacing`; (4) the pad is in `textareaClass` UNMERGED, exactly once, with no
+`padding` / `padding-top` / `padding-bottom` beside it - the plain-join consumer's string, because
+this package's own `cn` would merge a leftover away before the rendered arms could see it (the
+d-command block's lesson); (5) `data-slot="textarea"`, and a caller's `className` lands LAST with the
+field's string intact before it. Beside it: the Form family's `Textarea` play pins its control's
+classes to `textareaClass`, and `registry.test.ts` derives every item's `registryDependencies` from
+its sources' own imports.
+
+**Red first, in the working tree, before the pad existed** (`textareaClass = inputClass`,
+`$BATCH_SCRATCH/s2/red-textarea.log`): `Tests 2 failed | 2 passed (4)`, and each red names the pad:
+
+| arm                                                                  | red message                                                           |
+| -------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| "starts its first line where an Input puts its text…"                | `AssertionError: the rendered pad: expected [] to deeply equal [ 8 ]` |
+| "carries that pad exactly once in the string a plain-join consumer…" | `AssertionError: expected [] to have a length of 1 but got +0`        |
+
+The derived `8` in the first message is the arithmetic above coming out of the sheet, not a typed
+number. Then `` `${inputClass} py-2` `` → `Tests 4 passed (4)` (`green-textarea.log`).
+
+**Then every guard the part stands on, reddened in a DETACHED worktree of the committed head**
+(`../marquee-ui-s2-mut` at `341f9e9`, `pnpm install --frozen-lockfile` + the tokens build; each
+mutation confirmed LANDED by its own diff before the run, and `git checkout -- .` after; logs
+`$BATCH_SCRATCH/s2/mut-M*.log`, the driver `mutate.sh` beside them):
+
+| id  | mutation                                                                | run over                                | red / GREEN                    | the assertion that reddened                                                                                                                                                                                                                                |
+| --- | ----------------------------------------------------------------------- | --------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | `textareaClass = inputClass` (the pad gone)                             | `textarea-drawing`                      | **red**, 2 failed / 2 passed   | `the rendered pad: expected [] to deeply equal [ 8 ]`; `expected [] to have a length of 1 but got +0`                                                                                                                                                      |
+| M2  | `` `${inputClass} p-3 py-2` `` (the story's pad left beside the part's) | `textarea-drawing`                      | **red**, 3 failed / 1 passed   | `the textarea's padding-inline is not the field's: expected [] to deeply equal [ 'calc(var(--spacing) * 3)' ]` (this package's `cn` merged `px-3` away); `a second padding: expected [ 'calc(var(--spacing) * 3)' ] to deeply equal []` (the UNMERGED arm) |
+| M3  | `` `${inputClass} py-3` `` (a pad, the wrong one)                       | `textarea-drawing`                      | **red**, 1 failed / 3 passed   | `the rendered pad: expected [ 12 ] to deeply equal [ 8 ]`                                                                                                                                                                                                  |
+| M4  | `border-2` → `border` inside the textarea's string only                 | `textarea-drawing`                      | **red**, 1 failed / 3 passed   | `the textarea's border-width is not the field's: expected [ '1px' ] to deeply equal [ '2px' ]`                                                                                                                                                             |
+| M5  | `min-h-hit` dropped from the textarea's string only                     | `textarea-drawing` + `tailwind-compile` | **red**, 2 failed / 42 passed  | the floor sweep: `textarea[data-slot=form-control] "" -> 0px` and `textarea[data-slot=textarea] "" -> 0px` (both stories, the Form one through `FormControl`); `the textarea's min-height is not the field's`                                              |
+| M6  | a comment added to `textarea.tsx`, `r/` NOT rebuilt                     | `registry`                              | **red**, 1 failed / 13 passed  | `textarea: packages/ui/src/textarea.tsx is stale`                                                                                                                                                                                                          |
+| M7  | the barrel's `textarea` line deleted                                    | `entry-point`                           | **red**, 1 failed / 3 passed   | `"packages/ui/src/textarea.tsx: textareaClass"`, `"packages/ui/src/textarea.tsx: Textarea"` missing                                                                                                                                                        |
+| M8  | `textarea` deleted from `STORY_SUITES`                                  | `stories` + `tailwind-compile`          | **red**, 2 failed / 162 passed | the suite map against the files on disk (19 keys, 20 names); `stories whose play was composed: … to have a length of 75 but got 74`                                                                                                                        |
+
+M3 reddens arm 3 alone, by design: arm 4 asks that the pad be there ONCE and agree with the rendered
+one, and a wrong single pad does both - the VALUE is arm 3's. Nothing here stayed green; the collapse
+pass over the new files is layer 1's.
+
+### The pipeline, end to end
+
+AGENTS.md "Adding a part", all nine steps, each re-read at the base rather than taken from the
+brief's line numbers (they held: `registry.test.ts:60` and `:151`, `README.md:19,24`,
+`packages/ui/package.json:4`, `AGENTS.md:51`):
+
+1. `packages/ui/src/textarea.tsx` - no `cva` (there is no visual axis) and no `asChild` (above).
+2. `packages/ui/stories/textarea.stories.tsx`, one story (`Default`), with a play.
+3. `packages/tokens/test/helpers/source-files.ts`: both paths, in order.
+4. `packages/ui/src/index.ts`: `Textarea` and `textareaClass` (`entry-point.test.ts` requires every
+   `export const` / `export function` of a part file; M7 above is its red).
+5. `story-suites.ts` gains `textarea`; `stories.test.tsx` `DECLARED_STORIES` 103 → **104**,
+   `DECLARED_PLAYS` 74 → **75**, the family count 19 → **20** (the arm's title and its
+   `toHaveLength`).
+6. `registry.test.ts`: the item list gains `textarea` and its title says twenty; the
+   `registryDependencies` count 20 → **22** (the item names two); the compared-files count 21 → **22**.
+7. `registry.json` (the item, explicit `target`), then `pnpm build:registry`, which wrote
+   `r/textarea.json` and rewrote `r/registry.json`; both committed. (Formatted BEFORE the build:
+   `r/registry.json` is asserted byte-equal to the root file.)
+8. "nineteen" → "twenty" in `README.md` (`:19`, and `:24`, whose list gains `Textarea`),
+   `packages/ui/package.json:4`'s description and `AGENTS.md:51` - and in
+   `packages/ui/test/fidelity.test.tsx:36`'s docblock ("Eight of the twenty part families were lifted
+   out of a real product"), a prose count the brief's list did not name but `git grep -i nineteen`
+   does; comment-only, and `Textarea` is not one of the eight (it was not lifted from a thepile
+   `components/ui` file, so `fidelity.test.tsx` has nothing to pin for it: its field IS `Input`'s,
+   which that file already pins).
+9. `pnpm verify` - below.
+
+The version line stays `0.1.3`. `Textarea` rides the 0.1.4 bump.
+
+### Decisions
+
+1. **No `Collapsible` family ships**, native or Radix. [V] Radix serves a closed tail without its
+   anchors and a `<button>` trigger (measured); a native family would draw only the product's
+   quiet-control pair, and the one refusal it could make is inverted by this registry's own `cn`.
+2. **`Textarea` ships.** [V] `inputClass` is complete on a `<select>` and INCOMPLETE on a
+   `<textarea>` (no vertical pad; preflight zeroes it), so every site hand-writes the missing half in
+   two values; the part owns it once.
+3. **The pad is `py-2`, not the story's `p-3`.** [V] Five of six product sites, and the spacing-grid
+   step nearest the 7.6px at which an `Input` centres its text; `p-3` is 4.4px off it. This moves the
+   Form story's drawn pad by 4px on each block edge (no consumer renders that story).
+4. **`textareaClass` is built ON `inputClass`**, not a copy, with `@marquee/input` as a registry
+   dependency. One definition of the field: Input's open forced-colors [V] is decided in `input.tsx`
+   for both parts, and nothing here pre-empts it.
+5. **No `field-sizing`, no `resize`, no height.** Preflight already makes a textarea
+   `resize: vertical`; no site auto-grows; `rows` sets the height, and the docblock warns that a
+   plain-join caller's `min-h-*` loses to `min-h-hit` by emitted order (measured).
+6. **CommentForm is a HOLD, not a consumer**, until Input's ring [V] is taken - the measurement is §2.
+7. **`fidelity.test.tsx:36`'s prose count moved** with the others. A declared fence note: the brief
+   names the counters "where the package describes itself", and a docblock count is one; no assertion
+   in that file moved.
+8. **`registry.test.ts` gains an arm, not only counters**: every item's `registryDependencies` is
+   DERIVED from its sources' imports and compared per item (layer 1, MED-3). A declared fence
+   widening - the fence names that file's counters - taken because the count alone let a consumer
+   install a `textarea` copy whose `./input` resolves to nothing, and it covers `form` → `label`, the
+   pre-existing instance, at no extra cost.
+9. **`focus-outline.test.tsx`'s `focus:` inventory names `textarea.tsx`** (layer 1, LOW-10), a
+   docblock paragraph and no assertion: the sweep walks literals and `Textarea` draws Input's ring by
+   interpolation, so Input's [V], taken anywhere but inside `inputClass`, would miss it. A declared
+   comment-only fence widening.
+10. **Input's own `className` merge stays unguarded** (layer 1's X1, GREEN at 576/576 with
+    `cn(inputClass)` in `Input`). Pre-existing, in a part file outside this fence; `Textarea`'s arm 5 is
+    the shape an `Input` arm would take. Raised for the next library stream, not fixed.
+
+### thepile inputs
+
+- **Arrival.** `Textarea` reaches thepile only through a LIB-VENDOR-0.1.4 slice: 0.1.3 is vendored
+  (`vendor/marquee-ui/`, byte-pinned by `scripts/marquee-drift.test.ts`) and 0.1.4 is unreleased. The
+  bump carries one NEW item (`textarea`, and `r/registry.json` changes with it), so the drift test
+  gains an entry only if the consumer installs the copy (`shadcn add` from the vendored tarball's
+  `r/textarea.json`, into `components/ui/textarea.tsx`); the copy imports `./input`, which thepile
+  already has. Nothing in this slice predicts a screenshot.
+- **The five sites that can take it**, each `"use client"`, each `inputClass` plus a pad the part
+  now carries: `lists/ListForm.tsx:83`, `play/PlayForm.tsx:174`, `profile/ProfileEditForm.tsx:87`
+  (plus `min-h-[88px]`), `log/LogForm.tsx:668` (plus `mt-1 min-h-32`) and `:917` (plus `mt-1`).
+- **⚠️ Two of those extras are already dead, and the part does not change that.** Under thepile's
+  plain-join `cn`, `min-h-32` (`LogForm.tsx:668`) and `min-h-[88px]` (`ProfileEditForm.tsx:87`) sit
+  beside `inputClass`'s `min-h-hit` TODAY, and in THIS package's sheet `min-h-hit` is emitted after
+  both (8929, 9036 < 9082), so if thepile's sheet orders them the same way the field's 44px wins at
+  both sites. It is invisible, because `rows` already exceeds both floors (5 rows at this package's
+  1.55 leading: 144px against 128; 3 rows: 94.4px against 88). **Unmeasured on thepile's built page**:
+  the consumption slice reads the resolved `min-height` at the two sites and decides whether the
+  extras go (they are dead) or become `rows`.
+- **CommentForm (`comments/CommentForm.tsx:83`) HOLDS** until Input's forced-colors [V] is taken (§2):
+  it is the product's one textarea whose keyboard focus keeps an outline, and neither `cn` can keep it
+  once the field string's `focus:outline-none` is on the element.
+- **The instruments a consumption slice re-runs**, read at `d67eab8f`: `CommentForm.test.tsx:154-155`
+  (`tagName` TEXTAREA, `id` `comment-body` - the part spreads both), `LogModal.test.tsx:1189` (the
+  dialog's `input, select, textarea` walk) and `:1240` (`maxlength` 2000 on "private notes"),
+  `components/ui/form-styles.test.ts` (pins `inputClass` to the copy; a `textareaClass` literal there
+  would be that module's choice), `e2e/log-modal.spec.ts:431` (the review field `toBeInViewport`),
+  `e2e/profile-edit.spec.ts:39` (`getByLabel("Bio")`), `e2e/reflow.spec.ts:123` (the control
+  selector names `textarea`), and every `getByLabel("Your review")` (`account`, `admin`, `comments`,
+  `home`, `log-modal`, `rate-limit`, `review-likes`, `reviews` specs), which resolve through the
+  site's own `<label htmlFor>`, not through the part.
+- **For the reconciler, from item 1**: the three `Collapsible` cells (`:350`, `:353`, `:393`, §1);
+  and `log/LogForm.tsx:183-184`'s comment ("jsdom does not implement summary toggling") is false
+  against thepile's own jsdom 29.1.1, measured - a thepile comment, reported rather than edited.
+- **For the reconciler, from item 2**: `:393`'s "Textarea … for CommentForm" becomes the HOLD above,
+  and `:399`'s "Textarea" for ProfileEditForm names the part at the 0.1.4 bump.
+
+### Consumers
+
+**Run 1, before any code** (`$BATCH_SCRATCH/s2/scan-run1.txt`): the scan script against an EMPTY
+diff, zero names by construction, recorded as what it is. The enumeration that did the work was by
+hand over the surface this slice was going to touch (`scan-run1-byhand.txt`): `inputClass` is read
+by `input.tsx`, `index.ts`, `fidelity.test.tsx:19,342`, `tailwind-compile.test.tsx:12,543` and the
+fixture extractor (`checkbox.tsx:96` and `radio-group.tsx:142` declare their OWN module-local
+`inputClass`, a name collision, not a reader); `form.stories.tsx` is named by `source-files.ts` and
+`story-suites.ts`; the Form story's raw textarea string is pinned nowhere but itself; no file in
+`packages/` held a `<summary>`, a `<details>` or `list-item`.
+
+**Run 2, at the commit point** (diff `f28d56e...341f9e9`, `scan-run2.txt` and `scan-run2-byhand.txt`):
+
+- **Scan 1, exported symbols: three names.** `Textarea` and `textareaClass` are NEW; their readers are
+  `index.ts` (compulsory), the two stories, the drawing test and `registry.json` - and, because the
+  script's greps exclude `packages/ui/r/**`, three it did not print (layer 1, LOW-9): `README.md`'s
+  prose list and the built `r/registry.json` and `r/textarea.json`. `Default` is a new STORY export;
+  its other 18 hits are the other families' own `Default` stories, the four drawing and compile tests
+  that compose them, one comment word in `button.tsx:84` and that word's built copy in
+  `r/button.json` - name collisions, not consumers. The textarea one is consumed through
+  `story-suites.ts`.
+- **Scan 3, files naming a touched path:** eleven, all read: `packages/tokens/package.json` (its own `./src/index.ts` export,
+  a basename collision) and `packages/ui/package.json` (its `index.ts` export and its description), `source-files.ts`, `index.ts`,
+  the two story files, `client-boundary.test.ts` (matched on `package.json`, which it reads for each
+  dependency; it also walks every part file on disk, so it saw `textarea.tsx` and passed: no hook,
+  no directive owed), `entry-point.test.ts`, `registry.test.ts`,
+  `textarea-drawing.test.tsx`, `registry.json`. ⚠️ The scan's relative-import arm spells `./<stem>"`
+  and this package's story modules are imported as `…/<stem>.js"` from another directory, so it MISSES
+  `story-suites.ts`; the by-hand run names it and its three readers (`stories.test.tsx`,
+  `tailwind-compile.test.tsx`, itself), all of which moved or were run above. ⚠️ The same `.js`
+  shape hid `source-files.ts`'s THREE readers from this section (layer 1, LOW-9):
+  `packages/tokens/test/source-coverage.test.ts`, `brand-guard.test.ts` (which now scans
+  `textarea.tsx` and `textarea.stories.tsx` for brand strings) and `literal-guard.test.ts` (which
+  scans `textarea.tsx` for literals). All three passed at every head here, and layer 1's C4/C5 show
+  each reads the lists.
+- **Scan 4, role/aria strings: none in the diff's source.** The Form story's raw `<textarea>` became
+  the part's `<textarea>`: implicit role `textbox` before and after, and at `341f9e9` nothing in
+  `packages/` resolved a `textbox` by role. The diff DID add `data-slot="textarea"`, a styling and
+  test hook the role/aria regex does not match, and at `341f9e9` it had no reader (layer 1, LOW-1);
+  arm 5 now reads it, and the same arm is the one `getByRole("textbox", { name: "Notes" })` in the
+  package.
+- **Scan 5, class strings.** The part's one new class is `py-2` inside a template literal; it is pinned
+  by no test or JSON as a textarea's (its three hits are the toast's upstream fixture string and two
+  prose lines of `tailwind-compile.test.tsx`). The REMOVED Form-story string is pinned nowhere.
+- **CROSS: 0** (no sibling stream touches this repository this batch). **UNOWNED: 0.** **NEW between
+  the two runs: 3** - `Textarea`, `textareaClass` and the `Default` story, all this stream's own.
+
+**Run 3, after layer 1's fixes** (diff `f28d56e...2780335`, `scan-run3.txt`, `diff`ed against run 2):
+the only moves are this stream's own - `focus-outline.test.tsx` joins the changed files (its
+docblock), `form.stories.tsx` joins `textareaClass`'s readers (its play's pin), and scan 4 and 5 pick
+up arm 5's `aria-label="Notes"` and `className="probe-caller"`, both test props. No new exported
+symbol, no new CROSS, nothing UNOWNED.
+
+## Layer 1 (reviewer r6, detached worktree of ec0fe45863f2873f495aecc5b281c48623986f11, marquee-ui, no database)
+
+**14 findings: 0 HIGH, 4 MED, 10 LOW**, over **42 mutations**, of which **17 stayed GREEN** where
+they aimed: eleven kept the whole suite (or, for I3, the whole file) green - P4, P5, P16, P12, P6,
+P8, X1 (a parity probe on `Input`), I3, S1, S2, C2 - three kept the arms under test green while
+another file reddened (P15, I3b, I4), S3 kept its play green, and I7 and I8 are green by design. Its full report is
+`$BATCH_SCRATCH/r6/report.md`. Its baseline on the untouched committed head was `pnpm test`
+**33 files / 576 tests** (exit 0), `pnpm lint` `All matched files use Prettier code style!`,
+`pnpm typecheck` `packages/tokens typecheck: Done` + `packages/ui typecheck: Done`, and
+`pnpm build:registry` followed by `git status --short` **EMPTY**. It rebuilt the registry after every
+source mutation, because without it the "is stale" byte check reddens every source edit for the
+wrong reason and hides a GREEN (its first pass, superseded, read P4-P6 red exactly that way). The
+table is its own, verbatim:
+
+| file                                         | test                                                                     | mutation applied                                                                            | red / GREEN                                                                                                                                                                                                                                                                   | what it asserts now                                                                                                                                                                                                                           |
+| -------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| src/textarea.tsx                             | textarea-drawing arm 2 "declares every property Input's field declares…" | P1: ` focus:outline-none` dropped from the textarea's string only                           | red (575/1)                                                                                                                                                                                                                                                                   | `the textarea's --tw-outline-style is not the field's: expected [] to deeply equal [ 'none' ]` (the predicted red, and it names the property)                                                                                                 |
+| src/textarea.tsx                             | arm 2                                                                    | P2: ` focus:border-primary` dropped                                                         | red                                                                                                                                                                                                                                                                           | `the textarea's border-color is not the field's: expected [ 'var(--border)' ] to deeply equal [ 'var(--border)', 'var(--primary)' ]`                                                                                                          |
+| src/textarea.tsx                             | arm 2                                                                    | P3: `placeholder:text-muted` → `placeholder:text-foreground`                                | red                                                                                                                                                                                                                                                                           | `the textarea's color is not the field's: expected [ 'var(--foreground)', …(1) ] to deeply equal [ 'var(--foreground)', 'var(--muted)' ]`                                                                                                     |
+| src/textarea.tsx                             | all 4 arms, whole suite                                                  | P4: rest border and focus border swapped (`border-primary … focus:border-border`)           | **GREEN** (576/576)                                                                                                                                                                                                                                                           | Arm 2 compares a per-property multiset of values. It cannot see WHICH selector or state carries which value, so a field that is primary at rest and grey on focus passes                                                                      |
+| src/textarea.tsx                             | all 4 arms, whole suite                                                  | P5: rest ink and placeholder ink swapped (`text-muted … placeholder:text-foreground`)       | **GREEN** (576/576)                                                                                                                                                                                                                                                           | Same state-blindness: the `::placeholder` condition is not observed                                                                                                                                                                           |
+| src/textarea.tsx                             | all 4 arms, whole suite                                                  | P16: `focus:border-primary` → `hover:border-primary`                                        | **GREEN** (576/576)                                                                                                                                                                                                                                                           | The "focus declaration" can move to any variant, so the docblock's "both focus declarations" is not asserted                                                                                                                                  |
+| src/textarea.tsx                             | textarea-drawing, all 4 arms                                             | P15: `focus:outline-none` → `focus-visible:outline-none`                                    | **GREEN** in textarea-drawing. The suite went red only in `focus-outline.test.tsx` (`expected [ …(6) ] to deeply equal [ …(5) ]`; `a part draws its focus ring with a box-shadow and no outline…`), because a literal `focus-visible:` string entered that file's source walk | Not the red predicted for this arm. Arm 2 is variant-blind here too, and the red that did fire mis-describes the site ("box-shadow and no outline")                                                                                           |
+| src/textarea.tsx                             | whole suite                                                              | P6: `data-slot="textarea"` → `data-slot="field"`                                            | **GREEN** (576/576)                                                                                                                                                                                                                                                           | Nothing selects `[data-slot="textarea"]`                                                                                                                                                                                                      |
+| src/textarea.tsx                             | stories.test `textarea/Default`, `form/Textarea`, the play counter       | P7: `{...props}` not spread                                                                 | red (573/3)                                                                                                                                                                                                                                                                   | `Unable to find an element with the placeholder text of: Anything worth remembering`; `Found a label with the text of: Add a comment, however no form control was found associated to that label`. The drawing arms stayed green, as expected |
+| src/textarea.tsx                             | whole suite                                                              | P8: `className` not merged (`cn(textareaClass)`)                                            | **GREEN** (576/576)                                                                                                                                                                                                                                                           | No test passes a `className` to `Textarea`                                                                                                                                                                                                    |
+| src/input.tsx (parity probe)                 | whole suite                                                              | X1: the same on `Input` (`cn(inputClass)`)                                                  | **GREEN** (576/576)                                                                                                                                                                                                                                                           | Pre-existing: `Input`'s className merge is unguarded too                                                                                                                                                                                      |
+| src/textarea.tsx                             | arms 3, 4                                                                | P9: `pt-2 pb-2` in place of `py-2`                                                          | red (574/2)                                                                                                                                                                                                                                                                   | `the rendered pad: expected [] to deeply equal [ 8 ]`; `expected [] to have a length of 1 but got +0`. The drawing is identical, so these arms pin the `padding-block` SPELLING (over-specific, not vacuous)                                  |
+| src/textarea.tsx                             | arms 3, 4                                                                | P10: `pt-2` only                                                                            | red                                                                                                                                                                                                                                                                           | Same two messages. The second one does not name the property                                                                                                                                                                                  |
+| src/textarea.tsx                             | arm 2                                                                    | P11: `leading-6` added to the textarea                                                      | red                                                                                                                                                                                                                                                                           | `the textarea's line-height is not the field's: expected [ 'calc(var(--spacing) * 6)', …(1) ] to deeply equal [ Array(1) ]`                                                                                                                   |
+| src/textarea.tsx                             | all 4 arms, whole suite                                                  | P12: `font-mono resize-none` added to the textarea                                          | **GREEN** (576/576)                                                                                                                                                                                                                                                           | Arm 2 is ONE-directional: Input's properties must be a subset of the textarea's. A property only the textarea declares (font-family, resize) is invisible                                                                                     |
+| src/textarea.tsx                             | all 4 arms + both plays                                                  | P13: `<textarea` → `<input`                                                                 | red (569/7)                                                                                                                                                                                                                                                                   | `expected one textarea, the story rendered 0` (4 arms); `expected 'INPUT' to be 'TEXTAREA'` (both plays)                                                                                                                                      |
+| src/textarea.tsx                             | arms 3, 4                                                                | P14: the component renders `cn(inputClass, className)` while the export keeps the pad       | red                                                                                                                                                                                                                                                                           | `the rendered pad: expected [] to deeply equal [ 8 ]`; `the handed pad: expected [ 8 ] to deeply equal []`                                                                                                                                    |
+| src/textarea.tsx                             | arm 4 only                                                               | P17: `${inputClass} pt-3 py-2`. The package's `cn` merges `pt-3` away on the element        | red, arm 4 alone (575/1)                                                                                                                                                                                                                                                      | `a second padding-top: expected [ 'calc(var(--spacing) * 3)' ] to deeply equal []`. Arms 1-3 stay GREEN by design: the unmerged read is the only thing that sees it                                                                           |
+| src/textarea.tsx                             | stories.test `textarea/Default`                                          | P18: Enter keydown `preventDefault`ed                                                       | red                                                                                                                                                                                                                                                                           | `expect(element).toHaveValue(first line…` (the play is live on its one behaviour)                                                                                                                                                             |
+| src/textarea.tsx                             | client-boundary.test.ts                                                  | P19: a `useState` with no directive                                                         | red                                                                                                                                                                                                                                                                           | `opens every hook-importing file with "use client": expected [ Array(1) ] to deeply equal []`                                                                                                                                                 |
+| test/textarea-drawing.test.tsx               | all 4 arms                                                               | I1: `drawn()` returns `[]`                                                                  | red, 4/4                                                                                                                                                                                                                                                                      | `expected 0 to be greater than 5`; `expected 0 to be greater than 8`; `expected [ null, null, null, 4 ] to not include null`; `the handed pad: expected [ 8 ] to deeply equal []`                                                             |
+| test/textarea-drawing.test.tsx               | arms 1, 2                                                                | I2: `propertiesOf()` returns `[]`                                                           | red, arms 1-2 (arms 3-4 do not use it)                                                                                                                                                                                                                                        | `expected [] to deeply equal ArrayContaining{…}`; `expected 0 to be greater than 8`                                                                                                                                                           |
+| test/textarea-drawing.test.tsx               | arm 2                                                                    | I3: arm 2's `textarea` read from `inputs.Default, "input"`                                  | **GREEN** (whole file 4/4)                                                                                                                                                                                                                                                    | Arm 2 compares Input to itself. There is no in-arm anchor that it read a textarea                                                                                                                                                             |
+| test/textarea-drawing.test.tsx               | arms 1, 2                                                                | I3b: `drawn(…, "textarea")` returns the INPUT story's classes (global)                      | **GREEN** arms 1, 2; red arms 3, 4                                                                                                                                                                                                                                            | Arm 1's "found both fields rendered" only checks `length > 5`, so it cannot tell a textarea from an input                                                                                                                                     |
+| test/helpers/compiled-sheet.ts               | arms 1, 2                                                                | I4: `declaredValues` returns `[]`                                                           | **GREEN** arms 1, 2; red arms 3, 4 (52 red suite-wide)                                                                                                                                                                                                                        | Arm 2 compares `[]` to `[]` for all 13 properties. Arm 1's "a sheet that can answer" anchors `rule()`, not `declaredValues()`, and its padding premise is a negative that a blind reader passes                                               |
+| test/textarea-drawing.test.tsx               | arm 3                                                                    | I5: the `lineHeightPx` fallback regex never matches                                         | red                                                                                                                                                                                                                                                                           | `Error: unexpected line-height shape: var(--tw-leading, var(--text-base--line-height))`                                                                                                                                                       |
+| test/textarea-drawing.test.tsx               | arm 3                                                                    | I6: `lineHeightPx` returns 0                                                                | red                                                                                                                                                                                                                                                                           | `the rendered pad: expected [ 8 ] to deeply equal [ 20 ]`                                                                                                                                                                                     |
+| test/textarea-drawing.test.tsx               | arm 3                                                                    | I7: `lineHeightPx` returns `1.5 × font`                                                     | GREEN                                                                                                                                                                                                                                                                         | Tolerance by design: any leading that puts the inset in [6, 10) px rounds to 8. The arm pins the grid step, not the inset                                                                                                                     |
+| test/textarea-drawing.test.tsx               | arm 4                                                                    | I8: `handed` read from the RENDERED list, plus P17                                          | GREEN                                                                                                                                                                                                                                                                         | Confirms the UNMERGED read is what catches P17. The arm is not vacuous                                                                                                                                                                        |
+| stories/textarea.stories.tsx                 | stories.test `textarea/Default`                                          | S1: all three `expect`s of the play deleted (`userEvent.type` kept)                         | **GREEN** (576/576)                                                                                                                                                                                                                                                           | The play types and asserts nothing. Plays are counted, their assertions are not                                                                                                                                                               |
+| stories/textarea.stories.tsx                 | play counter                                                             | S4: `play` renamed away                                                                     | red                                                                                                                                                                                                                                                                           | `stories whose play was composed: … to have a length of 75 but got 74`                                                                                                                                                                        |
+| stories/form.stories.tsx                     | whole suite                                                              | S2: the Form `Textarea` story reverted to the old raw `p-3` `<textarea>`                    | **GREEN** (576/576)                                                                                                                                                                                                                                                           | Nothing pins the Form story to the part. The Form `Default` story has `expect(control).toEqual(inputClass.split(" "))`, and `Textarea` has no equivalent                                                                                      |
+| stories/form.stories.tsx                     | stories.test `form/Textarea`                                             | S3: `expect(control.tagName).toBe("TEXTAREA")` deleted                                      | GREEN                                                                                                                                                                                                                                                                         | The remaining expects (describedby, `for`) do not depend on the element being a textarea                                                                                                                                                      |
+| test/helpers/story-suites.ts                 | stories.test                                                             | C1: `textarea` removed from `STORY_SUITES`                                                  | red                                                                                                                                                                                                                                                                           | `expected [ 'accordion', 'alert', …(17) ] to deeply equal [ …(18) ]` + the play counter 74 ≠ 75                                                                                                                                               |
+| registry.json (+ r/ rebuilt)                 | registry.test                                                            | C2: textarea's `@marquee/input` → `@marquee/label`                                          | **GREEN** (576/576)                                                                                                                                                                                                                                                           | Only a global COUNT guards the dependency on `input`                                                                                                                                                                                          |
+| registry.json (+ r/ rebuilt)                 | registry.test                                                            | C3: `@marquee/input` dropped                                                                | red                                                                                                                                                                                                                                                                           | `expected 21 to be 22`: the count, which does not name the missing dependency                                                                                                                                                                 |
+| packages/tokens/test/helpers/source-files.ts | source-coverage, brand-guard, literal-guard                              | C4: `textarea.tsx` removed from `PUBLISHED_SOURCE_FILES`                                    | red                                                                                                                                                                                                                                                                           | `Unexpected: [packages/ui/src/textarea.tsx]` (source-coverage 3 tests, plus brand-guard and literal-guard failing at file level)                                                                                                              |
+| packages/tokens/test/helpers/source-files.ts | source-coverage, brand-guard                                             | C5: the story removed from `STORY_FILES`                                                    | red                                                                                                                                                                                                                                                                           | `Unexpected: [packages/ui/stories/textarea.stories.tsx]`                                                                                                                                                                                      |
+| src/index.ts                                 | entry-point.test                                                         | C6: the `Textarea, textareaClass` export removed                                            | red                                                                                                                                                                                                                                                                           | `re-exports every value each part file exports: expected [ …(2) ] to deeply equal []`                                                                                                                                                         |
+| test/stories.test.tsx                        | stories.test                                                             | C7: `DECLARED_STORIES` 104 → 103                                                            | red                                                                                                                                                                                                                                                                           | `expected [ 'accordion/Single', …(103) ] to have a length of 103 but got 104`                                                                                                                                                                 |
+| test/registry.test.ts                        | registry.test                                                            | counters exercised through C2/C3 (and P1-P19 via the "is stale" arm before the rebuild)     | see C2/C3                                                                                                                                                                                                                                                                     | `checked` 22 and `compared` 22 are live, but only as counts                                                                                                                                                                                   |
+| test/fidelity.test.tsx                       | n/a                                                                      | not mutated: the diff is a prose count only ("Eight of the twenty"), and no assertion moved | n/a                                                                                                                                                                                                                                                                           | Unchanged                                                                                                                                                                                                                                     |
+
+### What each GREEN row cost, and what changed
+
+Every fix below was re-run against its own mutation in a DETACHED worktree of the fix commit
+`2780335` (`../marquee-ui-s2-mut`, the same driver, the registry rebuilt for C2), each mutation's
+diff confirmed before the run, `git status --short` empty after (logs `$BATCH_SCRATCH/s2/mut-R-*.log`):
+
+| layer-1 row(s)   | finding       | what changed                                                                                                                                                                                                            | the re-run, at `2780335`                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P4, P5, P16, P15 | MED-1         | arm 2 no longer pools a property's values: it compares `<state> { <property>: <value> }` strings built from each compiled rule's OWN selector (the class written as `&`, enclosing at-rules other than `@layer` kept)   | **red**, 1 failed / 4 passed, each: `a field declaration the textarea lacks, or makes in another state` - P4 names `& { border-color: var(--border) }` and `&:focus { border-color: var(--primary) }`, P5 `& { color: var(--foreground) }` and `&::placeholder { color: var(--muted) }`, P16 `&:focus { border-color: var(--primary) }`, P15 `&:focus { --tw-outline-style: none }` and `&:focus { outline-style: none }` |
+| P12              | MED-2         | the same arm runs BOTH ways: what the textarea declares beyond the field must be exactly `["padding-block"]`                                                                                                            | **red**: `what the textarea declares beyond the field: expected [ Array(3) ] to deeply equal [ 'padding-block' ]` - the array is `font-family`, `padding-block`, `resize`                                                                                                                                                                                                                                                 |
+| C2               | MED-3         | `registry.test.ts` "declares exactly the registry dependencies its sources import", derived per item from `./<name>` and `@/lib/utils` imports                                                                          | **red**: `textarea: expected [ '@marquee/label', '@marquee/utils' ] to deeply equal [ '@marquee/input', '@marquee/utils' ]`; and the pre-existing instance, `form`'s `@marquee/label` swapped for `@marquee/input`: `form: expected [ '@marquee/input', '@marquee/utils' ] to deeply equal [ '@marquee/label', '@marquee/utils' ]`                                                                                        |
+| P8               | MED-4         | arm 5: `<Textarea className="probe-caller">`, the caller's class LAST and the field's string intact before it                                                                                                           | **red**: `the caller's class, last: expected 'py-2' to be 'probe-caller'`                                                                                                                                                                                                                                                                                                                                                 |
+| X1               | MED-4 (scope) | NOT fixed: `Input`'s own merge, a part file outside this fence - decision 10                                                                                                                                            | not re-run                                                                                                                                                                                                                                                                                                                                                                                                                |
+| P6               | LOW-1         | arm 5 reads `data-slot`                                                                                                                                                                                                 | **red**: `expected 'field' to be 'textarea'`                                                                                                                                                                                                                                                                                                                                                                              |
+| S2               | LOW-2         | the Form `Textarea` play pins its control's classes to `textareaClass.split(" ")`                                                                                                                                       | **red**, 2 failed: `expected [ 'min-h-hit', 'w-full', …(10) ] to deeply equal [ 'w-full', 'min-h-hit', …(11) ]` and the executed-plays counter                                                                                                                                                                                                                                                                            |
+| S1, S3           | LOW-3         | NOT fixed: a deleted `expect` in a play is invisible to a suite that counts plays, not assertions - `stories.test.tsx:48-65` states it as the package's standing limit. The drawing file does not depend on either play | not re-run                                                                                                                                                                                                                                                                                                                                                                                                                |
+| I3, I3b, I4      | LOW-4         | arm 1 asserts the two lists DIFFER and makes a positive `declaredValues` read; arm 2 no longer reads `declaredValues` at all and requires a non-empty extra                                                             | I3 **red** (`what the textarea declares beyond the field: expected [] to deeply equal [ 'padding-block' ]`); I3b **red**, 4 failed, arm 1 first: `the textarea's classes are the input's`; I4 **red**, arm 1: `expected [] to have a length of 1 but got +0`                                                                                                                                                              |
+| P9, P10, M1      | LOW-5         | the "exactly once" assertion carries a message                                                                                                                                                                          | I4's run shows it: `padding-block declarations: expected [] to have a length of 1 but got +0`                                                                                                                                                                                                                                                                                                                             |
+| (doc)            | LOW-6, 7, 8   | §1: `list-item` wins over `block`/`flex`/`grid`/`inline-flex`, NOT over `table`/`table-cell`; the offsets are the RAW sheet's; §2: the arithmetic's 2px is `border-2`'s literal, not `--border-width`                   | prose; the conclusions they sat under do not move                                                                                                                                                                                                                                                                                                                                                                         |
+| (doc)            | LOW-9         | Consumers: README and the `r/` copies under scan 1, `Default`'s 18th hit, `source-files.ts`'s three readers under scan 3                                                                                                | prose                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| (reasoned)       | LOW-10        | `focus-outline.test.tsx`'s `focus:` inventory names `textarea.tsx` as the interpolated third site - decision 9                                                                                                          | docblock only                                                                                                                                                                                                                                                                                                                                                                                                             |
+| I7               | by design     | arm 3 pins the GRID STEP, not the inset: any leading that puts the inset in [6, 10) px rounds to 8, which is the claim                                                                                                  | recorded                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| I8               | confirmation  | the unmerged read is what catches P17 - arm 4 is load-bearing, not vacuous                                                                                                                                              | recorded                                                                                                                                                                                                                                                                                                                                                                                                                  |
+
+The file now has **five** arms and the suite **578** tests (+2 on 576: arm 5, and the registry arm).
+
+### The gate
+
+**ONE run, detached, read from its sentinel** (`$BATCH_SCRATCH/s2/verify.exit`), at head
+`7062eb50f66236dfdcbf56e7e0591aff93337ddf` - both items, layer 1's fixes and their record. **Exit 0**,
+in **13 s** wall clock (a warm tree: `node_modules` and the Storybook cache already there). The
+runner's own lines: `All matched files use Prettier code style!`, `packages/tokens typecheck: Done` +
+`packages/ui typecheck: Done`, `packages/tokens build: wrote 5 files`, `✔ Building registry.`,
+`└  Storybook build completed successfully`, and **`Test Files 33 passed (33)` / `Tests 578 passed
+(578)`**.
+
+`git status --short` was EMPTY before the gate and after it, and the gate runs `build:registry`
+itself, so the committed `packages/ui/r` is byte-for-byte what these sources produce.
+
+That is **+1 file / +8 tests** on the base's 32 / 570: the new `textarea-drawing.test.tsx` (five
+arms), the `textarea` story suite (its "has stories" arm and `textarea/Default`), and the registry
+arm that derives each item's dependencies. The paragraph you are reading landed in one more
+docs-only commit after this run; the stream's report quotes a re-run at that final head.
+
+No push, no tag, no `npm publish`, no PR: the freeze holds, and `packages/ui/package.json`'s version
+line is still `0.1.3`. `Textarea` is the 0.1.4 bump's, and reaches thepile only through a
+LIB-VENDOR-0.1.4 slice.

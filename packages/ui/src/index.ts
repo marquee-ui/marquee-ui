@@ -96,5 +96,6 @@ export {
   SheetTrigger,
 } from "./sheet.js";
 export { Switch, SwitchInput, SwitchThumb, SwitchTrack, type SwitchProps } from "./switch.js";
+export { Textarea, textareaClass } from "./textarea.js";
 export { Toast, ToastAction, ToastMessage, type ToastProps } from "./toast.js";
 export { cn } from "./lib/utils.js";

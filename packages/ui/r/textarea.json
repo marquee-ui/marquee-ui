@@ -1,0 +1,19 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "textarea",
+  "title": "Textarea",
+  "description": "The house field, multi-line: Input's own string plus the vertical pad that starts the first line where an Input puts its text.",
+  "registryDependencies": [
+    "@marquee/utils",
+    "@marquee/input"
+  ],
+  "files": [
+    {
+      "path": "packages/ui/src/textarea.tsx",
+      "content": "import type { ComponentProps } from \"react\";\nimport { cn } from \"@/lib/utils\";\nimport { inputClass } from \"./input\";\n\n/**\n * The house field, multi-line: `Input`'s own string plus the one thing a\n * `<textarea>` needs that an `<input>` does not.\n *\n * ⚠️ `inputClass` ALONE IS NOT A TEXTAREA. It declares no vertical padding,\n * because an `<input>` centres its single line in the 44px box by itself; a\n * `<textarea>` does not centre anything, and Tailwind's preflight resets every\n * element's padding to 0, so the field string on its own puts the first line\n * flush against the top border (measured: `padding-block` undeclared,\n * `padding-top` undeclared, the preflight `padding: 0` the only rule left).\n *\n * The pad is `py-2`, 8px, and not a taste value: an `Input` centres its text\n * at `(44 - 2 * 2 - 16 * 1.55) / 2` = 7.6px below the top border, and 8px is\n * the spacing-grid step nearest it, so a textarea under an input starts its\n * first line where the input's text sits. `test/textarea-drawing.test.tsx`\n * derives that number from the compiled sheet rather than typing it.\n *\n * It is a STRING built on `inputClass`, not a copy of it, so the field has one\n * definition: whatever `Input`'s focus, border or ground become, this becomes\n * too - including the open question about `Input`'s focus indicator under\n * `forced-colors: active` (`focus:outline-none` with a border-colour ring),\n * which is decided in `input.tsx` for both.\n *\n * Nothing here decides a height: `rows` does, and even one row clears the 44px\n * floor with this pad. ⚠️ Prefer `rows` to a taller `min-h-*` in `className`:\n * this package's `cn` merges a caller's `min-h-*` over the field's `min-h-hit`,\n * but a consumer whose `cn` is a plain JOIN gets both, and the compiled sheet\n * emits `min-h-hit` AFTER the spacing-scale and arbitrary min-heights, so the\n * caller's floor silently loses (measured, DESIGN-LIB-d-disclosure). Preflight\n * already gives every textarea `resize: vertical`, so a `w-full` field cannot be\n * dragged wider than its column.\n */\nexport const textareaClass = `${inputClass} py-2`;\n\nexport function Textarea({ className, ...props }: ComponentProps<\"textarea\">) {\n  return <textarea data-slot=\"textarea\" className={cn(textareaClass, className)} {...props} />;\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/textarea.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}

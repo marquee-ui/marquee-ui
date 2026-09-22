@@ -47,6 +47,20 @@
       ]
     },
     {
+      "name": "textarea",
+      "type": "registry:ui",
+      "title": "Textarea",
+      "description": "The house field, multi-line: Input's own string plus the vertical pad that starts the first line where an Input puts its text.",
+      "registryDependencies": ["@marquee/utils", "@marquee/input"],
+      "files": [
+        {
+          "path": "packages/ui/src/textarea.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/textarea.tsx"
+        }
+      ]
+    },
+    {
       "name": "label",
       "type": "registry:ui",
       "title": "Label",

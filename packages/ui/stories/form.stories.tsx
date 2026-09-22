@@ -3,6 +3,8 @@ import { expect, within } from "storybook/test";
 import { Alert } from "@/alert";
 import { FormControl, FormDescription, FormItem, FormLabel, FormMessage } from "@/form";
 import { Input } from "@/input";
+// Aliased: this file already exports a STORY named `Textarea`.
+import { Textarea as TextareaField, textareaClass } from "@/textarea";
 
 const meta = { title: "Parts/Form", component: FormItem } satisfies Meta<typeof FormItem>;
 export default meta;
@@ -168,19 +170,16 @@ export const ValidWithMessageComposed: Story = {
 };
 
 /**
- * The slot takes any control, not an `Input`. The floor is the CONTROL's, which
- * is why the textarea carries `min-h-hit` where `Input` carries it for you.
+ * The slot takes any control, not an `Input`. Here it is the `Textarea` part,
+ * which is `Input`'s field plus the vertical pad a multi-line field owes; the
+ * 44px floor is the CONTROL's, and both parts carry it for you.
  */
 export const Textarea: Story = {
   render: () => (
     <FormItem>
       <FormLabel tone="micro">Add a comment</FormLabel>
       <FormControl>
-        <textarea
-          rows={3}
-          className="min-h-hit w-full rounded-md border-2 border-border bg-surface p-3 text-base text-foreground placeholder:text-muted focus:border-primary focus:outline-none"
-          placeholder="Reply to this review"
-        />
+        <TextareaField rows={3} placeholder="Reply to this review" />
       </FormControl>
       <FormDescription>Markdown is not supported, and links are not followed.</FormDescription>
     </FormItem>
@@ -190,6 +189,10 @@ export const Textarea: Story = {
     const control = canvas.getByLabelText("Add a comment");
     // The slot put the wiring on a control it knows nothing about.
     await expect(control.tagName).toBe("TEXTAREA");
+    // …and the control IS the part: its classes are the part's string, whole,
+    // so this story cannot drift back to a hand-written textarea with its own
+    // pad (layer 1, LOW-2: reverting it to the old raw `p-3` string was GREEN).
+    await expect(control.className.split(/\s+/)).toEqual(textareaClass.split(" "));
     await expect(describedElements(canvasElement, control)).toHaveLength(1);
     // The micro tone is `Label`'s, reached through composition rather than
     // re-drawn: the part adds `for`, not a second type treatment.
