@@ -248,14 +248,20 @@ describe("a checked state survives forced-colors: active", () => {
     for (const site of sites) {
       expect(site.tokens, `${site.file} site`).not.toContain("on");
     }
-    // ...and the placement walk found the forced-colors block at all: a reader
-    // that never classified anything as `forced` would fail every site the same
-    // way and prove nothing about the mode.
-    const forced = [...placed.values()].flat().filter((d) => d.placement === "forced");
+    // ...and the placement walk CLASSIFIES, independent of any one fix: most of
+    // the package is bare top-level utilities and a good share is behind a state
+    // or a media query. (It does NOT count `forced` here - the only forced-colors
+    // rule in the package is the fix itself, and an instrument anchor that failed
+    // whenever a defect came back would report the defect as a broken reader.)
+    const kinds = [...placed.values()].flat().map((d) => d.placement);
     expect(
-      forced.length,
-      "no declaration placed inside @media (forced-colors: active)",
-    ).toBeGreaterThan(0);
+      kinds.filter((k) => k === "unconditional").length,
+      "the walk placed nothing unconditional",
+    ).toBeGreaterThan(100);
+    expect(
+      kinds.filter((k) => k === "conditional").length,
+      "the walk placed nothing conditional",
+    ).toBeGreaterThan(10);
   });
 
   it("tells the mechanisms apart rather than passing everything", () => {
@@ -296,10 +302,18 @@ describe("a checked state survives forced-colors: active", () => {
       false,
     );
 
-    // ⚠️ AND THE PLACEMENT, which is MED-3 itself: the fix must read as the mode's
-    // own treatment and NOT as an unconditional paint. The flat helper cannot
-    // tell those apart; if this read ever can't either, the arm below is back to
-    // passing `hover:` and `print:` borders.
+    // ⚠️ AND THE PLACEMENT, which is MED-3 itself. Fix-independent first: a
+    // `hover:` utility the package really ships (`button.tsx`) is placed behind
+    // its state and is NOT unconditional - the exact shape that used to pass.
+    const hover = placed.get("hover:border-border-strong") ?? [];
+    expect(hover.length, "hover:border-border-strong did not compile").toBeGreaterThan(0);
+    expect(
+      hover.map((d) => d.placement),
+      "a hover: rule reads as unconditional",
+    ).not.toContain("unconditional");
+    // Then the fix: it must read as the mode's own treatment and NOT as an
+    // unconditional paint. This pin names TODAY'S mechanism; if `RadioGroup`
+    // moves to another one (an SVG stroke, say), rewrite this pair, don't drop it.
     expect(
       savedUnderForcedColors(["forced-colors:border-4"]),
       "the fix is not placed under forced colors",
