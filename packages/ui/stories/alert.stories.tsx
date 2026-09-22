@@ -67,6 +67,10 @@ export const Info: Story = {
 /**
  * A notice that ARRIVES gets a role from its caller. `status` is polite, `alert`
  * is assertive; the part writes neither, because the tone cannot know which.
+ * Arriving is only HALF the rule, though: a role announces nothing unless the
+ * region is in the document, empty, before its text is - so what this story
+ * shows is the prop reaching the box, not a box that would be heard if it were
+ * mounted together with the sentence inside it.
  */
 export const Announced: Story = {
   args: { role: "status", children: "That link has expired." },
