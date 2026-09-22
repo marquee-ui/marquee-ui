@@ -7266,6 +7266,8 @@ quoted. What DID move through the pipeline:
   byte for byte, so the bump's stream re-adds three items in the same commit as the bump. One nit
   for that pass: `description-list.tsx`'s replacement text says both old numbers "came to point at
   unrelated prose"; at thepile `70796720` `MemberRow.tsx` is 171 lines, so `:171` is its closing brace.
+  ⚠️ **THREE is wrong too, and it is FIVE**: measured against the 0.1.2 TARBALL rather than the
+  commit range at the bump itself, in § "LIB-VENDOR-0.1.3" below. `alert` and `form` also differ.
 
 ### Relayed citations (DL17)
 
@@ -7482,3 +7484,233 @@ exit 0, `pnpm typecheck` exit 0.
 No push, no tag, no `npm publish`, no PR: the freeze holds, and `packages/ui/package.json` is still
 `0.1.2`. Everything on this branch belongs to the 0.1.3 bump, including the two re-citations, which
 cannot reach thepile before it.
+
+## LIB-VENDOR-0.1.3: `@marquee-ui/ui` 0.1.3, the two axes and two error paths reach a consumer (2026-09-22)
+
+Batch DL18, stream s2, branch `s/lib-vendor-0.1.3` from `next` @ `6227d64`. Three commits here: the
+`Announced` story's docblock, the version line, and this block. The consuming half lives in thepile's
+`docs/slices/LIB-VENDOR-0.1.3.md`, and the two halves are ONE stream this time.
+
+### What the bump carries - measured against the 0.1.2 TARBALL, not against the commit range
+
+⚠️ **The commit range and the pack disagree, and the pack is what a consumer receives.**
+`git diff --stat c9115f7 HEAD -- packages/ui/src packages/ui/r packages/ui/package.json` is
+**14 files changed, 313 insertions(+), 60 deletions(-)** and names SEVEN sources
+(`alert`, `avatar`, `checkbox`, `description-list`, `form`, `index.ts`, `radio-group`). But 0.1.2 was
+packed at `0b135c1`, which is four commits PAST the bump commit `c9115f7`, so HIGH-1's fix to
+`checkbox.tsx` and `radio-group.tsx` is already inside the 0.1.2 tarball. Every `r/*.json` of that
+tarball compared by `cmp` against `packages/ui/r` at `6227d64`:
+
+```
+differ:    alert.json  avatar.json  checkbox.json  description-list.json  form.json
+identical: the other 15 items AND registry.json          (5 of 21 files)
+```
+
+**FIVE items differ**, `radio-group` among the identical ones. The consuming product pins all twelve
+of its copies byte for byte and consumes all five of these, so **the bump reddens FIVE of its drift
+byte arms**. ⚠️ **The DL17 record above, the "thepile inputs" bullet of DESIGN-LIB-d-command and the
+DL18 cursor all say THREE**; they counted the commits they knew of (the two axes and the two relayed
+citations), and `form`'s and `alert`'s moves are DL16's and DL17's, in the same range. Corrected in
+place here; the "thepile inputs" bullet is left as the dated reading it was.
+
+| item               | `content` B     | CODE B (comment lines dropped) | what moved                                                            | landed                          |
+| ------------------ | --------------- | ------------------------------ | --------------------------------------------------------------------- | ------------------------------- |
+| `alert`            | 5,616 → 7,407   | 1,294 → 1,294                  | **docblock only**: the role rule's second half                        | `6caae60`, `cffc1a0`            |
+| `checkbox`         | 10,094 → 10,674 | 3,224 → 3,224                  | **docblock only**: a relayed citation                                 | `72f8cfa`                       |
+| `description-list` | 25,295 → 29,346 | 8,784 → 9,667                  | `crossedAClientBoundary` + a throw, **error path only**               | `265d871`, `a404001`, `72f8cfa` |
+| `form`             | 16,797 → 20,765 | 5,237 → 6,210                  | the same walk in `countParts` + a longer message, **error path only** | `265d871`, `a404001`            |
+| `avatar`           | 11,269 → 14,471 | 2,535 → 2,873                  | **the two axes**                                                      | `97758ea`                       |
+
+⚠️ DL17's record gave `description-list` as 25,225. That is the string's LENGTH IN CHARACTERS; the
+BYTES are 25,295. Both are stated once, here, so neither is repeated as the other.
+
+The two axes, read out of the tarball rather than out of the diff: `avatarImageVariants` loses
+`bg-surface` from its `cva` BASE and gains `ground: { surface: "bg-surface", raised: "bg-raised" }`
+(default `surface`); `AvatarBadge` gains `avatarBadgeVariants` with
+`edge: { default: "border-2", thin: "border-[1.5px]" }` (default `default`) and its literal string
+moves into that base. **Both defaults reproduce the 0.1.2 drawing**, so a consumer that names no
+value is byte-identical at the bump - which is the whole reason the axes could ship separately from
+the consumption that wanted them.
+
+`src/` moves in exactly those five files plus `index.ts` (`+avatarBadgeVariants`, one export line);
+`src/lib` is identical. **LOW-2's widened `ringSites()` sweep (`c1f6c9a`) is in the range and is NOT
+in the pack**: `files` is `["r","src"]` and the sweep lives in `packages/ui/test/`, so it reaches no
+consumer. It is recorded here so the range and the tarball are not confused again.
+
+### The packed tarball, as measured
+
+```
+$ pnpm --filter @marquee-ui/ui pack --pack-destination …/thepile-LIB-VENDOR-0.1.3/vendor/marquee-ui/
+$ stat -c %s marquee-ui-ui-0.1.3.tgz ; sha256sum marquee-ui-ui-0.1.3.tgz
+103191
+f7425339d4df9527d8788a7dcb85d386dcb1478110945b30f907d57f74c146d0
+```
+
+|                                         | `ui@0.1.2`'s tarball                     | this one   |
+| --------------------------------------- | ---------------------------------------- | ---------- |
+| bytes                                   | 92751 → 93771 (repacked at HIGH-1's fix) | **103191** |
+| `r/` json files (incl. `registry.json`) | 21                                       | **21**     |
+| `src/` modules (`.ts`/`.tsx`)           | 21                                       | **21**     |
+
+`files` is unchanged, no item and no module arrives, so 93771 → 103191 is CONTENT: two docblocks,
+two error paths and one family's two axes, each carried twice (once as the source module, once
+inlined into its registry item's `content`, because an item has to be self-contained for an offline
+`shadcn add`). The tarball carries **no** `.test.`, `.spec.` or `stories` file - counted, not
+assumed (`tar -tzf | grep -cE '\.(test|spec)\.|stories'` → **0**), because the consuming repo's
+corpus guard walks from ITS repo root.
+
+**The packed `package.json`, READ from the tarball:**
+
+```
+$ tar -xzOf marquee-ui-ui-0.1.3.tgz package/package.json | …
+version: 0.1.3
+files: ["r","src"]
+devDeps @marquee-ui/tokens: "0.1.0"
+deps: @radix-ui/react-accordion @radix-ui/react-dialog @radix-ui/react-label
+      @radix-ui/react-separator @radix-ui/react-slot class-variance-authority clsx tailwind-merge
+```
+
+`workspace:*` is rewritten to the exact `0.1.0` again, in `devDependencies`, which a consumer never
+installs - so it cannot reach the consuming app's resolution. The eight `dependencies` are unchanged
+from 0.1.2, which is what keeps the consumer's `declares every dependency` arm green across the bump.
+
+### `@marquee-ui/tokens` does NOT bump with it (DL12 decision 1, re-measured a third time)
+
+```
+$ git diff --stat tokens@0.1.0 HEAD -- packages/tokens/src
+(nothing)
+```
+
+Nothing a consumer receives has moved, so tokens stays `0.1.0` and **ONE tarball is vendored
+downstream, not two.**
+
+### `pnpm build:registry` after the version line: `r/` byte-unchanged
+
+```
+$ pnpm build:registry && git status --short
+✔ Building registry.
+ M packages/ui/package.json
+```
+
+The built index does not carry the package version, so the version line is the whole of that commit
+
+- the same read as at 0.1.2, now taken at 0.1.3 as well rather than carried over.
+
+### `prepack`'s stale-registry refusal, proved live again
+
+Re-run at the bump commit `5976422`, in a **detached worktree**, because the mutation lives in
+`packages/ui/src/**`:
+
+| mutation                                                                                                          | landed                                                   | the red                                                                                                                                                                                                                   |
+| ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bg-surface` → `bg-sunken` in `AvatarBadge`'s new `cva` base (`packages/ui/src/avatar.tsx:239`), `r/` not rebuilt | confirmed by `grep -n bg-sunken` before the run was read | `pnpm run prepack` exit **1**, the `git diff --exit-code -- r` output naming `packages/ui/r/avatar.json` and carrying `bg-sunken` inside its `content` string. **No tarball was written** (`ls packages/ui/*.tgz` → none) |
+
+So the 103191 bytes above cannot be bytes that disagree with `src/`. Mutation reverted with
+`git checkout --`, `git status --short` empty, worktree removed.
+
+### The `Announced` story's docblock
+
+DESIGN-LIB-d-command's follow-up 4, the one `src`-adjacent edit of this bump and the only reason
+`stories/` is touched at all. The story's docblock carried the FIRST half of `alert.tsx`'s role rule
+("a notice that ARRIVES gets a role from its caller") and stopped there, which reads as if a
+conditionally mounted `<Alert role="status">` would be announced - the exact case `alert.tsx:24-40`
+added a warning about. The sentence now says arriving is half of it and that a role announces
+nothing unless the region is in the document, empty, before its text is, and it names what the story
+actually demonstrates: the prop reaching the box. The story's `args`, its `play` and its assertions
+are untouched.
+
+Stories are not in `files`, so this does not move the tarball; it moves the docs site and nothing
+else. ⚠️ **AND NO TEST OBSERVES IT, WHICH IS WORTH SAYING BECAUSE THE OBVIOUS SENTENCE IS WRONG**
+(layer 1 MED-1, proved rather than argued): `stories.test.tsx` composes and renders every story, so
+it is easy to write that a docblock edit "rides the existing suite". It does not. Deleting the added
+paragraph leaves `Test Files 31 passed (31)` / `Tests 567 passed (567)`; deleting the ENTIRE
+`Announced` docblock leaves the same 567, and `prettier --check` and `eslint` both pass a
+160-character comment line. **The only instrument that reads this prose is
+`packages/tokens/test/brand-guard.test.ts`, and only for brand vocabulary** - inserting the
+consuming product's name into the paragraph reddens `ships no brand string of the consuming app`,
+and nothing else can tell the rule from its opposite. So the probes below are evidence that the
+STORY still renders and that the prose carries no product noun, and are evidence about nothing else:
+`Test Files 2 passed (2)` / `Tests 129 passed (129)` over `stories.test.tsx` + `alert-tone.test.tsx`,
+and `brand-guard.test.ts` `2 passed`.
+
+### The granted widening: `RadioGroup`'s checked dot under `forced-colors: active`
+
+**A DECLARED FENCE WIDENING**, relayed from the consuming product's RadioGroup stream and granted by
+the orchestrator: `packages/ui/src/radio-group.tsx`'s `indicatorClass`, one new guard under
+`packages/ui/test/`, and `r/radio-group.json` rebuilt - which re-packs the tarball.
+
+**What was wrong, measured downstream rather than reasoned here.** The consumer hashed each circle's
+own pixels on three builds: the native radio it replaced was distinguishable checked vs unchecked
+(`74d5812fdd5244c9` / `08c39d972b02379c`), DL17's shipped `Checkbox` is distinguishable
+(`5694feb3aab7a489` / `41a0a4c610a63659`), and this family's circle on the part hashed **IDENTICAL
+both ways** (`d91108c431a92623`). So the consumption introduced a regression on every route that
+mounts it, which is why it is not deferred the way `input.tsx:6` is.
+
+**The mechanism, and why only this family had it.** Forced colors is not a palette swap: the UA
+collapses every paint into two system colours, a FOREGROUND (`color`, `stroke`, `border-color`,
+`outline-color`) forced to `CanvasText` and `background-color` forced to `Canvas`. The dot was
+`bg-primary-foreground` inside a circle that goes `bg-primary` on checked, so both became `Canvas`
+and the dot vanished into its own circle. `Checkbox` escapes because its tick is an SVG `stroke`;
+`Switch` because its thumb MOVES and geometry is not forced at all. **`RadioGroup` was the only
+family in the package signalling state in `background-color` alone.**
+
+**The fix is one token**: `forced-colors:border-4` on `indicatorClass`. On a `size-2` box that is a
+SOLID disc rather than a ring - 8px box, `border-box` sizing from preflight, 4px of border on every
+side meeting in the middle - so the mode draws what the native control draws, in the user's own ink.
+Read from the emitted sheet rather than typed:
+
+```
+@media (forced-colors: active) {
+  .forced-colors\:border-4 { border-style: var(--tw-border-style); border-width: 4px; }
+}
+```
+
+⚠️ **Scoped to the media query because the NORMAL drawing must not move**: outside it the class
+string is byte-for-byte what it was, which is the constraint the widening carried (the consumer's
+measurement table and its e2e arm are written against the current dot).
+
+**`test/forced-colors-state.test.tsx`**, three arms, the invariant DERIVED over every part rather
+than listing this one: an element REVEALED by a checked state (`opacity-0` flipped to `opacity-100`
+under a checked variant) must paint with something the mode keeps - a foreground width or a stroke -
+or declare its own treatment inside a real `@media (forced-colors: active)` block. It reads the
+COMPILED SHEET, never a class name, because `stroke-primary-foreground` and `bg-primary-foreground`
+are one character apart and land in different buckets. `KNOWN_GAPS` ships empty with the same expiry
+device `focus-outline.test.tsx` uses.
+
+**Red first, then green, and the mutation pass found two holes in the guard itself:**
+
+| mutation (detached worktree of the committed head)             | red / GREEN                     | the message                                                                                                                                                                                                   |
+| -------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| the fix reverted (the defect restored)                         | red 1/3                         | `a part reveals an element on checked whose only paint is a background … INVISIBLE`, naming `radio-group.tsx: … paints background-color ["var(--primary-foreground)"] and nothing the mode keeps`             |
+| `forced-colors:border-4` → `border-0`                          | **GREEN** → **FIXED** → red 1/3 | a width of zero is not a paint: it compiles, lands in the media block, declares `border-width`, and paints nothing. `paints()` now resolves a width through the sheet's length reader and requires > 0        |
+| the `forced-colors:` prefix dropped (unconditional `border-4`) | **GREEN**                       | correct, not a hole: an unconditional foreground border DOES survive the mode. It violates the other half of the widening - the normal drawing must not move - which the consumer's table pins, not this file |
+| the site walk collapsed to `[]`                                | red 2/3                         | `no part reveals anything on checked: the walk found nothing: expected 0 to be greater than or equal to 2`                                                                                                    |
+| `FOREGROUND_PAINT` gains `background-color`, fix removed       | **GREEN** → **FIXED** → red 1/3 | the bucket cut IS the expectation, so it is anchored on the predicate's behaviour rather than by asserting the table against itself: `a background counts as a foreground: the bucket cut is gone`            |
+| `paints()`'s width check collapsed to declared-only            | **GREEN**                       | carried by the sibling suites: `sheet.declared` is pinned many times over by `avatar-drawing`, `switch-drawing` and `choice-drawing`, and a broken reader reddens there (DL15's layer 1 measured 8 tests)     |
+
+`pnpm verify` at the new head `a885aea`: **exit 0**, `Test Files 32 passed (32)` / `Tests 570 passed
+(570)` - +1 file / +3 tests on this bump's own earlier 31 / 567, all of it this guard -
+`git status --short` empty before and after, so the committed `r/` is what `build:registry` produces.
+
+**The tarball is therefore RE-PACKED**, over the same filename: **104309 bytes** (was 103191), sha256
+`bdb07c212963b7af53227115191cd29538ca2e3d934a71c0994c8d5eaffd31a8`. `files`, the 21 `r/` json files,
+the 21 `src/` modules, the eight `dependencies` and the zero test/spec/stories files are all
+unchanged; the delta is one source, one registry item and nothing else. The consuming repo has no
+`radio-group` copy installed, so its drift test is **16/16** against the new registry with no re-add
+
+- run, not assumed.
+
+### Two things measured here and deliberately NOT fixed
+
+- **`description-list.tsx:210-212`'s replacement text overstates by one word.** It says both old
+  thepile citations "came to point at unrelated prose"; `MemberRow.tsx` is **171 lines** at thepile
+  `3f37191c` (measured this session, `wc -l`), so `:171` is its closing BRACE, not prose. `:80` is
+  prose, so the sentence is half right. Not fixed: `packages/ui/src/**` is outside this stream's
+  fence, and an edit there moves `description-list`'s shipped bytes and re-packs the tarball whose
+  five-item measurement this whole slice rests on. For the next bump, with the number.
+- **The DESIGN-LIB-d-command "thepile inputs" bullet's THREE.** Corrected in place with a two-line
+  forward pointer and NO deletion (the diff's `-` side over that bullet is empty, checked) - a
+  **declared FENCE WIDENING**, the fence having named a new block in this
+  file rather than an edit to an old one. The bullet's own reasoning is left standing as the dated
+  reading it was; leaving it uncorrected is how a number gets repeated as fact, which is the failure
+  this file exists to stop.
