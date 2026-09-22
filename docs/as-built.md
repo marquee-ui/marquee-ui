@@ -5143,7 +5143,16 @@ apps/web/src/lib/utils.ts` after the add.
 row is `inline-flex`; every one of the seven product rows is `flex ... justify-between`.
 thepile's `cn` does not merge, so both land and the stylesheet's later rule (`inline-flex`)
 wins - which shrinks the label to fit and leaves `justify-between` nothing to distribute.
-**Every consuming row passes `w-full`** (DL7 layer 2, MED-3, proved on the Switch).
+~~**Every consuming row passes `w-full`** (DL7 layer 2, MED-3, proved on the Switch).~~
+⚠️ **STRUCK (DL18 layer 2, LOW-5): `w-full` is needed only where the row is NOT a flex item,
+and measured inert twice where it is.** The shrink above is real on the Switch's DL7 sites,
+where the row sits in ordinary block flow and `inline-flex` sizes it to its content - that is
+the case the rule was proved on, and it still holds there. But a row that is itself a FLEX
+ITEM has its outer display blockified by its parent (`inline-flex` computes to `flex`) and its
+width set by the parent's layout, so `w-full` adds nothing: DL17's onboarding consent row read
+**358 / 358 px** with and without it, and DL18's report-sheet radio row **310 / 310 px**
+(both measured by the consuming streams on built pages, relayed here, not re-measured by this
+block). So: a row that is a flex item needs nothing; a row that is not one passes `w-full`.
 
 **Checkbox, site by site.** All seven keep their own row classes through `className`;
 `min-h-hit`, the named group, the focus ring and the disabled treatment come from the part
@@ -5186,7 +5195,10 @@ and should be deleted from the row's own string.
 - `components/reports/ReportSheet.tsx:104-155`: `<ul role="radiogroup" aria-label=…>`
   becomes `<RadioGroup asChild aria-label="Which rule does it break?">` around the same
   `<ul>`, so the `<li>`s and the deep-link `<Link>` beside each label are untouched; each
-  `<label htmlFor>` becomes `<RadioGroupItem className="w-full flex-1 …">`, each `<input>`
+  `<label htmlFor>` becomes ~~`<RadioGroupItem className="w-full flex-1 …">`~~
+  `<RadioGroupItem className="flex-1 …">` (⚠️ `w-full` STRUCK, DL18 layer 2 LOW-5: the row is
+  a flex item of the `<li>`, so `flex-1` sizes it and `w-full` was measured inert, 310 / 310 px;
+  the reason and the one case it still applies are at the Checkbox paragraph above), each `<input>`
   becomes `<RadioGroupInput value={guideline.value} checked={selected} onChange={…} />`,
   and the drawing becomes `<RadioGroupCircle><RadioGroupIndicator/></RadioGroupCircle>`.
   **`useId` and `name={groupId}` and every `id`/`htmlFor` pair GO**: the group owns the
