@@ -7633,6 +7633,73 @@ STORY still renders and that the prose carries no product noun, and are evidence
 `Test Files 2 passed (2)` / `Tests 129 passed (129)` over `stories.test.tsx` + `alert-tone.test.tsx`,
 and `brand-guard.test.ts` `2 passed`.
 
+### The granted widening: `RadioGroup`'s checked dot under `forced-colors: active`
+
+**A DECLARED FENCE WIDENING**, relayed from the consuming product's RadioGroup stream and granted by
+the orchestrator: `packages/ui/src/radio-group.tsx`'s `indicatorClass`, one new guard under
+`packages/ui/test/`, and `r/radio-group.json` rebuilt - which re-packs the tarball.
+
+**What was wrong, measured downstream rather than reasoned here.** The consumer hashed each circle's
+own pixels on three builds: the native radio it replaced was distinguishable checked vs unchecked
+(`74d5812fdd5244c9` / `08c39d972b02379c`), DL17's shipped `Checkbox` is distinguishable
+(`5694feb3aab7a489` / `41a0a4c610a63659`), and this family's circle on the part hashed **IDENTICAL
+both ways** (`d91108c431a92623`). So the consumption introduced a regression on every route that
+mounts it, which is why it is not deferred the way `input.tsx:6` is.
+
+**The mechanism, and why only this family had it.** Forced colors is not a palette swap: the UA
+collapses every paint into two system colours, a FOREGROUND (`color`, `stroke`, `border-color`,
+`outline-color`) forced to `CanvasText` and `background-color` forced to `Canvas`. The dot was
+`bg-primary-foreground` inside a circle that goes `bg-primary` on checked, so both became `Canvas`
+and the dot vanished into its own circle. `Checkbox` escapes because its tick is an SVG `stroke`;
+`Switch` because its thumb MOVES and geometry is not forced at all. **`RadioGroup` was the only
+family in the package signalling state in `background-color` alone.**
+
+**The fix is one token**: `forced-colors:border-4` on `indicatorClass`. On a `size-2` box that is a
+SOLID disc rather than a ring - 8px box, `border-box` sizing from preflight, 4px of border on every
+side meeting in the middle - so the mode draws what the native control draws, in the user's own ink.
+Read from the emitted sheet rather than typed:
+
+```
+@media (forced-colors: active) {
+  .forced-colors\:border-4 { border-style: var(--tw-border-style); border-width: 4px; }
+}
+```
+
+⚠️ **Scoped to the media query because the NORMAL drawing must not move**: outside it the class
+string is byte-for-byte what it was, which is the constraint the widening carried (the consumer's
+measurement table and its e2e arm are written against the current dot).
+
+**`test/forced-colors-state.test.tsx`**, three arms, the invariant DERIVED over every part rather
+than listing this one: an element REVEALED by a checked state (`opacity-0` flipped to `opacity-100`
+under a checked variant) must paint with something the mode keeps - a foreground width or a stroke -
+or declare its own treatment inside a real `@media (forced-colors: active)` block. It reads the
+COMPILED SHEET, never a class name, because `stroke-primary-foreground` and `bg-primary-foreground`
+are one character apart and land in different buckets. `KNOWN_GAPS` ships empty with the same expiry
+device `focus-outline.test.tsx` uses.
+
+**Red first, then green, and the mutation pass found two holes in the guard itself:**
+
+| mutation (detached worktree of the committed head)             | red / GREEN                     | the message                                                                                                                                                                                                   |
+| -------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| the fix reverted (the defect restored)                         | red 1/3                         | `a part reveals an element on checked whose only paint is a background … INVISIBLE`, naming `radio-group.tsx: … paints background-color ["var(--primary-foreground)"] and nothing the mode keeps`             |
+| `forced-colors:border-4` → `border-0`                          | **GREEN** → **FIXED** → red 1/3 | a width of zero is not a paint: it compiles, lands in the media block, declares `border-width`, and paints nothing. `paints()` now resolves a width through the sheet's length reader and requires > 0        |
+| the `forced-colors:` prefix dropped (unconditional `border-4`) | **GREEN**                       | correct, not a hole: an unconditional foreground border DOES survive the mode. It violates the other half of the widening - the normal drawing must not move - which the consumer's table pins, not this file |
+| the site walk collapsed to `[]`                                | red 2/3                         | `no part reveals anything on checked: the walk found nothing: expected 0 to be greater than or equal to 2`                                                                                                    |
+| `FOREGROUND_PAINT` gains `background-color`, fix removed       | **GREEN** → **FIXED** → red 1/3 | the bucket cut IS the expectation, so it is anchored on the predicate's behaviour rather than by asserting the table against itself: `a background counts as a foreground: the bucket cut is gone`            |
+| `paints()`'s width check collapsed to declared-only            | **GREEN**                       | carried by the sibling suites: `sheet.declared` is pinned many times over by `avatar-drawing`, `switch-drawing` and `choice-drawing`, and a broken reader reddens there (DL15's layer 1 measured 8 tests)     |
+
+`pnpm verify` at the new head `a885aea`: **exit 0**, `Test Files 32 passed (32)` / `Tests 570 passed
+(570)` - +1 file / +3 tests on this bump's own earlier 31 / 567, all of it this guard -
+`git status --short` empty before and after, so the committed `r/` is what `build:registry` produces.
+
+**The tarball is therefore RE-PACKED**, over the same filename: **104309 bytes** (was 103191), sha256
+`bdb07c212963b7af53227115191cd29538ca2e3d934a71c0994c8d5eaffd31a8`. `files`, the 21 `r/` json files,
+the 21 `src/` modules, the eight `dependencies` and the zero test/spec/stories files are all
+unchanged; the delta is one source, one registry item and nothing else. The consuming repo has no
+`radio-group` copy installed, so its drift test is **16/16** against the new registry with no re-add
+
+- run, not assumed.
+
 ### Two things measured here and deliberately NOT fixed
 
 - **`description-list.tsx:210-212`'s replacement text overstates by one word.** It says both old
