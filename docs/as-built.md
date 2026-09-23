@@ -9196,6 +9196,25 @@ DESIGN-LIB-d-meter-toggle predicted this set; the detail is in thepile's slice d
 
 No push, no tag, no `npm publish`, no PR: the freeze holds.
 
+### For the next bump (0.1.6; thepile's DL21 layer 1 r6 LOW-2, layer 2 LOW-1 and MED-1)
+
+- Thirteen copies thepile vendors cite bare `test/…` paths that exist only here: `toggle.tsx:21`,
+  `button.tsx:9` (which names `test/fidelity.test.ts`; the file is `test/fidelity.test.tsx`),
+  `checkbox.tsx:33,38,80`, `switch.tsx:39,44,61`, one each in `description-list` and `form`, and
+  `radio-group` ×3 (thepile `docs/slices/LIB-VENDOR-0.1.5.md` LOW-2). `textarea.tsx:20`'s form
+  ("marquee-ui's `packages/ui/test/…`") is the fix; the copies are byte-pinned by thepile's drift
+  test, so it lands here and re-adds there.
+- REQUEST A's fixes (the thumb's `forced-colors:` frame, the tick's `forced-colors:stroke-current`;
+  DESIGN-LIB-d-fcstate-dropdown below) must take the shape the widened guard EXPIRES: a carrier
+  (frame, outline, movement, reveal) changed from the rest drawing. A system-colour paint
+  (`forced-colors:bg-[CanvasText]`) fixes the drawing in Chromium and leaves the `KNOWN_STATE_GAPS`
+  entries excused (thepile DL21 layer 2 LOW-1, PROVED on a scratch copy of `ed8df49`: 6 passed with
+  the paint added, 1 failed only once the entries were deleted).
+- thepile's copies `components/ui/switch.tsx:80-81` and `checkbox.tsx:125-126` carry the same holes
+  on nine product sites that were a text button and native checkboxes at prod's `b5096a70` (layer 2
+  MED-1, PROVED on thepile's merged-build stylesheet), so LIB-VENDOR-0.1.6 goes before thepile's
+  first post-freeze push.
+
 ## DESIGN-LIB-d-fcstate-dropdown: a held state drawn in colour alone, and the `DropdownMenu` measurement (2026-09-23)
 
 Batch DL21, stream s3, on the library's `next` at `47ca51df` (**35 files / 598 tests**, re-measured at
