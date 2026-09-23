@@ -44,6 +44,8 @@ const toggles = composeStories(toggleStories);
 /** The drawn properties. The shadow is read as `--tw-shadow`, the one a `shadow-*` utility sets. */
 const DRAWN = ["border-color", "background-color", "color", "--tw-shadow"] as const;
 type Drawn = (typeof DRAWN)[number];
+/** Every property an arm below resolves: the drawn four, and the disabled pair. */
+const PROPERTIES = [...DRAWN, "opacity", "cursor"] as const;
 
 const STATES = [
   { name: "rest", story: "Default", hovered: false },
@@ -129,7 +131,7 @@ function candidatesFor(classes: readonly string[]): Candidate[] {
   let order = 0;
   postcss.parse(sheet.css).walkDecls((decl) => {
     order += 1;
-    if (!(DRAWN as readonly string[]).includes(decl.prop)) return;
+    if (!(PROPERTIES as readonly string[]).includes(decl.prop)) return;
     let selector = "";
     for (let at = decl.parent as Node | undefined; at && at.type !== "root"; at = at.parent) {
       if (at.type === "rule") {
@@ -162,7 +164,7 @@ function resolve(
   candidates: readonly Candidate[],
   element: Element,
   hovered: boolean,
-  property: Drawn,
+  property: string,
 ): { value: string | undefined; byOrder: boolean } {
   const applying = candidates.filter((c) => {
     if (c.property !== property) return false;
@@ -225,14 +227,33 @@ describe("Toggle: the house pressed state, drawn from aria-pressed", () => {
         property,
         ...resolve(candidates, element, hovered, property),
       }));
-      const drawn = Object.fromEntries(resolved.map(({ property, value }) => [property, value]));
-      expect(drawn, `the ${name} state`).toEqual(EXPECTED[name]);
+      for (const { property, value } of resolved) {
+        expect(value, `the ${name} state's ${property}`).toBe(EXPECTED[name][property]);
+      }
       expect(
         resolved.filter(({ byOrder }) => byOrder).map(({ property }) => property),
         `the ${name} state: decided by source order alone, not by the selectors`,
       ).toEqual([]);
     },
   );
+
+  it("draws a disabled toggle at half strength with a refusing cursor, and an enabled one at neither", () => {
+    // A toggle that cannot be pressed has to look it: the house disabled pair,
+    // `Button`'s and `Switch`'s. Read on the Disabled story's element, where
+    // `:disabled` matches, against the Default story's, where it must not.
+    const disabled = mount(toggles.Disabled);
+    expect(disabled.element).toBeDisabled();
+    const off = candidatesFor(disabled.classes);
+    expect(resolve(off, disabled.element, false, "opacity").value, "disabled opacity").toBe("50%");
+    expect(resolve(off, disabled.element, false, "cursor").value, "disabled cursor").toBe(
+      "not-allowed",
+    );
+    cleanup();
+    const enabled = mount(toggles.Default);
+    const on = candidatesFor(enabled.classes);
+    expect(resolve(on, enabled.element, true, "opacity").value, "enabled opacity").toBeUndefined();
+    expect(resolve(on, enabled.element, true, "cursor").value, "enabled cursor").toBeUndefined();
+  });
 
   it("hands a plain-join consumer the string it renders: the merge removed nothing", () => {
     const { classes } = mount(toggles.Default);
