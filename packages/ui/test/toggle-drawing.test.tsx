@@ -2,7 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { composeStories } from "@storybook/react-vite";
 import postcss, { type AtRule, type Node, type Rule } from "postcss";
 import type { ReactElement } from "react";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.js";
 import { Toggle, toggleClass } from "@/toggle";
@@ -385,9 +385,15 @@ describe("Toggle: the house pressed state, drawn from aria-pressed", () => {
     expect(classes.at(-1), "the caller's class, last").toBe("probe-caller");
     expect(classes.slice(0, -1), "the part's own string, intact").toEqual(toggleClass.split(/\s+/));
     cleanup();
-    render(<Toggle aria-label="Probe" aria-pressed type="submit" />);
+    // The caller's handler reaches the button: the state is the caller's, so a
+    // part that swallowed `onClick` could never be pressed (layer 1, S2: only the
+    // Default play's body said so).
+    const onClick = vi.fn();
+    render(<Toggle aria-label="Probe" aria-pressed type="submit" onClick={onClick} />);
     const pressed = screen.getByRole("button", { name: "Probe", pressed: true });
     expect(pressed).toHaveAttribute("type", "submit");
+    pressed.click();
+    expect(onClick, "the caller's onClick").toHaveBeenCalledTimes(1);
   });
 
   it("lets a caller's conflicting class win over the part's, and leaves the pressed rules alone", () => {
