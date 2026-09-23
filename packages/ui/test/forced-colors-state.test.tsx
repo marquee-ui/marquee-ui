@@ -59,12 +59,11 @@ import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.
  * clause is the Switch's hole: its thumb moves, and paints nothing. `Toggle`'s
  * pressed square was the site this kind was written for (DL20 decision 13).
  *
- * ⚠️ ONE READING DIFFERS BETWEEN THE TWO KINDS, ON PURPOSE AND ON THE RECORD. The
- * revealed-element arms below count ANY stroke as a paint the mode keeps; the
- * state arms count a stroke only when it is `currentcolor`, which the mode forces
- * through `color`. The measurement above is why; the revealed-element arms' own
- * reading is a behaviour this file's owner did not hold the batch it was measured,
- * so it is REQUESTed, not edited (`docs/as-built.md`, DESIGN-LIB-d-fcstate-dropdown).
+ * ⚠️ BOTH KINDS COUNT A STROKE ONLY WHEN IT IS `currentcolor`, which the mode
+ * forces through `color`. The revealed-element arms used to count ANY stroke,
+ * which the measurement above falsified, and for one batch (DL21) the two kinds
+ * read a stroke differently on the record; 0.1.6 moved the revealed arms to the
+ * same reading once the Checkbox's tick carried the stroke that reading asks for.
  *
  * ⚠️ IT READS THE COMPILED SHEET, NOT THE CLASS NAMES. `stroke-primary-foreground`
  * and `bg-primary-foreground` are one character apart and declare different
@@ -273,17 +272,13 @@ const CARRIES =
   /^(?:(?:border|outline)(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?-(?:width|style)|translate|transform|rotate|scale|opacity|visibility|display)$/;
 
 /**
- * Whether a `stroke` value is a paint the mode keeps.
- *
- * ⚠️ `authorStroke` IS THE REVEALED-ELEMENT ARMS' READING, and it is the default
- * so that nothing they assert moves: any stroke that is not `none`. The state
- * arms pass `false`, which counts only `currentcolor` - the mode forces `color`,
- * and a `currentcolor` stroke follows it (measured: rgb(255, 255, 255) on the
- * dark palette's black), where an author colour is left as it was (measured:
- * the Checkbox tick's rgb(10, 11, 7), on black).
+ * Whether a `stroke` value is a paint the mode keeps: `currentcolor` and nothing
+ * else. The mode forces `color`, and a `currentcolor` stroke follows it
+ * (measured: rgb(255, 255, 255) on the dark palette's black), where an author
+ * colour is left as it was (measured: the Checkbox tick's rgb(10, 11, 7), on
+ * black). One reading, for every arm.
  */
-const strokePaints = (value: string, authorStroke: boolean): boolean =>
-  !NO_STYLE.test(value) && (authorStroke || /^currentcolor$/i.test(value));
+const strokePaints = (value: string): boolean => /^currentcolor$/i.test(value);
 
 /**
  * A part whose revealed element is knowingly short, with the reason. Empty, and
@@ -414,10 +409,9 @@ describe("a checked state survives forced-colors: active", () => {
     tokens: readonly string[],
     kinds: readonly Placement[],
     // DL21: the held state the element is IN (its `state`/`forced-state` rules
-    // join the read; without one they are never read, which is the old view),
-    // and the stroke reading (`strokePaints`). Both default to what the
-    // revealed-element arms have always asked.
-    { state, authorStroke = true }: { state?: string; authorStroke?: boolean } = {},
+    // join the read; without one they are never read, which is the old view the
+    // revealed-element arms ask).
+    { state }: { state?: string } = {},
   ): boolean => {
     const all = tokens
       .flatMap((token) => placed.get(token) ?? [])
@@ -425,8 +419,7 @@ describe("a checked state survives forced-colors: active", () => {
     const applies = all.filter((d) => d.placement !== "conditional");
     const mine = all.filter((d) => kinds.includes(d.placement));
 
-    if (mine.some((d) => d.property === "stroke" && strokePaints(d.value, authorStroke)))
-      return true;
+    if (mine.some((d) => d.property === "stroke" && strokePaints(d.value))) return true;
 
     for (const edge of ["border", "outline"] as const) {
       const variable = `--tw-${edge}-style`;
@@ -450,10 +443,11 @@ describe("a checked state survives forced-colors: active", () => {
     paintsIn(tokens, ["forced"]);
 
   /**
-   * Saved in every mode: an unconditional foreground paint, which is `Checkbox`'s
-   * SVG stroke. ⚠️ The revealed arms' reading, kept as it was: Chromium does NOT
-   * force an author stroke (DL21, measured), so this passes a tick drawn
-   * near-black on the dark palette's black. REQUESTed, not changed here.
+   * Saved in every mode: an unconditional foreground paint - a frame, or a
+   * `currentcolor` stroke. ⚠️ Until 0.1.6 any stroke counted here, so the
+   * Checkbox's author-coloured tick passed while Chromium drew it near-black on
+   * the dark palette's black (DL21, measured); the tick is saved under the mode
+   * now, by its own `forced-colors:stroke-current`.
    */
   const savedUnconditionally = (tokens: readonly string[]): boolean =>
     paintsIn(tokens, ["unconditional"]);
@@ -498,7 +492,14 @@ describe("a checked state survives forced-colors: active", () => {
     // true, and the file would certify nothing. Each named part is pinned to the
     // mechanism it actually uses, read from the sheet.
     const tick = revealedSites().find((site) => site.file === "checkbox.tsx")!;
-    expect(savedUnconditionally(tick.tokens), "the tick paints no unconditional stroke").toBe(true);
+    expect(
+      savedUnderForcedColors(tick.tokens),
+      "the tick paints no currentcolor stroke under forced colors",
+    ).toBe(true);
+    expect(
+      savedUnconditionally(tick.tokens),
+      "the tick's author-coloured stroke reads as a paint the mode keeps",
+    ).toBe(false);
     expect(declares(tick.tokens, "background-color"), "the tick paints a background").toEqual([]);
 
     // The Switch reveals nothing - it MOVES - so it is not a revealed site at
@@ -519,16 +520,20 @@ describe("a checked state survives forced-colors: active", () => {
 
     // ⚠️ THE BUCKET CUT, anchored on the PREDICATE'S behaviour rather than a
     // table asserted against itself: a background is not a foreground, a stroke
-    // is, and `color` alone paints nothing on a box with no text. (The stroke
-    // half is these arms' reading, kept: Chromium leaves an author stroke
-    // unforced, measured in DL21; the state arms below read it the other way.)
+    // is only when it is `currentcolor` (Chromium leaves an author stroke unforced,
+    // measured in DL21), and `color` alone paints nothing on a box with no text.
     expect(
       savedUnconditionally(["bg-primary-foreground"]),
       "a background counts as a foreground",
     ).toBe(false);
-    expect(savedUnconditionally(["stroke-primary-foreground"]), "a stroke no longer counts").toBe(
-      true,
-    );
+    expect(
+      savedUnconditionally(["stroke-primary-foreground"]),
+      "an author-coloured stroke counts as a paint the mode keeps",
+    ).toBe(false);
+    expect(
+      savedUnderForcedColors(["forced-colors:stroke-current"]),
+      "a currentcolor stroke no longer counts",
+    ).toBe(true);
     expect(savedUnconditionally(["text-primary-foreground"]), "color alone counts as a paint").toBe(
       false,
     );
@@ -570,14 +575,15 @@ describe("a checked state survives forced-colors: active", () => {
       }
       if (!ok) {
         const background = declares(site.tokens, "background-color");
+        const stroke = declares(site.tokens, "stroke");
         short.push(
-          `${site.file}: revealed on checked, paints background-color ${JSON.stringify(background)} and nothing the mode keeps`,
+          `${site.file}: revealed on checked, paints background-color ${JSON.stringify(background)} and stroke ${JSON.stringify(stroke)}, nothing the mode keeps`,
         );
       }
     }
     expect(
       short,
-      "a part reveals an element on checked whose only paint is a background, so under forced-colors: active it is Canvas on Canvas and the checked state is INVISIBLE. Give it a border or an outline under a forced-colors: variant, or draw it as an SVG stroke in currentColor (an author-coloured stroke is not forced), or declare it in KNOWN_GAPS with a reason",
+      "a part reveals an element on checked whose only paint is a background or an author-coloured stroke, so under forced-colors: active it is Canvas on Canvas, or the author's ink left on the forced Canvas, and the checked state is INVISIBLE. Give it a border or an outline under a forced-colors: variant, or draw it as an SVG stroke in currentColor (an author-coloured stroke is not forced), or declare it in KNOWN_GAPS with a reason",
     ).toEqual([]);
   });
 
@@ -644,10 +650,7 @@ describe("a checked state survives forced-colors: active", () => {
         const before = restOf(d.property);
         return before === undefined || lengthOrValue(before.value) !== lengthOrValue(d.value);
       });
-    const paints = paintsIn(tokens, ["unconditional", "forced", "forced-state"], {
-      state,
-      authorStroke: false,
-    });
+    const paints = paintsIn(tokens, ["unconditional", "forced", "forced-state"], { state });
     return paints ? changes : [];
   };
 
@@ -666,10 +669,7 @@ describe("a checked state survives forced-colors: active", () => {
       .filter((d) => d.placement === "state" && d.state === state)
       .map((d) => d.property)
       .filter((property) => CARRIES.test(property));
-    const paints = paintsIn(tokens, ["unconditional", "forced", "forced-state"], {
-      state,
-      authorStroke: false,
-    });
+    const paints = paintsIn(tokens, ["unconditional", "forced", "forced-state"], { state });
     return { tokens: [...tokens], changes: [...new Set(changes)], paints };
   };
 
@@ -914,10 +914,7 @@ describe("a checked state survives forced-colors: active", () => {
       paintsIn(
         ["forced-colors:aria-pressed:border-4"],
         ["unconditional", "forced", "forced-state"],
-        {
-          state: '[aria-checked="true"]',
-          authorStroke: false,
-        },
+        { state: '[aria-checked="true"]' },
       ),
       "one state's forced rule paints in another state",
     ).toBe(false);
@@ -977,18 +974,12 @@ describe("a checked state survives forced-colors: active", () => {
         ).toBe(true);
       },
     );
-    // The stroke: an author colour is not a paint for a carrier, currentcolor is,
-    // and the revealed-element arms' default reading is untouched.
-    expect(
-      strokePaints("var(--primary-foreground)", false),
-      "an author stroke carries a state",
-    ).toBe(false);
-    expect(strokePaints("currentcolor", false), "a currentcolor stroke carries nothing").toBe(true);
-    expect(strokePaints("none", true), "stroke: none reads as a paint").toBe(false);
-    expect(
-      strokePaints("var(--primary-foreground)", true),
-      "the revealed arms' reading moved",
-    ).toBe(true);
+    // The stroke: an author colour is not a paint, currentcolor is, and none is not.
+    expect(strokePaints("var(--primary-foreground)"), "an author stroke carries a state").toBe(
+      false,
+    );
+    expect(strokePaints("currentcolor"), "a currentcolor stroke carries nothing").toBe(true);
+    expect(strokePaints("none"), "stroke: none reads as a paint").toBe(false);
   });
 
   it("gives every state drawn only in colour a forced-colors treatment, or a sibling that carries it", () => {
