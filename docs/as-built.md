@@ -9559,3 +9559,21 @@ run, the tree restored and checked clean; baseline there `Tests 601 passed (601)
 
 The file still has **six** tests (the anchors went into arms 4 and 5), so the suite is **35 files / 601
 tests**, +3 on the base's 598.
+
+### The gate
+
+The library's `pnpm verify`, at `949d0a34113d7a957e81e5ef1a6747de9e3a28bb` (everything above, layer 1's
+fixes and their record), not gate-shaped load and under no lock, read from its own exit
+(`$BATCH_SCRATCH/s3/verify-949d0a3.exit`, the head written first into `verify-949d0a3.head`): **exit
+0** in **19 s** wall clock. The runner's own lines: `All matched files use Prettier code style!`,
+`packages/tokens typecheck: Done` + `packages/ui typecheck: Done`, `packages/tokens build: wrote 5
+files`, `✔ Building registry.`, `└  Storybook build completed successfully`, and **`Test Files 35 passed
+(35)` / `Tests 601 passed (601)`**. `git status --short` was EMPTY after it, and the gate runs
+`build:registry` itself, so the committed `packages/ui/r` is byte-for-byte what these sources produce.
+That is **+0 files / +3 tests** on the base's 35 / 598: the three state arms. The same gate ran green at
+the first commit point `40689307` before layer 1 (`verify-4068930.log`, 35 / 601). This paragraph
+landed in one more docs-only commit after the run, whose own `pnpm verify` is the stream's report line.
+
+No push, no tag, no `npm publish`, no PR: the freeze holds. `packages/ui/package.json`'s version line
+is untouched on this branch (s2 moves it to `0.1.5`), and nothing here rides a bump: the guard is the
+library's own, and REQUESTs A and B arrive at 0.1.6.
