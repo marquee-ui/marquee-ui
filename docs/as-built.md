@@ -10490,3 +10490,46 @@ unconditional frame reads as unsaved in the state it reveals in`.
 revealed element's state was not read off the sheet: expected '' to match …`; P25 (LOW-5) is **red at the head**,
   1 of 17, `a rule with no class sets a frame's colour, so an undeclared frame may not be currentcolor: expected [
 …(4) ] to deeply equal [ …(3) ]`; LOW-8 is the second REQUEST above.
+
+## DL23 reconciler: the audit's demand re-derived, and what the library builds next (2026-09-23)
+
+Copied by the DL23 reconciler from thepile's `docs/slices/AUDIT-REDERIVE.md` (batch DL23, stream s4,
+docs-only; second reader r8, six LOWs settled): the `should use` column of `docs/design-audit.md` read
+cell by cell at thepile `8f15c707` and every mention classified DONE / OPEN / REFUSED / [V] /
+CONDITIONAL. `command` is AUDIT-GAPS' line count (`awk -F'|' '{print $4}' docs/design-audit.md |
+command grep -c -w <name>`), `resolved` adds the twelve `same as` rows the command scores zero.
+The rows behind every count are in that file; this copy carries the order.
+
+| family                                                                  | command               | resolved | DONE                  | OPEN   | REFUSED               | [V]                   | COND | OPEN resolved |
+| ----------------------------------------------------------------------- | --------------------- | -------- | --------------------- | ------ | --------------------- | --------------------- | ---- | ------------- |
+| `Card`                                                                  | 33                    | 40       | 0                     | **33** | 0                     | 0                     | 0    | 40            |
+| `Button`                                                                | 22                    | 25       | 8                     | **15** | 0                     | 0                     | 0    | 17            |
+| `Badge`                                                                 | 14                    | 14       | 0                     | **14** | 0                     | 0                     | 0    | 14            |
+| `Separator`                                                             | 13                    | 15       | 0                     | **12** | 1                     | 0                     | 0    | 13            |
+| `Pagination`                                                            | 9                     | 17       | 0                     | **9**  | 0                     | 0                     | 0    | 17            |
+| `Breadcrumb`                                                            | 9                     | 15       | 0                     | **7**  | 2                     | 0                     | 0    | 13            |
+| `Label`                                                                 | 8                     | 8        | 0                     | **6**  | 2                     | 0                     | 0    | 6             |
+| `DescriptionList`                                                       | 8                     | 10       | 3                     | **5**  | 0                     | 0                     | 0    | 5             |
+| `Alert`                                                                 | 5                     | 5        | 1                     | **4**  | 0                     | 0                     | 0    | 4             |
+| `Input`                                                                 | 7                     | 7        | 0                     | **4**  | 1                     | 0                     | 1    | 4             |
+| `Form`                                                                  | 5                     | 6        | 2                     | **3**  | 1                     | 0                     | 0    | 3             |
+| `Accordion`                                                             | 2                     | 2        | 0                     | **2**  | 0                     | 0                     | 0    | 2             |
+| `Sheet`                                                                 | 7                     | 7        | 7                     | **2**  | 0                     | 0                     | 0    | 2             |
+| `Ribbon`                                                                | 2                     | 2        | 1                     | **1**  | 0                     | 0                     | 0    | 1             |
+| `RadioGroup` · `Checkbox` · `Textarea` · `Avatar` · `Toggle` · `Switch` | 8 · 6 · 6 · 5 · 3 · 1 |          | 7 · 6 · 4 · 3 · 2 · 0 | 0      | 2 · 0 · 0 · 0 · 1 · 1 | 1 · 0 · 2 · 2 · 0 · 0 |      | 0             |
+| the eleven refused families                                             |                       |          |                       | 0      | all                   |                       |      | 0             |
+
+What it says for THIS repo: the column's demand on the library is EXHAUSTED (DL21's reading holds):
+every family it names is shipped, consumed or refused, and no cell prescribes a refused family as a
+demand. The f backlog it orders is thepile's (`Card` first, DL23's `/` route is its first consumption;
+then `Button` 15, `Badge` 14, `Separator` 12, `Pagination` 9, `Breadcrumb` 7, `Label` 6,
+`DescriptionList` 5 as islands, `Alert` 4, `Input` 4, `Form` 3, `Accordion` 2, `Sheet` 2, `Ribbon` 1;
+five [V] rows and one CONDITIONAL). The two corrections to the DL22 cursor's counts: `Separator` is
+12 OPEN, not 13 (one refusal), and `Pagination` and `Breadcrumb` (DL8, unconsumed) were missing.
+Seven "unmeasured demands" are recorded in the thepile doc, two of them on this library's shape:
+`/impossible-autumn` asks for a `Button` `variant="link"` that does not ship, and `/notifications`
+asks `Badge` for an unread accent BORDER, which the part does not draw; neither is taken, both wait
+for a measurement. The library's own next items, from DESIGN-LIB-d-fcstate-reveal's REQUESTs above:
+the guard cannot see a PARENT that hides or recolours a carrier (a nesting model), and
+`src/radio-group.tsx:155-157`'s docblock repeats the falsified border-colour claim (comment-only,
+moves `r/`, with the next bump).
