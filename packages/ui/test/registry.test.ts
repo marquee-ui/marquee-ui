@@ -57,7 +57,7 @@ const uiPkg = JSON.parse(readFileSync(resolve(root, "packages/ui/package.json"),
 const uiDeps = uiPkg.dependencies;
 
 describe("registry.json", () => {
-  it("declares the twenty part families plus the one shared lib", () => {
+  it("declares the twenty-one part families plus the one shared lib", () => {
     // Anchor: every loop below is vacuous against an empty item list.
     expect(registry.items.map((item) => item.name).sort()).toEqual([
       "accordion",
@@ -80,6 +80,7 @@ describe("registry.json", () => {
       "switch",
       "textarea",
       "toast",
+      "toggle",
       "utils",
     ]);
   });
@@ -149,7 +150,7 @@ describe("registry.json", () => {
         checked++;
       }
     }
-    expect(checked).toBe(22);
+    expect(checked).toBe(23);
   });
 
   it("declares exactly the registry dependencies its sources import", () => {
@@ -178,7 +179,7 @@ describe("registry.json", () => {
       derived += required.size;
     }
     // Anchor: the same total the count above holds, reached from the imports.
-    expect(derived).toBe(22);
+    expect(derived).toBe(23);
   });
 
   it("keeps no stylesheet's first token a comment", () => {
@@ -246,7 +247,7 @@ describe("the built registry in packages/ui/r", () => {
         compared++;
       }
     }
-    expect(compared).toBe(22);
+    expect(compared).toBe(23);
   });
 
   it("carries the title, description and both dependency lists into the item file", () => {

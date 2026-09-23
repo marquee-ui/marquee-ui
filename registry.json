@@ -33,6 +33,20 @@
       ]
     },
     {
+      "name": "toggle",
+      "type": "registry:ui",
+      "title": "Toggle",
+      "description": "A button that stays pressed: the quiet raised slab at rest, the primary fill and the lift shadow when pressed, drawn from aria-pressed.",
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/toggle.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/toggle.tsx"
+        }
+      ]
+    },
+    {
       "name": "input",
       "type": "registry:ui",
       "title": "Input",
