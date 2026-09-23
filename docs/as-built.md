@@ -8334,6 +8334,107 @@ No push, no tag, no `npm publish`, no PR: the freeze holds, and `packages/ui/pac
 line is still `0.1.3`. `Textarea` is the 0.1.4 bump's, and reaches thepile only through a
 LIB-VENDOR-0.1.4 slice.
 
+## LIB-VENDOR-0.1.4: `@marquee-ui/ui` 0.1.4, `Textarea` reaches a consumer (2026-09-23)
+
+Batch DL20, stream s1, branch `s/lib-vendor-0.1.4` from `next` @ `9dbb43c`. Two commits here: the
+version line (`66a15da`) and this block. The consuming half is thepile's
+`docs/slices/LIB-VENDOR-0.1.4.md`; the two halves are ONE stream, as at 0.1.3.
+
+### What the bump carries - measured against the 0.1.3 TARBALL
+
+The 0.1.3 tarball is the one thepile holds (`vendor/marquee-ui/marquee-ui-ui-0.1.3.tgz`, 104309 B,
+packed at `a885aea` with the granted widening). Both tarballs extracted, every `r/*.json` compared by
+`cmp`:
+
+```
+new:       textarea.json
+differ:    registry.json        (the index gains `textarea`, third, after `input`)
+identical: the other 20 items    (every item 0.1.3 shipped)
+src/:      textarea.tsx new; index.ts one line
+           (+export { Textarea, textareaClass } from "./textarea.js";)
+```
+
+⚠️ **Twenty items are identical, not nineteen** (the thepile composition's expectation): 0.1.3 shipped
+20 items plus `registry.json`, and every one of the 20 is byte-identical. So at the bump the consumer's
+drift test reddens on ARRIVAL alone and on no byte arm. **This time the commit range and the pack
+agree**: `git diff --stat a885aea 66a15da -- packages/ui/src packages/ui/r packages/ui/package.json`
+names exactly `index.ts`, `textarea.tsx`, `r/registry.json`, `r/textarea.json` and the manifest, all
+from one commit (`341f9e9`, `Textarea`) plus the version line; the manifest's other moved line is the
+description, nineteen → twenty families at `341f9e9` (21 items, `utils` not a family). The description
+is not this stream's (s2 owns it in DL20) and was not touched.
+
+`r/textarea.json`: `content` 2,281 characters / 2,289 bytes, no `dependencies` key,
+`registryDependencies` `@marquee/utils` + `@marquee/input`, and no `[…]` arbitrary value anywhere in
+the content.
+
+### The packed tarball, as measured
+
+```
+$ pnpm --filter @marquee-ui/ui pack --pack-destination …/thepile-LIB-VENDOR-0.1.4/vendor/marquee-ui/
+$ stat -c %s marquee-ui-ui-0.1.4.tgz ; sha256sum marquee-ui-ui-0.1.4.tgz
+106089
+3e51b0d13b4006e35ca96fef28fb9deae214230d59d9bc604d19966926eb2079
+```
+
+|                                         | `ui@0.1.3`'s tarball | this one   |
+| --------------------------------------- | -------------------- | ---------- |
+| bytes                                   | 104309               | **106089** |
+| `r/` json files (incl. `registry.json`) | 21                   | **22**     |
+| `src/` modules (`.ts`/`.tsx`)           | 21                   | **22**     |
+
+`tar -tzf | grep -cE '\.(test|spec)\.|stories'` → **0** (47 entries). The packed `package.json`, READ
+from the tarball (`tar -xzOf … package/package.json`): `version: 0.1.4`, `files: ["r","src"]`,
+`devDependencies` `@marquee-ui/tokens: "0.1.0"`, the same eight `dependencies` as 0.1.3
+(`@radix-ui/react-accordion`, `-dialog`, `-label`, `-separator`, `-slot`, `class-variance-authority`,
+`clsx`, `tailwind-merge`), `scripts` `{"typecheck": …}` alone. The consumer installed it and its `r/`
+and `src/` are `diff -r`-identical to the tarball.
+
+### `@marquee-ui/tokens` does NOT bump with it (re-measured a fourth time)
+
+`git diff --stat tokens@0.1.0 HEAD -- packages/tokens/src` prints nothing; over the whole package it
+is the same two unshipped test files as at 0.1.3. ONE tarball is vendored downstream.
+
+### `pnpm build:registry` after the version line: `r/` byte-unchanged
+
+`command grep -l '0\.1\.3' packages/ui/r/*.json` printed nothing at the base, and after the edit
+`pnpm build:registry && git status --short` showed ` M packages/ui/package.json` alone.
+
+### `prepack`'s stale-registry refusal, proved live again
+
+In a detached worktree of `66a15da` (the mutation lives in `src/`): `textareaClass`'s
+`` `${inputClass} py-2` `` → `` `${inputClass} py-3` `` (`packages/ui/src/textarea.tsx:37`, confirmed by
+`grep -n py-3` before the run was read), `r/` not rebuilt. `pnpm run prepack` in `packages/ui`: exit
+**1**, the `git diff --exit-code -- r` output naming `packages/ui/r/textarea.json` with `py-3` inside
+its `content`; no tarball written (`ls *.tgz`: no match). Reverted, `git status --short` empty,
+worktree removed.
+
+### The library's gate
+
+`pnpm verify` at `66a15da`, detached, sentinel exit **0**: `All matched files use Prettier code
+style!`, `Storybook build completed successfully`, `Test Files 33 passed (33)`, `Tests 578 passed
+(578)` - DL19's record at `aaef6485`, unchanged, as a version line should leave it.
+
+### What the consumer's drift test said, as vitest output
+
+The Arrival bullet above (DESIGN-LIB-d-disclosure, "thepile inputs") predicted the reds from a
+replica; thepile ran the file. With the 0.1.4 tarball installed and nothing else edited:
+`Tests 2 failed | 16 passed (18)`, the exact-complement arm (`textarea` an eighth name) and the
+self-count arm, which moved FOUR claims (shipped 20 → 21, both no-call-site claims 6 → 7, the
+complement 7 → 8). With the copy installed and `CONSUMED` unedited, a third: `holds no copy of an
+item nobody declared`. The hyphen was NOT in the bump's red: it appeared only once the docblock said
+"twenty-one", as the anchor arm naming `the items the library ships`. Green at 19/19 after the lists
+moved. The detail is in thepile's slice doc.
+
+### For the next bump (thepile's DL20 layer 1, LOW-3)
+
+`src/textarea.tsx:20`'s docblock cites `test/textarea-drawing.test.tsx`, a path relative to
+`packages/ui/`. Inside a consumer's copy (`components/ui/textarea.tsx`, byte-pinned) it names a file the
+consumer does not have; `packages/ui/test/textarea-drawing.test.tsx` would read correctly in both repos.
+Not changed here: `src/**` is another stream's fence this batch, and a docblock edit re-packs the item,
+so it rides the next bump.
+
+No push, no tag, no `npm publish`, no PR: the freeze holds.
+
 ## DESIGN-LIB-d-meter-toggle: `Input`'s merge arm, the `Progress` measurement, and the `Toggle` measurement (2026-09-23)
 
 Batch DL20, stream s2, on the library's `next` at `9dbb43c2` (**33 files / 578 tests**, re-measured at
