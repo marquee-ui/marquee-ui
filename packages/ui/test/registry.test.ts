@@ -87,8 +87,9 @@ describe("registry.json", () => {
 
   it("types every item by where its files live: a part is registry:ui, the shared lib registry:lib", () => {
     // Nothing read an item's `type` (DL20 layer 1, LOW-5: `toggle` retyped
-    // `registry:component` was GREEN), and a consumer's drift check counts the
-    // `registry:ui` items. Derived from each item's own file paths, not a list.
+    // `registry:component` was GREEN). A consumer that counted `registry:ui`
+    // items would need this; thepile's drift check counts every item today
+    // (DL20 layer 2 LOW-1). Derived from each item's own file paths, not a list.
     for (const item of registry.items) {
       const lib = item.files.every((file) => file.path.startsWith("packages/ui/src/lib/"));
       expect(item.type, item.name).toBe(lib ? "registry:lib" : "registry:ui");
