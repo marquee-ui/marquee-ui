@@ -9203,7 +9203,12 @@ No push, no tag, no `npm publish`, no PR: the freeze holds.
   `checkbox.tsx:33,38,80`, `switch.tsx:39,44,61`, one each in `description-list` and `form`, and
   `radio-group` ×3 (thepile `docs/slices/LIB-VENDOR-0.1.5.md` LOW-2). `textarea.tsx:20`'s form
   ("marquee-ui's `packages/ui/test/…`") is the fix; the copies are byte-pinned by thepile's drift
-  test, so it lands here and re-adds there.
+  test, so it lands here and re-adds there. ⚠️ **DL22 (2026-09-23): the count above was an undercount
+  twice over.** The DL22 orchestrator's re-count by the same `test/` spelling in `*.tsx` read FOURTEEN
+  lines in thepile's copies (this list missed `form.tsx:232`, a `//` line inside a function) and
+  eighteen across ten library sources; LIB-0.1.6 (below, decision 4) then read every library-only path in
+  every shipped source (`.css`, `.ts`, the bare test names, the `stories/` and `r/` spellings): THIRTY
+  lines, fixed at `99d08a4` and `4aeb14d`, so TEN of thepile's fifteen copies move at 0.1.6, not seven.
 - REQUEST A's fixes (the thumb's `forced-colors:` frame, the tick's `forced-colors:stroke-current`;
   DESIGN-LIB-d-fcstate-dropdown below) must take the shape the widened guard EXPIRES: a carrier
   (frame, outline, movement, reveal) changed from the rest drawing. A system-colour paint
