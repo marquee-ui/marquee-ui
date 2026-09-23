@@ -108,7 +108,7 @@ const inputClass =
  * name `FormItem`, never the box; the box was one `h-6 w-6 … rounded-sm
  * border-2` input further down, and since DL17 that row renders these four parts
  * instead, so the treatment's source is now a consumer of it. This docblock
- * ships verbatim through `r/checkbox.json` and is byte-pinned on the consuming
+ * ships verbatim through `@marquee-ui/ui/r/checkbox.json` and is byte-pinned on the consuming
  * side, so a stale number here survives until a bump; the row's `name` does
  * not move.
  *

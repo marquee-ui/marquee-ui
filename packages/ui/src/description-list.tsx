@@ -212,7 +212,7 @@ function refuseRole(props: object, part: string, element: string): void {
  * the consuming product factored that `<dl>` into `MemberStats`, a client island
  * on this very family - and both numbers came to point at unrelated prose in the
  * file they still named. A docblock in this package ships verbatim to every
- * consumer through `r/description-list.json` and is byte-pinned on the other
+ * consumer through `@marquee-ui/ui/r/description-list.json` and is byte-pinned on the other
  * side, so only a bump can correct it: a line number here rots a whole release
  * out of reach.
  */
