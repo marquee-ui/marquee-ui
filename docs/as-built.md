@@ -9207,8 +9207,8 @@ No push, no tag, no `npm publish`, no PR: the freeze holds.
   twice over.** The DL22 orchestrator's re-count by the same `test/` spelling in `*.tsx` read FOURTEEN
   lines in thepile's copies (this list missed `form.tsx:232`, a `//` line inside a function) and
   eighteen across ten library sources; LIB-0.1.6 (below, decision 4) then read every library-only path in
-  every shipped source (`.css`, `.ts`, the bare test names, the `stories/` and `r/` spellings): THIRTY
-  lines, fixed at `99d08a4` and `4aeb14d`, so TEN of thepile's fifteen copies move at 0.1.6, not seven.
+  every shipped source (`.css`, `.ts`, the bare test names, the `stories/` and `r/` spellings): THIRTY-THREE
+  lines (31 at `99d08a4`, 2 at `4aeb14d`; this closure first wrote thirty, thepile DL22 layer 2 LOW-2), so TEN of thepile's fifteen copies move at 0.1.6, not seven.
 - REQUEST A's fixes (the thumb's `forced-colors:` frame, the tick's `forced-colors:stroke-current`;
   DESIGN-LIB-d-fcstate-dropdown below) must take the shape the widened guard EXPIRES: a carrier
   (frame, outline, movement, reveal) changed from the rest drawing. A system-colour paint
@@ -9824,7 +9824,7 @@ repository, shipped in a source a consumer copies. Widened (class B), at `e91f9e
 | `stories/…`                     | `radio-group.tsx:17` (`stories/radio-group.stories.tsx`, the same parenthesis as `:16`)                                                                                                                                                                    |
 | `docs/as-built.md`, `AGENTS.md` | `checkbox.tsx:17`, `description-list.tsx:64,188,391`, `form.tsx:51,103,177`                                                                                                                                                                                |
 
-All thirty now read "marquee-ui's `packages/ui/test/…`" (`textarea.tsx:20`'s form), "marquee-ui's
+All thirty-one now read (the table's rows sum to 31; layer 1 fixed two more `r/` paths at `4aeb14d`, 33 in all; this line first said thirty, thepile DL22 layer 2 LOW-2) "marquee-ui's `packages/ui/test/…`" (`textarea.tsx:20`'s form), "marquee-ui's
 `docs/as-built.md`" or "marquee-ui's `AGENTS.md`"; every cited file exists at that path (listed before the
 edit). After: the composition's command prints nothing, and the widened one (`\.test\.|\.stories\.|stories/|
 docs/|AGENTS` over `src/**`, the `marquee-ui's` forms excluded) prints only the two continuation lines of
@@ -10027,6 +10027,12 @@ drawing tests, and the eleven directory walkers, are listed in the file.
   back to the DL21 hashes and the Checkbox and radio IDENTICAL with the suite green. The fix is a reveal
   check in the same ranked form as the stroke (the winning `opacity`/`visibility`/`display` in the state and
   mode), which needs the revealed arms to read the state they reveal in.
+- **LOW-3 (thepile DL22 layer 2), for the same owner as MED-3**: `paintsIn`'s border check reads width and style,
+  never colour, and Chromium keeps an author's system colour under forced colours, so `forced-colors:border-[Canvas]`
+  on the thumb passes 17 / 17 (`forced-colors-state` + `choice-drawing`) while hashing the two Switch states identical
+  over thepile's merged sheet (DL21's `aee70fc72f4e` / `005e818e4050`); the radio dot's `forced-colors:border-4` has
+  the same blind spot. Its fix belongs with MED-3: the carrier's winning `border-color` under the mode read like its
+  stroke (a `currentcolor` or `CanvasText` paint counts, a system colour equal to its ground does not).
 - **LIB-VENDOR-0.1.6's brief**: ten copies, not seven (above).
 
 ### The gate
