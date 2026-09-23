@@ -10377,8 +10377,15 @@ tarball carries no test (`files: ["r", "src"]`), `pnpm build:registry` inside ev
 clean, and `packages/ui/package.json` is still `0.1.6`: the pack point stays `ed6a393`, the tarball
 `marquee-ui-ui-0.1.6.tgz` stays 109,699 B, sha256 `f68530c2…4d09`. For thepile to know (class J, recorded here,
 not edited there): its vendored `components/ui/radio-group.tsx:155` carries the docblock sentence in the REQUEST
-above, and its forced-colours e2e is the only instrument that sees a PARENT hide a carrier (the guard's MED-3
-REQUEST); DL23's s3 measures LOW-3's thepile half.
+above; its forced-colours e2e (`e2e/forced-colors-controls.spec.ts`) reads the two Switch hosts and the seven
+Checkbox rows ONLY, so it backstops a parent-level hide for those parts and for NO radio: no thepile spec draws a
+`RadioGroup` under forced colours (DL23 layer 2 LOW-3, PROVED by grep over every `forcedColors` emulation in
+`e2e/`), and a hide reaching the radio alone would pass every instrument in both repos (r5's P28 and P29 re-run
+17 / 17 at `6d30187`). DL23's s3 MEASURED LOW-3's thepile half RED: `forced-colors:border-[Canvas]` on the vendored
+thumb compiles to `border-color:canvas` inside the sheet's one forced-colors block and the spec's picture arm reads
+`0.0% of the pixels changed` at both Switch hosts in both palettes on both chromium projects, every Checkbox arm
+green, so the blind spot was this guard's alone (thepile `docs/slices/FOLLOWUPS-10.md`; recorded here after DL23
+layer 2 LOW-4).
 
 ### The gate
 
@@ -10532,4 +10539,7 @@ asks `Badge` for an unread accent BORDER, which the part does not draw; neither 
 for a measurement. The library's own next items, from DESIGN-LIB-d-fcstate-reveal's REQUESTs above:
 the guard cannot see a PARENT that hides or recolours a carrier (a nesting model), and
 `src/radio-group.tsx:155-157`'s docblock repeats the falsified border-colour claim (comment-only,
-moves `r/`, with the next bump).
+moves `r/`, with the next bump); `asChild` on `Card` (thepile's DESIGN-LIB-f-home-card REQUEST 2: `ReviewCard`'s
+root is a `div` with `role="article"` because the part cannot render an `<article>`; measured against its consumers
+before built, DL23 layer 2 LOW-4); and the radio's missing forced-colours backstop above (LOW-3), a thepile spec arm
+under `ReportSheet` or a nesting model here, whichever the guard's next owner takes first.
