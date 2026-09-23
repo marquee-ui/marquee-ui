@@ -8505,3 +8505,199 @@ a product decision about the caption first. Nothing ships for item 2; **the reco
 positional map with a live caption, not a value; the family is refused, marquee-ui `docs/as-built.md`
 "2. The `Progress` measurement")", and its why cell's "the progress bars are hand-drawn divs" becomes
 "the progress cells are a hand-drawn map, deliberately `aria-hidden` beside a live caption".
+
+### 3. The `Toggle` measurement, and what shipped
+
+**A `Toggle` family ships**: one part, `Toggle`, and its string, `toggleClass`. The audit's column
+names it on ONE row at `0592d9af` (`awk -F'|' '{print NR": "$4}' docs/design-audit.md | command grep
+-E 'Toggle([^G]|$)'` → `358`, the Reorder pill; every other `Toggle` hit in the column is
+`ToggleGroup`). The tree holds **12 `aria-pressed=` attribute lines in 10 files** (`git grep -n -E
+'aria-pressed=' -- 'apps/web/src/**/*.tsx' | command grep -v '\.test\.'`, `aria-pressed-sites.txt`),
+the same 12 / 10 DL11's ToggleGroup measurement counted, and every one was read for what it DRAWS when
+pressed (`aria-pressed-context.txt`, the constants each names read in their own files):
+
+| site                                                 | pressed drawing, and how it is chosen                                                                                                                                                                                                                                                                        | takes the part?                                                                      |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| `log/LogForm.tsx:635` (the log sheet's Like)         | a ternary on `liked` over `grid h-11 w-11 place-items-center border-2 text-base transition-colors` (`:640`): pressed `border-accent bg-accent text-on-accent shadow-hard`, else `border-line-strong bg-raised text-text-secondary hover:border-text-muted hover:text-text`; `aria-label="Like"`, a `♥` glyph | **Yes** - this is the drawing                                                        |
+| `status/GameActions.tsx:495` (the game page's Like)  | the SAME two branches, byte for byte, over `grid h-[46px] w-[46px] …` (`:500`): only the box differs, 46px against 44                                                                                                                                                                                        | **Yes** - the second hand                                                            |
+| `lists/ListItemsEditor.tsx:137` (row 358, Reorder)   | `aria-pressed:border-accent aria-pressed:text-accent-ink` on a Button-ghost-shaped pill (`rounded-md border-2 border-line px-4 text-sm font-semibold`, `:139`): a border-and-ink swap on a text label. The ONLY one of the twelve that already draws from the attribute                                      | No: one site's drawing                                                               |
+| `lists/AddToListSheet.tsx:137` (a list's membership) | a ternary, `border-accent text-text` against `border-line text-text hover:border-line-strong`, on a full-width `justify-between` row whose `aria-hidden` marker reads `✓ added` or the list's count                                                                                                          | No: a border swap on a row, the ink unchanged; it shares the pill's border half only |
+| `likes/LikeHeart.tsx:181` (reviews, lists, comments) | a ternary on the INK alone, `text-accent` (`text-accent!` in its door shape) against `text-text-muted hover:text-text`                                                                                                                                                                                       | No: an ink swap                                                                      |
+| `profile/FollowButton.tsx:309`                       | `FOL_QUIET` when following, `FOL_LOUD` when not (`:117-121`): **inverted** - the pressed state is the QUIET slab and the accent fill with `cut-10` is the unpressed call to action ("Following is a STATE … Follow is the one action this card exists for")                                                  | No: the polarity is the product's decision                                           |
+| `profile/MemberFollowButton.tsx:180`                 | `DOOR_CLASS.tab` / `DOOR_CLASS.tabSelected` (`Door.tsx:39-40`, the selected half `border-text bg-accent text-on-accent cut-10`)                                                                                                                                                                              | No: the door tab (below)                                                             |
+| `tiers/TierEditor.tsx:476,485` (Board / Deal)        | `DOOR_CLASS.tab` / `SELECTED_TAB` (`tabSelected` plus a focus tweak, `:74`), a joined pair in a `role="group"`                                                                                                                                                                                               | No: the door tab                                                                     |
+| `profile/FacePicker.tsx:304` (the four set chips)    | `CHIP` / `CHIP_ON` (`:61-65`): the door tab's two halves RE-SPELLED (`inline-grid h-11 … px-[14px]` for `grid min-h-hit … px-3.5`), `cut-10` and all                                                                                                                                                         | No: the door tab                                                                     |
+| `profile/FacePicker.tsx:331` (the face grid)         | the button is `block rounded-full`; the selection is drawn on its `<img>` child, `border-accent ring-2 ring-accent ring-offset-[3px] ring-offset-bg`; its `radio` move is Ankit's [V] (row 399)                                                                                                              | No: a ring on media                                                                  |
+| `tiers/EditableBoard.tsx:319` (a selected poster)    | `outline outline-2 outline-offset-2 outline-accent` on the poster when selected for a keyboard move                                                                                                                                                                                                          | No: a ring on media, spelled differently from the face grid's                        |
+
+So the twelve lines draw **six** different pressed states. Two of them are hand-written more than
+once, and the measurement is what separates them:
+
+- **The like square, twice, byte for byte** (`LogForm`, `GameActions`): a quiet raised slab at rest
+  and the primary fill with the hard shadow when pressed. Two components written separately that
+  converged on one drawing, each choosing its branch with a ternary beside an `aria-pressed` that
+  says the same thing - two channels that agree only because each author kept them so.
+- **The door tab, four lines in three files** (`MemberFollowButton`, `TierEditor` ×2, `FacePicker`'s
+  re-spelling): NOT a toggle's drawing. It is `DOOR_CLASS.tabSelected`, which `Door.tsx:92`'s
+  `DoorTab` also wears on `aria-current` LINKS and `Deal.tsx:162` on a plain button, so a `Toggle`
+  variant would own the pressed half of a drawing whose other half is navigation; and its mark,
+  `cut-10`, is a product `@utility` (`globals.css:503`) with no counterpart in this library
+  (`git grep -E '\bcut-[0-9]+' -- packages` prints nothing), so drawing it would need a new token in
+  `packages/tokens/src/**`. It is the Tabs answer's territory (DL14: no `Tabs` family), not this one.
+
+**Does `Button` already carry the like square? No, measured** (`toggle-vs-button.txt`, the square's
+two branches through `fidelity.test.tsx`'s rename table against `button.tsx`'s strings): the pressed
+half shares `primary`'s fill trio and `shadow-lift` (`bg-primary text-primary-foreground
+shadow-lift`, plus `grid place-items-center`), but `primary` is a `w-full min-h-[46px] px-4 text-sm
+font-bold` block that lifts on hover; the rest half shares `secondary`'s `border-2
+border-border-strong hover:border-muted`, but `secondary` is `rounded-md w-full`, transparent, and
+lifts. And `Button` has no pressed state at all: `git grep aria-pressed -- packages` printed nothing
+at the base. So `Toggle` is not "`Button` plus `aria-pressed`" - that would draw nothing when pressed,
+which is the Select answer's rename - it is the drawing `Button` does not have.
+
+**What Radix's part renders, measured** (`probe-static.txt`, `probe-dom.txt`).
+`@radix-ui/react-toggle` 1.1.18 opens with `"use client";` and depends on `primitive`,
+`react-primitive` and `react-use-controllable-state`:
+
+```
+default            <button type="button" aria-pressed="false" data-state="off">Reorder</button>
+pressed=true       <button type="button" aria-pressed="true" data-state="on">Done reordering</button>
+disabled           <button type="button" aria-pressed="false" data-state="off" data-disabled="" disabled="">Reorder</button>
+asChild <a>        <a href="/x" type="button" aria-pressed="true" data-state="on">Link</a>
+jsdom, uncontrolled, one click              aria-pressed="false" → "true", data-state "off" → "on"
+jsdom, pressed={false}, no handler, click   stays "false" / "off"
+jsdom, caller's aria-pressed={true}         <button type="button" aria-pressed="true" data-state="off">
+```
+
+The brief's reading holds (⚠️ it was UNVERIFIED): a typed button, `aria-pressed`, `data-state`, and
+nothing drawn (shadcn's `toggle` item, fetched, is that plus a `cva` of `variant` default/outline and
+`size` default/sm/lg, its pressed state `data-[state=on]:bg-accent`, its sizes `h-8`-`h-10`, all under
+the 44px floor). The last line is the one that decides it: every product site passes `aria-pressed`
+from its own state, and Radix spreads a caller's attribute over its own while keeping `data-state`
+from its internal state, so a site moved onto it as written announces "pressed" under a drawing that
+reads `data-state="off"` - exactly the disagreement a part exists to remove. Radix's one contribution
+the sites lack is uncontrolled state, and none of the twelve is uncontrolled: three are optimistic
+writes (the likes, list membership) whose state lives in the product. Refused, and no dependency was
+added.
+
+**What shipped.**
+
+- `packages/ui/src/toggle.tsx`: `toggleClass`, the like square's two branches renamed and folded onto
+  the attribute - `inline-grid min-h-hit min-w-hit place-items-center border-2 border-border-strong
+bg-raised text-base text-foreground-2 transition-colors` at rest,
+  `not-aria-pressed:hover:border-muted not-aria-pressed:hover:text-foreground` for the hover, and
+  `aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground
+aria-pressed:shadow-lift` pressed, plus the house disabled pair `disabled:cursor-not-allowed
+disabled:opacity-50`; and `Toggle`, a `<button data-slot="toggle">` that defaults `type="button"`
+  and `aria-pressed={false}` (a toggle with no state is announced as a plain button; `switch.tsx`
+  writes its `aria-checked` default for the same reason) over `cn(toggleClass, className)`. No
+  directive and no hook, so a Server Component can render one (`client-boundary.test.ts` walks it and
+  agrees). No `cva`: there is no visual axis - the two consumers differ only in their box, which is
+  the caller's `className`. No `asChild`: `aria-pressed` belongs to a button, and a link that stays
+  selected is `aria-current` (the ToggleGroup measurement's `<a type="button">` is what `asChild`
+  produced there). No focus ring of its own: `Button`'s posture, the platform's outline or the
+  consumer's.
+- **Hover is scoped to the unpressed state, and that is a measurement, not a taste.** In this
+  package's compiled sheet the rules sit at `.hover\:border-muted:hover` 24710 <
+  `.not-aria-pressed\:hover\:border-muted:not([aria-pressed="true"]):hover` 25380 <
+  `.aria-pressed\:border-primary[aria-pressed="true"]` 28082 (`probe/toggle-order.txt`), and in
+  thepile's exact Tailwind, 4.3.2, compiled in a scratch package outside its tree, the same order
+  (`tw432/order-4.3.2.txt`: 4509 < 4638 < 4837). A plain `hover:` border and an `aria-pressed:`
+  border are both `(0,2,0)`, so on a pressed toggle under the pointer the pressed border wins by
+  SOURCE ORDER ALONE - right today, and decided by where Tailwind happens to emit two variants.
+  `not-aria-pressed:hover:` never matches a pressed toggle, so nothing is left for the order to
+  decide; the product's two ternaries have the same property by construction (the pressed branch
+  carries no hover class).
+- `packages/ui/stories/toggle.stories.tsx`: `Default` (a caller-held `Favourite`, whose play presses
+  it, releases it and reads the SAME accessible name both ways), `Pressed`, and `Disabled` (whose play
+  reads `toBeDisabled` and a click that changes nothing). The glyph is `♥`, a general favourite, not
+  the product's noun.
+- `registry.json`: the `toggle` item, `target` `components/ui/toggle.tsx`, `registryDependencies`
+  `@marquee/utils` alone and NO npm dependency; `r/toggle.json` and `r/registry.json` rebuilt and
+  committed.
+
+### The guards, and the runs that reddened them
+
+`test/toggle-drawing.test.tsx`, **nine** tests: (1) the instrument - a specificity function checked
+against four selectors whose specificity the spec fixes, the Default story's toggle found with its
+slot and `aria-pressed="false"`, and a compiled rule for every drawn property; (2-5) one test per
+state (rest, hover, pressed, pressed and hovered), each collecting every compiled rule the RENDERED
+story's classes contribute (a nested `&` resolved against its parents; any enclosing at-rule other
+than a layer or `@media (hover: hover)` refused with a throw), matching each against the story's own
+element in that state with `Element.matches` (`:hover` stripped and gated on the state), picking the
+winner of `border-color`, `background-color`, `color` and `--tw-shadow` by specificity then order,
+comparing it to the role the like square's branch names, AND failing when the two strongest rules tie
+on specificity and disagree, i.e. when source order decided; (6) the disabled pair, `opacity: 50%` and
+`cursor: not-allowed` on the Disabled story's element and neither on an enabled one; (7) the rendered
+classes ARE `toggleClass`, so a plain-join consumer gets the string these arms evaluated; (8) the
+44px floor on BOTH axes, `min-height` and `min-width` resolving to `--hit-min`; (9) `data-slot`,
+`type="button"`, `aria-pressed="false"` by default, the caller's class LAST with the part's string
+intact before it, and a caller's `type` and `aria-pressed` passed through. Beside it:
+`tailwind-compile.test.tsx`'s 44px sweep measures all three stories' buttons, `stories.test.tsx` runs
+the two plays, and `registry.test.ts` derives the item's `registryDependencies` from its imports.
+
+**Red first**: the file ran before `toggle.tsx` existed (`Failed to resolve import "@/toggle"`), then
+`Tests 8 passed (8)` against the part. **Then every guard, reddened in the DETACHED worktree** at the
+part's commit `70d6efc7` and again at `2d877ba6` after the arms were sharpened (driver
+`$BATCH_SCRATCH/s2/mutate.py`; each mutation asserted to match exactly once, its diff printed, the
+registry rebuilt, the whole suite run, the tree restored; logs `mut-T*.log`, `mut-I*.log`, and
+`mut-*-2d877ba.log` for the second pass):
+
+| id  | mutation                                                                   | red / GREEN                                | the assertion that reddened (at `2d877ba6` where re-run)                                                                                      |
+| --- | -------------------------------------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | `not-aria-pressed:hover:` → plain `hover:` (both tokens)                   | **red**, 1 / 592                           | `the pressed and hovered state: decided by source order alone, not by the selectors: expected [ 'border-color', 'color' ] to deeply equal []` |
+| T2  | `aria-pressed:border-primary` dropped                                      | **red**, 2                                 | `the pressed state's border-color: expected 'var(--border-strong)' to be 'var(--primary)'` (and the hovered twin)                             |
+| T3  | `aria-pressed:bg-primary` → `data-[state=on]:bg-primary` (Radix's channel) | **red**, 2                                 | `the pressed state's background-color: expected 'var(--raised)' to be 'var(--primary)'`                                                       |
+| T4  | `aria-pressed={ariaPressed}` (no default)                                  | **red**, 1                                 | `toHaveAttribute("aria-pressed", "false")`                                                                                                    |
+| T5  | `type={type}` (no default)                                                 | **red**, 1                                 | `toHaveAttribute("type", "button")`                                                                                                           |
+| T6  | `min-w-hit` dropped                                                        | **red**, 1                                 | `min-width: expected null to be 44` (the sweep measures height only, so this arm is the width floor's one guard)                              |
+| T7  | `cn(toggleClass)` (the caller dropped)                                     | **red**, 1                                 | `the caller's class, last: expected 'disabled:opacity-50' to be 'probe-caller'`                                                               |
+| T8  | `min-h-hit` dropped                                                        | **red**, 2 files                           | the 44px sweep (`tailwind-compile`) and `min-height: expected null to be 44`                                                                  |
+| T9  | `aria-pressed:shadow-lift` dropped                                         | **red**, 3                                 | `no compiled rule on the toggle sets --tw-shadow`; `the pressed state's --tw-shadow: expected undefined to be 'var(--shadow-lift)'`           |
+| T10 | the hover border `muted` → `primary`                                       | **red**, 1                                 | `the hover state's border-color: expected 'var(--primary)' to be 'var(--muted)'`                                                              |
+| T11 | the rest ground `bg-raised` → `bg-surface`                                 | **red**, 2                                 | `the rest state's background-color: expected 'var(--surface)' to be 'var(--raised)'`                                                          |
+| T12 | `toggle` removed from `STORY_SUITES`                                       | **red**, 2                                 | the suite map against the files on disk (20 against 21); `stories whose play was composed: … to have a length of 77 but got 75`               |
+| T13 | the barrel's `toggle` line deleted                                         | **red**, 1                                 | `entry-point`: `re-exports every value each part file exports: expected [ …(2) ] to deeply equal []`                                          |
+| T14 | `toggle.tsx` removed from `PUBLISHED_SOURCE_FILES`                         | **red**, 3 files                           | `source walk does not match the declared set … Unexpected: [packages/ui/src/toggle.tsx]` (source-coverage, brand-guard, literal-guard)        |
+| T15 | `data-slot="button"`                                                       | **red**, 2                                 | `expected 'button' to be 'toggle'`                                                                                                            |
+| T16 | the disabled pair dropped                                                  | **GREEN at `70d6efc7`**, red at `2d877ba6` | first pass: nothing read `opacity` or `cursor`; arm 6 was added, then `disabled opacity: expected undefined to be '50%'`                      |
+| T17 | a comment added to `toggle.tsx`, `r/` NOT rebuilt                          | **red**, 1                                 | `toggle: packages/ui/src/toggle.tsx is stale`                                                                                                 |
+| T18 | the story's `onClick` removed                                              | **red**, 2                                 | the Default play's `toHaveAttribute("aria-pressed", "true")`, and `plays that actually executed`                                              |
+| T19 | the item's `registryDependencies` removed (registry rebuilt)               | **red**, 2                                 | `expected 22 to be 23`; `toggle: expected [] to deeply equal [ '@marquee/utils' ]`                                                            |
+| I1  | the instrument: `candidatesFor` returns `[]`                               | **red**, 6                                 | `no compiled rule on the toggle sets border-color`, and every state's `expected undefined to be …`                                            |
+| I2  | the instrument: `specificity` returns `[0,0,0]`                            | **red**, 4                                 | `a class: expected [ +0, +0, +0 ] to deeply equal [ +0, 1, +0 ]`, and three states `decided by source order alone`                            |
+| I3  | the instrument: every selector matches                                     | **red**, 4                                 | `the rest state's border-color: expected 'var(--primary)' to be 'var(--border-strong)'`; `enabled opacity: expected '50%' to be undefined`    |
+| I4  | the instrument: `:hover` rules apply without a hover                       | **red**, 1                                 | `the rest state's border-color: expected 'var(--muted)' to be 'var(--border-strong)'`                                                         |
+
+T1 is the one worth reading twice: with plain `hover:` every VALUE is still right (the pressed border
+wins by order, as the sheet measured), and the arm reddens on the tie, which is the property the part
+claims. T16 was the one GREEN, and it is closed. The collapse pass over the new files is layer 1's.
+
+### The pipeline, end to end
+
+AGENTS.md "Adding a part", all nine steps, each line re-read at the base rather than taken from an
+earlier record:
+
+1. `packages/ui/src/toggle.tsx` - no `cva` and no `asChild` (above).
+2. `packages/ui/stories/toggle.stories.tsx`, three stories, two plays.
+3. `packages/tokens/test/helpers/source-files.ts`: both paths, in order (inside this batch's fence,
+   DL19 decisions 14 and 26; T14 is its red).
+4. `packages/ui/src/index.ts`: `Toggle` and `toggleClass` (T13).
+5. `story-suites.ts` gains `toggle`; `stories.test.tsx` `DECLARED_STORIES` 104 → **107**,
+   `DECLARED_PLAYS` 75 → **77**, the family count 20 → **21** (the arm's title and its
+   `toHaveLength`).
+6. `registry.test.ts`: the item list gains `toggle` and its title says twenty-one; the
+   `registryDependencies` count 22 → **23**, the derived count 22 → **23**, the compared-files count
+   22 → **23**.
+7. `registry.json` (the item after `button`, explicit `target`), then `pnpm build:registry`, which
+   wrote `r/toggle.json` and rewrote `r/registry.json`; both committed.
+8. "twenty" → "twenty-one" in `README.md` (`:19`, and `:24`, whose list gains `Toggle`),
+   `packages/ui/package.json:4`'s DESCRIPTION line (the version line, `:3`, is s1's and untouched),
+   `AGENTS.md:51`, and `fidelity.test.tsx:36`'s docblock (DL19 decision 7's precedent; comment-only,
+   and `Toggle` is not one of the eight lifted families: it has no upstream `components/ui` file for
+   that test to pin).
+9. `pnpm verify` - below.
+
+`git grep -n -i -E '\btwenty\b'` over `packages`, `README.md` and `AGENTS.md` afterwards prints the
+seven `twenty-one`s above and one bare `twenty`, `tailwind-compile.test.tsx:551` ("It named twenty -
+every width…"), a count of CSS properties, not of families.
