@@ -9100,3 +9100,98 @@ docs-only commit after the run; `pnpm lint` and `pnpm typecheck` were re-run at 
 No push, no tag, no `npm publish`, no PR: the freeze holds, and `packages/ui/package.json`'s version
 line is still `0.1.3` on this branch (s1 moves it). `Toggle` is a later bump's, and reaches thepile
 only through a LIB-VENDOR-0.1.5 slice.
+
+## LIB-VENDOR-0.1.5: `@marquee-ui/ui` 0.1.5, `Toggle` reaches a consumer (2026-09-23)
+
+Batch DL21, stream s2, branch `s/lib-vendor-0.1.5` from `next` @ `47ca51d`. Two commits here: the
+bump (`40b94a8`, THE PACK POINT: the version line, `src/textarea.tsx`'s one sentence, `r/textarea.json`
+rebuilt) and this block. The consuming half is thepile's `docs/slices/LIB-VENDOR-0.1.5.md`; the two
+halves are ONE stream, as at 0.1.3 and 0.1.4.
+
+⚠️ **The pack point is `40b94a8b0186e47badbc97385e670570d1751a40`, and the post-freeze `ui@0.1.5` tag and
+`npm publish` belong there and nowhere else** (DL20 layer 2 MED-1's shape, closed in advance). The
+vendored 0.1.5 (108,229 B, sha256 `3e14c126…4c2c`) is that commit's bytes. Any later `src/` or `r/`
+change under the same version line packs a different `marquee-ui-ui-0.1.5.tgz` and passes `prepack`
+(batch DL21's s3 works beside this stream; a part it adds rides 0.1.6). This block is docs-only, so a
+pack at the head of this branch is the same tarball; a pack from a later `next` is not evidence of it.
+
+### What the bump carries - measured against the 0.1.4 TARBALL
+
+The 0.1.4 tarball is the one thepile held (`vendor/marquee-ui/marquee-ui-ui-0.1.4.tgz`, 106,089 B,
+packed at `66a15da`). Both tarballs extracted, every `r/*.json` compared by `cmp`:
+
+```
+new:       toggle.json
+differ:    registry.json        (the index gains `toggle`, third, after `button`)
+           textarea.json        (the docblock sentence below; `content` 2,289 -> 2,317 bytes)
+identical: the other 20 items
+src/:      toggle.tsx new; textarea.tsx the sentence; index.ts one line
+           (+export { Toggle, toggleClass } from "./toggle.js";)
+manifest:  version 0.1.4 -> 0.1.5; description twenty -> twenty-one families (DL20's `70d6efc`)
+```
+
+**The commit range and the pack agree**: `git diff --stat 66a15da 40b94a8 -- packages/ui/src
+packages/ui/r packages/ui/package.json` names exactly those seven files, from `70d6efc` (`Toggle`),
+`3ec1ea6` (its forced-colors frame) and `40b94a8`. The sentence (R2; thepile's DL20 layer 1 LOW-3, the
+"For the next bump" note above): `src/textarea.tsx:19-21` now reads "marquee-ui's
+`packages/ui/test/textarea-drawing.test.tsx` derives that number from the compiled sheet", so the copy a
+consumer holds names the file in the repo that has it. Comment-only: no class string, no export moved.
+
+### The packed tarball, as measured
+
+```
+$ pnpm --filter @marquee-ui/ui pack --pack-destination …/thepile-LIB-VENDOR-0.1.5/vendor/marquee-ui/
+$ stat -c %s marquee-ui-ui-0.1.5.tgz ; sha256sum marquee-ui-ui-0.1.5.tgz
+108229
+3e14c126120bd0f8eac157fc7d583fe496cc8e9372fdf4baaf9e4840b3984c2c
+```
+
+|                                         | `ui@0.1.4`'s tarball | this one   |
+| --------------------------------------- | -------------------- | ---------- |
+| bytes                                   | 106089               | **108229** |
+| `r/` json files (incl. `registry.json`) | 22                   | **23**     |
+| `src/` modules (`.ts`/`.tsx`)           | 23                   | **24**     |
+
+49 entries, `tar -tzf | grep -cE '\.(test|spec)\.|stories'` → **0**. The packed `package.json`, read
+from the tarball: `version 0.1.5`, `files ["r","src"]`, `devDependencies` `@marquee-ui/tokens: "0.1.0"`,
+the same eight `dependencies` as 0.1.4, `scripts` `{"typecheck": …}` alone. `git status --short` was
+empty after the pack (`prepack` rebuilt `r/` and found nothing to differ). DL20 layer 2's scratch pack
+from `next` read 108,197 B; this one is 32 B larger: the version line and the sentence.
+
+### `@marquee-ui/tokens` does NOT bump with it (re-measured a fifth time)
+
+`git diff --stat tokens@0.1.0 HEAD -- packages/tokens/src` prints nothing; over the whole package it is
+the same two unshipped test files. ONE tarball is vendored downstream.
+
+### `pnpm build:registry` after the edit: `r/textarea.json` alone
+
+`command grep -l '0\.1\.4' packages/ui/r/*.json` printed nothing at the base (no item carries the
+version), and after the two edits `pnpm build:registry && git status --short` showed the manifest, the
+source and ` M packages/ui/r/textarea.json`: the index and the other twenty-one items byte-unchanged.
+
+### `prepack`'s stale-registry refusal, proved live again
+
+In a detached worktree of `40b94a8` (the mutation lives in `src/`): `textareaClass`'s
+`` `${inputClass} py-2` `` → `` `${inputClass} py-3` `` (`packages/ui/src/textarea.tsx:38`, confirmed by
+`grep -n py-3` before the run was read), `r/` not rebuilt. `pnpm run prepack` in `packages/ui`: exit
+**1**, the `git diff --exit-code -- r` output naming `packages/ui/r/textarea.json`; no tarball written
+(`*.tgz`: no match). Reverted, `git status --short` empty, worktree removed.
+
+### The library's gate
+
+`pnpm verify` at the base `47ca51d` and at `40b94a8`, each exit **0**: `All matched files use Prettier
+code style!`, `Storybook build completed successfully`, `Test Files 35 passed (35)`, `Tests 598 passed
+(598)` - DL20's record at `597d04cd`, unchanged, as a version line and a comment should leave it.
+
+### What the consumer's drift test said, as vitest output
+
+With the 0.1.5 tarball installed and nothing else edited: `Tests 3 failed | 16 passed (19)`, the
+exact-complement arm (`toggle` an eighth name), the self-count arm (FOUR claims: shipped 21 → 22, both
+no-call-site claims 6 → 7, the complement 7 → 8) and **the `textarea` byte arm** (the sentence). With
+both copies installed and `CONSUMED` unedited: the first two plus `holds no copy of an item nobody
+declared`, the byte arm green. With `toggle` in `CONSUMED`: the count arm (five claims) and the per-item
+dependency map (`toggle: []`). With the words moved: the count arm alone, `"fifteen"`, `"sixteenth"`
+and `"twenty-two"` falling through `NUMBER` as strings. Green at 20/20. The "thepile inputs" bullet of
+DESIGN-LIB-d-meter-toggle predicted this set; the detail is in thepile's slice doc.
+
+No push, no tag, no `npm publish`, no PR: the freeze holds.
