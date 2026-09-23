@@ -1435,6 +1435,18 @@ describe("a checked state survives forced-colors: active", () => {
         "probe:fc-ink-canvas": [
           { property: "color", value: "Canvas", placement: "forced", state: null },
         ],
+        "probe:fc-frame": [
+          {
+            property: "border-style",
+            value: "var(--tw-border-style)",
+            placement: "forced",
+            state: null,
+          },
+          { property: "border-width", value: "4px", placement: "forced", state: null },
+        ],
+        "probe:fc-stroke-current": [
+          { property: "stroke", value: "currentcolor", placement: "forced", state: null },
+        ],
         "probe:checked-invisible": [
           { property: "visibility", value: "hidden", placement: "state", state: track.state },
         ],
@@ -1460,14 +1472,23 @@ describe("a checked state survives forced-colors: active", () => {
           carrierOf([...dot, "probe:fc-checked-canvas"], radio.state).paints,
           "the mode's Canvas frame of the checked state itself reads as painting",
         ).toBe(false);
-        // The ink (layer 1 r5 MED-1): each carrier's own `color` in Canvas.
-        for (const [name, tokens, state] of [
-          ["thumb", thumb, track.state],
-          ["tick", tick, checked.state],
-          ["dot", dot, radio.state],
+        // The ink (layer 1 r5 MED-1): each carrier's real string with the mode's own
+        // tokens taken away and a forced paint that follows the ink put back by hand,
+        // so the pin reads the INK and not whichever colour the part's frame declares
+        // (a `forced-colors:border-[CanvasText]` thumb does not follow it, and paints).
+        // It paints; inked in Canvas it does not.
+        for (const [name, tokens, paint, state] of [
+          ["thumb", thumb, "probe:fc-frame", track.state],
+          ["tick", tick, "probe:fc-stroke-current", checked.state],
+          ["dot", dot, "probe:fc-frame", radio.state],
         ] as const) {
+          const drawn = [...unforced(tokens), paint];
           expect(
-            carrierOf([...tokens, "probe:fc-ink-canvas"], state).paints,
+            carrierOf(drawn, state).paints,
+            `a ${name} with a forced paint that follows its ink reads as painting nothing`,
+          ).toBe(true);
+          expect(
+            carrierOf([...drawn, "probe:fc-ink-canvas"], state).paints,
             `a ${name} inked in Canvas under the mode reads as painting`,
           ).toBe(false);
         }
