@@ -9100,3 +9100,257 @@ docs-only commit after the run; `pnpm lint` and `pnpm typecheck` were re-run at 
 No push, no tag, no `npm publish`, no PR: the freeze holds, and `packages/ui/package.json`'s version
 line is still `0.1.3` on this branch (s1 moves it). `Toggle` is a later bump's, and reaches thepile
 only through a LIB-VENDOR-0.1.5 slice.
+
+## DESIGN-LIB-d-fcstate-dropdown: a held state drawn in colour alone, and the `DropdownMenu` measurement (2026-09-23)
+
+Batch DL21, stream s3, on the library's `next` at `47ca51df` (**35 files / 598 tests**, re-measured at
+this base by `pnpm verify` before anything moved: exit 0, `Test Files 35 passed (35)`, `Tests 598
+passed (598)`, `$BATCH_SCRATCH/s3/verify-base.log`). thepile is read-only throughout, at `8a4a2fbb`
+(`next`, the DL21 composition), by `git -C … show 8a4a2fbb:<path>`. Under the push freeze: LOCAL
+commits on `s/design-lib-d-fcstate-dropdown`, no tag, no publish. `packages/ui/src/**` and
+`packages/ui/package.json:3` are s2's this batch (the 0.1.5 pack point is its head), so nothing here
+edits a part: every part change the measurement below calls for is a REQUEST.
+
+Every browser measurement ran in headless Chromium through `playwright-core` 1.61.1 in a scratch
+package OUTSIDE this repository (`$BATCH_SCRATCH/s3/fc-probe/`), over the compiled sheet this
+package's own fixture produces (`loadCompiledSheet`, written out by `probe/sheet.mts`) and the class
+strings read out of the part files, `emulateMedia({ forcedColors, colorScheme })`. The Radix
+measurement ran in `$BATCH_SCRATCH/s3/radix-probe/` (`@radix-ui/react-dropdown-menu` 2.1.24,
+`react`/`react-dom` 19.3.0, `jsdom` 30.0.1); no dependency entered this package's manifest. Every
+reddening run ran in a DETACHED worktree of a committed head (`../marquee-ui-s3-mut`,
+`pnpm install --frozen-lockfile` + `pnpm build`, driver `$BATCH_SCRATCH/s3/mutate.py`: each edit
+asserted to match exactly once and its diff printed, the registry rebuilt after a part edit, the WHOLE
+suite run, the tree restored and checked clean; logs `mut-*.log`).
+
+### 1. The widening: a held state drawn in colour alone
+
+**The brief's design, and what the sheet and the browser said about it.** The composition asked for a
+second site kind in `test/forced-colors-state.test.tsx` - a state drawn on an element by a state
+variant whose declarations are all colour or shadow - saved by a `forced-colors:<state>:` width or
+outline on the same element, "a stroke", or a sibling in the same part MOVING under the same state,
+with `switch.tsx` unchanged as the false-red check: "its colour-only track is saved by the moving
+thumb". That last clause was DL18's docblock, and it was never measured. **Measured here, it is
+false** (`fc-probe/probe2.mjs` → `base2/result.txt`, pixel histograms `base2/colours.txt`):
+
+| part (as the package draws it) | forced colors, dark palette (Canvas black)                                                              | forced colors, light palette (Canvas white) |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `Switch`, button host          | off `aee70fc72f4e`, on `aee70fc72f4e`: **IDENTICAL**                                                    | `005e818e4050` twice: **IDENTICAL**         |
+| `Switch`, label host           | `aee70fc72f4e` twice: **IDENTICAL**                                                                     | `005e818e4050` twice: **IDENTICAL**         |
+| `Checkbox`                     | differ, but the tick is `rgb(10, 11, 7)` on `rgb(0, 0, 0)`: 45 near-black pixels, invisible to a person | differ, and visible (near-black on white)   |
+| `RadioGroup`                   | differ: the dot's forced 4px border is `rgb(255, 255, 255)`                                             | differ                                      |
+| `Toggle`                       | differ: 422 white pixels at rest, 726 pressed (the 4px frame)                                           | differ                                      |
+
+Why, read off the computed styles in the same run. The Switch's thumb paints ONLY a
+`background-color` (`bg-muted`, `bg-primary-foreground` on checked), which the mode forces to Canvas,
+the same Canvas as the track under it: it moves 20px (`translate=20px` in the `on` rows) and nothing
+on screen moves with it. The track's own state is `border-primary` + `bg-primary`, colour alone. So in
+both palettes and both hosts the only ink is the track's 2px frame, the same in both states. The
+Checkbox tick's computed `stroke` stays `rgb(10, 11, 7)`, the author's `--primary-foreground`:
+**Chromium does not force an SVG `stroke`**, which is the premise the DL18 docblock and the revealed
+arms' bucket cut rest on ("`stroke` -> forced to CanvasText"). A hand-written `stroke: currentColor`
+under the media query drew it `rgb(255, 255, 255)` and `rgb(0, 0, 0)` in the two palettes, and a
+hand-written 8px border on the thumb separated the Switch's two states in both (`switch-thumb-border8`,
+`checkbox-stroke-current` in the same table): each defect has a one-token mechanism, measured, and
+neither is this stream's to apply.
+
+So the rule is derived from the sheet with the thumb's paint IN it, and the Switch is named, not
+passed. **The site**: a HELD state, read off the compiled selector rather than the variant's spelling
+(an ARIA state a control selects between, `:checked`, `[data-state]`, `[open]`; never a negation, an
+interaction or a static axis such as `[data-orientation]`), whose declarations on one element are all
+in the set the mode forces or drops (`toggle-drawing.test.tsx`'s `FORCED_BY_THE_MODE`, spelled alike).
+**Saved** by either:
+
+- the element's OWN `forced-colors:<state>:` declaration of a property the mode keeps that CHANGES it
+  from the rest drawing, on an element that still paints a kept foreground in that state (a 4px frame
+  over the 2px rest counts; a 4px frame over a 4px rest, or a frame whose style resolves to none,
+  does not; an unscoped `forced-colors:` rule is both states' at once and is not the state's); or
+- a SIBLING string in the same part file that changes under the same compiled state in something the
+  mode keeps (it moves; it is revealed) AND paints a foreground the mode keeps - a border or outline
+  width, or a stroke that is `currentcolor`.
+
+⚠️ **"A stroke" is not a same-element save**, which is the one place the composition's list is
+corrected in shape rather than in fact: an unconditional stroke on the element itself is there in both
+states and tells them apart by nothing. The brief's "stroke" is the Checkbox's tick, a revealed
+SIBLING, and it is read as one. **And the sibling must PAINT**: a mover that paints nothing is the
+Switch.
+
+**Five sites**, every one read out of the sheet at `803183fe` (probe `probe/sites.json`):
+
+| site                                         | drawn in                                                                 | carried by                                                              | verdict                       |
+| -------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------- | ----------------------------- |
+| `toggle.tsx`, `aria-pressed`                 | `border-color`, `background-color`, `color`, `--tw-shadow`, `box-shadow` | its own `forced-colors:aria-pressed:border-4`: `border-width` 2px → 4px | saved                         |
+| `radio-group.tsx`, `group-has-checked/radio` | `border-color`, `background-color`                                       | the dot: revealed (`opacity`), painting a forced 4px border             | saved                         |
+| `switch.tsx`, `group-aria-checked/switch`    | `border-color`, `background-color`                                       | the thumb: moves (`translate`), paints nothing the mode keeps           | **gap** (measured identical)  |
+| `switch.tsx`, `group-has-checked/switch`     | `border-color`, `background-color`                                       | the same thumb string                                                   | **gap** (measured identical)  |
+| `checkbox.tsx`, `group-has-checked/checkbox` | `border-color`, `background-color`                                       | the tick: revealed (`opacity`), painting an AUTHOR stroke only          | **gap** (measured near-black) |
+
+The three gaps ship as `KNOWN_STATE_GAPS` entries, keyed `"<file> <variant>"`, each with its measured
+reason and the REQUEST it waits on - the expiring shape the brief named for anything that must ship
+short: an entry reddens the moment its site survives the mode, and one naming a site that no longer
+exists reddens too. The placement walk now files every declaration in one of five kinds at this head:
+286 `unconditional`, 2 `forced`, 27 `state`, 2 `forced-state`, 73 `conditional`.
+
+**What changed in the file** (`packages/ui/test/forced-colors-state.test.tsx`, 6 tests, was 3):
+
+- two placements beside the three, `state` and `forced-state`, filed under the utility's own class
+  alone; the old three are filed as before, and a held-state rule was `conditional` before, which the
+  revealed arms never read, so nothing they assert moves;
+- `paintsIn` takes an optional state and stroke reading, both defaulting to the old behaviour
+  (`strokePaints(value, authorStroke = true)`); the state arms pass `authorStroke: false`;
+- ONE literal reader for both walks, the TypeScript scanner (`literalsOf`): a comment is never a
+  literal whatever quotes it wears, and a single-quoted or template literal is read. It was a regex
+  over double-quoted runs; `revealedSites()` finds the same two sites through it;
+- the header docblock's `Checkbox` and `Switch` bullets now say what was measured, and a paragraph
+  says the two kinds read a stroke differently, on purpose and on the record;
+- arm 4, the anchors: the reader on a text written in the test, the five sites found with `toggle.tsx`'s
+  read WHOLE from its literal (it equals `toggleClass`), the placements fix-independent
+  (`aria-pressed:bg-primary` is `state`, `not-aria-pressed:hover:border-muted` and
+  `data-[orientation=horizontal]:w-full` are not), and the Switch track's thumb FOUND as the sibling
+  that moves under the same condition, for both hosts; arm 5, the mechanisms told apart, today's pins
+  (`Toggle` by its own treatment, `RadioGroup` by the dot, the tick found revealed) and the predicates
+  on real tokens plus one hand-placed `border-none` (no source compiles it; the predicate is what is
+  under test); arm 6, the invariant with `KNOWN_STATE_GAPS`.
+
+The three existing arms and `toggle-drawing.test.tsx`'s arm 12 are unchanged and green.
+
+### The guards, and the runs that reddened them
+
+In the detached worktree at `803183fe` (the brief's three, then the file's own; M1-M3 and M2b-c ran at
+`fddd2d70` first with the same results, `mut-*-fddd2d7.log`). Baseline there: `Test Files 35 passed
+(35)`, `Tests 601 passed (601)`.
+
+| id  | mutation                                                              | red / GREEN                                | the assertion that reddened                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| --- | --------------------------------------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | (1) `toggle.tsx`: `forced-colors:aria-pressed:border-4` deleted       | **red**, 4 / 2 files                       | the invariant, naming `toggle.tsx: the aria-pressed state ([aria-pressed="true"]) is drawn in ["border-color","background-color","color","--tw-shadow","box-shadow"] alone; no forced-colors:aria-pressed: treatment changes a kept property, and no sibling moves or is revealed under it`; arm 5's `toggle.tsx's aria-pressed state is no longer told apart by its own forced-colors treatment`; and the already-guarded `toggle-drawing.test.tsx` arms 12 and 13                                            |
+| M2  | (2) `switch.tsx` unchanged                                            | GREEN **through the gap only**             | see M2a: with `KNOWN_STATE_GAPS` in place the arm passes because the entry excuses a site measured INVISIBLE, not because a thumb saves it. The false-red check the brief asked for has the other answer: the red is true                                                                                                                                                                                                                                                                                      |
+| M2a | `KNOWN_STATE_GAPS` emptied (the verdict without the excuse)           | **red**, 1                                 | the invariant, three lines: `switch.tsx: the group-aria-checked/switch state … a sibling that changes ["translate"] and paints nothing the mode keeps`, the same for `group-has-checked/switch`, and `checkbox.tsx: … a sibling that changes ["opacity"] and paints nothing the mode keeps`                                                                                                                                                                                                                    |
+| M2b | the thumb gains `forced-colors:border-8` (the measured mechanism)     | **red**, 1                                 | `switch.tsx group-aria-checked/switch now survives forced colors: delete its KNOWN_STATE_GAPS entry, the defect it excuses is fixed`: the gap expires on the fix                                                                                                                                                                                                                                                                                                                                               |
+| M2c | the tick gains `forced-colors:stroke-current`                         | **red**, 2 / 2 files                       | `checkbox.tsx group-has-checked/checkbox now survives forced colors: delete its KNOWN_STATE_GAPS entry …`, and `choice-drawing.test.tsx`'s `paints the mark in the ink the fill guarantees` (it reads the tick's strokes flat: a consumer of the eventual fix)                                                                                                                                                                                                                                                 |
+| M3  | (3) `radio-group.tsx`: `forced-colors:border-4` deleted               | **red**, 4                                 | the EXISTING two, unchanged: `the fix is not placed under forced colors` and `radio-group.tsx: revealed on checked, paints background-color ["var(--primary-foreground)"] and nothing the mode keeps`; beside them the circle, the same defect seen from the other element: `radio-group.tsx: the group-has-checked/radio state … a sibling that changes ["opacity"] and paints nothing the mode keeps` and arm 5's `radio-group.tsx's checked circle is no longer carried by a revealed dot the mode can see` |
+| M4  | `forced-colors:aria-pressed:border-2` (a treatment equal to the rest) | **red**, 4 / 2 files                       | arm 5's toggle pin and the invariant (as M1), and `toggle-drawing` arms 12 and 13                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| M5  | `heldState` never matches (the instrument)                            | **red**, 3                                 | `no part draws a held state in colour: the walk found nothing: expected 0 to be greater than or equal to 4`, and `a KNOWN_STATE_GAPS entry names a site that no longer exists: delete it`                                                                                                                                                                                                                                                                                                                      |
+| M6  | the literal reader back to the double-quote regex                     | **red**, 1                                 | `the literal reader read a comment, or missed a literal: expected [ [ 'aria-pressed:bg-primary' ], …(2) ] to deeply equal [ [ 'd', 'e' ], [ 'f' ] ]`                                                                                                                                                                                                                                                                                                                                                           |
+| M7  | `ownTreatment` ignores its paint gate                                 | **GREEN at `fddd2d70`**, red at `803183fe` | first pass: the one forced-state token that compiles paints its own border, so nothing real reached the gate; the hand-placed `border-none` anchor was added, then `a frame whose style resolves to none reads as a paint`                                                                                                                                                                                                                                                                                     |
+| M8  | a sibling always "paints"                                             | **red**, 1                                 | `checkbox.tsx group-has-checked/checkbox now survives forced colors: delete its KNOWN_STATE_GAPS entry …`                                                                                                                                                                                                                                                                                                                                                                                                      |
+| M9  | every site `saved`                                                    | **red**, 1                                 | the same gap expiry                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| M10 | the colour-only test inverted                                         | **red**, 3                                 | `the walk found no colour-only aria-pressed site in toggle.tsx: expected +0 to be 1`                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| M11 | `ownTreatment` counts every forced-state declaration as a change      | **red**, 1                                 | `toggle.tsx's aria-pressed state is no longer told apart by its own forced-colors treatment: expected [ …(2) ] to deeply equal [ 'border-width: 4px' ]` (the unchanged `border-style` counted)                                                                                                                                                                                                                                                                                                                 |
+
+### 2. The `DropdownMenu` measurement, and the answer
+
+**No `DropdownMenu` family ships.** The audit's column names it in ONE row at `8a4a2fbb`
+(`awk -F'|' '{print $4}' docs/design-audit.md | command grep -w -c DropdownMenu` → **1**; the one
+line is `:384`, `/[username]`, "DropdownMenu (ProfileOverflowMenu)"), and the site decided the other
+way in code before the row was written.
+
+**What `ProfileOverflowMenu.tsx` draws and announces** (S22b, 155 lines, read whole): a 44px `⋯`
+`<button aria-haspopup="dialog" aria-label="More options for @<handle>">` that renders NOTHING until
+`/api/me/blocks/<handle>` answers (a signed-out viewer, your own profile and a failed read all get no
+control), opening a `Sheet` (Radix Dialog) titled `@<handle>` whose body is a sentence saying what a
+block does ("Their comments disappear from your view of every thread … It also un-follows, both
+ways.", or the unblock sentence) and ONE button, `Block @<handle>` / `Unblock @<handle>`. Its docblock
+is the design, in Ankit's call: "Two taps, with the consequence written between them, is the
+confirmation design; there is deliberately no undo toast". Its test (`ProfileOverflowMenu.test.tsx`)
+pins the trigger by `data-testid`, its name by `aria-label` containing the handle, both controls at the
+44px floor, the explainer's two consequences, the end-state write, the revert, and one write in flight;
+`e2e/comments.spec.ts` drives it by the same two test ids. Nothing resolves it by role.
+
+**Every popup of actions in the tree, enumerated by READING files, not by a grep for a role**
+(`$BATCH_SCRATCH/s3/popup-enum.txt`, `popup-enum2.txt`; the composition's "no `role="menu"` in
+`apps/web/src`" was a grep for the ROLE, class B's shape, and says only that no menu semantics exist):
+
+| looked for                                                                       | hits (non-test `.tsx`)                                                                                                                                | read as                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `aria-haspopup`                                                                  | 2: `profile/ProfileOverflowMenu.tsx:107`, `reports/ReportFlag.tsx:90`, both `"dialog"`                                                                | the overflow menu (ONE action and its consequence, above) and the report flag, which opens a FORM (twelve guideline radios and Send, `ReportSheet`), not a set of actions                                                                                                                                                                                                                                                                                                                                   |
+| `<details>` holding actions                                                      | 2 elements: `browse/FilterBar.tsx:153` (the platform tail), `game/ScoreBlock.tsx:209` (the rating breakdown); the other five hits are prose           | inline disclosures, not popups: the tail reveals filter LINKS in the flow (its docblock chose `<details>` over a "more" button for crawlers), the breakdown reveals numbers                                                                                                                                                                                                                                                                                                                                 |
+| `aria-expanded`                                                                  | 3: `comments/CommentBody.tsx:92`, `log/LogForm.tsx:212`, `search/SearchPill.tsx:94`                                                                   | a comment's text, the log form's Details section, the search field widening: none opens a set of actions                                                                                                                                                                                                                                                                                                                                                                                                    |
+| a positioned list opened by a button                                             | every `Sheet` mount (10 files) and every open-state `useState` (8), read; the shell's `absolute`/`fixed` lines (the bell's badge, the immersive bars) | `ListManage` (the one object with SEVERAL actions - Edit, View public, Delete - lays them INLINE on its page; its two sheets are the edit form and a delete `alertdialog`), `DiaryEntryCard` (Edit → a form), `RankInTierSheet` (a two-step destination picker with loading and error states), `AddToListSheet` (membership toggles), `YourLists`, `LogModal`, `LogSheet`, `IOSInstallSheet`, `ReportSheet`: forms, pickers and instructions. No list anywhere is positioned under the button that opens it |
+| `role="menu"`, `menuitem`, `listbox`, `popover`, a menu or popover Radix package | none; `apps/web/package.json` holds `react-dialog`, `react-label` and `react-slot`                                                                    | -                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+
+So the tree holds **one** popup of actions, and it holds **one** action.
+
+**What Radix's part does, measured** (`radix-probe/probe.mjs` → `probe.txt`), composed as the site
+would compose it, the explainer and the one item inside the content:
+
+```
+closed                 <button type="button" aria-haspopup="menu" aria-expanded="false" data-state="closed" aria-label="More options for @nova">
+open (static)          …aria-expanded="true" aria-controls=…><div data-radix-popper-content-wrapper style="position:fixed;…"><div role="menu" aria-orientation="vertical" aria-labelledby=<trigger> …>
+a bare click           stays closed (no pointerdown: the trigger opens on pointerdown or a key)
+pointerdown            open; the item tabindex=-1, focus on the menu, body pointer-events none; the explainer <p> has NO role
+Enter on the trigger   open; focus on the one menuitem (tabindex=0)
+typeahead "b"          focus stays on "Block @nova", the only item
+Enter on the item      onSelect fired ["block"], and the menu CLOSED
+```
+
+**The answer, three measured grounds, each sufficient:**
+
+- **A menu cannot hold the site's confirmation.** The site's design is two taps with the consequence
+  written between them. In `role="menu"` the sentence is a child with no role (measured), outside what a
+  menu owns (items, groups, separators), and the first activation of the item fires `onSelect` and
+  closes the menu (measured). So the menu would either be the action with no consequence shown, or a
+  THIRD surface - a menu of one item that opens the dialog the site already has. Keeping the promise
+  Ankit made ("undo on a block is a control that un-protects somebody by accident") needs the sheet.
+- **What the part adds has nothing to act on.** Roving focus and typeahead over one item move nothing
+  (typeahead measured on the one item); the pointer-anchored popover (`position: fixed`, placed against
+  a 44px trigger) is the wrong surface at 390px, where the house draws actions as a bottom sheet titled
+  with the person (`ReportFlag`'s docblock cites Letterboxd's "action sheet" for the same reason).
+- **The announcement is already right.** The button says `aria-haspopup="dialog"` and opens a Radix
+  Dialog, which is what it is; the part would announce "menu" over a sentence and a button. There is no
+  second menu-shaped site to share a part with (the enumeration above), and it is a new `"use client"`
+  dependency for one consumer.
+
+**For the reconciler, row 384's phrase**: `DropdownMenu (ProfileOverflowMenu)` becomes "no
+`DropdownMenu` for ProfileOverflowMenu (DL21: the tree's one popup of actions holds ONE action and the
+sentence that confirms it, two taps on a `Sheet` behind `aria-haspopup="dialog"`; Radix's
+`role="menu"` carries neither the sentence nor the second tap; marquee-ui `docs/as-built.md` "2. The
+`DropdownMenu` measurement, and the answer"), stays a `Sheet`". After this item the catalogue's demand
+column holds no named family this library has not measured.
+
+### Decisions
+
+1. **The Switch is named by the widened guard, not passed.** [V] The brief's false-red check assumed
+   the moving thumb saves the track; the sheet says the thumb paints only a background and Chromium
+   says checked and unchecked are pixel-identical in both palettes and both hosts. Shipped as two
+   `KNOWN_STATE_GAPS` entries with the measurement; the fix is a part change (REQUEST A).
+2. **An author `stroke` does not carry a state; `currentcolor` does.** [V] Measured: Chromium leaves
+   an author stroke unforced. The state arms read it that way; the revealed arms keep reading any
+   stroke as a paint, because their assertions are a contract this stream CONSUMED this batch (they
+   "stay and stay green"). The file says so in its header. Changing their reading is REQUEST B.
+3. **The Checkbox ships as a gap in the state arm**, for the tick's author stroke (measured
+   near-black on the dark palette's black). REQUEST A carries its one-token fix.
+4. **A forced-state treatment must CHANGE a kept property from the rest drawing**, not merely be
+   `> 0`: a frame equal to the rest tells the states apart by nothing (M4 is its red).
+5. **One literal reader, the TypeScript scanner, for both walks.** A comment is never a literal, and
+   single-quoted and template literals are read. `revealedSites()` finds the same two sites through it.
+6. **Held-state rules are filed under the utility alone**, so a group marker (`group/switch`) never
+   looks like an element with a state; every other placement is filed as before.
+7. **A hand-placed `border-none` anchors the paint gate** (M7 was GREEN without it): no source compiles
+   the token, and the predicate is what is under test. Clearly named, removed in a `finally`.
+8. **No `DropdownMenu` family.** [V] The tree's one popup of actions holds one action and its
+   confirming sentence; `role="menu"` can hold neither the sentence nor the second tap. Row 384's phrase
+   is the reconciler's (above).
+9. **Nothing in `packages/ui/src/**` moved**, so the 0.1.5 pack point and `r/` are untouched by this
+   branch (`git diff --stat 47ca51df HEAD -- packages/ui/src packages/ui/r packages/ui/package.json`
+   prints nothing).
+
+### REQUESTs (to the orchestrator; each is a part change or a consumed contract)
+
+- **A. The two part fixes, for 0.1.6** (after s2's 0.1.5 pack point): `switch.tsx`'s `thumbClass`
+  gains a `forced-colors:` treatment that paints the thumb in a colour the mode keeps (measured
+  mechanism: an 8px border on the 16px thumb, `radio-group.tsx`'s solid-disc answer); `checkbox.tsx`'s
+  `indicatorClass` gains `forced-colors:stroke-current` (measured mechanism). Each deletes its
+  `KNOWN_STATE_GAPS` entries in the same commit (M2b and M2c are the reds that force it), and
+  `choice-drawing.test.tsx`'s tick-ink arm has to learn the forced value (M2c). `radio-group.tsx:159-160`'s
+  docblock repeats the two false claims ("`Checkbox` escapes because its tick is an SVG `stroke` and
+  `Switch` because its thumb MOVES") and moves with the fix. thepile's copies carry the same two strings
+  (`components/ui/switch.tsx:80`, `checkbox.tsx:125` at `8a4a2fbb`), imported by six files (onboarding,
+  the content and push settings, `ListForm`, `LogForm`, `PlayForm`); not measured on thepile's built page.
+- **B. The revealed arms' stroke reading** (`paintsIn`'s default, arm 2's `a stroke no longer counts`
+  anchor): measured false in Chromium; moving it reddens arm 3 on `checkbox.tsx` until A lands, so it
+  belongs with A, by whoever owns this file then.
+
+### thepile inputs
+
+- **For the reconciler, row 384**: the phrase in §2's last paragraph.
+- **Arrival**: nothing here reaches thepile. No part moved, so no bump carries this branch; the guard is
+  the library's. A and B arrive at 0.1.6 with their own consumption slice.
