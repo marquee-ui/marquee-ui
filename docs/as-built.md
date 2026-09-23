@@ -9150,7 +9150,7 @@ $ stat -c %s marquee-ui-ui-0.1.5.tgz ; sha256sum marquee-ui-ui-0.1.5.tgz
 | --------------------------------------- | -------------------- | ---------- |
 | bytes                                   | 106089               | **108229** |
 | `r/` json files (incl. `registry.json`) | 22                   | **23**     |
-| `src/` modules (`.ts`/`.tsx`)           | 23                   | **24**     |
+| `src/` modules (`.ts`/`.tsx`)           | 22                   | **23**     |
 
 49 entries, `tar -tzf | grep -cE '\.(test|spec)\.|stories'` → **0**. The packed `package.json`, read
 from the tarball: `version 0.1.5`, `files ["r","src"]`, `devDependencies` `@marquee-ui/tokens: "0.1.0"`,
