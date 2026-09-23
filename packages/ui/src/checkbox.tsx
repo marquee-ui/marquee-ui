@@ -14,7 +14,8 @@ import { cn } from "@/lib/utils";
  * and the one that can be wrong.
  *
  * THE SHAPE, and every piece of it is derived from a real product's seven
- * checkbox rows (read at `50f8a22c`; the measurement is in `docs/as-built.md`):
+ * checkbox rows (read at `50f8a22c`; the measurement is in marquee-ui's
+ * `docs/as-built.md`):
  *
  *   <Checkbox className="w-full justify-between text-sm">
  *     <span className="flex flex-col">Spoilers<span>Blur this review…</span></span>
@@ -30,13 +31,13 @@ import { cn } from "@/lib/utils";
  * the whole 44px row, which is what the person is pointing at.
  *
  * ⚠️ AND IT TAKES TWO INSTRUMENTS TO SAY THAT, not one (layer 1, HIGH-1). The
- * package's floor guard (`test/tailwind-compile.test.tsx`) resolves the INPUT's
- * declared height and demands 44 - and it reads `min-height`/`height` and nothing
- * else, which its own comment says. So an input that kept `min-h-hit` and lost
+ * package's floor guard (marquee-ui's `packages/ui/test/tailwind-compile.test.tsx`)
+ * resolves the INPUT's declared height and demands 44 - and it reads
+ * `min-height`/`height` and nothing else, which its own comment says. So an input that kept `min-h-hit` and lost
  * `inset-0` measures 44px tall, renders about 13px wide at the UA checkbox's
  * intrinsic size, and every test passes while the row's tap band is gone.
- * `test/choice-drawing.test.tsx` reads the COVERING - `position: absolute` and a
- * zero `inset` - out of the same compiled sheet, and the two together are what
+ * marquee-ui's `packages/ui/test/choice-drawing.test.tsx` reads the COVERING -
+ * `position: absolute` and a zero `inset` - out of the same compiled sheet, and the two together are what
  * make the floor a fact rather than a hope about label click-forwarding.
  *
  * ⚠️ AND THE ROW HOLDS NOTHING ELSE INTERACTIVE. The overlay covers the row's own
@@ -77,7 +78,8 @@ import { cn } from "@/lib/utils";
  * a `box-shadow` and keeps an `outline`, so a shadow-only ring on a row whose
  * focusable input is already invisible leaves NO focus indicator at all in the
  * mode a person uses because they cannot see the default one. The Switch's label
- * host had the identical hole (`switch.tsx`, and the consuming product's own browser measurement); `test/focus-outline.test.tsx` derives this
+ * host had the identical hole (`switch.tsx`, and the consuming product's own browser
+ * measurement); marquee-ui's `packages/ui/test/focus-outline.test.tsx` derives this
  * invariant over every part rather than listing them, which is how this one was
  * found.
  */
@@ -106,7 +108,7 @@ const inputClass =
  * name `FormItem`, never the box; the box was one `h-6 w-6 … rounded-sm
  * border-2` input further down, and since DL17 that row renders these four parts
  * instead, so the treatment's source is now a consumer of it. This docblock
- * ships verbatim through `r/checkbox.json` and is byte-pinned on the consuming
+ * ships verbatim through `@marquee-ui/ui/r/checkbox.json` and is byte-pinned on the consuming
  * side, so a stale number here survives until a bump; the row's `name` does
  * not move.
  *
@@ -121,9 +123,17 @@ const boxClass =
  * The mark inside the box: hidden until the control is checked, and drawn in the
  * ink the fill is guaranteed to carry (`primary-foreground` on `primary` is the
  * pair `Button`'s primary variant already stands on).
+ *
+ * ⚠️ `forced-colors:stroke-current` IS THE WHOLE CHECKED STATE IN THAT MODE. The
+ * mode forces the box's frame and fill, but Chromium does NOT force an author SVG
+ * `stroke`: measured in headless Chromium, the tick stayed `--primary-foreground`,
+ * rgb(10, 11, 7), on the rgb(0, 0, 0) `Canvas` of a dark forced palette - a
+ * checked box a person could not tell from an empty one. A `currentcolor` stroke
+ * follows the `color` the mode DOES force, so there the tick is drawn in the
+ * user's own ink. It is scoped to the mode, so the normal drawing is unchanged.
  */
 const indicatorClass =
-  "pointer-events-none absolute size-4 stroke-primary-foreground opacity-0 group-has-checked/checkbox:opacity-100";
+  "pointer-events-none absolute size-4 stroke-primary-foreground opacity-0 group-has-checked/checkbox:opacity-100 forced-colors:stroke-current";
 
 /**
  * The row's marker, and the ONE part that demands it is the input.

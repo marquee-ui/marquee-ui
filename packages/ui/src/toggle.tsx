@@ -18,8 +18,8 @@ import { cn } from "@/lib/utils";
  * toggle under the pointer; Tailwind happens to emit the `aria-pressed:` rules
  * after the `hover:` ones today, so the pressed border would win by source
  * order alone. `not-aria-pressed:hover:` never matches a pressed toggle, so
- * there is nothing for the order to decide (`test/toggle-drawing.test.tsx`
- * evaluates all four states).
+ * there is nothing for the order to decide (marquee-ui's
+ * `packages/ui/test/toggle-drawing.test.tsx` evaluates all four states).
  *
  * ⚠️ THE `forced-colors:` BORDER IS THE WHOLE PRESSED STATE IN THAT MODE.
  * Forced colors sends every colour here to one of two system colours and drops

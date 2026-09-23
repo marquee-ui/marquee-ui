@@ -36,13 +36,14 @@ import { cn } from "@/lib/utils";
  * engine a consumer ships to. It is also why the native host's input is an
  * invisible overlay rather than the track itself: an `<input>` styled as the
  * 44x24 track is a 24px-tall control, and `min-h-hit` on the row is what the tap
- * floor actually measures (`test/tailwind-compile.test.tsx`).
+ * floor actually measures (marquee-ui's `packages/ui/test/tailwind-compile.test.tsx`).
  *
  * Geometry, and it is arithmetic rather than taste: a 44x24 track with a 2px
  * border leaves a 40x20 padding box; a 16px thumb inset 2px inside that leaves
  * 44 - 2*2 - 2*2 - 16 = 20px of travel, which is `translate-x-5`. So "on" sits
- * flush against the far edge. `test/switch-drawing.test.tsx` re-derives all five
- * numbers from the COMPILED stylesheet rather than from these strings.
+ * flush against the far edge. marquee-ui's `packages/ui/test/switch-drawing.test.tsx`
+ * re-derives all five numbers from the COMPILED stylesheet rather than from
+ * these strings.
  */
 
 /**
@@ -58,8 +59,8 @@ import { cn } from "@/lib/utils";
  * `forced-colors: active` drops a `box-shadow` and keeps an `outline`, so the
  * old `focus-visible:outline-none` left this control with NO focus indicator at
  * all in the mode a person uses because they cannot see the default one -
- * measured in the consuming product, `test/focus-outline.test.tsx` carries the
- * numbers. Both are declared now: the outline for forced colors, the shadow for
+ * measured in the consuming product, marquee-ui's
+ * `packages/ui/test/focus-outline.test.tsx` carries the numbers. Both are declared now: the outline for forced colors, the shadow for
  * the dark inner separator that makes the ring readable over cover art.
  */
 const switchClass =
@@ -76,9 +77,19 @@ const trackClass =
  * light preset the two track fills are 1.13:1 apart, so a viewer who reads the
  * fill alone cannot tell the states apart - the thumb having MOVED is what says
  * which one it is, in both presets and in no colour at all.
+ *
+ * ⚠️ AND A MOVE IS ONLY SEEN IF THE THING THAT MOVES IS PAINTED. Under
+ * `forced-colors: active` the thumb's one paint, a `background-color`, is forced
+ * to `Canvas`, the same `Canvas` the track's fill went to, so without the last
+ * token here the thumb travelled 20px and nothing on screen moved: checked and
+ * unchecked hashed IDENTICAL in headless Chromium, in both forced palettes and
+ * both hosts. `forced-colors:border-8` draws it in the mode's own ink instead -
+ * 8px of border on a 16px `border-box` meets in the middle, a solid disc, which is
+ * `RadioGroupIndicator`'s answer at twice the size. It is scoped to the mode, so
+ * the normal drawing is byte-for-byte what it was.
  */
 const thumbClass =
-  "pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-muted transition-transform group-aria-checked/switch:translate-x-5 group-aria-checked/switch:bg-primary-foreground group-has-checked/switch:translate-x-5 group-has-checked/switch:bg-primary-foreground motion-reduce:transition-none";
+  "pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-muted transition-transform group-aria-checked/switch:translate-x-5 group-aria-checked/switch:bg-primary-foreground group-has-checked/switch:translate-x-5 group-has-checked/switch:bg-primary-foreground motion-reduce:transition-none forced-colors:border-8";
 
 /**
  * The native host's control: a real checkbox, covering the whole row.

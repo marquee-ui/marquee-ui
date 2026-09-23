@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
  * The trail of where you are, as parts. Every string below already shipped on a
  * real product surface and is MOVED here through the role rename table, not
  * redesigned: the tokens change name, the pixels do not
- * (`test/fidelity.test.tsx` pins the utility SET of every part against the
- * upstream strings, read with `git show` and never retyped).
+ * (marquee-ui's `packages/ui/test/fidelity.test.tsx` pins the utility SET of every
+ * part against the upstream strings, read with `git show` and never retyped).
  *
  * ⚠️ ONE LINE, ALWAYS, AND THAT IS A TAP-TARGET DECISION RATHER THAN A LOOK.
  * The links carry the 44px floor, and a 44px band over a ~20px line pitch makes

@@ -213,8 +213,8 @@ export function AvatarImage({ className, edge, ground, alt = "", ...props }: Ava
  * "the small-face treatment" on each part, and the parts are at different scales:
  * a 26px face wearing 1px and an ~11px mark wearing 1.5px are the two
  * measurements, taken from two elements, and one shared number would be a number
- * neither site drew. `avatar-drawing.test.tsx` asserts both widths in ONE arm so
- * the asymmetry is met rather than discovered.
+ * neither site drew. marquee-ui's `packages/ui/test/avatar-drawing.test.tsx`
+ * asserts both widths in ONE arm so the asymmetry is met rather than discovered.
  *
  * ⚠️ **A NON-INTEGER WIDTH IS A THING THIS PACKAGE CANNOT MEASURE.** How 1.5px
  * lands on a device pixel is the browser's, and on a `rounded-full` element it is

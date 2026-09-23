@@ -83,8 +83,9 @@ import { cn } from "@/lib/utils";
  *
  * Every ink here is one of the contract's STATUS roles, which are ink roles - and
  * so every one is already inside the presets' 4.5:1 contrast check on every
- * ground, in both presets (`BODY_INK_ROLES`). `alert-tone.test.tsx` holds the
- * table to that, so a tone can never be painted in a colour nothing measures.
+ * ground, in both presets (`BODY_INK_ROLES`). marquee-ui's
+ * `packages/ui/test/alert-tone.test.tsx` holds the table to that, so a tone can
+ * never be painted in a colour nothing measures.
  * The LINE owes no such floor: the notice's meaning is its sentence, never its
  * border, which is why the house's own `--border` sits below 3:1 on purpose.
  */

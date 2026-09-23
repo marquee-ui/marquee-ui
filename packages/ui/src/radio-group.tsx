@@ -13,9 +13,10 @@ import { cn } from "@/lib/utils";
  * This package holds no state, no `tabIndex` arithmetic and no key handler, and
  * that is not a saving of effort: the two behaviours a React radio group
  * re-implements are what a shared `name` already gives, and they are MEASURED
- * here rather than assumed (`test/choice-drawing.test.tsx`, and the plays in
- * `stories/radio-group.stories.tsx`) - `user.tab()` enters a group of three at
- * the CHECKED radio and leaves it after one stop, and `{ArrowDown}` moves the
+ * here rather than assumed (marquee-ui's `packages/ui/test/choice-drawing.test.tsx`,
+ * and the plays in its `packages/ui/stories/radio-group.stories.tsx`) -
+ * `user.tab()` enters a group of three at the CHECKED radio and leaves it after
+ * one stop, and `{ArrowDown}` moves the
  * checked radio to the next one. The drawing reads a `:checked` descendant of
  * the row, so it cannot disagree with what a screen reader is told.
  *
@@ -126,7 +127,8 @@ function refuseRole(props: object, children: ReactNode, asChild: boolean): void 
  * `opacity-0` - and `forced-colors: active` drops a `box-shadow` while keeping an
  * `outline`, so a shadow-only ring here would leave NO focus indicator at all in
  * the mode a person uses because they cannot see the default one. The Switch's
- * label host had the identical hole (`switch.tsx`, and the consuming product's own browser measurement); `test/focus-outline.test.tsx` derives this
+ * label host had the identical hole (`switch.tsx`, and the consuming product's own
+ * browser measurement); marquee-ui's `packages/ui/test/focus-outline.test.tsx` derives this
  * invariant over every part rather than listing them, which is how this one was
  * found.
  */
@@ -151,14 +153,17 @@ const circleClass =
  *
  * ⚠️ THE `forced-colors:` BORDER IS THE WHOLE CHECKED STATE IN THAT MODE, AND
  * NOTHING ELSE HERE CARRIES IT. Forced colors collapses every paint into two
- * system colours - a foreground (`color`, `stroke`, `border-color`) to
- * `CanvasText` and `background-color` to `Canvas` - so a dot whose only paint is
- * a background sits Canvas on Canvas inside a circle whose fill went Canvas too,
- * and CHECKED AND UNCHECKED BECOME THE SAME PICTURE. The consuming product
- * measured exactly that before this line existed: the two circles hashed
- * identical, where the native radio they replaced did not. `Checkbox` escapes
- * because its tick is an SVG `stroke` and `Switch` because its thumb MOVES; this
- * family was the only one signalling state in `background-color` alone.
+ * system colours - a foreground (`color`, `border-color`) to `CanvasText` and
+ * `background-color` to `Canvas` - so a dot whose only paint is a background
+ * sits Canvas on Canvas inside a circle whose fill went Canvas too, and CHECKED
+ * AND UNCHECKED BECOME THE SAME PICTURE. The consuming product measured exactly
+ * that before this line existed: the two circles hashed identical, where the
+ * native radio they replaced did not. `Switch` and `Checkbox` had the same hole
+ * and were once said to escape it; measured in headless Chromium, neither did.
+ * The Switch's thumb MOVES but paints only a background, so it moved Canvas on
+ * Canvas and the two states hashed identical; the Checkbox's tick is an SVG
+ * `stroke`, which Chromium does NOT force, so it stayed near-black on a black
+ * Canvas. Each now carries its own `forced-colors:` treatment.
  *
  * `border-4` on a `size-2` box is a SOLID disc, not a ring: the box is 8px,
  * `border-box` sizing is the preflight default, and 4px of border on every side
@@ -166,8 +171,8 @@ const circleClass =
  * in the user's own ink. It is scoped to `forced-colors:` because the normal
  * drawing must not move: outside that media query this string is byte-for-byte
  * what it was, which is what the consumer's measurement table and its e2e arm
- * are written against. `test/forced-colors-state.test.tsx` derives the invariant
- * over every part rather than listing this one.
+ * are written against. marquee-ui's `packages/ui/test/forced-colors-state.test.tsx`
+ * derives the invariant over every part rather than listing this one.
  */
 const indicatorClass =
   "pointer-events-none absolute size-2 rounded-full bg-primary-foreground opacity-0 group-has-checked/radio:opacity-100 forced-colors:border-4";

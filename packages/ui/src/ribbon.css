@@ -16,8 +16,8 @@
    ⚠️ This comment is not at the top of the file on purpose: `shadcn add` strips a
    LEADING comment block from a stylesheet as a banner, which would make the
    consumer's copy differ from the registry's content forever and turn a `shadcn
-   diff` drift check into a permanent false positive. `test/registry.test.ts`
-   holds that rule. */
+   diff` drift check into a permanent false positive. marquee-ui's
+   `packages/ui/test/registry.test.ts` holds that rule. */
 .mq-marquee {
   display: flex;
   width: max-content;
