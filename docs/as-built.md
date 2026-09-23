@@ -9410,7 +9410,7 @@ after layer 1's fixes at `85ba4e86` as `scan-run2-final.txt`; the differences ar
   `radio-group.tsx:169` (prose). **Scan 4**: one string, `aria-pressed="true"`, the compiled condition
   the anchors compare against; no role added or removed. **Scan 5**: no class string in `src/`.
 - **After layer 1** (`85ba4e86`): the names `CARRIES`, `INTERACTION`, `withoutNegations`,
-  `topLevelComma`, `carrierOf`, `withPlaced` and `siteNamed` are new and module-local (`CARRIES` also
+  `topLevelComma`, `carrierOf` and `withPlaced` are new and module-local (and `siteNamed`, present since `fddd2d70`, was missing from run 2's list) (`CARRIES` also
   hits `radio-group.tsx`'s docblock word "CARRIES" and its built `r/` copy, a collision);
   `NOT_HELD` and this file's `FORCED_BY_THE_MODE` are gone, so the constant again exists once, in
   `toggle-drawing.test.tsx`. Scan 4 now prints the five attribute strings the literal-selector anchors
