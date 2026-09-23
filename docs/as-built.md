@@ -8333,3 +8333,50 @@ docs-only commit after this run; the stream's report quotes a re-run at that fin
 No push, no tag, no `npm publish`, no PR: the freeze holds, and `packages/ui/package.json`'s version
 line is still `0.1.3`. `Textarea` is the 0.1.4 bump's, and reaches thepile only through a
 LIB-VENDOR-0.1.4 slice.
+
+## DESIGN-LIB-d-meter-toggle: `Input`'s merge arm, the `Progress` measurement, and the `Toggle` measurement (2026-09-23)
+
+Batch DL20, stream s2, on the library's `next` at `9dbb43c2` (**33 files / 578 tests**, re-measured at
+this base by `pnpm build && pnpm test` before anything moved: `Test Files 33 passed (33)`, `Tests 578
+passed (578)`, which is DL19's record). thepile is read-only throughout, at `0592d9af` (`next`, the DL19
+STATUS head plus its capture record, docs only), by `git -C … show 0592d9af:<path>`. Under the push
+freeze: LOCAL commits on `s/design-lib-d-meter-toggle`, no tag, no publish, and
+`packages/ui/package.json`'s version line is not this stream's (s1 moves it to `0.1.4` on its own
+branch and packs from `9dbb43c2` plus that line, so anything that ships here rides a later bump).
+
+Every Radix measurement below ran in a scratch package OUTSIDE this repository
+(`$BATCH_SCRATCH/s2/radix-probe/`: `@radix-ui/react-progress` 1.1.16, `@radix-ui/react-toggle`
+1.1.18, `react`/`react-dom` 19.3.0, `jsdom` 30.0.1), so neither dependency ever entered this
+package's manifest. Every reddening run ran in a DETACHED worktree of a committed head
+(`../marquee-ui-s2-mut`, `pnpm install --frozen-lockfile` + the tokens build, each mutation's diff
+confirmed before the run, the registry rebuilt after every source mutation so the "is stale" byte
+check cannot redden for the wrong reason, `git checkout -- .` after). Logs under `$BATCH_SCRATCH/s2/`.
+
+### 1. X1: `Input`'s own `className` merge, now observed
+
+DL19's layer 1 (r6, X1; decision 10 of the d-disclosure block) replaced `cn(inputClass, className)`
+with `cn(inputClass)` in `packages/ui/src/input.tsx` and the suite stayed green. **Re-measured here
+before writing anything**, at the base in the detached worktree with the registry rebuilt: `Test
+Files 33 passed (33)`, `Tests 578 passed (578)` (`mut-X1-base.log`). Every test that renders an
+`Input` renders it bare (`fidelity.test.tsx:224,341`, `form-wiring.test.tsx` fifteen times, the
+Form and Label stories), so a caller's class could be dropped, or could replace the field's string,
+and nothing said so.
+
+`packages/ui/test/input-merge.test.tsx` is the twin of `textarea-drawing.test.tsx`'s arm 5: an
+`<Input aria-label="Email" type="email" className="probe-caller">`, found by
+`getByRole("textbox", { name: "Email" })`, is an `INPUT` with `data-slot="input"`, its LAST class is
+the caller's, every class before it is `inputClass` in order, and `type` was spread. `input.tsx` does
+not move: the code was right and untested. A new file rather than a sixth arm in the textarea file,
+because the claim is `Input`'s and a reader looking for it opens `input-*`.
+
+Reddened in the detached worktree at the arm's commit `d099be10` (`mut-X1*.log`):
+
+| id  | mutation in `input.tsx`                         | red / GREEN                                       | the assertion that reddened                                                                                                                                                                                  |
+| --- | ----------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| X1a | `cn(inputClass)` (r6's X1, the caller dropped)  | **red**, 1 failed / 578 passed, the new arm alone | `the caller's class, last: expected 'focus:outline-none' to be 'probe-caller'`                                                                                                                               |
+| X1b | `cn(className)` (the caller REPLACES the field) | **red**, 9 failed                                 | the new arm's `the field's own string, intact: expected [] to deeply equal [ 'w-full', 'min-h-hit', …(10) ]`, beside `fidelity.test.tsx`'s two `input.field` arms and the 44px floor sweep (already guarded) |
+| X1c | `cn(className, inputClass)` (the order swapped) | **red**, 1 failed / 578 passed, the new arm alone | `the caller's class, last: expected 'focus:outline-none' to be 'probe-caller'`                                                                                                                               |
+| X1d | `data-slot="field"`                             | **red**, 6 failed                                 | the new arm's `expected 'field' to be 'input'`, beside `fidelity.test.tsx` and `label/Default` (already guarded)                                                                                             |
+
+X1a and X1c are the two the suite could not see before this file, and each reddens it and nothing
+else. The file is one test, so the suite at this commit is **34 files / 579 tests**.
