@@ -57,7 +57,7 @@ const uiPkg = JSON.parse(readFileSync(resolve(root, "packages/ui/package.json"),
 const uiDeps = uiPkg.dependencies;
 
 describe("registry.json", () => {
-  it("declares the twenty part families plus the one shared lib", () => {
+  it("declares the twenty-one part families plus the one shared lib", () => {
     // Anchor: every loop below is vacuous against an empty item list.
     expect(registry.items.map((item) => item.name).sort()).toEqual([
       "accordion",
@@ -80,8 +80,25 @@ describe("registry.json", () => {
       "switch",
       "textarea",
       "toast",
+      "toggle",
       "utils",
     ]);
+  });
+
+  it("types every item by where its files live: a part is registry:ui, the shared lib registry:lib", () => {
+    // Nothing read an item's `type` (DL20 layer 1, LOW-5: `toggle` retyped
+    // `registry:component` was GREEN), and a consumer's drift check counts the
+    // `registry:ui` items. Derived from each item's own file paths, not a list.
+    for (const item of registry.items) {
+      const lib = item.files.every((file) => file.path.startsWith("packages/ui/src/lib/"));
+      expect(item.type, item.name).toBe(lib ? "registry:lib" : "registry:ui");
+      for (const file of item.files)
+        expect(file.type, `${item.name}: ${file.path}`).toBe(item.type);
+    }
+    expect(
+      registry.items.filter((item) => item.type === "registry:lib").map((item) => item.name),
+      "the one shared lib",
+    ).toEqual(["utils"]);
   });
 
   it("points every file at a path that exists", () => {
@@ -149,7 +166,7 @@ describe("registry.json", () => {
         checked++;
       }
     }
-    expect(checked).toBe(22);
+    expect(checked).toBe(23);
   });
 
   it("declares exactly the registry dependencies its sources import", () => {
@@ -178,7 +195,7 @@ describe("registry.json", () => {
       derived += required.size;
     }
     // Anchor: the same total the count above holds, reached from the imports.
-    expect(derived).toBe(22);
+    expect(derived).toBe(23);
   });
 
   it("keeps no stylesheet's first token a comment", () => {
@@ -246,7 +263,7 @@ describe("the built registry in packages/ui/r", () => {
         compared++;
       }
     }
-    expect(compared).toBe(22);
+    expect(compared).toBe(23);
   });
 
   it("carries the title, description and both dependency lists into the item file", () => {

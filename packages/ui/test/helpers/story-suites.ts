@@ -21,6 +21,7 @@ import * as sheet from "../../stories/sheet.stories.js";
 import * as switchPart from "../../stories/switch.stories.js";
 import * as textarea from "../../stories/textarea.stories.js";
 import * as toast from "../../stories/toast.stories.js";
+import * as toggle from "../../stories/toggle.stories.js";
 
 /**
  * Every part's stories, in ONE map.
@@ -54,6 +55,7 @@ export const STORY_SUITES = {
   switch: switchPart,
   textarea,
   toast,
+  toggle,
 };
 
 /** The part names on disk, from the story files themselves. */
