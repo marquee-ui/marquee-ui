@@ -8701,3 +8701,124 @@ earlier record:
 `git grep -n -i -E '\btwenty\b'` over `packages`, `README.md` and `AGENTS.md` afterwards prints the
 seven `twenty-one`s above and one bare `twenty`, `tailwind-compile.test.tsx:551` ("It named twenty -
 every width…"), a count of CSS properties, not of families.
+
+### Decisions
+
+1. **X1's arm is a new file, `input-merge.test.tsx`**, not a sixth arm in the textarea file: the claim
+   is `Input`'s. `input.tsx` does not move.
+2. **No `Progress` family ships**, Radix or house. [V] Radix's root is a `progressbar` both product
+   sites refuse in their own comments; the demand site's cells are a positional MAP (list order, a
+   strict majority per bucket), which no `value`/`max` part can draw; and each of the tree's two
+   progress drawings has one site. Row 390's cell is the reconciler's (§2).
+3. **The composition's "no other progress drawing" was a grep for the ROLE** (class B, recorded in
+   §2): `Deal.tsx:222-228` is a progress bar that exists because it refused the role.
+4. **`Toggle` ships, drawing the like square.** [V] Twelve `aria-pressed` lines draw six pressed
+   states; the like square is the one a toggle owns that is hand-written twice (`LogForm`,
+   `GameActions`, byte for byte), and `Button` carries neither of its halves (measured against
+   `primary`, `secondary` and `ghost`). The audit's one named site, the Reorder pill (row 358), does
+   NOT take it: its border-and-ink swap on a text pill is one site's drawing.
+5. **The drawing reads `aria-pressed`; there is no `pressed` prop and no `cva` state axis.** [V] The
+   brief framed a pressed state as a visual axis for `cva` (D6); this package's own rule for a state
+   is `switch.tsx`'s - the drawing selects on the attribute a screen reader reads, so the two cannot
+   disagree - and eleven of the twelve product sites today choose their drawing with a ternary beside
+   the attribute. The one visual axis the consumers differ on, the box (44 against 46px), is the
+   caller's `className`.
+6. **Hover is scoped with `not-aria-pressed:`.** Measured in both Tailwind versions in play: a plain
+   `hover:` would leave the pressed-and-hovered border to source order (T1 is the red that says so).
+7. **Radix `Toggle` is refused and no dependency was added.** Measured: it keeps `data-state` from
+   its own state while spreading the caller's `aria-pressed`, so the product's controlled sites would
+   announce one state under a `data-state` drawing of the other; the uncontrolled state it adds is
+   used by none of the twelve.
+8. **The house disabled pair is on the part although neither consumer disables.** [V] A toggle that
+   cannot be pressed has to look it; the pair is `Button`'s and `Switch`'s spelling, and T16 was the
+   GREEN that made arm 6 observe it.
+9. **`aria-pressed` defaults to `false` and `type` to `button`**, `Switch`'s and `Button`'s defaults
+   for the same two reasons (a stateless toggle is announced as a plain button; an untyped button in a
+   form submits it).
+10. **The door tab is NOT a `Toggle` variant.** Four lines in three files hand-write it, but it is
+    `DoorTab`'s selected state on `aria-current` links too, and its `cut-10` is a product `@utility`
+    this library has no token for (`packages/tokens/src/**` is outside this fence). It waits for a
+    decision about the doors, not a toggle.
+11. **`fidelity.test.tsx:36`'s prose count moved** with the others (DL19 decision 7's precedent;
+    comment-only, "the counts where the package describes itself").
+
+### thepile inputs
+
+- **Arrival.** `Toggle` reaches thepile only through a **LIB-VENDOR-0.1.5** slice: s1 packs 0.1.4 this
+  batch from `9dbb43c2` plus its version line, so 0.1.4 carries `Textarea` alone (composition
+  (d)(2)). At 0.1.5 the shipped index has **22 items, 21 of them `registry:ui`** (read by `node` from
+  this head's `r/registry.json`), so thepile's drift test reddens at the bump itself exactly as it
+  does at 0.1.4 (its exact-complement arm sees `toggle` as a new non-consumed name, and its count
+  arm's word moves "twenty-one" → "twenty-two", which its `NUMBER` map needs), and its per-item
+  dependency map needs `toggle: []` (`r/toggle.json` declares no npm dependency; `registryDependencies`
+  is `@marquee/utils` alone). ⚠️ Replicated from the 0.1.4 composition's reading of that test, not run:
+  thepile is read-only here.
+- **The two sites**, both `"use client"`, both keeping their `data-testid`, `aria-label="Like"`,
+  `onClick` and `♥` child: `log/LogForm.tsx:635-644` becomes a `Toggle` with `aria-pressed={liked}`
+  and the box `h-11 w-11` as `className`; `status/GameActions.tsx:495-504` the same with
+  `h-[46px] w-[46px]` (or `size-[46px]`, one arbitrary value where there are two: the arbitrary-value
+  guard can only go down). Under thepile's plain-join `cn` nothing in the part's string conflicts
+  with a box class (`min-h-hit`/`min-w-hit` are not `h`/`w`), both parents are `flex` so `inline-grid`
+  blockifies to the `grid` they wear today, and the four states resolve to the same roles the two
+  ternaries draw (`border-line-strong` ≡ `border-border-strong` and the rest, `fidelity.test.tsx`'s
+  rename table; thepile's `globals.css` aliases each pair). The consumption slice reads the four
+  states on the BUILT page, which this package cannot.
+- **The instruments that name them**, read at `0592d9af`: `LogModal.test.tsx:271-290` (`getByRole
+("button", { name: /^like$/i })`, `aria-pressed` true/false), `GameActions.test.tsx:291-604`
+  (`getByTestId("like")`, `aria-pressed`), and the e2e `like` testid in `a11y.spec.ts:340`
+  (`expectTapTarget`), `focus.spec.ts:101` (`expectFocusRing`: the part declares no ring, so the
+  product's global outline still paints it), `feed.spec.ts:89-90`, `likes.spec.ts:106-107`,
+  `log-panel.spec.ts:43-50` and `profile.spec.ts:238-239`. None names a class.
+- **For the reconciler, from item 2**: row 390's `Progress` phrase and its why cell (§2's last
+  paragraph).
+- **For the reconciler, from item 3**: row 358's `Toggle` phrase becomes "no `Toggle` for the Reorder
+  pill (DL20: its border-and-ink swap is one site's drawing; the family draws the like square), stays
+  hand-written"; row 353 (`/game/[slug]`, which names `GameActions` and `LogForm`) gains "`Toggle` for
+  the two like squares at the 0.1.5 bump (marquee-ui `docs/as-built.md` "3. The `Toggle`
+  measurement")".
+
+### Consumers
+
+**Run 1, before any code** (`$BATCH_SCRATCH/s2/scan-run1.txt`): the scan script against an EMPTY
+diff, zero names by construction, recorded as what it is. The enumeration that did the work was by
+hand over the surface this slice was going to touch (`scan-run1-byhand.txt`): `Input` is rendered
+bare by `fidelity.test.tsx:224,341`, `form-wiring.test.tsx` (fifteen times) and the Form and Label
+stories, and read by name by `textarea.tsx`'s docblock and `tailwind-compile.test.tsx:515,541`;
+`inputClass` by `index.ts`, `textarea.tsx:37`, `fidelity.test.tsx:19,342`,
+`tailwind-compile.test.tsx:12,543`, `focus-outline.test.tsx:317-318` (prose) and the fixture
+extractor (`checkbox.tsx:96` and `radio-group.tsx:142` declare their OWN module-local `inputClass`, a
+name collision); `data-slot="input"` by nothing; no file in `packages/` named `progress`, `meter`,
+`progressbar` or `aria-pressed` (the `toggle` hits are eight prose words and one local variable,
+`choice-drawing.test.tsx:152`, and the three `meter` hits are the word `parameter`); the count word `twenty` in `AGENTS.md:51`, `README.md:19,24`,
+`package.json:4`, `fidelity.test.tsx:36`, `registry.test.ts:60`, `stories.test.tsx:97`, and
+`tailwind-compile.test.tsx:551` (a count of CSS properties).
+
+**Run 2, at the commit point** (diff `9dbb43c2...db9bc129`, `scan-run2.txt`):
+
+- **Scan 1, exported symbols: five names.** `Toggle` and `toggleClass` are NEW; their readers are
+  `index.ts`, the story, the drawing test, `registry.json` and `README.md`'s prose list, plus the
+  built `r/registry.json` and `r/toggle.json`. `Default`, `Disabled` and `Pressed` are new STORY
+  exports: `Pressed`'s only readers are its own story file and the drawing test; `Default` and
+  `Disabled` hit every other family's own stories and the drawing and compile tests that compose
+  THEM, plus `button.tsx:84`'s comment word - name collisions, consumed only through
+  `story-suites.ts`.
+- **Scan 3, files naming a touched path: sixteen, all read.** The compulsory ones, each moved or run
+  above: `source-files.ts` and its three readers (`source-coverage`, `brand-guard`, `literal-guard`:
+  T14), `story-suites.ts`, `stories.test.tsx` and `tailwind-compile.test.tsx` (T12, T8),
+  `entry-point.test.ts` (T13), `registry.test.ts` (T17, T19), `client-boundary.test.ts` (walks every
+  part file; `toggle.tsx` has no hook and no directive and passed), the drawing test, `registry.json`.
+  Collisions: `packages/tokens/package.json` and `packages/ui/package.json` (their own `index.ts`
+  exports), `checks.test.ts` (`../src/checks/index.js`, the stem `index`) and
+  `project-coverage.test.ts` (imports `repoRoot` from `source-files.js`, not the lists).
+- **Scan 4, role and aria strings**: the diff adds `aria-pressed` to a `<button>` - role `button`,
+  now with a pressed state - and `aria-label`s `Email`, `Favourite` and `Probe` (test and story
+  props). Every `getByRole("button", …)` in `packages/` (`scan-run2.txt`, scan 4c) resolves by an
+  accessible name inside its OWN story or test, and no story renders another family's toggle; the 44px
+  sweep's `button` selector now measures the three toggle stories and passes.
+- **Scan 5, class strings**: one new literal, `toggleClass`; pinned by no test or JSON outside the
+  built `r/toggle.json` (scan 5b). No existing class string changed.
+- **CROSS: 0** consumers inside a sibling's fence. s1 writes this repository too, and the composition
+  already names the two TEXTUAL adjacencies this diff has with it: `packages/ui/package.json` line 4
+  (this stream's DESCRIPTION) beside line 3 (s1's version), and the tail of `docs/as-built.md`. Neither
+  is a consumer of the other's behaviour. **UNOWNED: 0.** **NEW between the two runs: 5** - `Toggle`,
+  `toggleClass` and the three story exports, all this stream's own.
