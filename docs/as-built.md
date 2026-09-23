@@ -10543,3 +10543,479 @@ moves `r/`, with the next bump); `asChild` on `Card` (thepile's DESIGN-LIB-f-hom
 root is a `div` with `role="article"` because the part cannot render an `<article>`; measured against its consumers
 before built, DL23 layer 2 LOW-4); and the radio's missing forced-colours backstop above (LOW-3), a thepile spec arm
 under `ReportSheet` or a nesting model here, whichever the guard's next owner takes first.
+
+## DESIGN-LIB-d-measure-2: the parent case measured, and `asChild` on `Card` measured (2026-09-24, batch DL24)
+
+Batch DL24, stream s1, branch `s/design-lib-d-measure-2` from `next` @ `3ecf4ee`. thepile is read-only
+throughout, at `86ed7e82` by `git -C … show` (the composition is `docs/slices/DESIGN-LIB.md` "## Batch
+DL24", paragraph (b), the "Shared surfaces" paragraph and the s1 row). Under the push freeze: LOCAL
+commits, no tag, no publish, no PR, **no bump**. Two measurements and no `src/` edit: the diff is ONE
+comment paragraph in `packages/ui/test/forced-colors-state.test.tsx`'s header plus a one-line cross-reference in
+its `HIDES` docblock (`927d10e`; layer 1's MED-1 and LOW-1 re-worded it in the fix commit), and this section. `git diff --stat 3ecf4ee HEAD -- packages/ui/src
+packages/ui/r packages/ui/package.json packages/tokens packages/ui/test/fixtures` prints nothing.
+
+Every mutation ran in a DETACHED worktree (`../marquee-ui-measure2-probe`, at `3ecf4ee`, then moved to
+`927d10e`) through a driver (`$BATCH_SCRATCH/s1/muts/mut.py`, DL23 r5's with the paths moved). The driver asserts each
+find matched once, confirms the marker LANDED by `grep -n -F`, runs the guard pair from the REPO ROOT,
+restores `packages/ui/src` and `packages/ui/test`, and checks the tree clean. The browser half is DL23 r5's probe,
+copied to `$BATCH_SCRATCH/s1/fc-probe/`: `sheet.mjs` compiles the guard's own fixture from the mutated tree,
+and `probe.mjs` renders the four controls in their canonical composition in headless Chromium, `forcedColors:
+active` in the dark and light palettes, hashing each state. The two jsdom readers
+(`$BATCH_SCRATCH/s1/probe/zz-probe-hostset.test.tsx`, `zz-probe-chains.test.tsx`) ran in that detached
+worktree only, and were deleted from it before any mutation.
+
+**The base, re-measured**: `pnpm verify` at `3ecf4ee` exit **0**, `Test Files 35 passed (35)`, `Tests 601
+passed (601)` (`verify-base.log`). The composition's 35 / 601 holds. The compiled sheet is 38,565 B, and
+the probe reads DL22's and DL23's head hashes on it (unchecked / checked). Dark: the Switch
+`963127a43230` / `5a30855383e7`, the Checkbox `bdba4ef6f633` / `05c7acf4ad4e`, the radio `0fe122007dc4` /
+`41e5c3baae53`. Light: `6bebee142685` / `abe41061a7a3`, `abea2574db20` / `68870eef994e`, `c08f11a6b4d2` /
+`f1ed06976ec0`.
+
+**The branch: LIMIT, said before a line was written.** (1) No shipped part nests a carrier under an ancestor
+with its own forced-colors, opacity, visibility, colour or scale treatment, nor under a descendant rule. The
+chain table below reads every ancestor from the source and from a render, against the compiled sheet. The
+sheet's one `@media (forced-colors: active)` block holds four rules, each on a carrier itself. (2) The nesting
+cannot be read mechanically from the sources or the fixtures. Each of the four parts with a carrier renders ONE
+host element and none of them renders another part, so the chain from a root to its carrier exists only in the
+consumer's JSX, and in the library's own stories and docblocks, which are examples of it. (Other families do render
+parts: `SheetContent` renders `SheetPortal` and `SheetOverlay`, `FormLabel` renders `Label`, and `AccordionTrigger`
+wraps its trigger in a header; layer 1 MED-1.) `test/fixtures/**` is CSS and class JSON with
+no DOM. The one mechanical reading is a render of the stories, which certifies the library's example
+compositions rather than a shipped byte. It is costed below as the alternative, for Ankit.
+
+### What was measured
+
+- **The guard's host set, derived by the guard** (a copy of the file with one `it` that dumps
+  `revealedSites()`, `colourOnlySites()` and `classify(site)`, `probe/hostset.json`): FOUR part files,
+  `switch.tsx`, `checkbox.tsx`, `radio-group.tsx` and `toggle.tsx`. They hold five colour-only state
+  sites: the Switch's track under `group-aria-checked/switch` and under `group-has-checked/switch`, the
+  box, the circle, and the pressed square. There are two revealed sites, the tick and the dot. Four
+  carriers reach the mode: the thumb (a sibling that moves), the tick and the dot (siblings that are
+  revealed), and the toggle itself (its own `forced-colors:aria-pressed:border-4`). ⚠️ **`accordion.tsx` is not
+  in the set** (class B: the composition named five files). No literal of it carries a held-state variant:
+  Radix writes `data-state` on the item and the trigger, and no class reads it. So the guard walks every
+  `src/*.tsx` (`forced-colors-state.test.tsx:452` at the head; `:425` at the base, `:449` at `927d10e`) and finds sites in four.
+- **The compiled sheet's forced block** (the same compile): ONE `@media (forced-colors: active)` block, four
+  rules, each on a carrier. `.forced-colors\:border-4` is the dot's, `.forced-colors\:border-8` the thumb's,
+  `.forced-colors\:stroke-current` the tick's, and
+  `.forced-colors\:aria-pressed\:border-4[aria-pressed="true"]` the toggle's own. The sheet declares no
+  `forced-color-adjust` anywhere, and neither `src` nor `stories` spells an `[&_…]` or a `*:` variant.
+- **The source read** (the JSX): each of the four host-set parts renders ONE host element. `Switch` renders `button[role=switch]`
+  or, through `asChild`, the consumer's element with the part's classes merged. `SwitchTrack` and
+  `SwitchThumb` render a `span` each. `Checkbox` renders a `label` and `CheckboxBox` a `span`.
+  `CheckboxIndicator` renders an `svg`, whose default `<path>` is the one child any of the four renders.
+  `RadioGroup` renders a `div` or, through `asChild`, the consumer's element; either way it carries NO class of
+  its own (`className={className}`, `radio-group.tsx:238`). `RadioGroupItem` renders a `label`, and
+  `RadioGroupCircle` and `RadioGroupIndicator` a `span` each. `Toggle` renders a `button`. None of the four renders another part
+  (other families do, above: the Sheet row of the table reads the two that sit above the one shipped radio). The nesting is
+  written in docblocks (`switch.tsx:169`, "The thumb goes inside it, in either host"; `checkbox.tsx:20-24` and
+  `:194`; `radio-group.tsx:32-38` and `:294`) and in the stories (`stories/switch.stories.tsx:12-17`, "both hosts
+  put the thumb inside the track").
+- **The render read** (`probe/chains.json`, `chains2.json`): every story in the 21 suites composed and rendered
+  in jsdom, **107** (`stories.test.tsx:70`'s count), which holds **73** carrier and site instances found by
+  `data-slot`. The instances are 9 thumbs and 9 tracks in 9 Switch stories, 8 ticks and 8 boxes in 7
+  Checkbox stories, 18 dots and 18 circles in 6 radio stories, and 3 toggles in 3 stories. No carrier renders
+  in another part's story. From each, `parentElement` was walked to `<body>`. Each ancestor's classes were
+  split into the part's own string and the story's, and each class was looked up in the compiled sheet for the
+  properties that hide, fade, recolour through inheritance or size out. The set read was `color`, `opacity`,
+  `visibility`, `display`, `scale` and `transform`, widths and heights, `forced-color-adjust`, `filter`,
+  `clip-path`, `overflow`, `stroke` and `fill`. The lookup also found every rule in which the class is NOT the
+  subject, i.e. a descendant rule. **No ancestor class other than the parts' three `group/…` markers is the non-subject of
+  any rule**: the markers, `group/checkbox`, `group/radio` and `group/switch`, are the only ancestor classes the
+  sheet names in a rule reaching a descendant (layer 1 LOW-3 corrected the first wording, which said none at all). All sixteen such rules are spelled on the DESCENDANT's own string
+  (`.group-has-checked\/checkbox\:opacity-100:is(:where(.group\/checkbox):has(:checked) *)` and its fifteen
+  siblings), which is the guard's own element-local read. They declare border and background colours, the
+  reveal's `opacity: 100%`, the thumb's `translate`, and a story's ring.
+
+### The chain table
+
+Every chain ends at testing-library's render container, a class-less `div`, omitted below. The stories' own
+wrappers above a part's root are listed in the render column (layer 1 LOW-2: the first edition left them out on 11
+of 38 carrier instances); none carries a class in the set. "Author" colour =
+a token's `var(…)`, which the mode forces (reverts to the ink): it is not a colour the mode keeps on its ground.
+
+| part · carrier                                                                                                                                | chain, root → carrier (source)                                                                                                                                                                                                                                                                                                                                       | render (stories)                                                                                                                                                                                                                                                                                                          | each ancestor's relevant declarations: the part's own · the story's                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | verdict                                                                |
+| --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `Switch` · the thumb, `SwitchThumb` `span` (`switch.tsx:181-183`, `thumbClass` `:91-92`)                                                      | `Switch` `button[role=switch]` (`:118-148`), or the consumer's `label` through `asChild` (`:130`, the part's classes merged onto it) → `SwitchTrack` `span` (`:170-172`) → `SwitchThumb`. The part owns all three elements; the CONSUMER writes the nesting                                                                                                          | 9 of 9: `span[switch-thumb] < span[switch-track] < button[switch]` ×6 (one inside its story's `form`), `< label[switch]` ×3 (one inside a `form`); the `form`s carry no class                                                                                                                                             | track (`trackClass`): `border-color` and `background-color` at rest and in both checked states (not inherited), `transition-colors`, `h-6 w-11`. Root (`switchClass`): `opacity: 50%` under `disabled:` and `has-disabled:`; `outline-*` and `box-shadow` under `focus-visible:` / `has-focus-visible:`; `display: inline-flex`. Story: `text-foreground` (author `color`), `border-2 border-border-strong`, width and spacing. Forced block: nothing on an ancestor (`forced-colors:border-8` is the thumb's)                                                                                                                                                 | none hides, fades to zero, inks in a system colour or scales the thumb |
+| `Checkbox` · the tick, `CheckboxIndicator` `svg` (`checkbox.tsx:215-231`, `indicatorClass` `:135-136`; its `<path>` inherits the stroke)      | `Checkbox` `label` (`:162-169`, `asChild` REFUSED) → `CheckboxBox` `span` (`:195-197`) → `CheckboxIndicator`. The part owns all three; the consumer writes the nesting                                                                                                                                                                                               | 8 of 8: `svg[checkbox-indicator] < span[checkbox-box] < label[checkbox]`, directly in the container ×5, inside a class-less `form` ×1, inside `TwoRows`' `div.flex.w-full.max-w-content.flex-col.gap-1.rounded-md.border-2.border-border.p-3` ×2 (layout and an author frame colour)                                      | box (`boxClass`): `border-color` and `background-color` at rest and under `group-has-checked/checkbox`, `display: grid`, `size-6`. Row (`rowClass`): `opacity: 50%` under `has-disabled:`; `outline-*` and `box-shadow` under `has-focus-visible:`; `display: inline-flex`. Story: `text-foreground` (author), `text-sm`, `w-full max-w-content justify-between`. Forced block: nothing on an ancestor (`forced-colors:stroke-current` is the tick's)                                                                                                                                                                                                          | none                                                                   |
+| `RadioGroup` · the dot, `RadioGroupIndicator` `span` (`radio-group.tsx:308-312`, `indicatorClass` `:177-178`)                                 | `RadioGroup` `div[role=radiogroup]` (`:217-243`, NO class of its own), or the consumer's `ul` / `fieldset` through `asChild` → [the consumer's own elements: `li` in `AsAList`] → `RadioGroupItem` `label` (`:248-251`, `asChild` REFUSED) → `RadioGroupCircle` `span` (`:295-297`) → `RadioGroupIndicator`                                                          | 18 of 18: `span[radio-group-indicator] < span[radio-group-circle] < label[radio-group-item] < div[radio-group]` ×15 (directly in the container ×9, inside `Keyboard`'s `div.flex.flex-col.gap-2` ×3, inside a class-less `form` ×3), `< label < li < ul[radio-group]` ×3 (`AsAList`, the `li` `flex items-stretch gap-1`) | circle (`circleClass`): `border-color` and `background-color` at rest and under `group-has-checked/radio`, `display: grid`, `size-6`. Item (`rowClass`): `opacity: 50%` under `has-disabled:`; focus `outline-*` and `box-shadow`; `display: inline-flex`. Story on the item: `text-foreground-2` and `has-checked:text-foreground` (author colours: the second changes WITH the state, and the mode reverts both to one ink), `border-2 border-border bg-surface has-checked:border-primary` (the item's own frame and fill, not inherited). Group and `li`: `flex` layout only. Forced block: nothing on an ancestor (`forced-colors:border-4` is the dot's) | none                                                                   |
+| `Toggle` · the toggle itself, `button` (`toggle.tsx:41-57`, `toggleClass` `:38-39`; its own `forced-colors:aria-pressed:border-4`)            | the part renders one `button`; every ancestor is the consumer's                                                                                                                                                                                                                                                                                                      | 3 of 3: `button[toggle]` directly in the container                                                                                                                                                                                                                                                                        | no part-owned ancestor exists; the stories add none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | none                                                                   |
+| (outside the host set; layer 1 MED-1) the library-owned ancestors of the one SHIPPED radio, thepile's `ReportSheet.tsx:105-201` at `86ed7e82` | `SheetContent` (`sheet.tsx:56-81`) renders `SheetPortal` > [`SheetOverlay`, `Dialog.Content`] → `SheetBody` `div` (`:117-128`) → the consumer's `div` → `RadioGroup asChild` `ul` → `li` → `RadioGroupItem` → `RadioGroupCircle` → the dot (`ReportSheet.tsx:165-166`). Here the LIBRARY owns two ancestors from another family, and the consumer writes the nesting | no library story nests a carrier inside another part: read from thepile's source, not rendered                                                                                                                                                                                                                            | `Dialog.Content`: `fixed z-50 flex … bg-overlay p-4 shadow-lg …`, an author ground with no `color`, opacity, visibility or scale. `SheetBody`: `flex`, `min-h-0`, `overflow-y-auto`, spacing. `SheetOverlay`'s `data-[state=closed]:opacity-0` is a SIBLING of the content, not an ancestor. All 21 part files' literals scanned for the set: no container part carries one (the hits are the carriers, the inputs, the disabled fades, the overlay and the grab handle's `md:hidden`, a leaf). Forced block: nothing                                                                                                                                          | none                                                                   |
+
+**The one ancestor declaration the parts ship in the set is `opacity: 50%`, under `disabled:` / `has-disabled:`,
+and it is not a hide.** R5 and R6 below put it on the Switch's root and on both rows under the mode, in both
+states. The guard stays GREEN, and Chromium draws the two states DIFFERENT, so the green is the right verdict.
+
+### The limit, and what it stands on
+
+**LIMIT, recorded in the test file's header** (`forced-colors-state.test.tsx:89-114`, comment-only; the `HIDES`
+docblock's "(… a REQUEST)" now points at it, `:356`). It names what the guard reads: one string's own
+declarations, placed through the sheet. It names what the guard cannot read: an inherited `visibility` or
+`color`, an ancestor's `opacity`, and a carrier's own `scale`, which the guard reads only as movement. It says
+why the limit stays (the chain is the consumer's), and which edit it will not catch.
+
+r5's five mutations were re-run as the premise, and four more, the parts' roots and rows, because the docblock
+names them. Line numbers are the base's; `src/` does not move, and the fix commit after `927d10e` moves no assertion
+(comments only, proved by layer 1's token comparison and again at the head, below). "Guard" is the pair's own summary line.
+"Chromium" is the probe on that mutated tree's compiled sheet, forced dark / forced light, unchecked hash
+= checked hash. Logs `muts/<id>-base.log`, `muts/<id>-head.log`, `fc-probe/<id>.log`.
+
+| id  | mutation                                                                                          | guard at `3ecf4ee` | guard at `927d10e` | Chromium                                                                                                                                                                |
+| --- | ------------------------------------------------------------------------------------------------- | ------------------ | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P11 | `switch.tsx:71` `trackClass` + `forced-colors:invisible`                                          | **GREEN** 2 / 17   | **GREEN** 2 / 17   | IDENTICAL, both hosts, `6a118a8dba8e` / `bfe8448551a5` (r5's hashes, reproduced)                                                                                        |
+| P17 | the track + `forced-colors:text-[Canvas]`                                                         | **GREEN** 2 / 17   | **GREEN** 2 / 17   | IDENTICAL, both hosts, `6a118a8dba8e` / `bfe8448551a5`                                                                                                                  |
+| P20 | `switch.tsx:92` `thumbClass` + `forced-colors:scale-0`                                            | **GREEN** 2 / 17   | **GREEN** 2 / 17   | IDENTICAL, both hosts, `aee70fc72f4e` / `005e818e4050` (DL21's defect hashes)                                                                                           |
+| P28 | `checkbox.tsx:120` `boxClass` AND `radio-group.tsx:149` `circleClass` + `forced-colors:invisible` | **GREEN** 2 / 17   | **GREEN** 2 / 17   | IDENTICAL, checkbox and radio, `6a118a8dba8e` / `bfe8448551a5`                                                                                                          |
+| P29 | the box AND the circle + `forced-colors:opacity-0`                                                | **GREEN** 2 / 17   | **GREEN** 2 / 17   | IDENTICAL, checkbox and radio, `6a118a8dba8e` / `bfe8448551a5`                                                                                                          |
+| R1  | `switch.tsx:67` `switchClass` (the root) + `forced-colors:invisible`                              | **GREEN** 2 / 17   | **GREEN** 2 / 17   | IDENTICAL, both hosts, `6a118a8dba8e` / `bfe8448551a5`                                                                                                                  |
+| R2  | `checkbox.tsx:87` AND `radio-group.tsx:136` `rowClass` + `forced-colors:invisible`                | **GREEN** 2 / 17   | **GREEN** 2 / 17   | IDENTICAL, checkbox and radio, `6a118a8dba8e` / `bfe8448551a5`                                                                                                          |
+| R3  | the Switch's root + `forced-colors:opacity-0`                                                     | **GREEN** 2 / 17   | **GREEN** 2 / 17   | IDENTICAL, both hosts, `6a118a8dba8e` / `bfe8448551a5`                                                                                                                  |
+| R4  | the two rows + `forced-colors:text-[Canvas]`                                                      | **GREEN** 2 / 17   | **GREEN** 2 / 17   | IDENTICAL, checkbox and radio, `6a118a8dba8e` / `bfe8448551a5`                                                                                                          |
+| R5  | the Switch's root + `forced-colors:opacity-50` (the disabled fade, in both states)                | GREEN 2 / 17       | GREEN 2 / 17       | DIFFERENT, `99f49263e352` / `ceb94dc2a57a` dark, `030ac915421c` / `87ba6560cb1a` light: the green is right                                                              |
+| R6  | the two rows + `forced-colors:opacity-50`                                                         | GREEN 2 / 17       | GREEN 2 / 17       | DIFFERENT, checkbox `e0524c2ea209` / `19bc8d4a46fe`, radio `3927b9a9f7d9` / `f753a6373ed2` dark; `34208b50faf8` / `50339d2ae18d`, `efd0f6f14553` / `ac9feba0a4ac` light |
+
+Nine edits the guard passes while Chromium draws one picture, and every one lands on a string whose ELEMENT
+the consumer places around a carrier (or, P20, on the carrier's own `scale`). No shipped part carries any of
+them (the table above). P20 is element-local, not a parent case, and it is the one closable without a
+nesting model (REQUEST 2). ⚠️ P28 and P29 pass the pair only because each edit is SYMMETRIC. The box alone or the
+circle alone reddens `choice-drawing.test.tsx:182` (`withoutRadius(box)` equal to `withoutRadius(circle)`, a
+token-equality geometry pin that reads no forced colour; layer 1's X2 and P28a), and a row alone stays green (R2a).
+That pin is not parent-case coverage.
+
+**The arm, costed, not built.** A mechanical reading exists in one place: the stories. An arm would
+compose every story of the four host-set parts in jsdom (as `stories.test.tsx` does), find each carrier,
+walk `parentElement` to the story root and read each ancestor's tokens through `placeAll`. It would also
+need an INHERITANCE model, three rules that the element-local reads never needed:
+
+- `visibility: hidden` inherits until a descendant declares `visible`;
+- `color` is the NEAREST declared ancestor's;
+- `opacity` multiplies, and `display: none` removes the subtree.
+
+It would read `scale` as a hide on the carrier. What it would certify is the library's example compositions:
+the nesting as the stories draw it, not any consumer's, and no story nests a carrier inside another part, so it
+would not reach the one shipped radio's library-owned ancestors (`SheetContent`, `SheetBody`; layer 1 MED-1) either. That is about a hundred lines, a jsdom render inside
+a file that is pure over the sheet today, and nine mutations to redden. For the only defects no shipped part
+has.
+
+### `asChild` on `Card`, measured (a REQUEST, Ankit's [V])
+
+**The part.** `src/card.tsx` is 60 lines, 1,791 B: six parts, each one host element. `Card`, `CardHeader`,
+`CardContent` and `CardFooter` render a `div`, `CardTitle` an `h3` and `CardDescription` a `p`. There is no hook,
+no `"use client"`, no `asChild` and no refusal, unchanged since `e78d1b9`, the first ten parts. The shape to
+copy is `button.tsx:59-87`: `asChild` renders `Slot` from `@radix-ui/react-slot` (`packages/ui/package.json:27`,
+`^1.3.3`, already a runtime dependency) with `data-slot` kept and the caller's element rendered. Nine of the
+21 part files import `Slot` (alert, avatar, badge, breadcrumb, button, form, pagination, radio-group,
+switch), and `button.tsx`, `badge.tsx` and `alert.tsx` do it with no `"use client"`: `Slot` needs no client
+boundary. **The opposite decision** is `refuseAsChild` in `radio-group.tsx:180-187` and `checkbox.tsx:150-158`,
+and it rests on a content model. `RadioGroupItem` is a `<label>` because the label WRAPPING its input is what
+makes the 44px row the control and names it, and React drops an unknown prop silently, so it throws.
+`description-list.tsx` refuses for the `dl` content model, and `FormLabel` for the `for` it writes. A card has
+no such constraint: it is a generic container whose right element is the consumer's (`article`, `section`,
+`li`). So the refusal's reasoning does not reach it, and `Button`'s does. `AGENTS.md`'s rule 1 says every
+component is parts "with `asChild` / render-prop slots"; `Card` is the exception, and nothing records why.
+
+**Which parts would take it.** `Card` (the host element) and `CardTitle` (the heading level: it is a fixed
+`h3`, and `<CardTitle asChild><h2>` is the only way to another level). Neither is demanded beyond `Card` today:
+thepile's one site composes no `CardTitle`. `CardHeader`, `CardContent`, `CardFooter` and `CardDescription` have
+no measured demand for another element.
+
+**The consumers at the heads.**
+
+- **thepile at `86ed7e82`**: `git grep -ln 'from "@/components/ui/card"' -- apps/web/src` prints TWO files,
+  `components/home/ReviewCard.tsx` and `ReviewCard.test.tsx`. That is ONE site (the composition's count
+  holds). `ReviewCard.tsx:26-29` is `<Card role="article" className="relative w-71 …">`, a `div`, whose comment
+  (`:23-25`) says the part renders a `div`. Its render chain is server-only: `ReviewCard` ← `ReviewRail` ←
+  `PublicHome` ← `app/page.tsx` and `app/home/page.tsx`, none `"use client"`. The vendored
+  `components/ui/card.tsx` is byte-identical to the library's (`cmp`, 1,791 B).
+- **The library at `3ecf4ee`**: `src/index.ts:32` (the barrel), `stories/card.stories.tsx:4` (2 stories),
+  `test/fidelity.test.tsx:17` (pins five parts' class strings, `:623-633`), and
+  `test/client-boundary.test.ts:160-162`. That last one pins `reactRuntimeImports(read("card.tsx"))` as `[]`
+  and stays true with `Slot`, which is not a `react` import. Beyond those: `registry.json:122-135` (the item,
+  `registryDependencies: ["@marquee/utils"]`, no `dependencies`), `r/card.json` (2,330 B, one file, target
+  `components/ui/card.tsx`), `r/registry.json`, and `packages/tokens/test/helpers/source-files.ts:51`.
+
+**What `role="article"` already gives, and what it does not.** It gives the accessibility tree's `article`:
+`ReviewCard.test.tsx:64` `getAllByRole("article")` equals the Card parts, green on the `div` (DL23 layer 2
+decision 1). It does not give an `<article>` ELEMENT, i.e. a tag selector, `querySelectorAll("article")`, or
+a reader mode's heuristics. thepile's TAG readers at `86ed7e82` are five code lines in four files:
+`FeedItem.test.tsx:30` (its `article()` helper, 13 uses), `e2e/feed.spec.ts:275-276`
+(`article[data-shape=…]`), `e2e/relations.spec.ts:103` and `e2e/search.spec.ts:130`
+(`page.locator("article")` on `/game/*`). **None reaches the rail on `/` or `/home`**: FeedItem's own
+`<article>`, the feed's list and the game page's `<article>` are what they read. The ROLE readers: one,
+`ReviewCard.test.tsx:64`.
+
+**What building it moves.**
+
+- In the library: `src/card.tsx` (an import, a prop, a branch).
+- `registry.json`'s card item should gain `"dependencies": ["@radix-ui/react-slot@^1.3.3"]`, as the other eight
+  `Slot` importers' items declare, but NO test demands it. Layer 1 (MED-2) gave `Card` a `Slot` `asChild`, rebuilt
+  `r/` and left the item with no `dependencies`: `registry.test.ts` and `client-boundary.test.ts` went
+  `Tests 29 passed (29)`, the suite 35 / 601. `registry.test.ts:285` reads the PACKAGE's `dependencies`, and `:142` only
+  checks the versions an item already declares. So a BUILD-NOW stream adds it by hand (REQUEST 4). The counters
+  (`> 5` and `23` registry dependencies) do not move.
+- `r/card.json` and `r/registry.json` (`pnpm build:registry`).
+- A story (`DECLARED_STORIES` 107 → 108), and a test that the caller's element renders with `data-slot` kept.
+- `packages/ui/package.json` 0.1.6 → 0.1.7, and the pack. 0.1.7 would be the SEVENTH unpublished bump: npm
+  holds `0.1.0` alone (`npm view @marquee-ui/ui versions`), and the repository holds two tags, `ui@0.1.0` and
+  `tokens@0.1.0`. ⚠️ So 0.1.1 to 0.1.6 are PACK POINTS whose tags are owed after the freeze, not "tags with
+  no publish" as the brief says (class B).
+- In thepile: a LIB-VENDOR-0.1.7 stream (the vendored `card.tsx`, and optionally `ReviewCard`'s root as
+  `<Card asChild><article>` with `role` dropped). `ReviewCard.test.tsx:61` and `:64` would both stay green: `Slot`
+  keeps `data-slot`, and an `<article>` has the role.
+
+**What it costs the consumer.** On the one site, by the source read: NOTHING in client JS. `card.tsx` is imported
+only from a server-rendered chain, so a `Slot` inside it ships no bytes to `/` or `/home`. `Slot` is already in
+the chunks of `button.tsx`'s importers at the base: 24 files, 23 of which ship code (one is `form-styles.test.ts`;
+layer 1 LOW-5). The build read (`exact.mjs` over `/page`'s
+chunk) was SKIPPED, as the brief allows; the zero is a source reading, UNVERIFIED by a build.
+
+**The recommendation: DEFER to the next byte-moving bump.** The bump `radio-group.tsx:155-157`'s docblock fix
+already waits for; build it there, and no later than the first `Card` route whose host must be an element a
+reader selects by TAG. The numbers:
+
+- 1 consumer site; 0 tag readers on its routes; 1 role reader, green on the `div`; 0 client bytes.
+- Against that, building now costs one bump (the seventh unpublished), one pack and one LIB-VENDOR stream,
+  for no observable change in thepile.
+- Folded into the next bump, it costs the same library edit and nothing else.
+
+The trigger is measured, not guessed: the audit's `/feed` row prescribes `Card` for `FeedItem`, whose root is
+an `<article data-shape>` read by TAG in three code lines (`FeedItem.test.tsx:30` and its 13 uses,
+`feed.spec.ts:275`, `:276`). `/notifications`' row prescribes it for `NotificationRow`, also an `<article>`
+(`NotificationRow.tsx:21`), though no tag reader was found. Moving either onto a `div` rewrites working readers
+to fit the part, and `asChild` is the fix that does not. A `/game/*` `Card` rendered as an `<article>` would
+also turn `relations.spec.ts:103`'s and `search.spec.ts:130`'s `page.locator("article")` into a strict-mode
+violation. That is a consumer to name when that route is cut.
+
+### The radio backstop
+
+TAKEN by thepile's FOLLOWUPS-11 this batch (DL24, s3), and MEASURED RED. The following is thepile's verdict as the
+orchestrator relayed it, copied, not re-derived here. At thepile head `af59033e`, in a BUILT detached worktree with
+only `components/ui/radio-group.tsx:178`'s `indicatorClass` + ` forced-colors:hidden` changed (grep count 1; the
+built sheet's forced-colors block holds `.forced-colors\:hidden{display:none}`):
+
+- `playwright test e2e/forced-colors-controls.spec.ts --project=mobile-chromium --project=desktop-chromium` exit 1,
+  "2 failed / 10 passed (33.4s)".
+- The new arm `e2e/forced-colors-controls.spec.ts:430`, "/game/[slug]: the report sheet's guideline radio keeps
+  unchecked and checked apart under forced colors", is RED on both projects. Each reads
+  `- "dark": "the dot is drawn"` / `+ "dark": "0.0% of the pixels changed"`, and the same for light
+  (`/game/hades: the report sheet's rule 11 radio`).
+- Every existing Switch and Checkbox arm is green.
+- The margin at the head: the circle's picture changes 8.67% (52 px of 24x25) in both palettes, against the spec's
+  2% floor. A whole-row picture would read 0.37% (52 of 310x45), which is why the arm pictures the circle.
+
+So thepile's spec now backstops the Switch, the Checkbox AND the RadioGroup (the `ReportSheet`'s guideline radios)
+under forced colours: a hide reaching the radio's dot is seen downstream.
+
+What that verdict is, for this section: s3's mutation hides the DOT itself, the element-local case this guard already
+reddens (DL23's M6). The PARENT case on the vendored copy (P28, P29, R2 and R4) was not run there. Because the arm
+pictures the circle, an erased circle should also read `0.0% of the pixels changed`. A hidden row or root should fail
+earlier: `pictureOf` hit-tests `elementFromPoint` at the control's centre, and `elementFromPoint` skips a
+`visibility: hidden` box, so it should fail as "the control is covered" (layer 1 LOW-7). Both would be reds, but the
+message would not name the state. REASONED, not run: s3's or the reconciler's line if one is wanted.
+
+### Decisions
+
+1. **LIMIT, not ARM.** No shipped part gives a carrier's ancestor a hiding, fading-to-nothing, inking or scaling
+   treatment, and the nesting is in no source or fixture; the one mechanical reading, the stories, certifies
+   the library's examples at the cost of an inheritance model (costed above). The limit is written where the
+   next editor of a track, a box, a circle or a row will read it, with the nine edits it misses. [V]
+2. **`asChild` on `Card`: DEFER to the next byte-moving bump, and no later than the first `Card` route onto a
+   TAG-read `<article>`** (`FeedItem`, three reader lines at thepile `86ed7e82`). The numbers are in the section
+   above. [V]
+3. **The host set is the guard's derivation, quoted, not the composition's list**: four files; `accordion.tsx`
+   holds no held-state class.
+4. **The render read is the library's stories.** No other composition of the parts exists in this repository
+   (107 stories, 73 instances), and the source read says each of the four host-set parts renders one element, so
+   the stories and the docblocks ARE the library's statement of the nesting.
+5. **Four more mutations than the five** (R1-R4, the roots and the rows), because the docblock names them and
+   a docblock claim is a claim: each GREEN in the guard and IDENTICAL in Chromium. Two more (R5, R6) prove the
+   parts' one shipped ancestor declaration (`opacity: 50%` under disabled) harmless in Chromium rather than by
+   argument.
+6. **The `HIDES` docblock's "(… a REQUEST)" now points at the header's limit**, comment-only in the same
+   file. It was the one other sentence in the file stating the parent case's status.
+7. **P20 recorded inside the limit, and handed back** (REQUEST 2), though it is element-local: the brief's
+   LIMIT branch builds no arm, and a one-rule `HIDES` extension is an arm. [V]
+8. **The `asChild` cost's build read skipped** (the brief's option): the source read gives 0 client bytes, and
+   a build would measure a chain no client module imports.
+9. **Layer 1's findings are answered in this section's body, not only below.** MED-1 scoped "no part renders
+   another part" to the four host-set parts and added the Sheet row. MED-2 corrected the registry claim, MED-3
+   upgraded finding 3 to PROVED and named its shipped docblock twin, and the seven LOWs are fixed where they sit.
+   The docblock took MED-1 and LOW-1 in the same comment-only file.
+
+### REQUESTs and findings (to the orchestrator)
+
+1. **REQUEST [V], `asChild` on `Card`**: DEFER (decision 2). If Ankit says BUILD NOW, the change is
+   `src/card.tsx` (`Card`, and `CardTitle` if a heading level is wanted), the card item's `dependencies`,
+   `r/`, a story and a test, then 0.1.7 and a LIB-VENDOR stream. Fold in `radio-group.tsx:155-157`'s
+   docblock sentence, which moves `r/radio-group.json` and is waiting for the same bump.
+2. **REQUEST, for this test file's next owner (test-only, no bump): a carrier scaled to nothing.** `HIDES`
+   reads `display`, `visibility` and `opacity`. A winning `scale` of zero (Tailwind writes it through
+   `--tw-scale-x` / `--tw-scale-y`, `0%`) is a fourth hide on the carrier itself. P20 is the mutation to
+   redden, and a thumb at `scale-50` (not a hide) is the green twin it would need, both still to be run. Not built here (decision 7).
+3. **Finding, PROVED by layer 1 in Chromium (outside this fence): a colour-only checked face, in a story AND in a
+   SHIPPED docblock.**
+   - `stories/radio-group.stories.tsx:175` (`NoDrawing`, the face grid) draws its checked face in
+     `group-has-checked/radio:border-primary` and a ring. r5 rendered the story's exact item on the guard's own
+     sheet: forced dark `a91ba4b6adf5` = `a91ba4b6adf5`, forced light `9d2d5b0a228a` = `9d2d5b0a228a`, IDENTICAL.
+     Served dark differs, `60a1c21f6f7a` / `9a51629f362d`. The border's author colour reverts to one ink in both
+     states, and the ring's `box-shadow` is dropped.
+   - Its shipped twin, which this section's first edition missed: `src/radio-group.tsx:40-43` RECOMMENDS the
+     pattern ("its selected state is whatever the caller puts on a sibling: `group-has-checked/radio:ring-2` on an
+     avatar, a border on the row"). The same words ship in `r/radio-group.json` and in thepile's vendored copy
+     (`components/ui/radio-group.tsx:42`).
+   - The guard walks the parts' literals, and neither is one.
+   - A REQUEST for the next `src/` owner, with the `:155-157` sentence and the same bump: the docblock should name
+     a selected state the mode keeps (a width, an outline, a `forced-colors:` treatment), and the story should draw
+     one.
+   - CROSS for thepile (REASONED, not run): `components/profile/FacePicker.tsx:344` draws its selected face as
+     `border-accent ring-2 ring-accent …` against `border-line-strong`. It is a `button` rather than a radio, but
+     the shape is the same.
+4. **REQUEST, for the registry's next owner (test-only): derive each item's `dependencies` from its source's bare
+   imports** (layer 1 MED-2). Today an item that imports `@radix-ui/react-slot` and declares nothing is green, and a
+   `shadcn add` consumer without the package gets an import that does not resolve. Eight items declare it by
+   convention, and nothing enforces the convention.
+5. **Class B corrections to the brief and the composition**:
+   - the host set is four files, not five (`accordion.tsx`);
+   - 0.1.1 to 0.1.6 are untagged pack points, not tags (npm holds `0.1.0` alone; the repository holds two
+     tags);
+   - the walk's citation `forced-colors-state.test.tsx:425` is `:452` at the head (`:449` at `927d10e`; the composition's
+     `DESIGN-LIB.md:5461` cites `:425`: a CROSS, below).
+
+### Consumers
+
+**Run 1, before any code** (`scan-run1.txt`, at `3ecf4ee`, an empty diff), in the library's form:
+
+- (a) The files naming `forced-colors-state` in `packages`: `src/radio-group.tsx:174` (a citation of the
+  path, no line), its copy in `r/radio-group.json`, and `test/choice-drawing.test.tsx:194` (a comment).
+  `docs/as-built.md` names it on 72 lines. The file exports nothing, and no fixture is its alone: the compiled
+  sheet's fixture `test/fixtures/compile.css` is shared, and untouched.
+- (b) `forced-colors-state.test.tsx:<line>` citations in `docs` and `src`: none.
+- (c) thepile at `86ed7e82`: `apps/web/src/components/ui/radio-group.tsx:174` (the vendored citation, no line),
+  `docs/08-agent-failures.md:405`, `docs/slices/DESIGN-LIB-f-report-radio.md:411`,
+  `docs/slices/LIB-VENDOR-0.1.3.md:41`, and 20 lines of `docs/slices/DESIGN-LIB.md`. Two of those carry a line:
+  `:4879` (`:303-311`, DL22's historical sha) and `:5461` (this batch's composition, `:425`). The scan's paths
+  (`docs apps`) missed the root: `STATUS.md:377` and `:8444` name the file too, with no line (layer 1 LOW-4).
+
+**Run 2, at the commit point** (`scan-run2.txt`, `3ecf4ee...927d10e`):
+
+- Diff names: `packages/ui/test/forced-colors-state.test.tsx` alone.
+- Scan 1, exported symbols: none. Scan 4, role and aria strings: none. Scan 3, non-test files touched: none.
+  Class strings: none added outside a comment. The comment's utilities (`forced-colors:invisible`,
+  `text-[Canvas]`, `opacity-0`, `scale-0`) compile nothing: `source(none)` reads `src` and `stories` only.
+- (a) and (b) print what run 1 printed. The docblock added 24 lines above the walk at `927d10e`, and layer 1's
+  scoping 3 more, so every line citation of this file after `:88` moved by 27 (the walk `:425` → `:452`). No citation of one exists in `docs` or `src` (scan (b)). The historical
+  `docs/as-built.md:8996` (`:157-172`, at LIB-0.1.6's sha) is a dated record, not moved by this.
+- **CROSS: 1**, thepile `docs/slices/DESIGN-LIB.md:5461` (`:425` → `:452`; owner: the orchestrator's
+  composition, a record, never edited here). **UNOWNED: 0. NEW between the runs: none.**
+- `git diff --stat 3ecf4ee HEAD -- packages/ui/src packages/ui/r packages/ui/package.json packages/tokens
+packages/ui/test/fixtures` prints nothing.
+
+**Run 2b, at layer 1's fix commit** (`scan-run2b.txt`, `3ecf4ee...4f49138`; the commit was then amended to add
+this block, and the amend moved `docs/as-built.md` alone, so the test file read here is the head's):
+
+- Diff names: the test file and this document.
+- Scans 1, 2, 3 and 4 print nothing, and the fence `git diff --stat` prints nothing.
+- (a) is run 1's three names. (b) now also finds this section's own four citations of the file, each correct at
+  the head: `:452`, `:89-114`, `:425` read as the base's, and the `<line>` placeholder.
+- (c), widened to thepile's whole tree (layer 1 LOW-4), adds `STATUS.md:377` and `:8444` and nothing else.
+- The test file is comments-only at the head too: the TypeScript scanner's comment-stripped token stream reads
+  3,787 tokens at `3ecf4ee` and at `4f49138`, 0 differing, sha256 `89f5c92a7a86…` both
+  (`comment-only-head.txt`), which is r5's hash.
+- **NEW since run 2: none. CROSS: 1. UNOWNED: 0.**
+
+### For the consumer (LIB-VENDOR)
+
+**NO byte of any copy moves and NO bump is needed, so thepile has nothing to vendor.** The diff is one test
+file's comments and this document. The tarball carries no test (`files: ["r", "src"]`), and
+`packages/ui/package.json` is still `0.1.6`. So the pack point stays `ed6a393`, and the tarball stays
+`marquee-ui-ui-0.1.6.tgz`, 109,699 B. For thepile to know (class J, recorded here, not edited there): its
+forced-colours spec is the ONLY instrument either repository has for the parent case, drawing pictures of the
+vendored parts. The radio joined it this batch (FOLLOWUPS-11, RED on a hidden dot at thepile `af59033e`, the
+radio backstop above). `asChild` on `Card` is a [V] above; if built, it is a 0.1.7 LIB-VENDOR stream.
+
+### The gate
+
+`pnpm verify` exit **0** at `3ecf4ee` (the base) and at `927d10e` (the docblock), each `Test Files 35 passed
+(35)` / `Tests 601 passed (601)` with the tree clean after (`verify-base.log`, `verify-927d10e.log` and their
+`.exit` files, in `$BATCH_SCRATCH/s1/`). `66e2928` (this section) is docs-only, and layer 1 ran the full suite
+there: 35 / 601. The docblock adds no test, so the suite is 35 / 601 at every commit. Layer 1's fixes (the
+docblock's scoping, this section's corrections and the block below) land in ONE commit on top, and that head's
+own `pnpm verify` (`verify-head.log`) is the stream's one gate and its report line.
+
+No push, no tag, no `npm publish`, no PR: the freeze holds.
+
+## Layer 1 (reviewer, detached worktree of 66e29286589a429c657acfdd1f6641de7cc71670, slot r5, marquee-ui, no database)
+
+**0 HIGH, 3 MED, 7 LOW**, as a SECOND READER (the LIMIT branch moved no assertion). r5 built its own detached
+worktree and derived the host set, the chain table and the render from the guard's own functions and a jsdom
+render of its own. It proved the test file's diff comment-only (the TypeScript scanner's comment-stripped token
+stream: 3,787 tokens at `3ecf4ee` and at `66e2928`, 0 differing positions, one sha256). It re-ran the mutations
+through its own driver, each find matched once and its marker grepped, the pair run from the repo root, restored and
+checked clean. Its Chromium column is this stream's probe pointed at its worktree. Its baselines at `66e2928` were
+the pair `Test Files 2 passed (2)` / `Tests 17 passed (17)` and the suite `Test Files 35 passed (35)` / `Tests 601
+passed (601)`. Every verdict in its own chain table agrees with this section's. Its full report is
+`$BATCH_SCRATCH/r5/report.md`. The table is its own, verbatim ("expected (LIMIT)" is its reading of a parent-case
+GREEN):
+
+| file                                       | test                                                           | mutation applied                                                                                                     | red / GREEN                                                                                                                                                               | what it asserts now                                                                                                               |
+| ------------------------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `forced-colors-state.test.tsx`             | whole file                                                     | none: comment-stripped token stream `3ecf4ee` vs `66e2928`                                                           | n/a (identical, 3787 tokens)                                                                                                                                              | the diff is comments only; no collapse subject                                                                                    |
+| `switch.tsx:71` (track)                    | guard pair                                                     | **P11** `+ forced-colors:invisible`                                                                                  | **GREEN** 17/17, expected (LIMIT)                                                                                                                                         | Chromium IDENTICAL both hosts `6a118a8dba8e` / `bfe8448551a5` = stream's                                                          |
+| `switch.tsx:71` (track)                    | guard pair                                                     | **P17** `+ forced-colors:text-[Canvas]`                                                                              | **GREEN** 17/17, expected                                                                                                                                                 | Chromium IDENTICAL both hosts, same hashes = stream's                                                                             |
+| `switch.tsx:92` (thumb)                    | guard pair                                                     | **P20** `+ forced-colors:scale-0`                                                                                    | **GREEN** 17/17, expected (element-local, REQUEST 2)                                                                                                                      | Chromium IDENTICAL `aee70fc72f4e` / `005e818e4050` = stream's                                                                     |
+| `checkbox.tsx:120` + `radio-group.tsx:149` | guard pair                                                     | **P28** box AND circle `+ forced-colors:invisible`                                                                   | **GREEN** 17/17, expected                                                                                                                                                 | Chromium IDENTICAL checkbox + radio, `6a118a8dba8e` / `bfe8448551a5` = stream's                                                   |
+| `checkbox.tsx:120` + `radio-group.tsx:149` | guard pair                                                     | **P29** box AND circle `+ forced-colors:opacity-0`                                                                   | **GREEN** 17/17, expected                                                                                                                                                 | Chromium IDENTICAL, same = stream's                                                                                               |
+| `switch.tsx:67` (root)                     | guard pair                                                     | **R1** `+ forced-colors:invisible`                                                                                   | **GREEN** 17/17, expected                                                                                                                                                 | Chromium IDENTICAL both hosts = stream's                                                                                          |
+| `checkbox.tsx:87` + `radio-group.tsx:136`  | guard pair                                                     | **R2** rows `+ forced-colors:invisible`                                                                              | **GREEN** 17/17, expected                                                                                                                                                 | Chromium IDENTICAL checkbox + radio = stream's                                                                                    |
+| `switch.tsx:67`                            | guard pair                                                     | **R3** `+ forced-colors:opacity-0`                                                                                   | **GREEN** 17/17, expected                                                                                                                                                 | Chromium IDENTICAL = stream's                                                                                                     |
+| `checkbox.tsx:87` + `radio-group.tsx:136`  | guard pair                                                     | **R4** rows `+ forced-colors:text-[Canvas]`                                                                          | **GREEN** 17/17, expected                                                                                                                                                 | Chromium IDENTICAL = stream's                                                                                                     |
+| `switch.tsx:67`                            | guard pair                                                     | **R5** `+ forced-colors:opacity-50`                                                                                  | GREEN 17/17, and RIGHT                                                                                                                                                    | Chromium DIFFERENT `99f49263e352`/`ceb94dc2a57a` dark, `030ac915421c`/`87ba6560cb1a` light = stream's                             |
+| `checkbox.tsx:87` + `radio-group.tsx:136`  | guard pair                                                     | **R6** rows `+ forced-colors:opacity-50`                                                                             | GREEN 17/17, and RIGHT                                                                                                                                                    | Chromium DIFFERENT, all four hash pairs = stream's                                                                                |
+| `switch.tsx:71` (track)                    | guard pair                                                     | **X1** (mine) `+ forced-colors:hidden` - the docblock's `hidden`, not in the nine                                    | **GREEN** 17/17, expected                                                                                                                                                 | Chromium IDENTICAL both hosts `6a118a8dba8e` / `bfe8448551a5`: the docblock's `hidden` claim holds                                |
+| `radio-group.tsx:149` (circle ALONE)       | guard pair                                                     | **X2** (mine) `+ forced-colors:text-[Canvas]`                                                                        | red 1/17, but in `choice-drawing.test.tsx:182` ("draws one control in two shapes", `withoutRadius(box)` toEqual `withoutRadius(circle)`); `forced-colors-state` all green | a token-equality geometry pin, not a forced-colours read (LOW-6); Chromium radio IDENTICAL                                        |
+| `checkbox.tsx:120` (box ALONE)             | guard pair                                                     | **P28a** (mine) `+ forced-colors:invisible`                                                                          | red 1/17, same `choice-drawing:182` pin only                                                                                                                              | as X2; Chromium checkbox IDENTICAL                                                                                                |
+| `checkbox.tsx:87` (row ALONE)              | guard pair                                                     | **R2a** (mine) `+ forced-colors:invisible`                                                                           | **GREEN** 17/17                                                                                                                                                           | no row-equality pin exists; Chromium IDENTICAL                                                                                    |
+| `switch.tsx:92` (thumb ITSELF)             | guard pair                                                     | **C1** control `+ forced-colors:invisible`                                                                           | **red** 3 failed: "group-aria-checked/switch: the moving thumb paints nothing the mode keeps" (right red)                                                                 | the element-local twin IS caught; Chromium IDENTICAL                                                                              |
+| `radio-group.tsx:178` (dot ITSELF)         | guard pair                                                     | **C2** control `+ forced-colors:invisible`                                                                           | **red** 3 failed (revealed-element arm + state arm + carriers pin)                                                                                                        | the element-local twin IS caught; Chromium radio IDENTICAL                                                                        |
+| `card.tsx` + `r/card.json`                 | `registry.test.ts`, `client-boundary.test.ts`, then full suite | Card `asChild` through `Slot` (import added), `pnpm build:registry` rerun, registry item left with NO `dependencies` | **GREEN** 29/29, full suite 35/601                                                                                                                                        | nothing demands the per-item `@radix-ui/react-slot` dependency (MED-2)                                                            |
+| `stories/radio-group.stories.tsx:175`      | (no test; measurement)                                         | NoDrawing face tile, checked vs unchecked, Chromium                                                                  | n/a                                                                                                                                                                       | forced dark `a91ba4b6adf5` = `a91ba4b6adf5`, forced light `9d2d5b0a228a` = `9d2d5b0a228a`: IDENTICAL; served dark differs (MED-3) |
+
+**Every GREEN row, answered:**
+
+- **P11, P17, P20, P28, P29, R1-R4, and r5's X1 (the track `+ forced-colors:hidden`) and R2a (the checkbox row
+  alone)**: GREEN BY DESIGN, and that is the LIMIT. Each is named by the docblock (`:89-114`) and the limit table.
+  The class list of the docblock's last sentence was checked by X1 (`hidden`). P20 is REQUEST 2. The radio's
+  downstream backstop is thepile's picture spec, measured RED on the dot by s3; for the parent case it is
+  REASONED, above. No code changed.
+- **R5, R6**: GREEN and RIGHT: Chromium draws the two states DIFFERENT at a 50% fade.
+- **The `Card` `asChild` row (MED-2)**: its GREEN is the finding. No test demands the registry item's
+  dependency, so this section's claim that one did is corrected in the body, and REQUEST 4 asks for the arm.
+- **The comment-only row**: no mutation, by design. **The `NoDrawing` row**: a measurement, MED-3, which is
+  finding 3, upgraded.
+- The two reds in `choice-drawing` alone (X2, P28a) are LOW-6: the body now says that pin is not parent-case
+  coverage. The two element-local reds (C1, C2) show the guard DOES catch the carrier's own twin. The docblock's
+  last sentence names only the edits it will not catch: a `scale-` on a carrier, and the others on an ancestor.
+
+**The findings, and what changed** (all in this commit, test-only and docs-only):
+
+- **MED-1**: "no part renders another part" was false (`SheetContent` renders `SheetPortal` and `SheetOverlay`,
+  `FormLabel` renders `Label`, `AccordionTrigger` wraps a header). It is scoped now, in the docblock and in the
+  three as-built sentences, to the four host-set parts. The chain table gained the row for the one shipped radio's
+  library-owned ancestors (`SheetContent`'s `Dialog.Content`, `SheetBody`), re-read here: every part file's literals
+  were scanned, and no container part carries a class in the set. The costed arm now says the stories would not
+  reach them either.
+- **MED-2**: the registry claim is corrected (above), and REQUEST 4 was added.
+- **MED-3**: finding 3 now reads PROVED, with r5's hashes, and names `src/radio-group.tsx:40-43` as its shipped
+  twin and thepile's `FacePicker.tsx:344` as a reasoned CROSS.
+- **LOW-1**: the docblock says "fades to nothing", and names the parts' one shipped fade (`opacity: 50%` under
+  `disabled`) as keeping the states apart.
+- **LOW-2**: the render column lists the stories' wrappers.
+- **LOW-3**: "no ancestor class other than the three `group/…` markers".
+- **LOW-4**: `STATUS.md:377`, `:8444` were added to run 1's (c).
+- **LOW-5**: 24 importers, 23 shipping code.
+- **LOW-6**: the symmetric-edit sentence under the limit table.
+- **LOW-7**: the `elementFromPoint` prediction, recorded in the radio backstop as REASONED.
+
+r5 did not check the composition's "five files" (its rules keep it from the slice doc). It is this stream's
+class-B correction, read at thepile `86ed7e82` `docs/slices/DESIGN-LIB.md` "## Batch DL24" (b), which names
+`switch.tsx`, `checkbox.tsx`, `radio-group.tsx`, `toggle.tsx` and `accordion.tsx`.

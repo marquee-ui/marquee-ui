@@ -85,6 +85,33 @@ import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.
  * properties; only the emitted CSS says which bucket a utility lands in. The
  * fixture compiles with `source(none)` over `src` and `stories`, so a utility a
  * TEST mentions cannot compile itself into existence and pass this file.
+ *
+ * ⚠️ WHAT IT CANNOT SEE: A PARENT, AND A CARRIER SCALED TO NOTHING. A GUARD LIMIT,
+ * RECORDED RATHER THAN CLOSED (DL24). Every read here is ELEMENT-LOCAL: one string's
+ * own declarations, placed through the sheet. But `visibility` and `color` INHERIT,
+ * and an ancestor's `opacity` takes its whole subtree with it, so an element a
+ * carrier sits inside - a track, a box, a circle, a part's root or row - that the
+ * mode hides, fades to nothing or inks in `Canvas` passes this file while Chromium
+ * draws the two states identical. Nor is a carrier's own `scale` read as anything
+ * but movement. Each of these is `Tests 17 passed (17)` at `3ecf4ee` with the control
+ * hashing IDENTICAL in headless Chromium, both forced palettes: the track
+ * `+ forced-colors:invisible` or `+ forced-colors:text-[Canvas]`, the box AND the
+ * circle `+ forced-colors:invisible` or `+ forced-colors:opacity-0`, the thumb
+ * `+ forced-colors:scale-0` (DL23's layer 1), and the Switch's root
+ * `+ forced-colors:invisible` or `+ forced-colors:opacity-0`, the two rows
+ * `+ forced-colors:invisible` or `+ forced-colors:text-[Canvas]` (DL24). It stays a
+ * limit because none of the four parts with a carrier renders another part: the
+ * chain from a part's root to its carrier is written by the CONSUMER, and so is
+ * whatever else of this library it sits in (a `SheetContent`, a `SheetBody`), in no
+ * string this file walks. And at `3ecf4ee` no shipped part gives any ancestor of a
+ * carrier a treatment that hides it, fades it to nothing, inks it or scales it (the
+ * one fade the parts ship, `opacity: 50%` under `disabled`, keeps the two states
+ * apart in Chromium): the sheet's ONE `@media (forced-colors: active)` block holds
+ * four rules, each on a carrier itself. The chain table is in marquee-ui's
+ * `docs/as-built.md`, "DESIGN-LIB-d-measure-2". So a `scale-` class on a carrier,
+ * or a `forced-colors:`, `opacity-`, `invisible`, `hidden` or `text-` colour class on
+ * anything a carrier sits inside, is an edit this file will NOT catch: read that
+ * chain by hand, or build the arm the as-built costs.
  */
 
 /**
@@ -326,7 +353,7 @@ const winner = (decls: readonly Placed[], property: RegExp): Placed | undefined 
  * `<svg>`'s stroke - so it hides too (layer 1 r5 MED-2: the thumb, the tick and
  * the dot each drew nothing in Chromium). What this reads is the element's OWN
  * declarations: a parent that hides it, or an inherited `visibility`, is not
- * seen (layer 1 r5 MED-3, a REQUEST).
+ * seen (layer 1 r5 MED-3; a recorded limit since DL24, the header's last paragraph).
  */
 const HIDES: Readonly<Record<"display" | "visibility" | "opacity", RegExp>> = {
   display: /^(?:none|contents)$/,
