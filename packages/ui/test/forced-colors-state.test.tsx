@@ -13,11 +13,13 @@ import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.
  * `focus-outline.test.tsx` derives the same shape of invariant for the focus
  * RING; this is its sibling for STATE, and it exists because the ring guard
  * could not see the hole. Forced colors is not a palette swap: the UA collapses
- * every paint into two buckets, a FOREGROUND (`color`, `stroke`, `border-color`,
+ * every paint into two buckets, a FOREGROUND (`color`, `border-color`,
  * `outline-color`) forced to `CanvasText` and a BACKGROUND (`background-color`)
  * forced to `Canvas`. Author values in both buckets are discarded, so two
  * elements that differ only in `background-color` become the SAME colour, and
- * one drawn on top of the other disappears.
+ * one drawn on top of the other disappears. (This said `stroke` was in the
+ * foreground bucket. The spec lists it; Chromium does not force it - measured,
+ * DL21, below - so an author stroke keeps its own colour on the forced ground.)
  *
  * That is why the three choice families in this package pass or fail for three
  * different reasons, and why none of them could be read off a class name:
@@ -45,9 +47,10 @@ import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.
  *
  * AND A SECOND KIND OF SITE (DL21): a STATE the element HOLDS - `aria-pressed`,
  * `aria-checked`, `:checked`, `data-state`, read off the compiled selector -
- * drawn on it by declarations that are ALL colour or shadow. The mode forces or
- * drops every one of them, so the two states are one picture unless something
- * the mode keeps tells them apart: the element's own `forced-colors:<state>:`
+ * drawn on it by declarations none of which CARRIES a state through the mode
+ * (colour, shadow, a cursor: `CARRIES` is the positive list). The mode forces,
+ * drops or ignores every one of them, so the two states are one picture unless
+ * something the mode keeps tells them apart: the element's own `forced-colors:<state>:`
  * treatment changing a kept property (a width, an outline), or a SIBLING in the
  * same part file that changes under the same state in something the mode keeps
  * (it moves, it is revealed) AND paints a foreground the mode keeps. That last
@@ -129,14 +132,59 @@ const BARE_CLASS = /^\.((?:\\.|[^\s.,:>+~(){}[\]])+)$/;
 const LEADING_CLASS = /^\.((?:\\.|[^\s.,:>+~(){}[\]])+)/;
 const HELD_STATE =
   /\[aria-(?:checked|pressed|selected|expanded|current)(?:="[^"]*")?\]|:checked\b|\[data-state(?:="[^"]*")?\]|\[open\]/;
-const NOT_HELD = /:not\(|:(?:hover|focus|active)\b|,/;
+const INTERACTION = /:(?:hover|focus|active)\b/;
 const FORCED_MEDIA = "(forced-colors: active)";
 
+/**
+ * `text` with every `:not(…)` group removed, parentheses balanced. A held state
+ * INSIDE a negation is the other state (`not-aria-pressed:` is the rest), but a
+ * held state BESIDE one is still held (`aria-selected:not-disabled:` compiles
+ * to `[aria-selected="true"]:not(:disabled)`; r7 P10).
+ */
+function withoutNegations(text: string): string {
+  let out = "";
+  for (let i = 0; i < text.length;) {
+    if (text.startsWith(":not(", i)) {
+      let depth = 0;
+      let j = i + 4;
+      for (; j < text.length; j++) {
+        if (text[j] === "(") depth++;
+        else if (text[j] === ")" && --depth === 0) break;
+      }
+      i = j + 1;
+    } else {
+      out += text[i];
+      i++;
+    }
+  }
+  return out;
+}
+
+/** Whether `text` holds a comma OUTSIDE parentheses: a selector list, never one element's state. */
+function topLevelComma(text: string): boolean {
+  let depth = 0;
+  for (const ch of text) {
+    if (ch === "(") depth++;
+    else if (ch === ")") depth--;
+    else if (ch === "," && depth === 0) return true;
+  }
+  return false;
+}
+
+/**
+ * The held state a compiled selector puts on its utility, or null. Pure over
+ * the selector text, so it is pinned on literal selectors (arm 4), not only on
+ * whatever the parts happen to compile. ⚠️ The first edition refused ANY comma
+ * and ANY `:not(`, which made Tailwind's own `open:` (`:is([open], :popover-open,
+ * :open)`) and a held state scoped away from another axis unreachable (r7 MED-2).
+ */
 function heldState(selector: string): { name: string; state: string } | null {
   const lead = LEADING_CLASS.exec(selector);
   if (lead === null) return null;
   const state = selector.slice(lead[0].length);
-  if (state === "" || !HELD_STATE.test(state) || NOT_HELD.test(state)) return null;
+  if (state === "" || topLevelComma(selector)) return null;
+  const held = withoutNegations(state);
+  if (!HELD_STATE.test(held) || INTERACTION.test(held)) return null;
   return { name: lead[1]!.replace(/\\(.)/g, "$1"), state };
 }
 
@@ -211,14 +259,16 @@ const MOVEMENT = ["translate", "transform", "rotate", "scale"] as const;
 const NO_STYLE = /^(?:none|hidden)$/;
 
 /**
- * What forced colors overrides or drops, plus custom properties, which paint
- * nothing by themselves: a state drawn ONLY in these is one picture in the mode.
- * The twin of `toggle-drawing.test.tsx`'s constant of the same name (CSS Color
- * Adjust 1, "properties affected by forced colors mode"); a test module cannot
- * import another's, so the two are spelled alike on purpose.
+ * What CARRIES a state through forced colors: the geometry the mode leaves an
+ * author, and nothing else. A frame's width or style, an outline's; movement;
+ * a reveal (`opacity`, `visibility`, `display`). A POSITIVE list, on purpose
+ * (r7 MED-1): the first edition counted every property the mode does not force,
+ * so a `cursor`, an `outline-offset` with no outline or a `transition` saved a
+ * state that the mode draws as one picture. A state whose declarations include
+ * none of these is a site; a treatment or a sibling counts only through them.
  */
-const FORCED_BY_THE_MODE =
-  /^(?:color|background-color|border(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?-color|outline-color|text-decoration-color|column-rule-color|caret-color|accent-color|fill|stroke|box-shadow|text-shadow|scrollbar-color|--.+)$/;
+const CARRIES =
+  /^(?:(?:border|outline)(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?-(?:width|style)|translate|transform|rotate|scale|opacity|visibility|display)$/;
 
 /**
  * Whether a `stroke` value is a paint the mode keeps.
@@ -403,7 +453,12 @@ describe("a checked state survives forced-colors: active", () => {
   const savedUnderForcedColors = (tokens: readonly string[]): boolean =>
     paintsIn(tokens, ["forced"]);
 
-  /** Saved in every mode: an unconditional foreground paint, which is `Checkbox`'s SVG stroke. */
+  /**
+   * Saved in every mode: an unconditional foreground paint, which is `Checkbox`'s
+   * SVG stroke. ⚠️ The revealed arms' reading, kept as it was: Chromium does NOT
+   * force an author stroke (DL21, measured), so this passes a tick drawn
+   * near-black on the dark palette's black. REQUESTed, not changed here.
+   */
   const savedUnconditionally = (tokens: readonly string[]): boolean =>
     paintsIn(tokens, ["unconditional"]);
 
@@ -468,7 +523,9 @@ describe("a checked state survives forced-colors: active", () => {
 
     // ⚠️ THE BUCKET CUT, anchored on the PREDICATE'S behaviour rather than a
     // table asserted against itself: a background is not a foreground, a stroke
-    // is, and `color` alone paints nothing on a box with no text.
+    // is, and `color` alone paints nothing on a box with no text. (The stroke
+    // half is these arms' reading, kept: Chromium leaves an author stroke
+    // unforced, measured in DL21; the state arms below read it the other way.)
     expect(
       savedUnconditionally(["bg-primary-foreground"]),
       "a background counts as a foreground",
@@ -524,7 +581,7 @@ describe("a checked state survives forced-colors: active", () => {
     }
     expect(
       short,
-      "a part reveals an element on checked whose only paint is a background, so under forced-colors: active it is Canvas on Canvas and the checked state is INVISIBLE. Give it a border or an outline under a forced-colors: variant, or draw it as an SVG stroke, or declare it in KNOWN_GAPS with a reason",
+      "a part reveals an element on checked whose only paint is a background, so under forced-colors: active it is Canvas on Canvas and the checked state is INVISIBLE. Give it a border or an outline under a forced-colors: variant, or draw it as an SVG stroke in currentColor (an author-coloured stroke is not forced), or declare it in KNOWN_GAPS with a reason",
     ).toEqual([]);
   });
 
@@ -548,8 +605,8 @@ describe("a checked state survives forced-colors: active", () => {
   };
 
   /**
-   * Every element in the package that draws a HELD STATE in colour or shadow
-   * alone - the second kind of site. From the part files' string literals
+   * Every element in the package that draws a HELD STATE in nothing that
+   * CARRIES it (colour, shadow, a cursor, …) - the second kind of site. From the part files' string literals
    * (`literals`), each placed through the compiled sheet: what the state
    * declares is the sheet's, never the class name's.
    */
@@ -558,9 +615,8 @@ describe("a checked state survives forced-colors: active", () => {
     for (const file of partFiles()) {
       for (const tokens of literals(file)) {
         for (const [state, { variant, decls }] of statesOf(tokens)) {
-          if (!decls.every((d) => FORCED_BY_THE_MODE.test(d.property))) continue;
+          if (decls.some((d) => CARRIES.test(d.property))) continue;
           const key = `${file} ${tokens.join(" ")} ${state}`;
-          if (sites.has(key)) continue;
           const properties = [...new Set(decls.map((d) => d.property))];
           sites.set(key, { file, tokens: [...tokens], state, variant, properties });
         }
@@ -580,12 +636,16 @@ describe("a checked state survives forced-colors: active", () => {
    */
   const ownTreatment = (tokens: readonly string[], state: string): Placed[] => {
     const all = tokens.flatMap((token) => placed.get(token) ?? []);
-    const rest = all.filter((d) => d.placement === "unconditional" || d.placement === "forced");
+    // The REST drawing in the mode: a `forced` rule is the mode's own and wins
+    // over an unconditional one of the same property.
+    const restOf = (property: string): Placed | undefined =>
+      all.filter((d) => d.placement === "forced" && d.property === property).at(-1) ??
+      all.filter((d) => d.placement === "unconditional" && d.property === property).at(-1);
     const changes = all
       .filter((d) => d.placement === "forced-state" && d.state === state)
-      .filter((d) => !FORCED_BY_THE_MODE.test(d.property))
+      .filter((d) => CARRIES.test(d.property))
       .filter((d) => {
-        const before = rest.filter((r) => r.property === d.property).at(-1);
+        const before = restOf(d.property);
         return before === undefined || lengthOrValue(before.value) !== lengthOrValue(d.value);
       });
     const paints = paintsIn(tokens, ["unconditional", "forced", "forced-state"], {
@@ -598,28 +658,31 @@ describe("a checked state survives forced-colors: active", () => {
   type Sibling = { tokens: string[]; changes: string[]; paints: boolean };
 
   /**
-   * Every OTHER element in the same part file that changes under the same state
-   * in something the mode keeps (it moves; it is revealed), and whether it
-   * paints a foreground the mode keeps. A sibling that changes and paints
-   * carries the state; one that changes and paints nothing is Canvas on Canvas
-   * however far it moves (the Switch's thumb).
+   * What one element does under `state` that the mode can carry: the carrier
+   * properties its `state` rules change (it moves; it is revealed), and whether
+   * it paints a foreground the mode keeps while in that state. An element that
+   * changes and paints carries the state; one that changes and paints nothing is
+   * Canvas on Canvas however far it moves (the Switch's thumb).
    */
+  const carrierOf = (tokens: readonly string[], state: string): Sibling => {
+    const changes = tokens
+      .flatMap((token) => placed.get(token) ?? [])
+      .filter((d) => d.placement === "state" && d.state === state)
+      .map((d) => d.property)
+      .filter((property) => CARRIES.test(property));
+    const paints = paintsIn(tokens, ["unconditional", "forced", "forced-state"], {
+      state,
+      authorStroke: false,
+    });
+    return { tokens: [...tokens], changes: [...new Set(changes)], paints };
+  };
+
+  /** Every OTHER string in the site's part file that changes under the same state in a carrier. */
   const siblingsOf = (site: StateSite): Sibling[] =>
     literals(site.file)
       .filter((tokens) => tokens.join(" ") !== site.tokens.join(" "))
-      .flatMap((tokens) => {
-        const changes = tokens
-          .flatMap((token) => placed.get(token) ?? [])
-          .filter((d) => d.placement === "state" && d.state === site.state)
-          .map((d) => d.property)
-          .filter((property) => !FORCED_BY_THE_MODE.test(property));
-        if (changes.length === 0) return [];
-        const paints = paintsIn(tokens, ["unconditional", "forced", "forced-state"], {
-          state: site.state,
-          authorStroke: false,
-        });
-        return [{ tokens, changes: [...new Set(changes)], paints }];
-      });
+      .map((tokens) => carrierOf(tokens, site.state))
+      .filter((sibling) => sibling.changes.length > 0);
 
   const classify = (site: StateSite) => {
     const own = ownTreatment(site.tokens, site.state);
@@ -627,9 +690,26 @@ describe("a checked state survives forced-colors: active", () => {
     return { own, siblings, saved: own.length > 0 || siblings.some((s) => s.paints) };
   };
 
+  /**
+   * Runs `run` with hand-written placements under names no utility can have, and
+   * removes them after: for a predicate whose separating input no source compiles.
+   * What is under test is the PREDICATE, never the sheet.
+   */
+  const withPlaced = <T,>(entries: Record<string, Placed[]>, run: () => T): T => {
+    for (const [name, decls] of Object.entries(entries)) placed.set(name, decls);
+    try {
+      return run();
+    } finally {
+      for (const name of Object.keys(entries)) placed.delete(name);
+    }
+  };
+
   const siteNamed = (sites: readonly StateSite[], file: string, variant: string): StateSite => {
     const found = sites.filter((s) => s.file === file && s.variant === variant);
-    expect(found.length, `the walk found no colour-only ${variant} site in ${file}`).toBe(1);
+    expect(
+      found.length,
+      `expected exactly one colour-only ${variant} site in ${file}, found ${found.length}`,
+    ).toBe(1);
     return found[0]!;
   };
 
@@ -638,9 +718,11 @@ describe("a checked state survives forced-colors: active", () => {
     // The READER, on a text written here: a comment holding a quoted class is
     // not a literal, whichever quotes it wears; a template's static text is.
     expect(
-      literalsOf('// "aria-pressed:bg-primary"\n/* "b:c" */\nconst a = "d e";\nconst t = `f`;'),
+      literalsOf(
+        '// "aria-pressed:bg-primary"\n/* "b:c" */\nconst a = "d e";\nconst t = `f`;\nconst u = `g ${a} h`;',
+      ),
       "the literal reader read a comment, or missed a literal",
-    ).toEqual([["d", "e"], ["f"]]);
+    ).toEqual([["d", "e"], ["f"], ["g"], ["h"]]);
 
     const sites = colourOnlySites();
     expect(
@@ -677,6 +759,57 @@ describe("a checked state survives forced-colors: active", () => {
       at("data-[orientation=horizontal]:w-full").map(([placement]) => placement),
       "an orientation reads as a held state",
     ).toEqual(["conditional"]);
+    expect(
+      at("data-[state=closed]:opacity-0"),
+      "the sheet's data-state is not a held state",
+    ).toEqual([["state", '[data-state="closed"]']]);
+
+    // The HELD-STATE READING, pinned on literal selectors: `heldState` is pure
+    // over the selector text, so every clause of it is held here and not only
+    // by whatever the parts happen to compile (r7 MED-2 and MED-3).
+    const held = (selector: string): string | null => heldState(selector)?.state ?? null;
+    for (const attr of [
+      '[aria-pressed="true"]',
+      '[aria-checked="true"]',
+      '[aria-selected="true"]',
+      '[aria-expanded="true"]',
+      '[aria-current="page"]',
+      '[data-state="open"]',
+    ]) {
+      expect(held(`.a${attr}`), `${attr} does not read as a held state`).toBe(attr);
+    }
+    expect(held(".a:is(:where(.group\\/x):has(:checked) *)"), ":checked in a group").not.toBeNull();
+    expect(
+      held(".a:is([open], :popover-open, :open)"),
+      "Tailwind's own open: does not read as a held state",
+    ).toBe(":is([open], :popover-open, :open)");
+    expect(
+      held('.a[aria-selected="true"]:not(:disabled)'),
+      "a held state scoped away from another axis does not read as held",
+    ).toBe('[aria-selected="true"]:not(:disabled)');
+    expect(held('.a:not([aria-pressed="true"])'), "the rest state reads as held").toBeNull();
+    expect(held('.a[aria-pressed="true"]:hover'), "a hover reads as held").toBeNull();
+    expect(held('.a[aria-pressed="true"]:focus-visible'), "a focus reads as held").toBeNull();
+    expect(held('.a[data-orientation="horizontal"]'), "an orientation reads as held").toBeNull();
+    expect(held('.a[aria-pressed="true"], .b'), "a selector list reads as held").toBeNull();
+    // ...and the MEDIA GATE, on literal css through the same walk: a held rule
+    // under any other media query is conditional, under forced colors it is the
+    // mode's treatment of that state, under none it is the state's drawing.
+    const walked = placeAll(
+      '@media (width >= 40rem) { .p[aria-pressed="true"] { border-width: 4px } }' +
+        ' @media (forced-colors: active) { .q[aria-pressed="true"] { border-width: 4px } }' +
+        ' .r[aria-pressed="true"] { color: red }',
+    );
+    const kinds = (name: string) => (walked.get(name) ?? []).map((d) => [d.placement, d.state]);
+    expect(kinds("p"), "a held rule under another media query reads as held").toEqual([
+      ["conditional", null],
+    ]);
+    expect(kinds("q"), "a forced held rule is not the state's treatment").toEqual([
+      ["forced-state", '[aria-pressed="true"]'],
+    ]);
+    expect(kinds("r"), "a bare held rule is not the state's drawing").toEqual([
+      ["state", '[aria-pressed="true"]'],
+    ]);
 
     // ...and the classifier looked for carriers: the Switch's thumb, found as a
     // sibling that MOVES under the same condition as the track it sits in.
@@ -738,19 +871,110 @@ describe("a checked state survives forced-colors: active", () => {
     // utility can have, and removed after - the predicate is what is under test
     // here, not the sheet. Without this, dropping the gate stayed GREEN (DL21
     // mutation M7).
-    const none = "probe:border-none";
-    placed.set(none, [
-      { property: "--tw-border-style", value: "none", placement: "unconditional", state: null },
-      { property: "border-style", value: "none", placement: "unconditional", state: null },
-    ]);
-    try {
-      expect(
-        ownTreatment(["border-2", none, "forced-colors:aria-pressed:border-4"], toggleState),
-        "a frame whose style resolves to none reads as a paint",
-      ).toEqual([]);
-    } finally {
-      placed.delete(none);
-    }
+    withPlaced(
+      {
+        "probe:border-none": [
+          { property: "--tw-border-style", value: "none", placement: "unconditional", state: null },
+          { property: "border-style", value: "none", placement: "unconditional", state: null },
+        ],
+      },
+      () =>
+        expect(
+          ownTreatment(
+            ["border-2", "probe:border-none", "forced-colors:aria-pressed:border-4"],
+            toggleState,
+          ),
+          "a frame whose style resolves to none reads as a paint",
+        ).toEqual([]),
+    );
+    // ...and the clauses no compiled token reaches today, each on the smallest
+    // input that separates it (r7 MED-3). A treatment of ANOTHER state is not
+    // this one's; the mode's own rest frame is the rest; a treatment whose only
+    // paint is the state's own rule still paints, and only in that state.
+    expect(
+      ownTreatment(["border-2", "forced-colors:aria-pressed:border-4"], '[aria-checked="true"]'),
+      "a treatment of another state reads as this state's",
+    ).toEqual([]);
+    expect(
+      ownTreatment(
+        ["border-2", "forced-colors:border-4", "forced-colors:aria-pressed:border-4"],
+        toggleState,
+      ),
+      "the mode's own 4px rest frame is not read as the rest",
+    ).toEqual([]);
+    expect(
+      ownTreatment(["forced-colors:aria-pressed:border-4"], toggleState).map(
+        (d) => `${d.property}: ${d.value}`,
+      ),
+      "a frame drawn only by the state's own forced rule reads as painting nothing",
+    ).toEqual(["border-style: var(--tw-border-style)", "border-width: 4px"]);
+    expect(
+      paintsIn(
+        ["forced-colors:aria-pressed:border-4"],
+        ["unconditional", "forced", "forced-state"],
+        {
+          state: '[aria-checked="true"]',
+          authorStroke: false,
+        },
+      ),
+      "one state's forced rule paints in another state",
+    ).toBe(false);
+    // The carriers, on the Switch's own strings: the track changes only colours
+    // under its state (no carrier), the thumb moves under the SAME state, and
+    // under a state neither holds nothing is found.
+    const track = siteNamed(sites, "switch.tsx", "group-aria-checked/switch");
+    const thumb = classify(track).siblings[0]!.tokens;
+    expect(carrierOf(track.tokens, track.state).changes, "a colour change carries").toEqual([]);
+    expect(carrierOf(thumb, track.state).changes, "the thumb's movement").toEqual(["translate"]);
+    expect(
+      siblingsOf({ ...track, state: toggleState }),
+      "a sibling that changes under ANOTHER state reads as a carrier",
+    ).toEqual([]);
+    // Hand-placed, as below: a colour-only treatment of the state, a reveal whose
+    // only paint is an author stroke, and a sibling whose frame is its state's
+    // forced rule alone.
+    const frame = (state: string): Placed[] => [
+      {
+        property: "border-style",
+        value: "var(--tw-border-style)",
+        placement: "forced-state",
+        state,
+      },
+      { property: "border-width", value: "4px", placement: "forced-state", state },
+    ];
+    withPlaced(
+      {
+        "probe:fc-pressed-highlight": [
+          {
+            property: "background-color",
+            value: "Highlight",
+            placement: "forced-state",
+            state: toggleState,
+          },
+        ],
+        "probe:fc-pressed-reveal": [
+          { property: "opacity", value: "100%", placement: "forced-state", state: toggleState },
+        ],
+        "probe:fc-switch-frame": frame(track.state),
+      },
+      () => {
+        expect(
+          ownTreatment(["border-2", "probe:fc-pressed-highlight"], toggleState),
+          "a forced colour reads as the state's treatment",
+        ).toEqual([]);
+        expect(
+          ownTreatment(["stroke-primary-foreground", "probe:fc-pressed-reveal"], toggleState),
+          "a reveal painted only by an author stroke reads as a treatment",
+        ).toEqual([]);
+        expect(
+          carrierOf(
+            ["group-aria-checked/switch:translate-x-5", "probe:fc-switch-frame"],
+            track.state,
+          ).paints,
+          "a mover framed only by its state's forced rule reads as painting nothing",
+        ).toBe(true);
+      },
+    );
     // The stroke: an author colour is not a paint for a carrier, currentcolor is,
     // and the revealed-element arms' default reading is untouched.
     expect(
@@ -758,7 +982,7 @@ describe("a checked state survives forced-colors: active", () => {
       "an author stroke carries a state",
     ).toBe(false);
     expect(strokePaints("currentcolor", false), "a currentcolor stroke carries nothing").toBe(true);
-    expect(strokePaints("none", false), "stroke: none carries a state").toBe(false);
+    expect(strokePaints("none", true), "stroke: none reads as a paint").toBe(false);
     expect(
       strokePaints("var(--primary-foreground)", true),
       "the revealed arms' reading moved",
