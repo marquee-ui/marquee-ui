@@ -11019,3 +11019,60 @@ GREEN):
 r5 did not check the composition's "five files" (its rules keep it from the slice doc). It is this stream's
 class-B correction, read at thepile `86ed7e82` `docs/slices/DESIGN-LIB.md` "## Batch DL24" (b), which names
 `switch.tsx`, `checkbox.tsx`, `radio-group.tsx`, `toggle.tsx` and `accordion.tsx`.
+
+## DL24 reconciler: the parent case a LIMIT, `asChild` on `Card` DEFERRED, and what thepile's `Button` census asks of the library (2026-09-24)
+
+Written by the DL24 orchestrator after the batch's three streams merged (this library's `s/design-lib-d-measure-2` at
+`859630c`, verify 35 / 601 exit 0 on the merged `next`; thepile's `s/FOLLOWUPS-11` at `c516201e` and
+`s/design-lib-f-button-1` at `8afdca41`). No shipped byte moved this batch: `git diff --stat 3ecf4ee 859630c --
+packages/ui/src packages/ui/r packages/ui/package.json packages/tokens` is empty, so there is no bump and LIB-VENDOR has
+nothing to do.
+
+**What the library decided (the section above, DESIGN-LIB-d-measure-2).** The guard's parent case is a documented
+LIMIT, not an arm: four host files (`switch`, `checkbox`, `radio-group`, `toggle`; `accordion.tsx` carries no held-state
+class, so the composition's "five" was four), four carriers, 107 stories rendered, and no ancestor of any carrier
+hides, fades, recolours or scales it; no carrier part renders another part, so the chain is the consumer's. `asChild`
+on `Card` is DEFERRED to the next byte-moving bump [V]: one thepile site (`ReviewCard`), served by `role="article"`,
+zero tag readers on its routes, zero client bytes either way; to be built no later than the first `Card` route onto an
+`<article>` that a test finds by tag (`FeedItem`'s three reader lines in thepile). The radio's forced-colours backstop
+is thepile's now: FOLLOWUPS-11's `RadioGroup` arm under `ReportSheet` measured RED at thepile `af59033e` with the dot
+hidden (0.0% at both projects in both palettes; 8.67% of the circle at the head against the spec's 2% floor).
+
+**What thepile's `Button` census asks of the library** (`docs/slices/DESIGN-LIB-f-tiers-button.md` in thepile, all
+fifteen OPEN rows read on the rendered page at rest, hover and focus-visible). The first `Button` route of f is DONE on
+`/tiers` (seven `StartTemplate` sites already wearing the `secondary` set; `/tiers/page` +2,051 B for `Slot` and `cva`,
+1,165 B left). `/pile/[steamid]`'s three sites are the next pure ones. The rest is demand the part does not answer, in
+the census's order, none taken and none refused here:
+
+- a `link` variant (seven source sites: `/impossible-autumn`'s two anchors, `/feed`'s "Find members" and "Find more
+  members", `/notifications`' "Your feed", `/home`'s "more" doors, `/pile/[steamid]`'s "count another profile"):
+  underlined mono text with no box;
+- a mono slab / tab family (three components, one shape: `MemberFollowButton` on `/members` and
+  `/[username]/followers`, `FollowButton` on `/[username]`, `FacePicker` on `/settings/profile`): mono 11px caps, radius
+  0, `bg-raised`, `cut-10` when on;
+- a `size="lg"` with a scrim secondary (`HeroButtons` on `/`: 48px / `text-base` / `px-5`, and a `bg-bg/60` ground with a
+  6px blur; a third copy of the primary string at `HomeIslands.tsx:119`), or an AUDIT-FIX to the house button, Ankit's
+  [V] in thepile;
+- an inline width (`/settings`' export anchor, the closest string in thepile: `primaryRounded` plus `inline-flex
+self-start py-2.5`, NOT pure because `w-full` outranks `w-auto` by sheet order).
+
+**The `cn` seam, restated so no part's docblock over-promises.** thepile's `cn` is a plain join (`apps/web/src/lib/utils.ts`,
+DESIGN-LIB-a4's decision [V]: tailwind-merge at module scope cost 8.8 kB gz on every route that renders a primitive and
+put seven routes over budget); this library's `cn` merges (`packages/ui/src/lib/utils.ts`, D11). So a consumer's
+`className` overrides a variant's utility in a story and NOT in thepile, where the stylesheet's order decides. A part
+whose docblock says a caller's class "beats" the variant is true here and false there; the census's `/settings` row is
+the measured instance.
+
+**Open REQUESTs the library holds after this batch** (from DESIGN-LIB-d-measure-2's section and its layer 1): a test-only
+arm reading a winning `scale` of zero on the carrier itself as a hide (r5's P20 stays green); a registry arm deriving
+each item's `dependencies` from its imports (r5 MED-2: a `Card` given `asChild` with no `dependencies` passed every
+test); `src/radio-group.tsx:40-43`'s docblock recommending a colour-only checked face, proved identical in Chromium (r5
+MED-3), and `:155-157`'s falsified border-colour sentence, both comment-only and both waiting for the next bump; and, for
+thepile, `FacePicker.tsx:344` draws a colour-only selected state (REASONED, a CROSS for its next FOLLOWUPS).
+
+**A record corrected.** Earlier records (thepile's cursor since DL12) call `ui@0.1.1` to `ui@0.1.6` tags. They are not:
+`git tag -l` lists `ui@0.1.0` and `tokens@0.1.0` only, and npm holds `0.1.0` alone. The six version-line commits, by
+`git log -S'"version": "0.1.N"' -- packages/ui/package.json`, are `c99b71e` (0.1.1), `c9115f7` (0.1.2), `5976422`
+(0.1.3), `66a15da` (0.1.4), `40b94a8` (0.1.5) and `ed6a393` (0.1.6); the `a885aea` the records name for 0.1.3 is a test
+commit after it, so the 0.1.3 pack point is read from DL18's LIB-VENDOR-0.1.3 record before anything is tagged. Tags are
+created at push time, at each pack point, after the freeze.
