@@ -9691,3 +9691,414 @@ landed in one more docs-only commit after the run, whose own `pnpm verify` is th
 No push, no tag, no `npm publish`, no PR: the freeze holds. `packages/ui/package.json`'s version line
 is untouched on this branch (s2 moves it to `0.1.5`), and nothing here rides a bump: the guard is the
 library's own, and REQUESTs A and B arrive at 0.1.6.
+
+## LIB-0.1.6: the Switch's thumb and the Checkbox's tick under forced colors, one stroke reading, the citations, and `@marquee-ui/ui` 0.1.6 (2026-09-23)
+
+Batch DL22, stream s1, branch `s/lib-0.1.6` from `next` @ `e91f9e8`. thepile is read-only throughout, at
+`3a1bbe6a` (the DL22 composition), by `git -C … show 3a1bbe6a:<path>`. Under the push freeze: LOCAL commits,
+no tag, no publish, no PR. Every reddening run ran in a DETACHED worktree of a committed head
+(`../marquee-ui-s1-mut` at `6f6f3ba`, later moved to `4aeb14d` and `ed6a393`; `../marquee-ui-s1-base` at
+`e91f9e8`; each `pnpm install --frozen-lockfile` + `pnpm build`), through a driver (`$BATCH_SCRATCH/s1/mutate.py`) that asserts each edit
+matched exactly once and LANDED, rebuilds the registry after a part edit, runs the WHOLE suite, restores and
+checks the tree clean. Every browser measurement is DL21 s3's probe, copied to `$BATCH_SCRATCH/s1/fc-probe/`
+and cut to the parts' own class strings (`probe3.mjs`: probe2 with its two hand-written probe rows removed),
+headless Chromium through `playwright-core` 1.61.1 over each tree's compiled sheet (`probe/sheet.mts`).
+
+**The base, re-measured**: `pnpm verify` at `e91f9e8` exit **0**, `Test Files 35 passed (35)`, `Tests 601
+passed (601)`, 22.0 s wall, tree clean after (`verify-base.log`). DL21's record said 35 / 601: unchanged.
+
+### REQUEST A: the two part fixes, in the shape the widened guard expires (`6f6f3ba`)
+
+- `src/switch.tsx` `thumbClass` gains **`forced-colors:border-8`**; its docblock says why (the thumb's one
+  paint is a background the mode forces to the track's `Canvas`; 8px of border on a 16px `border-box` is a
+  solid disc in the mode's ink, `RadioGroupIndicator`'s answer at twice the size).
+- `src/checkbox.tsx` `indicatorClass` gains **`forced-colors:stroke-current`**; its docblock says why
+  (Chromium does not force an author SVG `stroke`; `currentcolor` follows the forced `color`).
+- `test/forced-colors-state.test.tsx`: the three `KNOWN_STATE_GAPS` entries deleted in the SAME commit (the
+  map is empty, its docblock says it fired once); arm 4 pins that the Switch's thumb, found as the sibling
+  that moves, now PAINTS; arm 5 pins the Checkbox the way it pins the radio (no own treatment, the tick a
+  revealed sibling that paints: `[[["opacity"], true]]`); the header's Checkbox and Switch bullets say what
+  0.1.6 does; arm 1's comment no longer says the package has one forced-colors rule.
+- `test/choice-drawing.test.tsx` "paints the mark in the ink the fill guarantees" pinned the tick's declared
+  `stroke` as exactly `["var(--primary-foreground)"]`. **The expectation moved because the spec moved**: the
+  tick now has a second ink, scoped to the mode. The arm reads the rendered classes as before and splits them
+  by the `forced-colors:` variant with the file's own `triggered()` (as it already splits by
+  `group-has-checked/checkbox:`): the drawing's tokens declare exactly `var(--primary-foreground)`, the
+  mode's exactly `currentcolor`. Where the mode's rule SITS is `forced-colors-state.test.tsx`'s placement
+  walk, not this arm's. Nothing else reddened: `switch-drawing.test.tsx` (thumb width, height, inset,
+  travel; no arm reads the thumb's `border-width`), `fidelity.test.tsx` (it imports neither part) and
+  `tailwind-compile.test.tsx` (the 44px floor) all stayed green, RUN, not read (⚠️ UNVERIFIED in (b): all
+  three measured green).
+- `src/radio-group.tsx`'s docblock: "`Checkbox` escapes because its tick is an SVG `stroke` and `Switch`
+  because its thumb MOVES" is replaced by what was measured and what 0.1.6 does, and the sentence before it
+  no longer lists `stroke` among the paints the mode forces (the one word outside the two named lines; the
+  corrected sentence would otherwise contradict it).
+
+**`forced-colors:border-8` compiles and paints, measured** (⚠️ UNVERIFIED in (b), now read): the compiled
+sheet holds, inside `@media (forced-colors: active)`, `.forced-colors\:border-8 { border-style:
+var(--tw-border-style); border-width: 8px; }` and `.forced-colors\:stroke-current { stroke: currentcolor;
+}`; `@property --tw-border-style` has `initial-value: solid`, so a width alone paints and no `border-solid`
+is needed. In Chromium the thumb computes `border=8px solid rgb(255, 255, 255)` on the dark palette and
+`8px solid rgb(0, 0, 0)` on the light one, `box=16x16` in both states (the `border-box` keeps the geometry).
+
+**The reds, RUN in the detached worktree of `6f6f3ba`**, both directions (`mut-*-6f6f3ba.log`; the head's
+own `pnpm verify`: 35 / 601, and every run's summary line reads against that 601). Line numbers are the committed head's: the expiry arm's `expect(` is `:1003` (its
+`.toBe(false)` `:1006`), the site arm's `:1024-1027`.
+
+| id  | mutation (on `6f6f3ba`)                                                      | red              | the assertion that reddened                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| --- | ---------------------------------------------------------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A1  | the three entries restored, both fixes in place                              | 1 / 601          | the expiry arm: `checkbox.tsx group-has-checked/checkbox now survives forced colors: delete its KNOWN_STATE_GAPS entry, the defect it excuses is fixed: expected true to be false` (the walk meets the checkbox first and stops)                                                                                                                                                                                                             |
+| A1s | the two Switch entries restored                                              | 1 / 601          | the expiry arm: `switch.tsx group-aria-checked/switch now survives forced colors: delete its KNOWN_STATE_GAPS entry, the defect it excuses is fixed`                                                                                                                                                                                                                                                                                         |
+| A1c | the Checkbox entry restored                                                  | 1 / 601          | the expiry arm: `checkbox.tsx group-has-checked/checkbox now survives forced colors: delete its KNOWN_STATE_GAPS entry …`                                                                                                                                                                                                                                                                                                                    |
+| A2s | the thumb's `forced-colors:border-8` removed, entries deleted                | 2 / 601          | the site arm (`:1027` in the run), naming both hosts: `switch.tsx: the group-aria-checked/switch state (:is(:where(.group\/switch)[aria-checked="true"] *)) is drawn in ["border-color","background-color"] alone; … a sibling that changes ["translate"] and paints nothing the mode keeps`, and the same for `group-has-checked/switch`; beside it arm 4's new `group-aria-checked/switch: the moving thumb paints nothing the mode keeps` |
+| A2c | the tick's `forced-colors:stroke-current` removed, entries deleted           | 3 / 601, 2 files | the site arm: `checkbox.tsx: the group-has-checked/checkbox state (:is(:where(.group\/checkbox):has(:checked) *)) is drawn in ["border-color","background-color"] alone; … a sibling that changes ["opacity"] and paints nothing the mode keeps`; arm 5's `checkbox.tsx's checked box is no longer carried by a revealed tick the mode can see`; `choice-drawing`'s `expected [] to deeply equal [ 'currentcolor' ]`                         |
+| A3  | the thumb's fix swapped for `forced-colors:bg-[CanvasText]`, entries deleted | 2 / 601          | exactly A2s's two: a system-colour paint is NOT the fix. The token compiled (`background-color: CanvasText` inside the forced media, read from that tree's sheet), and the guard refused it, as DL21 layer 2 LOW-1 said it would                                                                                                                                                                                                             |
+
+**The Chromium half, on the fixed parts** (`fc-probe/base/`, `fc-probe/A-6f6f3ba/`, `result.txt` and
+`colours.txt` in each; sheets `probe/compiled-base.css` 38,388 B, the same bytes as DL21's, and
+`probe/compiled-6f6f3ba.css` 38,565 B). The instrument is shown able to fail first: at the base it reproduces
+DL21's IDENTICAL hashes.
+
+| part, host             | forced, dark: off / on at `e91f9e8`       | at `6f6f3ba`                    | forced, light: off / on at `e91f9e8`      | at `6f6f3ba`                    |
+| ---------------------- | ----------------------------------------- | ------------------------------- | ----------------------------------------- | ------------------------------- |
+| `Switch`, button host  | `aee70fc72f4e` / `aee70fc72f4e` IDENTICAL | `963127a43230` / `5a30855383e7` | `005e818e4050` / `005e818e4050` IDENTICAL | `6bebee142685` / `abe41061a7a3` |
+| `Switch`, label host   | `aee70fc72f4e` / `aee70fc72f4e` IDENTICAL | `963127a43230` / `5a30855383e7` | `005e818e4050` / `005e818e4050` IDENTICAL | `6bebee142685` / `abe41061a7a3` |
+| `Checkbox`             | `bdba4ef6f633` / `c53baa1749de`           | `bdba4ef6f633` / `05c7acf4ad4e` | `abea2574db20` / `813cfa8fe5d5`           | `abea2574db20` / `68870eef994e` |
+| `RadioGroup`, `Toggle` | unchanged base to head in every mode      |                                 |                                           |                                 |
+
+- The Switch's two states are now DIFFERENT in both palettes and both hosts: 315 foreground pixels in each
+  state (the frame and the disc) where the base had 151, the disc at `box=20,30` off and `40,30` on.
+- The checked tick's computed `stroke` under the mode: **rgb(10, 11, 7)** at the base in both palettes, now
+  **rgb(255, 255, 255)** on the dark palette's black and **rgb(0, 0, 0)** on the light palette's white: the
+  forced foreground. The dark checked frame went from 124 white pixels plus 27 at rgb(10, 11, 7) to 151
+  white.
+- **The normal drawing did not move**: with `forcedColors: none` every part's off and on hashes are
+  byte-identical base to head (`74246616775a` / `39df67f016eb` the Switch, `b4f55c229a0d` / `bc3a7c5c22ad`
+  the Checkbox), and the unchecked Checkbox is identical in the mode too (the tick is hidden).
+
+`pnpm verify` at `6f6f3ba`: exit **0**, 35 / 601, 14.8 s, tree clean after.
+
+### REQUEST B: one stroke reading for every arm (`5fc342f`)
+
+`strokePaints` is `currentcolor`-only and takes no second argument (`/^currentcolor$/i`; the `NO_STYLE` test
+inside it was dead once the author branch went, since `none` cannot match); `paintsIn`'s `authorStroke`
+option and every caller's `authorStroke: false` are gone. Arm 2: the tick is pinned to its mechanism, saved
+under forced colors (`the tick paints no currentcolor stroke under forced colors`) and NOT unconditionally
+(`the tick's author-coloured stroke reads as a paint the mode keeps`); the anchor `"a stroke no longer
+counts"` became `"an author-coloured stroke counts as a paint the mode keeps"` (`stroke-primary-foreground`
+→ false) beside a positive one (`forced-colors:stroke-current` under forced colors → true). Arm 3's
+per-site line now names the stroke it read and its message says "a background or an author-coloured
+stroke"; the header's two-readings paragraph (`:61-62`, "ONE READING DIFFERS …") is one reading now, and the
+`strokePaints`, `paintsIn` and `savedUnconditionally` docblocks and arm 5's three stroke anchors follow
+(`"the revealed arms' reading moved"` is deleted: there is one reading). The header's `:20-22` parenthesis
+("the spec lists it; Chromium does not force it") was already true and stays.
+
+**The ordering claim, proved**: B's diff (`git diff 6f6f3ba 5fc342f -- test/forced-colors-state.test.tsx`)
+applied ALONE to a detached worktree of the base `e91f9e8`, the whole suite: `Tests 2 failed | 599 passed
+(601)`, arm 3 at `:591` of that tree, `+ "checkbox.tsx: revealed on checked, paints background-color [] and
+stroke [\"var(--primary-foreground)\"], nothing the mode keeps"`, and arm 2's `the tick paints no currentcolor
+stroke under forced colors: expected false to be true` (`mut-Balone-5fc342f-on-e91f9e8.log`). So B could
+not land before A. (B was first committed as `294ec2b` and amended to `5fc342f` for arm 3's message before
+anything was built on it; the B-alone run was repeated on the amended diff, and `294ec2b`'s is kept as
+`mut-Balone-e91f9e8.log`.)
+
+`pnpm verify` at `5fc342f`: exit **0**, 35 / 601, 16.9 s.
+
+### The citations (`99d08a4`)
+
+The composition's re-count held for its own command (`command grep -n 'test/' packages/ui/src/*.tsx |
+grep -v 'packages/ui/test/'` → **18 lines in 10 files**, `citations-base.txt`). **But that grep reads
+`*.tsx` only and only the `test/` spelling**, and the defect is any path that exists only in this
+repository, shipped in a source a consumer copies. Widened (class B), at `e91f9e8`:
+
+| kind                            | lines                                                                                                                                                                                                                                                      |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `test/…`, the composition's 18  | `accordion.tsx:19`, `breadcrumb.tsx:9`, `button.tsx:9` (`fidelity.test.ts` → `.tsx`), `checkbox.tsx:33,38,80`, `description-list.tsx:50`, `form.tsx:117,232`, `pagination.tsx:7,115`, `radio-group.tsx:16,129,169`, `switch.tsx:39,44,61`, `toggle.tsx:21` |
+| `test/…` outside `*.tsx`        | `ribbon.css:19` (`test/registry.test.ts`), `lib/utils.ts:21` (`test/merge-theme.test.ts`)                                                                                                                                                                  |
+| a test file by bare name        | `alert.tsx:86` (`alert-tone.test.tsx`), `avatar.tsx:216` (`avatar-drawing.test.tsx`), `badge.tsx:14` (`tailwind-compile.test.tsx`)                                                                                                                         |
+| `stories/…`                     | `radio-group.tsx:17` (`stories/radio-group.stories.tsx`, the same parenthesis as `:16`)                                                                                                                                                                    |
+| `docs/as-built.md`, `AGENTS.md` | `checkbox.tsx:17`, `description-list.tsx:64,188,391`, `form.tsx:51,103,177`                                                                                                                                                                                |
+
+All thirty now read "marquee-ui's `packages/ui/test/…`" (`textarea.tsx:20`'s form), "marquee-ui's
+`docs/as-built.md`" or "marquee-ui's `AGENTS.md`"; every cited file exists at that path (listed before the
+edit). After: the composition's command prints nothing, and the widened one (`\.test\.|\.stories\.|stories/|
+docs/|AGENTS` over `src/**`, the `marquee-ui's` forms excluded) prints only the two continuation lines of
+the `docs/as-built.md` citations it wrapped. `description-list.tsx:19`'s `e2e/profile.spec.ts` is a quotation
+of the consuming product's own docblock, a path that exists THERE, and stays. Comments only: `git diff
+e91f9e8 99d08a4 -- packages/ui/src` adds no line with `[` or `]` and no class string moves in `99d08a4`.
+
+`pnpm build:registry` after the edit: **fifteen** `r/*.json` moved (`accordion`, `alert`, `avatar`, `badge`,
+`breadcrumb`, `button`, `checkbox`, `description-list`, `form`, `pagination`, `radio-group`, `ribbon`,
+`switch`, `toggle`, `utils`), `r/registry.json` did not. `pnpm verify` at `99d08a4`: exit **0**, 35 / 601,
+16.6 s.
+
+### Layer 1's fixes (`4aeb14d`), before the bump
+
+r5 reviewed `99d08a4` (0 HIGH, 3 MED, 3 LOW; its table is the `## Layer 1` section below, verbatim). Every
+finding but MED-3 is fixed at `4aeb14d`, and each fix was RUN against the mutation that found it, in the
+detached worktree moved to `4aeb14d` (the head's own `pnpm verify` 35 / 601; the same worktree's
+unmutated run at `ed6a393`, whose test files are `4aeb14d`'s, `35 passed (35)` / `601 passed (601)`,
+`mut-baseline-ed6a393.log`; runs `mut-L1*-4aeb14d.log`):
+
+| r5 row(s)                                    | finding | what changed                                                                                                                                                                                                                                                                                                                                              | the re-run at `4aeb14d`                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| -------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P21, P10                                     | MED-1   | `paintsIn` reads the stroke the element DRAWS: one declaration, the highest-ranked (`RANK`: forced-state > state > forced > unconditional; the later of two equal ones, as `cn` keeps the last), counted only when its placement is one of `kinds`. Two hand-placed negatives in P21's and P10's shapes                                                   | P21 (`group-has-checked/checkbox:stroke-primary-foreground` on the tick) **red**, 2: arm 5 `checkbox.tsx's checked box is no longer carried by a revealed tick the mode can see` and arm 6 naming `checkbox.tsx`'s `group-has-checked/checkbox` state. P10 (`+ forced-colors:stroke-none`) **red**, 5 in 2 files: arms 2, 3, 5, 6 and `choice-drawing`. The rank collapsed back to "any stroke in `kinds`" **red**: `a checked-state author stroke under the forced currentcolor reads as painting` |
+| T7, T7 + P1, T13, T13 + P20                  | MED-2   | three negatives in arm 5 on the real strings with the mode's `forced-colors:` tokens taken away: the thumb (`a mover painting only a background reads as painting`), the tick (`a tick drawn only in its author stroke reads as painting`) and the Toggle's square through `classify` (`a pressed square with no forced-colors treatment reads as saved`) | T7 **red** and T7 + P1 **red** (`a mover painting only a background reads as painting: expected true to be false`); T13 **red** (`a pressed square with no forced-colors treatment reads as saved`), so T13 + P20 is red with it                                                                                                                                                                                                                                                                    |
+| (checkbox.tsx:111, description-list.tsx:215) | LOW-1   | `` `r/checkbox.json` `` and `` `r/description-list.json` `` now read `` `@marquee-ui/ui/r/checkbox.json` `` and `` `@marquee-ui/ui/r/description-list.json` ``: the package's own export (`"./r/*"`), which resolves in a consumer's `node_modules`                                                                                                       | grep: no `` `r/ `` left in `src/**`; `r/checkbox.json` and `r/description-list.json` rebuilt                                                                                                                                                                                                                                                                                                                                                                                                        |
+| T5, P6                                       | LOW-2   | arm 2's second tick message names the verdict, not a cause: `the tick reads as saved in every mode, not by its forced-colors stroke`                                                                                                                                                                                                                      | prose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| P4                                           | LOW-3   | `strokePaints`' docblock says a system-colour stroke draws the same pixels in Chromium and is refused ON PURPOSE (one spelling, the one the parts use)                                                                                                                                                                                                    | prose; by design                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| P11, P12, P14-P17                            | MED-3   | NOT changed: a carrier hidden under the mode (`forced-colors:hidden`, `opacity-0`, `invisible`) still reads as painting. Pre-existing (P17, the radio dot, is the same at the base), and closing it means teaching the revealed arms the state they reveal in, a change to the arms' definition beyond REQUESTs A and B. REQUEST below                    | -                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+
+The file still has **six** tests (the negatives are `expect`s inside arms 5), so the suite is **35 files /
+601 tests**, unchanged from the base. r5's masked-assertion pass (every `expect` made soft) found the four new
+anchors each fire on their own message; its note that `forced-colors:stroke-current` also compiles from
+`checkbox.tsx`'s own docblock (Tailwind scans comments) is true and harmless: that anchor tests the
+predicate, and the tick's pins test the part. `pnpm verify` at `4aeb14d`: exit **0**, 35 / 601, 15.7 s.
+
+### The bump: THE PACK POINT (`ed6a393`)
+
+`packages/ui/package.json:3` `0.1.5` → `0.1.6`, nothing else in the file (the description's "twenty-one"
+stays; no family is added; the registry's 22 items stay). `command grep -l '0\.1\.5' packages/ui/r/*.json`
+printed nothing before the edit, and `pnpm build:registry` after it left `git status --short` showing the
+manifest alone: **`r/` does not move by the version line**, as 0.1.5's record said. `pnpm verify` at
+`ed6a393`: exit **0**, `All matched files use Prettier code style!`, `✔ Building registry.`, `└  Storybook
+build completed successfully`, `Test Files 35 passed (35)`, `Tests 601 passed (601)`, 15.7 s, tree clean
+after.
+
+⚠️ **The pack point is `ed6a39313cb6008cdab111fc34c672f67d6f52c4`**, and the post-freeze `ui@0.1.6` tag and
+`npm publish` belong there and nowhere else. It holds REVIEWED bytes: layer 1 ran on `99d08a4`, its fixes
+landed at `4aeb14d`, and the bump is the version line on top. Any later `src/`, `r/` or `package.json` change
+under the same version line packs a different `marquee-ui-ui-0.1.6.tgz` and passes `prepack`; the block below
+is docs-only, so a pack at this branch's head is the same tarball.
+
+**`prepack`'s stale-registry refusal, proved live**: in the detached worktree moved to `ed6a393`,
+`textareaClass`'s `` `${inputClass} py-2` `` → `` `${inputClass} py-3` `` (`src/textarea.tsx:38`, `grep -n
+py-3` read before the run), `r/` not rebuilt; `pnpm run prepack` in `packages/ui`: exit **1**, the `git diff
+--exit-code -- r` output naming `packages/ui/r/textarea.json`, `ELIFECYCLE Command failed with exit code 1`,
+no tarball written. Restored, `git status --short` empty (`prepack-refusal.log`).
+
+```
+$ pnpm --filter @marquee-ui/ui pack --pack-destination ~/.thepile-scratch/DL22/s1/pack/
+$ stat -c %s marquee-ui-ui-0.1.6.tgz ; sha256sum marquee-ui-ui-0.1.6.tgz
+109699
+f68530c251fe17297e936cc16c9c767f65759ecffcf233dc5a8dfe932b094d09
+```
+
+`git status --short` empty after the pack. The tarball's 47 `r/` + `src/` files each `cmp`-equal to
+`git show ed6a393:packages/ui/<path>`: 47 compared, 0 differ.
+
+### What the tarball carries, measured against the 0.1.5 TARBALL
+
+The 0.1.5 tarball is thepile's (`git -C … show 3a1bbe6a:vendor/marquee-ui/marquee-ui-ui-0.1.5.tgz`,
+108,229 B, sha256 `3e14c126…4c2c`, the 0.1.5 record's). Both extracted, every file compared by `cmp`
+(`cmp-pack.sh`):
+
+|                                                    | `ui@0.1.5`'s tarball | this one   |
+| -------------------------------------------------- | -------------------- | ---------- |
+| bytes                                              | 108229               | **109699** |
+| entries                                            | 49                   | 49         |
+| `r/` json files (incl. `registry.json`)            | 23                   | 23         |
+| `tar -tzf \| grep -cE '\.(test\|spec)\.\|stories'` | 0                    | 0          |
+
+```
+differ:    r/switch.json, r/checkbox.json           (REQUEST A's two class strings and docblocks, and their citations)
+           r/radio-group.json                       (the docblock's corrected claims, and its citations)
+           r/accordion.json  r/breadcrumb.json  r/button.json  r/description-list.json  r/form.json
+           r/pagination.json  r/toggle.json          (citations only)
+           r/alert.json  r/avatar.json  r/badge.json  r/ribbon.json  r/utils.json
+                                                     (citations only; the widening, decision 4)
+           and each of those fifteen items' src/ file (src/ribbon.css, src/lib/utils.ts among them)
+identical: r/registry.json and r/card, input, label, separator, sheet, textarea, toast (.json);
+           src/card, index, input, label, ribbon, separator, sheet, textarea, toast; LICENSE
+manifest:  version 0.1.5 -> 0.1.6 and nothing else (every other field compared as parsed JSON: equal)
+```
+
+**Against (b)'s prediction** ("`switch.json`, `checkbox.json` and the eight citation-only items moved,
+`registry.json` and the twelve others identical", ⚠️ UNVERIFIED there): `switch.json`, `checkbox.json`, the
+eight, and `registry.json` identical all hold; the five widened items moved too, so SEVEN others are
+identical, not twelve.
+
+### `@marquee-ui/tokens` does NOT bump with it (re-measured a sixth time)
+
+`git diff --stat tokens@0.1.0 HEAD -- packages/tokens/src` prints nothing, and `git diff --stat e91f9e8 HEAD
+-- packages/tokens` prints nothing. ONE tarball is vendored downstream.
+
+### For the consumer (LIB-VENDOR-0.1.6)
+
+- **The pack point**: `ed6a39313cb6008cdab111fc34c672f67d6f52c4`, `marquee-ui-ui-0.1.6.tgz`, **109,699 B**,
+  sha256 `f68530c251fe17297e936cc16c9c767f65759ecffcf233dc5a8dfe932b094d09`, at
+  `~/.thepile-scratch/DL22/s1/pack/`. Read the library at that sha in a detached worktree; this branch's
+  later commit is docs-only.
+- **TEN copies thepile re-adds, not seven** (thepile's `scripts/marquee-drift.test.ts` `CONSUMED` at
+  `3a1bbe6a`, intersected with the moved list): `alert`, `avatar`, `button`, `checkbox`,
+  `description-list`, `form`, `radio-group`, `ribbon` (its `ribbon.css`; `ribbon.tsx` is byte-identical),
+  `switch`, `toggle`. The composition's seven plus `alert`, `avatar` and `ribbon`, from decision 4's widening.
+  `utils` moved too, but it is the drift test's DECLARED EXCLUSION (thepile's `lib/utils.ts` is its own
+  join), so it is no byte arm; `accordion`, `badge`, `breadcrumb`, `pagination` moved and are in the
+  complement, not vendored. `input`, `label`, `sheet`, `textarea`, `toast` did not move.
+- **The drift-test prediction** (REASONED from the arms at `3a1bbe6a`, not run: the 0.1.6 tarball installed
+  and no copy re-added): **ten byte arms red** (`<name> is byte-identical to the registry` for the ten
+  above) **and nothing else in that file**: no item is added or removed (the complement, count and
+  "holds no copy" arms stay), and `utils`' exclusion arm still holds (thepile's join is still not the
+  library's bytes). With the ten re-added: green.
+- **What moved in the two copies with behaviour**: `switch.tsx`'s `thumbClass` ends `… motion-reduce:
+transition-none forced-colors:border-8`; `checkbox.tsx`'s `indicatorClass` ends `…
+group-has-checked/checkbox:opacity-100 forced-colors:stroke-current`. No `[…]` is added anywhere in the
+  diff (`git diff e91f9e8 ed6a393 -- packages/ui/src`, added lines with `[` or `]`: 0), so thepile's
+  arbitrary-value guard should not move. At `3a1bbe6a` no thepile file outside the copies pins either old
+  string (`git grep -F` for both, and for `stroke-primary-foreground`: the copies only); the call sites
+  (`OnboardingForm`, `ContentSettings`, `PushSettings`, `ListForm`, `LogForm`, `PlayForm` and their tests,
+  `e2e/{diary,lists,log-modal,mobile-390,push}.spec.ts`) resolve the parts by `data-slot`.
+- **The normal drawing does not move** (the none-mode probe hashes are byte-identical base to head for every
+  part), so no shot should move for the parts; the comment-only copies move no pixel.
+- **OWED to the consumer's forced-colours spec** (r5, reasoned): to see MED-1's shape end to end, read the
+  CHECKED tick's computed `stroke` against its box's forced `background-color` on the built page (the base
+  defect is `rgb(10, 11, 7)` on `rgb(0, 0, 0)`), and the Switch's thumb position AND its computed
+  `border-top-width` (8px) in both states; a hash of off vs on is the DL21 instrument and it can fail (it
+  read IDENTICAL at the base).
+- **`radio-group.tsx`'s docblock** no longer carries "`Checkbox` escapes because its tick is an SVG `stroke`
+  and `Switch` because its thumb MOVES"; thepile's `DESIGN-LIB-f-report-radio.md:389-391` copy of that
+  sentence is the reconciler's to close.
+
+### Consumers
+
+**Run 1, before any code** (`scan-run1.txt`, at `e91f9e8`, an empty diff, so by hand over the named
+surface): `strokePaints`, `paintsIn`, `KNOWN_STATE_GAPS`, `authorStroke`, `savedUnconditionally`,
+`savedUnderForcedColors` are module-local to `forced-colors-state.test.tsx` (and named in this file);
+`CARRIES` also hits `radio-group.tsx`'s docblock word and its `r/` copy (a collision, DL21 recorded it);
+`thumbClass` is read by `switch.tsx` alone (and `r/switch.json`), `indicatorClass` by `checkbox.tsx` and,
+as its own constant, `radio-group.tsx` (and their `r/` copies). `switch.json`/`checkbox.json`'s bytes are
+pinned by `registry.test.ts`'s "carries the CURRENT bytes of every source it ships" (a rebuild answers it)
+and, downstream, thepile's drift test. `stories.test.tsx` composes the stories and pins no json. No
+fixture names either part (`test/fixtures/**` untouched). The files naming the three parts or the two
+drawing tests, and the eleven directory walkers, are listed in the file.
+
+**Run 2, at the commit point** (`scan-run2.txt`, `e91f9e8...99d08a4`) and **run 2b after layer 1**
+(`scan-run2b.txt`, `e91f9e8...4aeb14d`):
+
+- **Scan 1, exported symbols**: none, both runs. Module-local names: `authorStroke` GONE (B); `RANK` and
+  `unforced` NEW after layer 1, read by this file alone.
+- **Scan 2, path helpers**: none. **Scan 4**: one string, `aria-checked="true"`, a test input in arm 5's
+  `paintsIn` anchor that moved line; no role added or removed.
+- **Scan 3, tests naming a touched non-test file**: eighteen files (the parts' own drawing and structure
+  suites, `registry.test.ts`, `client-boundary.test.ts`, `entry-point.test.ts`, `fidelity.test.tsx`,
+  `tokens/test/brand-guard.test.ts` through `button.tsx`, …), every one in the 35-file suite that ran green
+  at each commit; r5 counted 34 by its own recipe and ran them all.
+- **Scan 5, the two class strings**: pinned by `forced-colors-state.test.tsx` (the anchors) and the two
+  `r/` copies; the OLD strings are pinned nowhere in this repository.
+- **CROSS: 0** (no other library stream this batch). **UNOWNED: 0** by behaviour; the citation fix reached
+  five files outside the named ten (decision 4). **NEW between the runs**: `RANK`, `unforced`, the two
+  `@marquee-ui/ui/r/…` citations.
+
+### Decisions
+
+1. **The thumb's fix is a frame, the tick's a `currentcolor` stroke**, the two measured mechanisms, each
+   of which CHANGES a carrier the guard counts; a system-colour paint was refused by the guard (A3) and, for
+   the thumb, loses to the checked state's own background in Chromium (r5 P3).
+2. **`choice-drawing`'s tick-ink arm learned a second ink** because the spec added one, split by the
+   `forced-colors:` variant with the file's own `triggered()`; the drawing's ink is still exactly
+   `var(--primary-foreground)`. [V]
+3. **One stroke reading, `currentcolor` only, for every arm** (REQUEST B); `strokePaints` takes no second
+   argument and the dead `NO_STYLE` test inside it went with the author branch.
+4. **The citation fix reaches every library-only path in a shipped source**, not only the composition's
+   eighteen `test/` lines: two `test/` lines outside `*.tsx` (`ribbon.css`, `lib/utils.ts`), three test
+   files named bare (`alert`, `avatar`, `badge`), `radio-group`'s `stories/` path, the seven `docs/as-built.md`
+   and `AGENTS.md` citations, and (layer 1) the two `r/` paths. Five of those lines sit in files outside the
+   row's named ten; `packages/ui/src/**` was this stream's alone this batch and every edit is a comment
+   (r5 proved commit 3 comment-only by AST). The cost is three more copies for LIB-VENDOR-0.1.6 (`alert`,
+   `avatar`, `ribbon`). [V]
+5. **`radio-group.tsx`'s docblock drops `stroke` from the forced-foreground list** (one word outside the
+   two named lines, the same falsified claim; the corrected sentence would otherwise contradict it). [V]
+6. **The stroke an element draws is the highest-ranked declaration** (layer 1 MED-1); a held state's
+   currentcolor stroke is NOT counted, as a held state's width is not, which errs toward naming a site.
+7. **MED-3 deferred** (a carrier hidden under the mode reads as painting): pre-existing, and its fix changes
+   what the revealed arms mean. REQUEST below. [V]
+8. **The pack point is the bump commit `ed6a393`**, packed after layer 1's fixes; no tag, no publish.
+
+### REQUESTs (to the orchestrator)
+
+- **MED-3 (r5), for this file's next owner**: `paintsIn` counts a frame or a stroke on an element the mode
+  HIDES (`forced-colors:hidden`, `forced-colors:opacity-0`, `forced-colors:invisible`); r5 proved the Switch
+  back to the DL21 hashes and the Checkbox and radio IDENTICAL with the suite green. The fix is a reveal
+  check in the same ranked form as the stroke (the winning `opacity`/`visibility`/`display` in the state and
+  mode), which needs the revealed arms to read the state they reveal in.
+- **LIB-VENDOR-0.1.6's brief**: ten copies, not seven (above).
+
+### The gate
+
+`pnpm verify` exit **0** at every commit, each `Test Files 35 passed (35)` / `Tests 601 passed (601)` with the
+tree clean after: `e91f9e8` (base, 22.0 s), `6f6f3ba` (14.8 s), `5fc342f` (16.9 s), `99d08a4` (16.6 s),
+`4aeb14d` (15.7 s), `ed6a393` (the pack point, 15.7 s); logs `verify-<sha>.log`, exits `verify-<sha>.exit`.
+This block lands in one docs-only commit after them, whose own `pnpm verify` is the stream's report line.
+
+No push, no tag, no `npm publish`, no PR: the freeze holds. The tag `ui@0.1.6` belongs at `ed6a393` when it
+lifts.
+
+## Layer 1 (reviewer, detached worktree of 99d08a46eadff3844fb3d85bf10dbefc9c902eed, slot r5, marquee-ui, no database)
+
+**0 HIGH, 3 MED, 3 LOW**, over its own mutations through its own driver (`$BATCH_SCRATCH/r5/mut.py`, logs
+`r5/runs/`, probes `r5/fc-probe/`), each asserting the edit matched once and landed, rebuilding the
+registry after a part edit, running the WHOLE suite and checking the tree clean. Its baseline on the
+untouched head: `pnpm install --frozen-lockfile` + `pnpm build` exit 0, `Test Files 35 passed (35)` /
+`Tests 601 passed (601)`; a second detached worktree at `e91f9e8` for base-side controls (35 / 601 too). It
+re-ran the Chromium probe on its own compiled sheet (byte-identical to the stream's `6f6f3ba` sheet): all 15
+rows equal the stream's at the head, and with both fixes reverted all 15 equal the stream's base. It proved
+commit 3 comment-only by comparing each file's parsed AST re-printed without comments (0 of 30 differ; the
+same instrument on commit 1: 6 of 8). Its full report is `$BATCH_SCRATCH/r5/report.md`. The table is its
+own, verbatim; every GREEN row is answered in "Layer 1's fixes" above:
+
+| file                | test                                                  | mutation applied                                                                                                         | red / GREEN                                                                                                                                                                                                                                                                                                                            | what it asserts now                                                                                                                                                                                                                     |
+| ------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| forced-colors-state | gives every state drawn only in colour...             | T1: the three DL21 `KNOWN_STATE_GAPS` entries put back                                                                   | red: `checkbox.tsx group-has-checked/checkbox now survives forced colors: delete its KNOWN_STATE_GAPS entry`                                                                                                                                                                                                                           | The expiry fires. Both 0.1.6 fixes are counted as saving their state.                                                                                                                                                                   |
+| forced-colors-state | same                                                  | T1s: only the two Switch entries put back                                                                                | red: `switch.tsx group-aria-checked/switch now survives forced colors`                                                                                                                                                                                                                                                                 | Same. The Switch fix expires its entry.                                                                                                                                                                                                 |
+| forced-colors-state | same                                                  | T1c: only the Checkbox entry put back                                                                                    | red: `checkbox.tsx group-has-checked/checkbox now survives forced colors`                                                                                                                                                                                                                                                              | Same. The Checkbox fix expires its entry.                                                                                                                                                                                               |
+| forced-colors-state | tells the mechanisms apart / tells the carriers apart | T2: `strokePaints` always true                                                                                           | red, 2 tests: `the tick's author-coloured stroke reads as a paint the mode keeps`, `a reveal painted only by an author stroke reads as a treatment`. With every expect made soft, these also fire: `an author-coloured stroke counts as a paint...`, `an author stroke carries a state`, `stroke: none reads as a paint`               | The negatives on the stroke predicate have teeth.                                                                                                                                                                                       |
+| forced-colors-state | arms 2, 3, 5, 6                                       | T3: `strokePaints` always false                                                                                          | red, 4 tests: `the tick paints no currentcolor stroke under forced colors`, arm 3's short list, `checkbox.tsx's checked box is no longer carried by a revealed tick the mode can see` `[[['opacity'], false]]`, arm 6's short list. Soft run adds `a currentcolor stroke no longer counts` and `a currentcolor stroke carries nothing` | The positives on the stroke predicate have teeth.                                                                                                                                                                                       |
+| forced-colors-state | arms 2, 5                                             | T4: `strokePaints` put back to the pre-0.1.6 revealed reading (`!NO_STYLE.test(value)`, any stroke counts)               | red, 2 tests, the same messages as T2 minus `stroke: none`                                                                                                                                                                                                                                                                             | REQUEST B does real work: the old reading reddens.                                                                                                                                                                                      |
+| forced-colors-state | arm 2                                                 | T5: the paint check's stroke branch reads `applies` instead of `mine`, so placement is ignored                           | red: `the tick's author-coloured stroke reads as a paint the mode keeps` (the message names the wrong cause, see LOW-2)                                                                                                                                                                                                                | The placement of the stroke is pinned.                                                                                                                                                                                                  |
+| forced-colors-state | arms 2, 3, 5, 6                                       | T6: the stroke branch deleted                                                                                            | red, 4 tests, the same as T3                                                                                                                                                                                                                                                                                                           | The stroke branch has teeth.                                                                                                                                                                                                            |
+| forced-colors-state | T11                                                   | `strokePaints` also accepts `none`                                                                                       | red: only `stroke: none reads as a paint`                                                                                                                                                                                                                                                                                              | The third unit assert has teeth on its own.                                                                                                                                                                                             |
+| forced-colors-state | ALL                                                   | T7: `carrierOf`'s `paints` hard-set to `true`                                                                            | **GREEN 35/35, 601/601** (the same mutation at e91f9e8 is **red**: `checkbox.tsx ... now survives forced colors`)                                                                                                                                                                                                                      | **FINDING MED-2.** At this sha nothing checks that `paints` can come back false.                                                                                                                                                        |
+| forced-colors-state | ALL                                                   | T7 + P1 (thumb fix removed)                                                                                              | **GREEN 35/35, 601/601**                                                                                                                                                                                                                                                                                                               | **FINDING MED-2.** The DL21 Switch defect ships fully green once `paints` is collapsed.                                                                                                                                                 |
+| forced-colors-state | ALL                                                   | T7 + P2 (tick fix removed)                                                                                               | red, 3 tests (arm 2, arm 3, choice-drawing)                                                                                                                                                                                                                                                                                            | Other paths catch the tick.                                                                                                                                                                                                             |
+| forced-colors-state | ALL                                                   | T13: `classify().saved` hard-set to `true`                                                                               | **GREEN 35/35, 601/601** (the same mutation at e91f9e8 is **red**: `checkbox.tsx ... now survives`)                                                                                                                                                                                                                                    | **FINDING MED-2.** Nothing checks that the state arm's verdict can come back false.                                                                                                                                                     |
+| forced-colors-state | ALL                                                   | T13 + P20 (a new colour-only `aria-pressed:bg-primary` literal in description-list.tsx)                                  | **GREEN 35/35, 601/601** (P20 alone: red, arm 6)                                                                                                                                                                                                                                                                                       | **FINDING MED-2.** A new site is invisible to the arm once the verdict is collapsed.                                                                                                                                                    |
+| forced-colors-state | ALL                                                   | T12: `savedUnderForcedColors` hard-set to `true`                                                                         | GREEN at head, **and GREEN at e91f9e8**                                                                                                                                                                                                                                                                                                | Pre-existing, not from this diff. With P1 or P2 added the run goes red through `carrierOf` and choice-drawing, so no named defect is masked. Green by design, noted.                                                                    |
+| forced-colors-state | proposal                                              | X1: add `expect(carrierOf(thumb minus forced-colors: tokens, state).paints).toBe(false)`                                 | GREEN at head. X1 + T7: **red** `r5: a mover painting only a background reads as painting`                                                                                                                                                                                                                                             | This is the missing negative for `paints`.                                                                                                                                                                                              |
+| forced-colors-state | proposal                                              | X2: add `expect(classify({...toggleSite, tokens minus forced-colors:}).saved).toBe(false)`                               | GREEN at head. X2 + T13: **red**. X2 + T7: GREEN, so both pins are needed                                                                                                                                                                                                                                                              | This is the missing negative for `saved`.                                                                                                                                                                                               |
+| switch.tsx (part)   | found the states... + gives every state...            | P1: `forced-colors:border-8` removed                                                                                     | red: `group-aria-checked/switch: the moving thumb paints nothing the mode keeps` (soft run: both hosts), plus arm 6                                                                                                                                                                                                                    | The new arm-4 pin and arm 6 both see it.                                                                                                                                                                                                |
+| switch.tsx          | same                                                  | P3: swapped for `forced-colors:bg-[CanvasText]`                                                                          | red, the same 2                                                                                                                                                                                                                                                                                                                        | Correct red. The probe shows the unchecked thumb is CanvasText, but the checked thumb's `group-aria-checked/switch:bg-primary-foreground` outranks it and goes back to Canvas. The on-state hash `aee70fc72f4e` equals the base defect. |
+| switch.tsx          | same                                                  | P7: `forced-colors:border-0` / P8: `+ forced-colors:border-none` / P9: `forced-colors:group-has-checked/switch:border-8` | red, 2 each (P9 reddens the button host)                                                                                                                                                                                                                                                                                               | The zero width, the none style and state scoping are all seen.                                                                                                                                                                          |
+| switch.tsx          | ALL                                                   | P11: `+ forced-colors:hidden` / P14: `+ forced-colors:opacity-0` / P15: `+ forced-colors:invisible`                      | **GREEN 35/35, 601/601** each. Probe: both hosts IDENTICAL, `aee70fc72f4e` dark and `005e818e4050` light, the exact DL21 hashes                                                                                                                                                                                                        | **FINDING MED-3** (a pre-existing class).                                                                                                                                                                                               |
+| checkbox.tsx (part) | arms 2, 3, 5, 6 + choice-drawing                      | P2: `forced-colors:stroke-current` removed                                                                               | red, 5 tests including choice-drawing `expected [] to deeply equal [ 'currentcolor' ]`                                                                                                                                                                                                                                                 | Correct.                                                                                                                                                                                                                                |
+| checkbox.tsx        | same                                                  | P4: swapped for `forced-colors:stroke-[CanvasText]`                                                                      | red, 5 tests                                                                                                                                                                                                                                                                                                                           | Stricter than Chromium: the probe hashes match the head fix exactly (`05c7acf4ad4e` / `68870eef994e`). Green by design ("currentcolor and nothing else"), see LOW-3.                                                                    |
+| checkbox.tsx        | choice-drawing + arm 2                                | P5: the two inks swapped between modes                                                                                   | red: choice-drawing `expected [ 'currentcolor' ] to deeply equal [ 'var(--primary-foreground)' ]`, arm 2 `the tick paints no currentcolor stroke under forced colors`                                                                                                                                                                  | Correct.                                                                                                                                                                                                                                |
+| checkbox.tsx        | choice-drawing + arm 2                                | P6: `stroke-current` made unconditional                                                                                  | red, 2 tests (choice-drawing both inks, because twMerge drops `stroke-primary-foreground`; arm 2 both pins). Arms 3, 5 and 6 stay green because they count an unconditional currentcolor                                                                                                                                               | The named pins carry it.                                                                                                                                                                                                                |
+| checkbox.tsx        | ALL                                                   | P10: `+ forced-colors:stroke-none`                                                                                       | red **only** in choice-drawing, `expected [ 'none' ] to deeply equal [ 'currentcolor' ]`. forced-colors-state is all green. Probe: checkbox IDENTICAL in both forced palettes                                                                                                                                                          | Only the exact-equality pin sees it. Folded into MED-1.                                                                                                                                                                                 |
+| checkbox.tsx        | ALL                                                   | P21: `stroke-primary-foreground` becomes `group-has-checked/checkbox:stroke-primary-foreground`                          | **GREEN 35/35, 601/601**. Probe: none-mode hashes equal the head's, forced-dark checked tick `stroke=rgb(10, 11, 7)`, hash `c53baa1749de`, which is the BASE defect's hash                                                                                                                                                             | **FINDING MED-1.**                                                                                                                                                                                                                      |
+| checkbox.tsx        | ALL                                                   | P12: `+ forced-colors:hidden` / P16: `+ forced-colors:invisible`                                                         | **GREEN** each. Probe: checkbox IDENTICAL in both forced palettes                                                                                                                                                                                                                                                                      | **FINDING MED-3.**                                                                                                                                                                                                                      |
+| checkbox.tsx        | tells the carriers apart                              | P13: the box gains `forced-colors:group-has-checked/checkbox:border-4`                                                   | red: `the checkbox box grew a treatment of its own`                                                                                                                                                                                                                                                                                    | The new `box.own` pin has teeth.                                                                                                                                                                                                        |
+| radio-group.tsx     | ALL                                                   | P17: the dot gains `+ forced-colors:hidden`                                                                              | **GREEN**. Probe: radio IDENTICAL, `0fe122007dc4` / `c08f11a6b4d2`                                                                                                                                                                                                                                                                     | This shows MED-3 predates 0.1.6.                                                                                                                                                                                                        |
+| choice-drawing      | paints the mark in the ink the fill guarantees        | T8: the `drawn` filter keeps every token / T10: `FORCED = "zzz"`                                                         | red: `expected [ 'var(--primary-foreground)', …(1) ] to deeply equal [ 'var(--primary-foreground)' ]`                                                                                                                                                                                                                                  | The mode filter is load-bearing.                                                                                                                                                                                                        |
+| choice-drawing      | same                                                  | T9: `triggered(mark, FORCED)` becomes `mark`                                                                             | red: `... to deeply equal [ 'currentcolor' ]`                                                                                                                                                                                                                                                                                          | The forced ink is pinned.                                                                                                                                                                                                               |
+
+Its masked-assertion pass, verbatim: "Masked assertions, resolved by making every `expect(` an
+`expect.soft(` (SOFT alone: 601/601 green). The four new asserts that were never reached in a plain run,
+because an earlier line in the same `it` failed first, each fire on their own message: `an author-coloured
+stroke counts as a paint the mode keeps` (T2, T4), `a currentcolor stroke no longer counts` (T3, T6), `an
+author stroke carries a state` (T2, T4), `a currentcolor stroke carries nothing` (T3). `stroke: none reads as
+a paint` fires alone under T11. SOFT+P2 did NOT fire `a currentcolor stroke no longer counts`. The class
+`forced-colors:stroke-current` still compiles from checkbox.tsx's own docblock, because Tailwind scans
+comments. So that anchor holds whether or not the fix is present, which is good, but only by accident."
+
+**The GREEN rows, answered** (the re-runs are in "Layer 1's fixes" above): T7, T7 + P1, T13 and T13 + P20
+(MED-2) are red at `4aeb14d` through the three negatives; P21 (MED-1) is red through the ranked stroke, and
+P10 now reddens `forced-colors-state` as well as `choice-drawing`; P11, P12, P14, P15, P16 and P17 (MED-3)
+stay GREEN, deferred as a REQUEST (pre-existing: P17 is the radio's dot, unchanged since DL18); T12
+(`savedUnderForcedColors` always true) is green at the base too and masks no named defect (r5's own note:
+with P1 or P2 added the run goes red), by design; X1 and X2 are r5's proposals, and the pins that landed
+are their shape.
+
+⚠️ r5 wrote that thepile vendors `lib/utils.ts` among the moved items. It does not: `utils` is the drift
+test's declared exclusion (thepile's `lib/utils.ts` is its own join, `scripts/marquee-drift.test.ts` at
+`3a1bbe6a`), so `r/utils.json` moving is no byte arm downstream. Ten consumed copies move, not eleven.
