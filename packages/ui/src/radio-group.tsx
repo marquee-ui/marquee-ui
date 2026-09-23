@@ -13,9 +13,10 @@ import { cn } from "@/lib/utils";
  * This package holds no state, no `tabIndex` arithmetic and no key handler, and
  * that is not a saving of effort: the two behaviours a React radio group
  * re-implements are what a shared `name` already gives, and they are MEASURED
- * here rather than assumed (`test/choice-drawing.test.tsx`, and the plays in
- * `stories/radio-group.stories.tsx`) - `user.tab()` enters a group of three at
- * the CHECKED radio and leaves it after one stop, and `{ArrowDown}` moves the
+ * here rather than assumed (marquee-ui's `packages/ui/test/choice-drawing.test.tsx`,
+ * and the plays in its `packages/ui/stories/radio-group.stories.tsx`) -
+ * `user.tab()` enters a group of three at the CHECKED radio and leaves it after
+ * one stop, and `{ArrowDown}` moves the
  * checked radio to the next one. The drawing reads a `:checked` descendant of
  * the row, so it cannot disagree with what a screen reader is told.
  *
@@ -126,7 +127,8 @@ function refuseRole(props: object, children: ReactNode, asChild: boolean): void 
  * `opacity-0` - and `forced-colors: active` drops a `box-shadow` while keeping an
  * `outline`, so a shadow-only ring here would leave NO focus indicator at all in
  * the mode a person uses because they cannot see the default one. The Switch's
- * label host had the identical hole (`switch.tsx`, and the consuming product's own browser measurement); `test/focus-outline.test.tsx` derives this
+ * label host had the identical hole (`switch.tsx`, and the consuming product's own
+ * browser measurement); marquee-ui's `packages/ui/test/focus-outline.test.tsx` derives this
  * invariant over every part rather than listing them, which is how this one was
  * found.
  */
@@ -169,8 +171,8 @@ const circleClass =
  * in the user's own ink. It is scoped to `forced-colors:` because the normal
  * drawing must not move: outside that media query this string is byte-for-byte
  * what it was, which is what the consumer's measurement table and its e2e arm
- * are written against. `test/forced-colors-state.test.tsx` derives the invariant
- * over every part rather than listing this one.
+ * are written against. marquee-ui's `packages/ui/test/forced-colors-state.test.tsx`
+ * derives the invariant over every part rather than listing this one.
  */
 const indicatorClass =
   "pointer-events-none absolute size-2 rounded-full bg-primary-foreground opacity-0 group-has-checked/radio:opacity-100 forced-colors:border-4";

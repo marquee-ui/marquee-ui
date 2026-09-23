@@ -48,7 +48,7 @@ import { cn } from "@/lib/utils";
  * `description-list.tsx` fails (that walk refuses the child; this one recurses
  * through it), and the throw names the boundary when one is in play. The form's
  * Server-Component form is an ISLAND: one `"use client"` component holding the
- * whole field. `docs/as-built.md` carries the reading.
+ * whole field. marquee-ui's `docs/as-built.md` carries the reading.
  *
  * ⚠️ THE ONE RULE A CALL SITE HAS TO KNOW: **the parts are DIRECT children of
  * `FormItem`**. The item reads its own `children` to find out which of them were
@@ -100,7 +100,7 @@ type PartCounts = { label: number; control: number; description: number; message
  * THE CLIENT BOUNDARY, WHICH THIS WALK CANNOT SEE THROUGH - AND NOW SAYS SO.
  *
  * Measured, not reasoned (DL16, an instrumented Next 15 prerender; the log and
- * the finding are written up in `docs/as-built.md`). An element a SERVER
+ * the finding are written up in marquee-ui's `docs/as-built.md`). An element a SERVER
  * component creates reaches this `"use client"` module as a client reference,
  * which React hands over as its LAZY wrapper: `typeof child.type === "object"`,
  * own keys exactly `["$$typeof", "_payload", "_init"]`, `$$typeof` the public
@@ -114,7 +114,8 @@ type PartCounts = { label: number; control: number; description: number; message
  * counted, and the caller was told `must hold exactly one <FormControl>` about a
  * field holding exactly one. Only the MESSAGE changes here: every composition
  * that rendered before still renders, including a deliberate `lazy()` child
- * beside a real control, which `test/form-wiring.test.tsx` pins.
+ * beside a real control, which marquee-ui's
+ * `packages/ui/test/form-wiring.test.tsx` pins.
  */
 const REACT_LAZY = Symbol.for("react.lazy");
 
@@ -174,7 +175,7 @@ export type FormItemProps = ComponentProps<"div"> & {
  *
  * `gap-1` rather than the consuming product's `gap-1.5`: its twelve field
  * wrappers are a 6/6 tie between the two, and 6px is off the house's 4px
- * spacing grid, which `AGENTS.md` names as skeleton. `CardHeader`'s `gap-1` is
+ * spacing grid, which marquee-ui's `AGENTS.md` names as skeleton. `CardHeader`'s `gap-1` is
  * the precedent for a title-and-prose pair. A new family is not held to the
  * fidelity rule (the Switch's decision 8), so this is a 2px decision, not a
  * regression - and a call site that wants the old gutter says `gap-1.5`.
@@ -229,9 +230,9 @@ export function FormItem({ className, invalid = false, children, ...props }: For
         // client reference by exactly this `$$typeof` and nothing finer is
         // reachable from userland - so the sentence names both readings instead
         // of asserting the one it cannot know. All three halves are pinned in
-        // test/form-wiring.test.tsx, including a field whose unrecognised child
-        // is an ordinary <div>, which is what makes the predicate's collapse
-        // visible at all.
+        // marquee-ui's packages/ui/test/form-wiring.test.tsx, including a field
+        // whose unrecognised child is an ordinary <div>, which is what makes
+        // the predicate's collapse visible at all.
         (seen.boundary
           ? " One of its children is a React lazy wrapper. Either it is a part created in a " +
             'SERVER component - which is what one looks like from inside this "use client" ' +

@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 /**
  * The house button. Every string below already shipped on a real product surface
  * and is MOVED here through the role rename table, not redesigned: the tokens
- * change name, the pixels do not (`test/fidelity.test.ts` pins the utility SET of
- * every variant).
+ * change name, the pixels do not (marquee-ui's `packages/ui/test/fidelity.test.tsx`
+ * pins the utility SET of every variant).
  *
  * The control language: sharp corners, the offset block as the only fill, one
  * hard shadow at the bottom-right, and never a rounded chip for the board's

@@ -18,8 +18,8 @@ import { extendTailwindMerge } from "tailwind-merge";
  * why the failure is invisible until a size, a shadow or a tracking value is the
  * thing being overridden.
  *
- * `test/merge-theme.test.ts` derives the names from the emitted stylesheet and
- * fails if this list has fallen behind it.
+ * marquee-ui's `packages/ui/test/merge-theme.test.ts` derives the names from the
+ * emitted stylesheet and fails if this list has fallen behind it.
  */
 const twMerge = extendTailwindMerge({
   extend: {

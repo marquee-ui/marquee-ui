@@ -47,8 +47,9 @@ import { cn } from "@/lib/utils";
  * inside a `dd`, and REFUSES all three of those component-factored groups, because
  * their `DescriptionItem` is not a child anyone can clone. Dropping the contexts
  * would have kept the file a server module and silently deleted five of the
- * family's guard arms (`test/description-list-structure.test.tsx`, "a part outside
- * its parent throws" and "a part inside a part is refused"). A static cell buying a
+ * family's guard arms (marquee-ui's
+ * `packages/ui/test/description-list-structure.test.tsx`, "a part outside its
+ * parent throws" and "a part inside a part is refused"). A static cell buying a
  * client boundary is the lesser defect; an invalid `<dl>` that looks right is the
  * one this family exists for.
  *
@@ -61,7 +62,7 @@ import { cn } from "@/lib/utils";
  * **The family's Server-Component form is therefore an ISLAND: one `"use client"`
  * component that owns the whole `<dl>` and creates every element in it** - proved
  * to build, in the same probe, with the same parts. The walk says so itself now;
- * the reading, the log and the two shapes are in `docs/as-built.md`.
+ * the reading, the log and the two shapes are in marquee-ui's `docs/as-built.md`.
  *
  * ⚠️ The `dd`'s UA `margin-inline-start: 40px` is Tailwind's PREFLIGHT to zero,
  * not this family's: `@import "tailwindcss"` resets margin on every element.
@@ -185,7 +186,7 @@ function refuseRole(props: object, part: string, element: string): void {
  * `stack` is 6 of the 8 sites (the term over its detail). Two of the six write
  * `flex flex-col gap-1` and the other four get the same result from block flow,
  * so the flex spelling is the one that is stated rather than inherited.
- * `gap-1` is the 4px grid `AGENTS.md` names as skeleton, and `FormItem` took the
+ * `gap-1` is the 4px grid marquee-ui's `AGENTS.md` names as skeleton, and `FormItem` took the
  * same value against the same off-grid alternative.
  *
  * `inline` is the other 2 (`ScoreBlock:87`, the `RawFigure` wrapper, is
@@ -388,7 +389,8 @@ export function DescriptionList({ className, children, ...props }: DescriptionLi
  * THE CLIENT BOUNDARY, WHICH THE WALK ABOVE CANNOT SEE THROUGH - AND SAYS SO.
  *
  * Measured, not reasoned (DL16, the orchestrator's probe rebuilt with the walk
- * instrumented; the reading, the log and both shapes are in `docs/as-built.md`).
+ * instrumented; the reading, the log and both shapes are in marquee-ui's
+ * `docs/as-built.md`).
  * A Next 15 Server Component composing the
  * 0.1.2 copy of this family exits the build at prerender, and the reason is in
  * `child.type`: an element a SERVER component creates reaches this `"use

@@ -15,8 +15,8 @@ import { cn } from "@/lib/utils";
  *
  * ⚠️ The trigger's focus indicator declares an OUTLINE as well as the shadow
  * ring: `forced-colors: active` drops a `box-shadow` and keeps an `outline`, so
- * a shadow-only ring is no indicator at all in that mode
- * (`test/focus-outline.test.tsx`, and `switch.tsx` for the measurement).
+ * a shadow-only ring is no indicator at all in that mode (marquee-ui's
+ * `packages/ui/test/focus-outline.test.tsx`, and `switch.tsx` for the measurement).
  */
 export const Accordion = AccordionPrimitive.Root;
 

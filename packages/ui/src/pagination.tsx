@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 
 /**
  * Numbered pages, as parts. MOVED through the role rename table like the trail:
- * the tokens change name, the pixels do not (`test/fidelity.test.tsx`).
+ * the tokens change name, the pixels do not (marquee-ui's
+ * `packages/ui/test/fidelity.test.tsx`).
  *
  * ⚠️ A CRAWL STRUCTURE BEFORE IT IS A CONTROL. Plain anchors, no client state and
  * no button-driven pager: a crawler that runs no scripts has to be able to walk
@@ -112,7 +113,7 @@ export type PaginationLinkProps = ComponentProps<"a"> & {
    * current while drawn as any other page. That is `asChild`'s own contract - the
    * caller's element is the caller's - so the rule for a host is: pass `isActive`,
    * and do not also write `aria-current` on the child.
-   * `test/nav-consumption.test.tsx` pins both halves.
+   * marquee-ui's `packages/ui/test/nav-consumption.test.tsx` pins both halves.
    */
   isActive?: boolean;
 };

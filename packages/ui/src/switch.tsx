@@ -36,13 +36,14 @@ import { cn } from "@/lib/utils";
  * engine a consumer ships to. It is also why the native host's input is an
  * invisible overlay rather than the track itself: an `<input>` styled as the
  * 44x24 track is a 24px-tall control, and `min-h-hit` on the row is what the tap
- * floor actually measures (`test/tailwind-compile.test.tsx`).
+ * floor actually measures (marquee-ui's `packages/ui/test/tailwind-compile.test.tsx`).
  *
  * Geometry, and it is arithmetic rather than taste: a 44x24 track with a 2px
  * border leaves a 40x20 padding box; a 16px thumb inset 2px inside that leaves
  * 44 - 2*2 - 2*2 - 16 = 20px of travel, which is `translate-x-5`. So "on" sits
- * flush against the far edge. `test/switch-drawing.test.tsx` re-derives all five
- * numbers from the COMPILED stylesheet rather than from these strings.
+ * flush against the far edge. marquee-ui's `packages/ui/test/switch-drawing.test.tsx`
+ * re-derives all five numbers from the COMPILED stylesheet rather than from
+ * these strings.
  */
 
 /**
@@ -58,8 +59,8 @@ import { cn } from "@/lib/utils";
  * `forced-colors: active` drops a `box-shadow` and keeps an `outline`, so the
  * old `focus-visible:outline-none` left this control with NO focus indicator at
  * all in the mode a person uses because they cannot see the default one -
- * measured in the consuming product, `test/focus-outline.test.tsx` carries the
- * numbers. Both are declared now: the outline for forced colors, the shadow for
+ * measured in the consuming product, marquee-ui's
+ * `packages/ui/test/focus-outline.test.tsx` carries the numbers. Both are declared now: the outline for forced colors, the shadow for
  * the dark inner separator that makes the ring readable over cover art.
  */
 const switchClass =
