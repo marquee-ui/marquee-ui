@@ -121,9 +121,17 @@ const boxClass =
  * The mark inside the box: hidden until the control is checked, and drawn in the
  * ink the fill is guaranteed to carry (`primary-foreground` on `primary` is the
  * pair `Button`'s primary variant already stands on).
+ *
+ * ⚠️ `forced-colors:stroke-current` IS THE WHOLE CHECKED STATE IN THAT MODE. The
+ * mode forces the box's frame and fill, but Chromium does NOT force an author SVG
+ * `stroke`: measured in headless Chromium, the tick stayed `--primary-foreground`,
+ * rgb(10, 11, 7), on the rgb(0, 0, 0) `Canvas` of a dark forced palette - a
+ * checked box a person could not tell from an empty one. A `currentcolor` stroke
+ * follows the `color` the mode DOES force, so there the tick is drawn in the
+ * user's own ink. It is scoped to the mode, so the normal drawing is unchanged.
  */
 const indicatorClass =
-  "pointer-events-none absolute size-4 stroke-primary-foreground opacity-0 group-has-checked/checkbox:opacity-100";
+  "pointer-events-none absolute size-4 stroke-primary-foreground opacity-0 group-has-checked/checkbox:opacity-100 forced-colors:stroke-current";
 
 /**
  * The row's marker, and the ONE part that demands it is the input.

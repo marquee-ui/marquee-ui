@@ -76,9 +76,19 @@ const trackClass =
  * light preset the two track fills are 1.13:1 apart, so a viewer who reads the
  * fill alone cannot tell the states apart - the thumb having MOVED is what says
  * which one it is, in both presets and in no colour at all.
+ *
+ * ⚠️ AND A MOVE IS ONLY SEEN IF THE THING THAT MOVES IS PAINTED. Under
+ * `forced-colors: active` the thumb's one paint, a `background-color`, is forced
+ * to `Canvas`, the same `Canvas` the track's fill went to, so without the last
+ * token here the thumb travelled 20px and nothing on screen moved: checked and
+ * unchecked hashed IDENTICAL in headless Chromium, in both forced palettes and
+ * both hosts. `forced-colors:border-8` draws it in the mode's own ink instead -
+ * 8px of border on a 16px `border-box` meets in the middle, a solid disc, which is
+ * `RadioGroupIndicator`'s answer at twice the size. It is scoped to the mode, so
+ * the normal drawing is byte-for-byte what it was.
  */
 const thumbClass =
-  "pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-muted transition-transform group-aria-checked/switch:translate-x-5 group-aria-checked/switch:bg-primary-foreground group-has-checked/switch:translate-x-5 group-has-checked/switch:bg-primary-foreground motion-reduce:transition-none";
+  "pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-muted transition-transform group-aria-checked/switch:translate-x-5 group-aria-checked/switch:bg-primary-foreground group-has-checked/switch:translate-x-5 group-has-checked/switch:bg-primary-foreground motion-reduce:transition-none forced-colors:border-8";
 
 /**
  * The native host's control: a real checkbox, covering the whole row.

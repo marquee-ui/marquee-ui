@@ -151,14 +151,17 @@ const circleClass =
  *
  * ⚠️ THE `forced-colors:` BORDER IS THE WHOLE CHECKED STATE IN THAT MODE, AND
  * NOTHING ELSE HERE CARRIES IT. Forced colors collapses every paint into two
- * system colours - a foreground (`color`, `stroke`, `border-color`) to
- * `CanvasText` and `background-color` to `Canvas` - so a dot whose only paint is
- * a background sits Canvas on Canvas inside a circle whose fill went Canvas too,
- * and CHECKED AND UNCHECKED BECOME THE SAME PICTURE. The consuming product
- * measured exactly that before this line existed: the two circles hashed
- * identical, where the native radio they replaced did not. `Checkbox` escapes
- * because its tick is an SVG `stroke` and `Switch` because its thumb MOVES; this
- * family was the only one signalling state in `background-color` alone.
+ * system colours - a foreground (`color`, `border-color`) to `CanvasText` and
+ * `background-color` to `Canvas` - so a dot whose only paint is a background
+ * sits Canvas on Canvas inside a circle whose fill went Canvas too, and CHECKED
+ * AND UNCHECKED BECOME THE SAME PICTURE. The consuming product measured exactly
+ * that before this line existed: the two circles hashed identical, where the
+ * native radio they replaced did not. `Switch` and `Checkbox` had the same hole
+ * and were once said to escape it; measured in headless Chromium, neither did.
+ * The Switch's thumb MOVES but paints only a background, so it moved Canvas on
+ * Canvas and the two states hashed identical; the Checkbox's tick is an SVG
+ * `stroke`, which Chromium does NOT force, so it stayed near-black on a black
+ * Canvas. Each now carries its own `forced-colors:` treatment.
  *
  * `border-4` on a `size-2` box is a SOLID disc, not a ring: the box is 8px,
  * `border-box` sizing is the preflight default, and 4px of border on every side

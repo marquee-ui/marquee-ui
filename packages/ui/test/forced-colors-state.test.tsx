@@ -26,13 +26,15 @@ import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.
  *
  *   - `Checkbox`   the tick is an SVG `stroke`. This file said the mode forces
  *                  it to CanvasText. MEASURED in headless Chromium (DL21) it does
- *                  not: the computed `stroke` stays the author's
+ *                  not: the computed `stroke` stayed the author's
  *                  `--primary-foreground`, rgb(10, 11, 7) on the rgb(0, 0, 0)
- *                  Canvas of a dark forced palette. Visible only in a light one.
+ *                  Canvas of a dark forced palette. Since 0.1.6 the tick carries
+ *                  `forced-colors:stroke-current`, which follows the forced `color`.
  *   - `Switch`     the thumb MOVES (`translate`), and geometry is not forced -
- *                  but the thumb paints only a `background-color`, so it moves
+ *                  but the thumb painted only a `background-color`, so it moved
  *                  Canvas on Canvas: checked and unchecked were pixel-IDENTICAL
  *                  in both forced palettes, button host and label host (DL21).
+ *                  Since 0.1.6 it carries `forced-colors:border-8`, a solid disc.
  *   - `RadioGroup` the dot was `bg-primary-foreground` on a `bg-primary` circle,
  *                  i.e. background on background -> Canvas on Canvas. INVISIBLE,
  *                  and measured as such by the consuming product before this
@@ -296,18 +298,12 @@ const KNOWN_GAPS: Readonly<Record<string, string>> = {};
  * A STATE drawn in colour alone that knowingly ships short, keyed
  * `"<file> <variant>"`, with the reason. The same expiring device as
  * `KNOWN_GAPS`: an entry fails the moment its site survives the mode, and one
- * whose site no longer exists fails too. Every entry here is a PART defect that
- * this test file cannot fix - `packages/ui/src/**` belonged to the 0.1.5 pack
- * point the batch these were measured in - and each is REQUESTed for 0.1.6.
+ * whose site no longer exists fails too. EMPTY since 0.1.6, and it fired for real
+ * once: it held the Switch's two hosts and the Checkbox from DL21, measured in
+ * headless Chromium, until the thumb's `forced-colors:border-8` and the tick's
+ * `forced-colors:stroke-current` made each entry fail here and be deleted.
  */
-const KNOWN_STATE_GAPS: Readonly<Record<string, string>> = {
-  "switch.tsx group-aria-checked/switch":
-    "the button host's track draws checked as border-primary + bg-primary, and its thumb carries the state by MOVING - but the thumb paints only a background, Canvas on the track's Canvas: checked and unchecked hashed IDENTICAL in headless Chromium under forced colors, dark palette aee70fc72f4e and light 005e818e4050 (DL21, $BATCH_SCRATCH/s3/fc-probe); a hand-written 8px thumb border separated them. REQUEST for 0.1.6: a forced-colors: treatment on the thumb",
-  "switch.tsx group-has-checked/switch":
-    "the label host's track, the same drawing as the button host's and the same measurement: pixel-IDENTICAL checked and unchecked in both forced palettes, because the moving thumb is Canvas on Canvas (DL21). REQUEST for 0.1.6, one fix for both hosts since the thumb's string is shared",
-  "checkbox.tsx group-has-checked/checkbox":
-    "the box draws checked as border-primary + bg-primary, and the revealed tick carries the state with an SVG stroke in the author colour --primary-foreground, which Chromium does NOT force: rgb(10, 11, 7) on the rgb(0, 0, 0) Canvas of a dark forced palette, 45 near-black pixels (DL21); a currentColor stroke under forced colors drew it white. REQUEST for 0.1.6: forced-colors:stroke-current on the tick",
-};
+const KNOWN_STATE_GAPS: Readonly<Record<string, string>> = {};
 
 type Site = { file: string; tokens: string[] };
 
@@ -483,8 +479,8 @@ describe("a checked state survives forced-colors: active", () => {
     }
     // ...and the placement walk CLASSIFIES, independent of any one fix: most of
     // the package is bare top-level utilities and a good share is behind a state
-    // or a media query. (It does NOT count `forced` here - the only forced-colors
-    // rule in the package is the fix itself, and an instrument anchor that failed
+    // or a media query. (It does NOT count `forced` here - the forced-colors rules
+    // in the package are the fixes themselves, and an instrument anchor that failed
     // whenever a defect came back would report the defect as a broken reader.)
     const kinds = [...placed.values()].flat().map((d) => d.placement);
     expect(
@@ -812,13 +808,18 @@ describe("a checked state survives forced-colors: active", () => {
     ]);
 
     // ...and the classifier looked for carriers: the Switch's thumb, found as a
-    // sibling that MOVES under the same condition as the track it sits in.
+    // sibling that MOVES under the same condition as the track it sits in, and
+    // PAINTS while it does (its `forced-colors:border-8`, since 0.1.6).
     for (const track of [button, label]) {
       const thumb = classify(track).siblings;
       expect(thumb.length, `${track.variant}: the thumb was not found as a sibling`).toBe(1);
       expect(thumb[0]!.changes, `${track.variant}: the thumb no longer moves`).toContain(
         "translate",
       );
+      expect(
+        thumb[0]!.paints,
+        `${track.variant}: the moving thumb paints nothing the mode keeps`,
+      ).toBe(true);
     }
   });
 
@@ -843,13 +844,14 @@ describe("a checked state survives forced-colors: active", () => {
       circle.siblings.map((s) => [s.changes, s.paints]),
       "radio-group.tsx's checked circle is no longer carried by a revealed dot the mode can see",
     ).toEqual([[["opacity"], true]]);
-    // `Checkbox`: the tick is revealed the same way, and found - the verdict on
-    // its stroke is `KNOWN_STATE_GAPS`', which expires when the tick is fixed.
+    // `Checkbox`: the tick, revealed the same way and painting a `currentcolor`
+    // stroke under the mode (since 0.1.6; an author stroke is not forced).
     const box = classify(siteNamed(sites, "checkbox.tsx", "group-has-checked/checkbox"));
+    expect(box.own, "the checkbox box grew a treatment of its own").toEqual([]);
     expect(
-      box.siblings.map((s) => s.changes),
-      "the checkbox tick is no longer revealed on checked",
-    ).toEqual([["opacity"]]);
+      box.siblings.map((s) => [s.changes, s.paints]),
+      "checkbox.tsx's checked box is no longer carried by a revealed tick the mode can see",
+    ).toEqual([[["opacity"], true]]);
 
     // The PREDICATES, anchored on their behaviour. A treatment equal to the rest
     // is no treatment; one not scoped to the state is both states' at once.

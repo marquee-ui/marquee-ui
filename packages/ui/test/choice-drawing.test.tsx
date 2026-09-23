@@ -188,7 +188,14 @@ describe("the choice controls' geometry, in resolved pixels", () => {
     // a contrast question nobody has answered.
     const mark = slots(checkbox.Default, CHECKBOX_SLOTS).get("checkbox-indicator")!;
     const dot = slots(radio.Default, RADIO_SLOTS).get("radio-group-indicator")!;
-    expect(sheet.declaredValues(mark, "stroke")).toEqual(["var(--primary-foreground)"]);
+    // The drawing's ink, with the one mode-scoped token set aside: under
+    // `forced-colors: active` Chromium leaves an author stroke alone, so the tick
+    // there is a `currentcolor` stroke that follows the ink the mode forces
+    // (0.1.6; where that rule sits is `forced-colors-state.test.tsx`'s walk).
+    const FORCED = "forced-colors";
+    const drawn = mark.filter((token) => !token.startsWith(`${FORCED}:`));
+    expect(sheet.declaredValues(drawn, "stroke")).toEqual(["var(--primary-foreground)"]);
+    expect(sheet.declaredValues(triggered(mark, FORCED), "stroke")).toEqual(["currentcolor"]);
     expect(sheet.declaredValues(dot, "background-color")).toEqual(["var(--primary-foreground)"]);
     const fill = (classes: readonly string[]) =>
       sheet.declaredValues(
