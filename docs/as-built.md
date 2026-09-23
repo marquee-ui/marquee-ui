@@ -10034,6 +10034,7 @@ drawing tests, and the eleven directory walkers, are listed in the file.
   the same blind spot. Its fix belongs with MED-3: the carrier's winning `border-color` under the mode read like its
   stroke (a `currentcolor` or `CanvasText` paint counts, a system colour equal to its ground does not).
 - **LIB-VENDOR-0.1.6's brief**: ten copies, not seven (above).
+- **CLOSED, MED-3 and LOW-3**: by "## DESIGN-LIB-d-fcstate-reveal" below (DL23: `b551b54`, `fb756a8`, layer 1 `329b269`, `53f92d3`).
 
 ### The gate
 
@@ -10113,3 +10114,379 @@ are their shape.
 ⚠️ r5 wrote that thepile vendors `lib/utils.ts` among the moved items. It does not: `utils` is the drift
 test's declared exclusion (thepile's `lib/utils.ts` is its own join, `scripts/marquee-drift.test.ts` at
 `3a1bbe6a`), so `r/utils.json` moving is no byte arm downstream. Ten consumed copies move, not eleven.
+
+## DESIGN-LIB-d-fcstate-reveal: a carrier the mode hides, and a frame in the ground's own colour (2026-09-23)
+
+Batch DL23, stream s1, branch `s/design-lib-d-fcstate-reveal` from `next` @ `0493fc5`. thepile is read-only
+throughout, by `git -C … show <sha>:<path>` (the spec at `8f15c707`, `DESIGN-LIB.md:5100-5334`; the vendored
+copy at `a2ba90de`). Under the push freeze: LOCAL commits, no tag, no publish, no PR, **no bump**. TEST-ONLY:
+the whole diff is `packages/ui/test/forced-colors-state.test.tsx` (`git diff --stat 0493fc5 HEAD -- packages/ui/src
+packages/ui/r packages/ui/package.json packages/tokens packages/ui/test/fixtures` prints nothing). Closes the
+two REQUESTs the LIB-0.1.6 section left for this file's next owner: r5's **MED-3** (a carrier the mode HIDES
+read as painting) at `b551b54`, and thepile DL22 layer 2's **LOW-3** (a frame in a system colour equal to its
+ground read as painting) at `fb756a8`; then layer 1's fixes at `329b269` and `53f92d3`. **The head is
+`53f92d3`**, and every "at the head" below is that sha.
+
+Every reddening run ran in a DETACHED worktree of a committed head (`../marquee-ui-fcstate-base` at `0493fc5`;
+`../marquee-ui-fcstate-mut` at `fb756a8`, moved to `b551b54`, `329b269` and `53f92d3`; each `pnpm install --frozen-lockfile` +
+`pnpm --filter @marquee-ui/tokens build`), through a driver (`$BATCH_SCRATCH/s1/mutate.py`, mutations in
+`muts.json`) that asserts each edit matched exactly once, confirms it LANDED by `grep -n -F` before the run,
+runs the guard pair from the REPO ROOT, restores with `git checkout -- packages/ui/src/ packages/ui/test/` and checks the tree
+clean. The browser half is DL21 s3's probe as DL22 s1 cut it (`probe3.mjs`, copied to `$BATCH_SCRATCH/s1/fc-probe/`,
+`playwright-core` 1.61.1, headless Chromium, `forcedColors: active` in the dark and light palettes) over each
+mutated tree's compiled sheet (`probe/sheet.mjs`: the guard's own fixture through `@tailwindcss/postcss`),
+driven by `probe-muts.py`.
+
+**The base, re-measured**: `pnpm verify` at `0493fc5` exit **0**, `Test Files 35 passed (35)`, `Tests 601
+passed (601)`, tree clean after (`verify-base.log`). DL22's record said 35 / 601: unchanged. The guard pair
+alone: `Test Files 2 passed (2)`, `Tests 17 passed (17)` (layer 2's "17 / 17" holds). The compiled sheet is
+38,565 B, the size of DL22's `compiled-6f6f3ba.css`, and the probe reads DL22's head hashes on it (the Switch
+`963127a43230` / `5a30855383e7` dark, `6bebee142685` / `abe41061a7a3` light).
+
+⚠️ **The brief's command form is wrong** (class B): `pnpm exec vitest run test/forced-colors-state.test.tsx
+test/choice-drawing.test.tsx` from `packages/ui` exits **1**, `No test files found`: the vitest config is the
+root's `projects` config, and the tests resolve `packages/ui/src` from `process.cwd()`. Every run below is
+`pnpm exec vitest run packages/ui/test/forced-colors-state.test.tsx packages/ui/test/choice-drawing.test.tsx`
+from the repository root (`probe-cwd-ui.log`, `probe-cwd-root.log`).
+
+### What was measured before anything was built
+
+- **What `border-color` a part that declares none is drawn in** (⚠️ UNVERIFIED in (b)): the compiled sheet's
+  preflight is `*, ::after, ::before, ::backdrop, ::file-selector-button { … border: 0 solid; }`, and the
+  shorthand leaves `border-color` at its initial `currentcolor`, which follows the forced `color`. Chromium
+  drew the undeclared thumb frame `8px solid rgb(255, 255, 255)` on the dark palette's black. So an undeclared
+  frame paints, and every shipped frame (the thumb's `forced-colors:border-8`, the dot's `forced-colors:border-4`)
+  stays green by construction. The guard now pins every class-less rule that sets a frame colour (the preflight's
+  `border: 0 solid`, `table`'s `inherit`, `:-moz-focusring`'s `outline: auto`), so the premise cannot move silently.
+- **Which system colours are a ground** (⚠️ UNVERIFIED in (b); `fc-probe/system-colours.mjs`,
+  `system-colours.txt`, `system-colours-deprecated.txt`): every CSS system colour computed under Chromium's two
+  emulated forced palettes. Equal to `Canvas` in BOTH: `Canvas`, `ButtonFace`, `Field`, `HighlightText`, and all
+  eleven deprecated aliases measured (`ActiveCaption`, `AppWorkspace`, `Background`, `ButtonHighlight`,
+  `ButtonShadow`, `InactiveCaption`, `InfoBackground`, `Menu`, `Scrollbar`, `ThreeDFace`, `Window`); in ONE:
+  `MarkText` (dark), `SelectedItemText` and `AccentColorText` (light). Seven of the nineteen current names. The
+  UA's own `<button>` background is `rgb(0, 0, 0)` / `rgb(255, 255, 255)`, the Canvas of each palette.
+- **What the mode does with a frame's colour, on the real thumb** (`probe-muts.py`): `forced-colors:border-[CanvasText]`,
+  `border-transparent`, `border-primary` and `border-current` each leave the Switch's two states DIFFERENT, with
+  the base's own hashes (the author colours and `transparent` are REVERTED to the ink, which is the palette's
+  foreground here: white on black; layer 1's MED-1 measured the mechanism); `border-[ButtonFace]`, `border-[Field]` and `border-[HighlightText]` each hash them IDENTICAL,
+  `aee70fc72f4e` / `005e818e4050`, DL21's defect hashes.
+- **The ranked reveal, in Chromium**: the tick with `forced-colors:opacity-0` added (X-TO) still DIFFERS checked
+  from unchecked, with the base's own hashes (`bdba4ef6f633` / `05c7acf4ad4e` dark): the checked state's
+  `group-has-checked/checkbox:opacity-100` (`:is(:where(.group\/checkbox):has(:checked) *)`, specificity 0,2,0)
+  outranks the bare forced class, as `RANK` says (state 2 over forced 1). So a guard that read "any hiding
+  declaration" would be wrong there, and the ranked one is not.
+
+### The eight mutations, the premise and the fix
+
+Line numbers are the base's (`src/` does not move). "Chromium" is the probe on that mutated tree's compiled
+sheet, forced dark / forced light, unchecked hash = checked hash. At `b551b54` (MED-3 alone) and at `fb756a8`
+(the head): the guard pair's own summary line. Logs `mut-<id>-base-0493fc5.log`, `mut-<id>-med3-b551b54.log`,
+`mut-<id>-head-fb756a8.log`; probes `fc-probe/<id>-base.log`.
+
+| id  | mutation                                                                                                     | premise at `0493fc5`                                     | Chromium at `0493fc5`                                                                                            | `b551b54`        | `fb756a8` | at the head `53f92d3`: red, and the messages that name the file, the state and the cause                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| --- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | `src/switch.tsx:92` `thumbClass` + `forced-colors:hidden` (compiles `display: none` in the forced media)     | **GREEN** 2 / 17                                         | IDENTICAL both hosts, `aee70fc72f4e` dark / `005e818e4050` light (DL21's defect hashes)                          | red 2            | red 3     | **red, 3 of 17**. The state arm, both hosts: `switch.tsx: the group-aria-checked/switch state (:is(:where(.group\/switch)[aria-checked="true"] *)) is drawn in ["border-color","background-color"] alone; no forced-colors:group-aria-checked/switch: treatment changes a kept property, and a sibling that changes ["translate"] and is hidden under the mode by display: none`, and the same for `group-has-checked/switch (:is(:where(.group\/switch):has(:checked) *))`; arm 4 `group-aria-checked/switch: the moving thumb paints nothing the mode keeps`; arm 5 `a moving thumb framed in CanvasText reads as painting nothing` (a pin on the real thumb, whose premise, a visible thumb, M1 removes) |
+| M2  | the thumb + `forced-colors:opacity-0` (`opacity: 0%`)                                                        | **GREEN** 2 / 17                                         | IDENTICAL, the same hashes                                                                                       | red 2            | red 3     | **red, 3 of 17**, M1's three, the state arm ending `is hidden under the mode by opacity: 0%`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| M3  | the thumb + `forced-colors:invisible` (`visibility: hidden`)                                                 | **GREEN** 2 / 17                                         | IDENTICAL, the same hashes                                                                                       | red 2            | red 3     | **red, 3 of 17**, M1's three, ending `is hidden under the mode by visibility: hidden`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| M4  | `src/checkbox.tsx:136` `indicatorClass` (the tick) + `forced-colors:hidden`                                  | **GREEN** 2 / 17                                         | IDENTICAL, `bdba4ef6f633` / `abea2574db20`                                                                       | red 4            | red 4     | **red, 4 of 17**. The state arm: `checkbox.tsx: the group-has-checked/checkbox state (:is(:where(.group\/checkbox):has(:checked) *)) is drawn in ["border-color","background-color"] alone; … and a sibling that changes ["opacity"] and is hidden under the mode by display: none`; the revealed arm: `checkbox.tsx: revealed on checked (:is(:where(.group\/checkbox):has(:checked) *)), and in that state it is hidden under the mode by display: none`; arm 2 `the tick paints no currentcolor stroke under forced colors`; arm 5 `checkbox.tsx's checked box is no longer carried by a revealed tick the mode can see`                                                                                 |
+| M5  | the tick + `forced-colors:invisible`                                                                         | **GREEN** 2 / 17                                         | IDENTICAL, the same hashes                                                                                       | red 4            | red 4     | **red, 4 of 17**, M4's four, ending `visibility: hidden`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| M6  | `src/radio-group.tsx:178` `indicatorClass` (the dot) + `forced-colors:hidden`                                | **GREEN** 2 / 17                                         | IDENTICAL, `0fe122007dc4` / `c08f11a6b4d2`                                                                       | red 3            | red 3     | **red, 3 of 17**. The state arm: `radio-group.tsx: the group-has-checked/radio state (:is(:where(.group\/radio):has(:checked) *)) is drawn in ["border-color","background-color"] alone; … and a sibling that changes ["opacity"] and is hidden under the mode by display: none`; the revealed arm: `radio-group.tsx: revealed on checked (:is(:where(.group\/radio):has(:checked) *)), and in that state it is hidden under the mode by display: none`; arm 5 `radio-group.tsx's checked circle is no longer carried by a revealed dot the mode can see`                                                                                                                                                   |
+| M7  | the thumb + `forced-colors:border-[Canvas]` (`border-color: Canvas` in the forced media, read off the sheet) | **GREEN** 2 / 17                                         | IDENTICAL, `aee70fc72f4e` / `005e818e4050`, on the library's own sheet (DL22 layer 2 read the same on thepile's) | **GREEN** 2 / 17 | red 2     | **red, 3 of 17**. The state arm, both hosts: `… and a sibling that changes ["translate"] and is framed in border-color: Canvas, a colour the mode leaves on its ground`; arm 4 `group-aria-checked/switch: the moving thumb paints nothing the mode keeps`; arm 5 `a thumb that vanishes when checked reads as carrying nothing` (a real-thumb pin whose premise, a thumb that paints at rest, M7 removes)                                                                                                                                                                                                                                                                                                  |
+| M8  | the dot + `forced-colors:border-[Canvas]` beside its `forced-colors:border-4`                                | **GREEN** 2 / 17 (⚠️ REASONED in (b); RUN, and it holds) | IDENTICAL, `0fe122007dc4` / `c08f11a6b4d2` (never probed before)                                                 | **GREEN** 2 / 17 | red 3     | **red, 3 of 17**. The state arm: `radio-group.tsx: the group-has-checked/radio state (…) … and a sibling that changes ["opacity"] and is framed in border-color: Canvas, a colour the mode leaves on its ground`; the revealed arm: `radio-group.tsx: revealed on checked (:is(:where(.group\/radio):has(:checked) *)), and in that state it is framed in border-color: Canvas, a colour the mode leaves on its ground`; arm 5's radio pin                                                                                                                                                                                                                                                                  |
+
+Every red is the one predicted: the state arm names the part file, the state's compiled condition and the
+declaration that did it, and for the tick and the dot so does the revealed arm, so no red here can be a
+different defect's (docs/09 §14). The state arm is red in all eight. M1-M6 are red and M7-M8 GREEN at `b551b54`,
+all eight red at `fb756a8`: each of the two REQUEST commits closes exactly its own. M8's premise was right (the
+dot's Canvas frame was green); no correction to the composition there. The arm-5 reds beside the state arm are
+pins on the real strings whose premise the mutation removes; each fires only WITH the state arm.
+
+**And the greens that must hold, each agreeing with Chromium** (at the head, `Tests 17 passed (17)` each):
+
+| id   | mutation                                           | Chromium at `0493fc5`                      | guard at `53f92d3`                                                                                                        |
+| ---- | -------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| X-CT | the thumb + `forced-colors:border-[CanvasText]`    | DIFFERENT, the base's hashes               | **GREEN** (decision 6; red at `329b269` through a pin that read the part's frame colour, fixed at `53f92d3`, decision 11) |
+| X-TR | the thumb + `forced-colors:border-transparent`     | DIFFERENT, the base's hashes               | **GREEN**                                                                                                                 |
+| X-AU | the thumb + `forced-colors:border-primary`         | DIFFERENT, the base's hashes               | **GREEN**                                                                                                                 |
+| X-CC | the thumb + `forced-colors:border-current`         | DIFFERENT, the base's hashes               | **GREEN**                                                                                                                 |
+| X-TO | the tick + `forced-colors:opacity-0`               | DIFFERENT, the base's hashes               | **GREEN** (the ranked reveal, decision 3)                                                                                 |
+| X-BF | the thumb + `forced-colors:border-[ButtonFace]`    | IDENTICAL, `aee70fc72f4e` / `005e818e4050` | **red, 3 of 17**, M7's three with `border-color: ButtonFace`                                                              |
+| X-FD | the thumb + `forced-colors:border-[Field]`         | IDENTICAL, the same                        | **red, 3 of 17**, with `Field`                                                                                            |
+| X-HT | the thumb + `forced-colors:border-[HighlightText]` | IDENTICAL, the same                        | **red, 3 of 17**, with `HighlightText`                                                                                    |
+
+Sixteen mutations of the real parts, and on every one the guard's verdict at the head equals Chromium's.
+
+### What changed (`b551b54`, `fb756a8`, then layer 1's `329b269` and `53f92d3`)
+
+**MED-3 (`b551b54`)**: `winner` is the ranked reading as ONE module-level function: the highest-weight
+declaration of a property out of everything that applies, the later of two equal ones. The stroke reads through
+it now (its inline `reduce` is gone), and so do the reveals. `HIDES` names the values that show nothing, and
+`hiding` returns the winning one. `paintsIn` returns false first when `hiding` finds one, read over everything
+that applies in the mode, as its style half is. The revealed site carries the state it reveals in (`Site.state`),
+read off the reveal token's own compiled `state` placement (its `opacity-100`), and arms 2 and 3 pass it to
+`savedUnderForcedColors` / `savedUnconditionally`, which now take one. Anchors: arm 1 pins each revealed site's
+state as a `:has(:checked)` group condition; arm 2 pins the tick read in its state (saved under the mode, not
+unconditionally) and at rest (NOT saved: it is `opacity-0` there), and each hiding value beside one per property
+that shows something (hand-placed); arm 5 pins, on the real strings, a hidden thumb (`display: none`,
+`opacity: 0%`), an invisible tick, a bare forced `opacity-0` the checked state's `opacity-100` OUTRANKS (paints),
+and the mode's `opacity-0` OF that state (does not). The messages name the hiding declaration.
+
+**LOW-3 (`fb756a8`)**: `framePaints` beside `strokePaints`: a colour paints when it is not a bare keyword (a
+token's `var(…)`, a hex, a function: an author colour) or is `currentcolor`, `CanvasText` or `transparent`; every
+other bare keyword is refused. `paintsIn`'s edge loop reads the edge's WINNING `…-color` off any side through
+`winner`, and skips a refused edge; none declared is the preflight's `currentcolor`. `unseenBy` names a refused
+colour as well as a hiding, for the messages. The header's `:16-17` claim is corrected (below). Anchors: the
+preflight's `border: 0 solid`; eleven spellings on three hand-placed forced frames (a whole border, a top border
+alone, an outline); the thumb and the dot framed in `Canvas` (do not paint), the thumb in `CanvasText` (paints),
+a bare forced `Canvas` OUTRANKED by the state's own author colour (paints).
+
+**Layer 1 (`329b269`)**, r5's findings on `fb756a8`, each fixed test-first (red, then green; `red-l1-tests.log`):
+`paintsIn` reads the element's INK, its winning `color`, by the same cut (MED-1: an author or `currentcolor`
+frame and a `currentcolor` stroke draw in it; a `CanvasText` frame does not); `HIDES.display` counts `contents`
+(MED-2); `placeAll` keeps `!important` and `winner` ranks it over every normal declaration (LOW-3); a carrier and
+an own treatment paint in the state OR at rest (LOW-1); `savedUnconditionally`'s state has an anchor (LOW-4); the
+preflight pin reads every class-less rule that sets a frame colour, three today (LOW-5); arm 1's state pin keeps
+its message (LOW-6); `unseenBy` names a frame colour only where the edge has a width, and names an ink (LOW-7).
+The header and `framePaints`' docblock say the mode REVERTS an author colour to the ink; `HIDES`' docblock says
+what it does not read (a parent). `paintsIn`'s docblock lists SIX ways to look like a paint and not be one, and
+says one ground-coloured side refuses the whole frame (LOW-2, kept).
+
+**`53f92d3`**: the MED-1 pin on the real strings read the thumb's own frame colour, so X-CT (a CanvasText
+thumb, which Chromium draws) went red at `329b269` through that pin alone, arms 3, 4 and 6 holding it as a
+paint. Each carrier is now its real string with the mode's own tokens taken away and a hand-placed forced paint
+that follows the ink put back, with a positive control beside the Canvas-ink negative. X-CT is GREEN at the head.
+
+**The header's `:16-17` claim, corrected**: it said the UA collapses "every paint" into a foreground forced to
+`CanvasText` and a background forced to `Canvas`. It now says every AUTHOR colour, and a ⚠️ paragraph says the
+mode REVERTS an author colour (a frame's to `currentcolor`, the element's `color`, which reads `CanvasText` only
+while `color` is itself an author value) and keeps a SYSTEM colour as written, in `border-color` and in `color`,
+with the measurements. `strokePaints`' docblock is unchanged: its spelling set did not move.
+
+The file still has **six** tests (every new assertion sits inside an existing `it`), so the suite is **35 files
+/ 601 tests**, as at the base. No fixture was added: every separating input no source compiles is hand-placed
+through `withPlaced` under a `probe:` name no utility can have; `test/fixtures/**` is untouched.
+
+### Decisions
+
+1. **Two commits, one per REQUEST, though the ranked reading is one function.** `winner` lands in `b551b54`
+   (MED-3, the stroke and the reveals) and `fb756a8` reuses it for the colour. The REQUESTs are two behaviours
+   with their own mutations, and the split is proved: M1-M6 red and M7-M8 GREEN at `b551b54`, all eight red at
+   `fb756a8`. Layer 1's fixes are two more commits on top, not folded back.
+2. **What hides**: `display: none | contents`, `visibility: hidden | collapse`, an opacity of zero (`0`, `0%`).
+   `contents` was first excluded on a docblock claim ("drops only the element's own box") that is false for every
+   carrier here, whose paint IS its own box (layer 1 MED-2); it is read now.
+3. **The reveal is RANKED, not "any hiding declaration"**: the checked state's own `opacity-100` outranks a bare
+   forced `opacity-0`, and Chromium agrees (X-TO still differs); the mode's rule OF the state outranks both; an
+   `!important` one outranks every normal one (layer 1 LOW-3, and Chromium: `forced-colors:opacity-0!` on the
+   tick hashed IDENTICAL).
+4. **A revealed element is read IN the state it reveals in**, taken off its reveal token's compiled condition,
+   never its spelling; at rest it reads hidden, and that is pinned.
+5. **The frame colour is an ALLOW-LIST, stricter than the REQUEST's "a system colour equal to its ground".**
+   Seven of the nineteen system colours and eleven deprecated aliases compute to the ground in at least one of
+   Chromium's palettes (measured); a list of grounds would have to name all eighteen and would miss the next
+   alias. The allow-list refuses them by construction, and also refuses a foreground system colour (`ButtonText`,
+   which draws in Chromium: r5's P23) and a named author colour (`red`): both err toward naming a site,
+   `strokePaints`' and `CARRIES`' precedent. `ButtonText`'s refusal is pinned. [V]
+6. **`CanvasText` counts for a frame, as the REQUEST wrote it**, though `strokePaints` refuses it for a stroke:
+   the mode reverts an author FRAME to the ink it forces to `CanvasText`, where an author stroke is not reverted at
+   all and only `currentcolor` follows the mode. X-CT is GREEN, and Chromium draws it. [V]
+7. **`transparent` counts**: measured reverted to the ink (white on black), the long-standing high-contrast idiom.
+8. **One ground-coloured SIDE refuses the whole frame** (layer 1 LOW-2, KEPT): the colour's winner is read across
+   the sides, so `forced-colors:border-t-[Canvas]` on the thumb is named though its three other sides paint
+   (Chromium differs). It fails loud, naming `border-top-color: Canvas`, and no part draws a per-side colour; a
+   per-side model (widths, styles and colours per physical side, the logical ones mapped) is the cost of closing
+   it, and it is said in `paintsIn`'s docblock. [V]
+9. **The INK is read, element-locally** (layer 1 MED-1): an author, `transparent` or `currentcolor` frame and a
+   `currentcolor` stroke draw in the element's winning `color`, refused by the frame's own cut; `CanvasText` does
+   not follow it. An INHERITED ink (a parent's `forced-colors:text-[Canvas]`) is not seen: REQUEST below.
+10. **A carrier paints in the state OR at rest** (layer 1 LOW-1): one that paints in exactly one of the two and
+    changes a kept property draws two pictures (`group-has-checked/switch:invisible` on the thumb: Chromium
+    differs, the guard GREEN at the head, as at the base); one that paints in neither draws one. `ownTreatment`
+    reads the same way, pinned (a square the mode hides when pressed, framed at rest, is a treatment).
+11. **The ink pin reads the ink, not the part's frame colour** (`53f92d3`), so a part that moves to a `CanvasText`
+    frame is not reddened by a mechanism pin.
+12. **Messages name the cause** (`unseenBy`): a hidden carrier, a ground ink and a ground frame each say so, and a
+    frame colour is named only where there is a frame (layer 1 LOW-7), so no red can be read as a missing width.
+
+### REQUESTs and findings (to the orchestrator)
+
+- **A PARENT the mode hides or inks is not seen (layer 1 MED-3, the inherited half of MED-1), for this file's next
+  owner.** Every read here is element-local, but `visibility` and `color` inherit and a parent's `opacity` fades
+  its subtree, so each of these stays `Tests 17 passed (17)` at the head while r5's Chromium probe hashes the
+  control IDENTICAL: the track `+ forced-colors:invisible` (P11) and the track `+ forced-colors:text-[Canvas]`
+  (P17), both Switch hosts `6a118a8dba8e` dark / `bfe8448551a5` light; the box AND the circle `+
+forced-colors:invisible` (P28) or `+ forced-colors:opacity-0` (P29), the checkbox and the radio `6a118a8dba8e` /
+  `bfe8448551a5`. And a carrier sized out of existence, the thumb `+ forced-colors:scale-0` (P20), `aee70fc72f4e`
+  / `005e818e4050`. Closing it needs the guard to know which literal is drawn INSIDE which (the parts are composed
+  by the consumer, so the nesting is not in any one string): per part, the element chain the state is drawn on.
+  No part does any of this today.
+- **A shipped docblock carries the claim the header carried** (class J, recorded, NOT edited: `src/` is not this
+  stream's; layer 1 LOW-8): `src/radio-group.tsx:155-157` says "Forced colors collapses every paint into two
+  system colours - a foreground (`color`, `border-color`) to `CanvasText` and `background-color` to `Canvas`",
+  which is false for a system colour and, by r5's P17, describes an author frame's mechanism wrongly (it is
+  reverted to the ink, not forced). The same bytes are in `r/radio-group.json` and in thepile's vendored copy
+  (`apps/web/src/components/ui/radio-group.tsx:155` at `a2ba90de`). The dot itself is right (it declares no colour,
+  so its frame is its ink). A comment-only fix for the next `src/` owner; it moves `r/radio-group.json`, so it
+  waits for the next bump.
+- **None of the widened guard's reds is a real part**: at the head the unmutated suite is 35 / 601, so no
+  `KNOWN_STATE_GAPS` entry and no Chromium hash is owed.
+
+### Consumers
+
+**Run 1, before any code** (`scan-run1.txt`, at `0493fc5`, an empty diff, so by name over `packages/ui`):
+`paintsIn`, `carrierOf`, `RANK`, `strokePaints`, `ownTreatment`, `savedUnderForcedColors`,
+`savedUnconditionally`, `revealedSites`, `classify`, `siblingsOf`, `KNOWN_STATE_GAPS`, `NO_STYLE`, `placeAll`,
+`withPlaced`, `Sibling` and `Site` are module-local to `forced-colors-state.test.tsx`: no `export`, no reader
+elsewhere, none in `r/`. `CARRIES` also hits `src/radio-group.tsx:155`'s docblock word ("NOTHING ELSE HERE
+CARRIES IT") and its `r/` copy, a collision DL21 recorded. `KNOWN_GAPS` is ALSO `focus-outline.test.tsx`'s own
+constant (`:278`), a separate declaration, not a reader. The file is NAMED by `src/radio-group.tsx:174` (a
+citation) and `choice-drawing.test.tsx:194` (a comment). The compiled-sheet fixture (`test/fixtures/compile.css`,
+through `loadCompiledSheet`) is read by eight test files and the helper; this stream adds no fixture.
+
+**Run 2, at the commit point** (`scan-run2.txt`, `0493fc5...fb756a8`) and **run 2b after layer 1** (`scan-run2b.txt`,
+`0493fc5...53f92d3`):
+
+- **Scan 1, exported symbols**: none. **Module-local names**: `winner`, `HIDES`, `hiding`, `framePaints`,
+  `unseenBy` NEW, read by this file alone (`winner` and `hiding` also hit prose in `src/avatar.tsx:33`,
+  `src/description-list.tsx:205`, `src/lib/utils.ts:9,16`, `src/checkbox.tsx:210`,
+  `test/avatar-drawing.test.tsx:277`, `test/toggle-drawing.test.tsx:24`: the English words, not readers);
+  `hiddenBy` came and went inside the diff (`b551b54`, replaced by `unseenBy`); `Site` gained `state`, read
+  by this file alone.
+- **Scan 2, path helpers**: none. **Scan 4, role / aria strings**: none added or removed.
+- **Scan 3, tests naming a touched non-test file**: none; the diff touches no non-test file.
+- **Scan 5, class strings**: the only real utility the diff's new lines quote is `forced-colors:border-4`,
+  already this file's; the rest are `probe:` names no utility can have, and `source(none)` compiles only `src`
+  and `stories`, so a test's string compiles nothing. `forced-colors:border-4`, `forced-colors:border-8` and
+  `forced-colors:stroke-current` are pinned by this file alone (and the `r/` copies).
+- **Run 2b adds** `weight` (module-local; the word also names `packages/tokens/src/skeleton.ts`'s own
+  `export const weight` and prose across both packages, a different module, not a reader),
+  `FRAME_COLOUR_OR_SHORTHAND` (local to arm 2), and `Placed.important`, read by this file alone. Files naming this
+  test file, by path: `docs/as-built.md`, `r/radio-group.json`, `src/radio-group.tsx` (`:174`, a citation) and
+  `test/choice-drawing.test.tsx` (`:194`, a comment), the four run 1 found and r5's own enumeration lists. Scans 2,
+  3 and 4 still print nothing; `git diff --stat 0493fc5 HEAD -- packages/ui/src packages/ui/r packages/ui/package.json
+packages/tokens packages/ui/test/fixtures` prints nothing.
+- **CROSS: 0** (no other library stream this batch). **UNOWNED: 0**. **NEW between the runs**: `winner`,
+  `HIDES`, `hiding`, `framePaints`, `unseenBy` (run 2), then `weight`, `FRAME_COLOUR_OR_SHORTHAND` and
+  `Placed.important` (run 2b).
+
+### For the consumer (LIB-VENDOR)
+
+**NO byte of any copy moves and NO bump is needed, so thepile has nothing to vendor.** The diff is one test file
+(`git diff --stat 0493fc5 HEAD` lists `packages/ui/test/forced-colors-state.test.tsx` and this document alone), the
+tarball carries no test (`files: ["r", "src"]`), `pnpm build:registry` inside every `pnpm verify` here left the tree
+clean, and `packages/ui/package.json` is still `0.1.6`: the pack point stays `ed6a393`, the tarball
+`marquee-ui-ui-0.1.6.tgz` stays 109,699 B, sha256 `f68530c2…4d09`. For thepile to know (class J, recorded here,
+not edited there): its vendored `components/ui/radio-group.tsx:155` carries the docblock sentence in the REQUEST
+above, and its forced-colours e2e is the only instrument that sees a PARENT hide a carrier (the guard's MED-3
+REQUEST); DL23's s3 measures LOW-3's thepile half.
+
+### The gate
+
+`pnpm verify` exit **0** at every commit, each `Test Files 35 passed (35)` / `Tests 601 passed (601)` with the
+tree clean after: `0493fc5` (the base), `b551b54`, `fb756a8`, `329b269`, `53f92d3` (logs `verify-<sha>.log`,
+exits `verify-<sha>.exit`, in `$BATCH_SCRATCH/s1/`). This block lands in one docs-only commit on top, whose own
+`pnpm verify` is the stream's report line.
+
+No push, no tag, no `npm publish`, no PR: the freeze holds.
+
+## Layer 1 (reviewer, detached worktree of fb756a8b13fced3f3b5707b2a81fcf721a139480, slot r5, marquee-ui, no database)
+
+**0 HIGH, 3 MED, 8 LOW**, over its own mutations through its own driver (`$BATCH_SCRATCH/r5/mut.py`: each find
+matched once, the marker confirmed by `grep -F`, the pair run from the repo root, restored and checked clean),
+with the part mutations rendered in headless Chromium through a copy of this stream's probe. Its baselines at
+`fb756a8`: the pair `Test Files 2 passed (2)` / `Tests 17 passed (17)`, the whole suite `Test Files 35 passed
+(35)` / `Tests 601 passed (601)`. Its full report is `$BATCH_SCRATCH/r5/report.md`. Test names: A1 found a sheet
+and the revealed elements to measure · A2 tells the mechanisms apart · A3 gives every revealed element a foreground
+or a forced-colors treatment · A4 found the states drawn only in colour · A5 tells the carriers apart · A6 gives
+every state drawn only in colour a forced-colors treatment, or a sibling that carries it · CD `choice-drawing`'s
+"draws one control in two shapes". The table is its own, verbatim:
+
+| file                                   | test           | mutation applied                                                         | red / GREEN                 | what it asserts now                                                                                                                         |
+| -------------------------------------- | -------------- | ------------------------------------------------------------------------ | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| forced-colors-state.test.tsx           | A2, A5         | T01 `hiding()` returns undefined always                                  | red 2 (15/17)               | "a moving thumb the mode hides reads as painting"; "the tick reads as painting at rest, where it is opacity-0"                              |
+| forced-colors-state.test.tsx           | A2, A5         | T02 `paintsIn`'s `if (hiding(applies)…) return false` disabled           | red 2                       | same two assertions as T01                                                                                                                  |
+| forced-colors-state.test.tsx           | A2, A5         | T03 `HIDES.display` never matches                                        | red 2                       | "a forced-colors frame under display: none reads as painting"; "a moving thumb the mode hides…"                                             |
+| forced-colors-state.test.tsx           | A2             | T04 `HIDES.visibility` drops `collapse`                                  | red 1                       | "a forced-colors frame under visibility: collapse reads as painting"                                                                        |
+| forced-colors-state.test.tsx           | A2, A5         | T05 `HIDES.visibility` drops `hidden`                                    | red 2                       | "…under visibility: hidden…"; "a revealed tick the mode makes invisible reads as painting"                                                  |
+| forced-colors-state.test.tsx           | A2, A5         | T06 `HIDES.opacity` = `/^0$/` (Tailwind's `0%` no longer hides)          | red 2                       | "a moving thumb at opacity 0…"; "the tick reads as painting at rest…"                                                                       |
+| forced-colors-state.test.tsx           | A2             | T07 `HIDES.opacity` = `/^0%$/` (bare `0` no longer hides)                | red 1                       | "a forced-colors frame under opacity: 0 reads as painting"                                                                                  |
+| forced-colors-state.test.tsx           | A2, A3, A5, A6 | T08 `HIDES.opacity` matches everything                                   | red 4                       | the tick's forced stroke pin, both invariants, the radio dot carrier pin                                                                    |
+| forced-colors-state.test.tsx           | A5             | T09 `winner`: `>=` -> `>` (first of equals wins)                         | red 1                       | only the PRE-EXISTING "a later forced stroke: none reads as painting" (the shared `winner` is anchored once)                                |
+| forced-colors-state.test.tsx           | A5             | T10 `winner` ignores RANK, last declaration wins                         | red 1                       | "a bare forced opacity-0 outranks the checked state's own opacity-100"                                                                      |
+| forced-colors-state.test.tsx           | A2, A3, A5, A6 | T11 `winner` ignores RANK, first declaration wins                        | red 4                       | tick stroke pin, both invariants, radio carrier pin                                                                                         |
+| forced-colors-state.test.tsx           | A2, A3, A5, A6 | T12 `hiding` reads ANY hiding declaration, not the winner                | red 4                       | the tick/dot's own `opacity-0` hides them in the checked state: both invariants red                                                         |
+| forced-colors-state.test.tsx           | A2, A5         | T13 `hiding` reads `display` only                                        | red 2                       | "a moving thumb at opacity 0…"; "the tick reads as painting at rest…"                                                                       |
+| forced-colors-state.test.tsx           | A2, A5         | T14 `framePaints` -> `true`                                              | red 2                       | "a forced border in Canvas reads as painting"; "a moving thumb framed in Canvas, its own ground, reads as painting"                         |
+| forced-colors-state.test.tsx           | A2, A5, A6     | T15 `framePaints` -> `false`                                             | red 3                       | "a forced border in currentcolor reads as painting nothing"; Toggle's own treatment pin; A6 invariant                                       |
+| forced-colors-state.test.tsx           | A2             | T16 allow-list drops `transparent`                                       | red 1                       | "a forced border in transparent reads as painting nothing"                                                                                  |
+| forced-colors-state.test.tsx           | A2, A5         | T17 allow-list drops `canvastext`                                        | red 2                       | "…in CanvasText reads as painting nothing" (loop and thumb)                                                                                 |
+| forced-colors-state.test.tsx           | A2             | T18 allow-list drops `currentcolor`                                      | red 1                       | "a forced border in currentcolor reads as painting nothing"                                                                                 |
+| forced-colors-state.test.tsx           | A2, A5         | T19 bare-keyword test loses `i` (`Canvas` reads as an author colour)     | red 2                       | "a forced border in Canvas reads as painting"; thumb framed in Canvas                                                                       |
+| forced-colors-state.test.tsx           | A2, A5         | T20 allow-list loses `i` (`CanvasText` refused)                          | red 2                       | "…in CanvasText reads as painting nothing"                                                                                                  |
+| forced-colors-state.test.tsx           | A2, A5         | T21 `paintsIn` colour branch disabled                                    | red 2                       | Canvas loop + thumb framed in Canvas                                                                                                        |
+| forced-colors-state.test.tsx           | A2             | T22 colour winner reads `^border-color$` only (no sides)                 | red 1                       | "a forced top border in Canvas reads as painting"                                                                                           |
+| forced-colors-state.test.tsx           | A5             | T23 colour winner read over `mine` instead of `applies`                  | red 1                       | "a bare forced Canvas outranks the state's own author colour"                                                                               |
+| forced-colors-state.test.tsx           | A5             | T24 colour: ANY refused colour kills the edge (no ranking)               | red 1                       | same as T23                                                                                                                                 |
+| forced-colors-state.test.tsx           | A1, A2, A3     | T25 `revealedSites` never reads `Site.state`                             | red 3                       | A1's state pin (as a `TypeError`, see LOW-6), the tick pin, A3 invariant                                                                    |
+| forced-colors-state.test.tsx           | A3             | T26 arm 3 passes no state (the old read)                                 | red 1                       | A3 invariant: both sites read at rest, hidden                                                                                               |
+| forced-colors-state.test.tsx           | A2             | T27 arm 2's tick read passes `undefined`                                 | red 1                       | "the tick paints no currentcolor stroke under forced colors"                                                                                |
+| forced-colors-state.test.tsx           | A2, A3         | T28 `savedUnderForcedColors` drops its `state`                           | red 2                       | tick pin, A3 invariant                                                                                                                      |
+| forced-colors-state.test.tsx           | -              | T29 `savedUnconditionally` drops its `state`                             | **GREEN 17/17**             | nothing: the new parameter is unanchored, and without it A2's "saved in every mode" pin cannot fail (LOW-4, P26/P27)                        |
+| forced-colors-state.test.tsx           | A2             | T30 preflight walker never matches a `*` selector                        | red 1                       | "the preflight no longer resets a frame to 0 solid…"                                                                                        |
+| forced-colors-state.test.tsx           | -              | T31 `unseenBy` returns null always                                       | **GREEN 17/17**             | nothing, by construction: it only writes failure messages (its text is checked in P01-P04, P18, P19, P22, P30)                              |
+| switch.tsx (thumb)                     | A4, A5, A6     | P01 `+ forced-colors:hidden` (M1)                                        | red 3                       | "the moving thumb paints nothing the mode keeps"; A6 names "hidden under the mode by display: none". Chromium: both hosts IDENTICAL         |
+| switch.tsx (thumb)                     | A4, A6         | P02 `+ forced-colors:border-[Canvas]` (M7)                               | red 2                       | A6 names "framed in border-color: Canvas". Chromium IDENTICAL                                                                               |
+| checkbox.tsx (tick)                    | A2, A3, A5, A6 | P03 `+ forced-colors:hidden` (M4)                                        | red 4                       | A3 names "hidden under the mode by display: none". Chromium IDENTICAL                                                                       |
+| radio-group.tsx (dot)                  | A3, A5, A6     | P04 `+ forced-colors:border-[Canvas]` (M8)                               | red 3                       | A3 names "framed in border-color: Canvas". Chromium IDENTICAL                                                                               |
+| radio-group.tsx (dot)                  | -              | P05 `+ forced-colors:opacity-0`                                          | GREEN 17/17                 | correctly: the state's `opacity-100` outranks it; Chromium: radio DIFFERS (the rank claim holds on the dot)                                 |
+| switch.tsx (thumb)                     | -              | P06 `+ forced-colors:contents`                                           | **GREEN 17/17**             | Chromium: thumb box 0x0, both hosts IDENTICAL (`aee70fc72f4e` / `005e818e4050`). MED-2                                                      |
+| checkbox.tsx (tick)                    | -              | P07 `+ forced-colors:contents`                                           | **GREEN 17/17**             | Chromium: tick box 0x0, checkbox IDENTICAL. MED-2                                                                                           |
+| radio-group.tsx (dot)                  | -              | P08 `+ forced-colors:contents`                                           | **GREEN 17/17**             | Chromium: radio IDENTICAL. MED-2                                                                                                            |
+| checkbox.tsx (box, the tick's parent)  | CD only        | P09 `+ forced-colors:invisible`                                          | red 1, choice-drawing only  | CD's box-vs-circle declaration symmetry, not a forced-colors assertion; forced-colors-state GREEN. Chromium IDENTICAL                       |
+| radio-group.tsx (circle)               | CD only        | P10 `+ forced-colors:invisible`                                          | red 1, choice-drawing only  | same as P09. Chromium IDENTICAL                                                                                                             |
+| switch.tsx (track, the thumb's parent) | -              | P11 `+ forced-colors:invisible`                                          | **GREEN 17/17**             | Chromium: both hosts IDENTICAL. MED-3                                                                                                       |
+| checkbox.tsx (box)                     | CD only        | P12 `+ forced-colors:opacity-0`                                          | red 1, choice-drawing only  | same as P09. Chromium IDENTICAL                                                                                                             |
+| checkbox.tsx (tick)                    | -              | P13 `+ forced-colors:opacity-0!` (important)                             | **GREEN 17/17**             | Chromium: checkbox IDENTICAL. LOW-3                                                                                                         |
+| switch.tsx (thumb)                     | -              | P14 `+ forced-colors:text-[Canvas]`                                      | **GREEN 17/17**             | Chromium: thumb `color` and 8px frame rgb(0, 0, 0) on black, both hosts IDENTICAL (`aee70fc72f4e`, DL21's hash). MED-1                      |
+| radio-group.tsx (dot)                  | -              | P15 `+ forced-colors:text-[Canvas]`                                      | **GREEN 17/17**             | Chromium: radio IDENTICAL. MED-1                                                                                                            |
+| checkbox.tsx (tick)                    | -              | P16 `+ forced-colors:text-[Canvas]`                                      | **GREEN 17/17**             | Chromium: tick stroke rgb(0, 0, 0), checkbox IDENTICAL (`bdba4ef6f633` both). MED-1                                                         |
+| switch.tsx (track)                     | -              | P17 `+ forced-colors:text-[Canvas]` (inherited by the thumb)             | **GREEN 17/17**             | Chromium: both hosts IDENTICAL, and the track's AUTHOR `var(--border-strong)` frame computes rgb(0, 0, 0) under `color` rgb(0, 0, 0). MED-1 |
+| switch.tsx (thumb)                     | A4, A6         | P18 `+ forced-colors:border-t-[Canvas]` (one side of four)               | red 2 (base 0493fc5: GREEN) | names "framed in border-top-color: Canvas"; Chromium: both hosts DIFFER (three CanvasText sides). LOW-2, a false naming                     |
+| switch.tsx (thumb)                     | A4, A6         | P19 `+ group-has-checked/switch:invisible` (vanishes when checked)       | red 2 (base 0493fc5: GREEN) | names "hidden under the mode by visibility: hidden"; Chromium: both hosts DIFFER. LOW-1, a false naming                                     |
+| switch.tsx (thumb)                     | -              | P20 `+ forced-colors:scale-0`                                            | **GREEN 17/17**             | Chromium IDENTICAL. Folded into MED-3                                                                                                       |
+| switch.tsx (thumb)                     | -              | P21 `+ forced-colors:border-transparent` (X-TR)                          | GREEN 17/17                 | correctly: Chromium DIFFERS (the docblock's `transparent` claim holds)                                                                      |
+| checkbox.tsx (tick)                    | A2, A3, A5, A6 | P22 `+ forced-colors:group-has-checked/checkbox:opacity-0`               | red 4                       | A3 names "hidden under the mode by opacity: 0%". Chromium IDENTICAL                                                                         |
+| radio-group.tsx (dot)                  | A3, A5, A6     | P23 `+ forced-colors:border-[ButtonText]`                                | red 3                       | a refusal by design (docblock says so); Chromium DIFFERS. Not a finding                                                                     |
+| ribbon.css                             | A2             | P24 `@layer base { * { border-color: Canvas } }`                         | red 1                       | the preflight pin, `[ 'border: 0 solid', …(1) ]`. Chromium: switch and radio IDENTICAL                                                      |
+| ribbon.css                             | -              | P25 `@layer base { :where(*) { border-color: Canvas } }`                 | **GREEN 17/17**             | Chromium: thumb frame rgb(0, 0, 0) under a white `color`, switch and radio IDENTICAL. LOW-5                                                 |
+| checkbox.tsx (tick)                    | A2, A5         | P26 `+ border-2` (unconditional frame)                                   | red 2                       | "the tick reads as saved in every mode, not by its forced-colors stroke" + A5's unforced-tick pin                                           |
+| checkbox.tsx + test                    | A5 only        | P27 = P26 + T29                                                          | red 1                       | A2's "saved in every mode" pin goes GREEN: without the state it reads the tick at rest, hidden, whatever it paints. LOW-4                   |
+| checkbox.tsx + radio-group.tsx         | -              | P28 box AND circle `+ forced-colors:invisible`                           | **GREEN 17/17**             | Chromium: checkbox and radio IDENTICAL. MED-3                                                                                               |
+| checkbox.tsx + radio-group.tsx         | -              | P29 box AND circle `+ forced-colors:opacity-0`                           | **GREEN 17/17**             | Chromium: checkbox and radio IDENTICAL. MED-3                                                                                               |
+| switch.tsx (thumb)                     | A4, A5, A6     | P30 `forced-colors:border-8` REPLACED by `forced-colors:border-[Canvas]` | red 3                       | correct verdict, wrong cause: A6 says "framed in border-color: Canvas" for a thumb with no frame at all. LOW-7                              |
+
+**Every GREEN row, answered** (the re-runs are `mut-<id>-head-53f92d3.log`, on a detached worktree of `53f92d3`):
+
+- **T29** (`savedUnconditionally` drops its state; LOW-4): **red at the head**, 1 of 17, `a revealed tick with an
+unconditional frame reads as unsaved in the state it reveals in`.
+- **T31** (`unseenBy` returns null): GREEN by construction, it writes messages only; its text is read in every red
+  above (M1-M8, P06-P08, P13-P16, P18, P30 at the head).
+- **P05** (the dot `+ forced-colors:opacity-0`) and **P21** (`border-transparent`): GREEN correctly, Chromium
+  differs; decisions 3 and 7.
+- **P06, P07, P08** (`forced-colors:contents` on the thumb, the tick, the dot; MED-2): **red at the head**, 3, 4
+  and 3 of 17, the state arm ending `is hidden under the mode by display: contents`.
+- **P13** (`forced-colors:opacity-0!` on the tick; LOW-3): **red at the head**, 4 of 17, the revealed arm
+  `checkbox.tsx: revealed on checked (…), and in that state it is hidden under the mode by opacity: 0%`.
+- **P14, P15, P16** (`forced-colors:text-[Canvas]` on the thumb, the dot, the tick; MED-1): **red at the head**,
+  3, 3 and 4 of 17, the state arm ending `is inked in color: Canvas, a colour the mode leaves on its ground`.
+- **P11, P17, P20, P28, P29** (a parent the mode hides or inks, and `scale-0`; MED-3 and MED-1's inherited half):
+  still **GREEN** at the head (P11, P17, P20 re-run: `Tests 17 passed (17)`), deferred as the first REQUEST above:
+  closing them needs the parts' nesting, which no string holds.
+- **P09, P10, P12** (red in `choice-drawing` only): one side of the box / circle pair; the pair together is P28 /
+  P29, in the REQUEST.
+- **The rows that were findings though red**: P19 (LOW-1) is **GREEN at the head**, as Chromium draws it
+  (decision 10); P18 (LOW-2) stays red, kept (decision 8); P30's message (LOW-7) now reads `a sibling that changes
+["translate"] and paints nothing the mode keeps`, no colour blamed; T25's (LOW-6) now reads `checkbox.tsx: the
+revealed element's state was not read off the sheet: expected '' to match …`; P25 (LOW-5) is **red at the head**,
+  1 of 17, `a rule with no class sets a frame's colour, so an undeclared frame may not be currentcolor: expected [
+…(4) ] to deeply equal [ …(3) ]`; LOW-8 is the second REQUEST above.
