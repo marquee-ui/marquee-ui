@@ -8962,3 +8962,23 @@ the head carrying every fix but the rename arm's message (`d9fd00f7`, a message 
 
 The file now has **thirteen** tests and the suite **598** (+6 on 592: four drawing arms, the Input
 conflict arm, the registry type arm).
+
+### The gate
+
+**ONE run, detached under the batch's gate lock, read from its sentinel** (`$BATCH_SCRATCH/s2/verify.exit`,
+the head it ran at written first into `verify.head`), at `597d04cd4d6017becc230c0b9054b72e99f21b2e` -
+all three items, layer 1's fixes and their record. **Exit 0**, in **15 s** wall clock (a warm tree).
+The runner's own lines: `All matched files use Prettier code style!`, `packages/tokens typecheck:
+Done` + `packages/ui typecheck: Done`, `packages/tokens build: wrote 5 files`, `✔ Building registry.`,
+`└  Storybook build completed successfully`, and **`Test Files 35 passed (35)` / `Tests 598 passed
+(598)`**. `git status --short` was EMPTY after it, and the gate runs `build:registry` itself, so the
+committed `packages/ui/r` is byte-for-byte what these sources produce.
+
+That is **+2 files / +20 tests** on the base's 33 / 578: `input-merge.test.tsx` (two arms),
+`toggle-drawing.test.tsx` (thirteen), the `toggle` story suite (its "has stories" arm and three
+stories) and `registry.test.ts`'s item-type arm. The paragraph you are reading landed in one more
+docs-only commit after the run; `pnpm lint` and `pnpm typecheck` were re-run at that head.
+
+No push, no tag, no `npm publish`, no PR: the freeze holds, and `packages/ui/package.json`'s version
+line is still `0.1.3` on this branch (s1 moves it). `Toggle` is a later bump's, and reaches thepile
+only through a LIB-VENDOR-0.1.5 slice.
