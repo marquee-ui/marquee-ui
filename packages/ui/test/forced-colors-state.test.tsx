@@ -21,12 +21,15 @@ import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.
  * foreground bucket. The spec lists it; Chromium does not force it - measured,
  * DL21, below - so an author stroke keeps its own colour on the forced ground.)
  * ⚠️ AND A SYSTEM COLOUR IS NOT FORCED AT ALL. This said every `border-color`
- * was forced to `CanvasText`, which is true of an author colour only: Chromium
- * keeps a system colour as written (DL21 LOW-1 measured it for
- * `background-color`, DL22 layer 2 and DL23 for `border-color`), so a thumb
- * framed `forced-colors:border-[Canvas]` is a Canvas frame on a Canvas ground,
- * and its two states hashed IDENTICAL with this file green. A frame is read by
- * its WINNING colour now (`framePaints`).
+ * was forced to `CanvasText`. The mode REVERTS an author colour: a frame's to
+ * `currentcolor`, which is the element's `color`, which reads `CanvasText` only
+ * while `color` is itself an author value. A SYSTEM colour is kept as written, in
+ * any of them (DL21 LOW-1 measured it for `background-color`, DL22 layer 2 and
+ * DL23 for `border-color`, DL23's layer 1 for `color`): a thumb framed
+ * `forced-colors:border-[Canvas]`, or inked `forced-colors:text-[Canvas]`, hashed
+ * its two states IDENTICAL with this file green. A frame is read by its WINNING
+ * colour now, and a frame or stroke that follows the ink by the winning `color`
+ * (`framePaints`).
  *
  * That is why the three choice families in this package pass or fail for three
  * different reasons, and why none of them could be read off a class name:
@@ -117,7 +120,14 @@ type Placement = "unconditional" | "forced" | "state" | "forced-state" | "condit
  * (`[aria-pressed="true"]`, `:is(:where(.group\/switch):has(:checked) *)`) for
  * the two held-state kinds, and null for every other placement.
  */
-type Placed = { property: string; value: string; placement: Placement; state: string | null };
+type Placed = {
+  property: string;
+  value: string;
+  placement: Placement;
+  state: string | null;
+  /** `!important`, which outranks every normal declaration (layer 1 r5 LOW-3, DL23). */
+  important?: boolean;
+};
 
 const BARE_CLASS = /^\.((?:\\.|[^\s.,:>+~(){}[\]])+)$/;
 
@@ -242,6 +252,7 @@ function placeAll(css: string): Map<string, Placed[]> {
         value: decl.value.trim(),
         placement: media.length === 0 ? "state" : "forced-state",
         state: held.state,
+        important: decl.important === true,
       });
       out.set(held.name, placed);
       return;
@@ -258,7 +269,13 @@ function placeAll(css: string): Map<string, Placed[]> {
     for (const match of owner.selector.matchAll(/\.((?:\\.|[^\s.,:>+~(){}[\]])+)/g)) {
       const name = match[1]!.replace(/\\(.)/g, "$1");
       const placed = out.get(name) ?? [];
-      placed.push({ property: decl.prop, value: decl.value.trim(), placement, state: null });
+      placed.push({
+        property: decl.prop,
+        value: decl.value.trim(),
+        placement,
+        state: null,
+        important: decl.important === true,
+      });
       out.set(name, placed);
     }
   });
@@ -287,26 +304,32 @@ const RANK: Readonly<Record<Placement, number>> = {
 
 /**
  * The declaration of a property the element DRAWS, out of every one that
- * applies to it: the highest-ranked (`RANK`), the later of two equal ones, as
- * `cn` keeps the last. ONE reading, for the stroke (layer 1 r5, MED-1) and for
- * the reveals that hide (r5 MED-3, DL23).
+ * applies to it: an `!important` one over every normal one, then the
+ * highest-ranked (`RANK`), the later of two equal ones, as `cn` keeps the last.
+ * ONE reading, for the stroke (layer 1 r5, MED-1), the reveals that hide (r5
+ * MED-3, DL23), and a frame's colour and ink (DL23).
  */
+const weight = (d: Placed): number => RANK[d.placement] + (d.important === true ? 10 : 0);
 const winner = (decls: readonly Placed[], property: RegExp): Placed | undefined =>
   decls
     .filter((d) => property.test(d.property))
     .reduce<Placed | undefined>(
-      (won, d) => (won === undefined || RANK[d.placement] >= RANK[won.placement] ? d : won),
+      (won, d) => (won === undefined || weight(d) >= weight(won) ? d : won),
       undefined,
     );
 
 /**
  * A reveal that shows NOTHING, for each of the three reveal properties `CARRIES`
  * lists: an element whose winning value matches is not drawn, so nothing it
- * declares is a paint (r5 MED-3, DL23; `display: contents`, which drops only the
- * element's own box, is not read).
+ * declares is a paint (r5 MED-3, DL23). `display: contents` drops the element's
+ * own box, and a carrier's paint IS its own box - an empty span's frame, an outer
+ * `<svg>`'s stroke - so it hides too (layer 1 r5 MED-2: the thumb, the tick and
+ * the dot each drew nothing in Chromium). What this reads is the element's OWN
+ * declarations: a parent that hides it, or an inherited `visibility`, is not
+ * seen (layer 1 r5 MED-3, a REQUEST).
  */
 const HIDES: Readonly<Record<"display" | "visibility" | "opacity", RegExp>> = {
-  display: /^none$/,
+  display: /^(?:none|contents)$/,
   visibility: /^(?:hidden|collapse)$/,
   opacity: /^(?:0+(?:\.0*)?|\.0+)%?$/,
 };
@@ -344,12 +367,14 @@ const CARRIES =
 const strokePaints = (value: string): boolean => /^currentcolor$/i.test(value);
 
 /**
- * Whether a frame's winning `border-color` or `outline-color` is one the mode
- * lets you SEE (DL22 layer 2 LOW-3, DL23). The mode forces an AUTHOR colour to
- * `CanvasText` - a token's `var(…)`, a hex, a function, and `transparent` too
- * (measured: the thumb framed `border-transparent` drew white on black) - and
- * `currentcolor` follows the forced `color`, so each of those paints; so does
- * `CanvasText`, the colour the mode would have forced it to. Every OTHER bare
+ * Whether a frame's winning `border-color` or `outline-color` (or an element's
+ * winning `color`, its ink) is one the mode lets you SEE (DL22 layer 2 LOW-3,
+ * DL23). The mode REVERTS an AUTHOR colour - a token's `var(…)`, a hex, a
+ * function, and `transparent` too (measured: the thumb framed
+ * `border-transparent` drew white on black) - to `currentcolor`, the element's
+ * ink, so each of those paints exactly when the ink does (`paintsIn` reads the
+ * ink; layer 1 r5 MED-1); `currentcolor` is the ink by name; and `CanvasText`
+ * paints on its own. Every OTHER bare
  * keyword is refused, ON PURPOSE: a system colour is kept as written, and seven
  * of the nineteen, with eleven deprecated aliases (`Window`, `ThreeDFace`, …),
  * compute to the Canvas of one or both of Chromium's forced palettes (measured,
@@ -357,8 +382,8 @@ const strokePaints = (value: string): boolean => /^currentcolor$/i.test(value);
  * rather than that list of grounds, as `CARRIES` and `strokePaints` are: it
  * refuses a foreground system colour (`ButtonText`) and a named author colour
  * (`red`) too, which errs toward naming a site. Unlike the stroke, `CanvasText`
- * counts: an author stroke is not forced, so only `currentcolor` follows the
- * mode there, where an author frame IS forced, to exactly `CanvasText`.
+ * counts: an author stroke is not reverted, so only `currentcolor` follows the
+ * mode there, where an author frame IS, to the ink the mode forces to `CanvasText`.
  */
 const framePaints = (value: string): boolean =>
   !/^[a-z-]+$/i.test(value) || /^(?:currentcolor|canvastext|transparent)$/i.test(value);
@@ -485,7 +510,7 @@ describe("a checked state survives forced-colors: active", () => {
    * forced mode (unconditional or forced), because a `border-none` anywhere on the
    * element kills a border declared anywhere else on it.
    *
-   * ⚠️ FIVE WAYS TO LOOK LIKE A PAINT AND NOT BE ONE, each a hole this file had:
+   * ⚠️ SIX WAYS TO LOOK LIKE A PAINT AND NOT BE ONE, each a hole this file had:
    *   - a WIDTH OF ZERO (`border-0`): resolved through the sheet's length reader;
    *   - a width whose STYLE resolves to none (`border-none` beside it, or a
    *     `--tw-border-style` of none): Tailwind v4 writes the style through that
@@ -495,7 +520,12 @@ describe("a checked state survives forced-colors: active", () => {
    *     neither, so it is not in the set at all;
    *   - an element the mode HIDES (`HIDES`, the winning reveal; r5 MED-3, DL23);
    *   - a frame in a COLOUR THE MODE LEAVES ON ITS GROUND (`framePaints`, the
-   *     winning colour; DL22 layer 2 LOW-3, DL23).
+   *     winning colour; DL22 layer 2 LOW-3, DL23);
+   *   - a frame or stroke that follows an INK the mode leaves on the ground (the
+   *     winning `color`, by the same cut; DL23 layer 1 MED-1).
+   * ⚠️ One ground-coloured SIDE refuses the whole frame (the colour's winner is
+   * read across the sides): a frame with three sides left paints, and this names
+   * it, loudly (DL23 layer 1 LOW-2, kept: no part draws a per-side colour).
    */
   const paintsIn = (
     tokens: readonly string[],
@@ -522,7 +552,17 @@ describe("a checked state survives forced-colors: active", () => {
     // state's author stroke outrank the tick's forced `currentcolor` and stay green
     // (layer 1 r5, MED-1, proved in Chromium: the base defect's own hash).
     const stroke = winner(applies, /^stroke$/);
-    if (stroke !== undefined && kinds.includes(stroke.placement) && strokePaints(stroke.value))
+    // The INK a `currentcolor` or author paint follows: the winning `color`, by the
+    // frame's cut (layer 1 r5 MED-1, DL23). None declared is the inherited one,
+    // which this element-local read cannot see and takes as forced.
+    const ink = winner(applies, /^color$/);
+    const inked = ink === undefined || framePaints(ink.value);
+    if (
+      stroke !== undefined &&
+      kinds.includes(stroke.placement) &&
+      strokePaints(stroke.value) &&
+      inked
+    )
       return true;
 
     for (const edge of ["border", "outline"] as const) {
@@ -537,9 +577,14 @@ describe("a checked state survives forced-colors: active", () => {
         .map((d) => (d.value === `var(${variable})` ? resolvedVar : d.value));
       if (styles.length === 0 || styles.some((v) => NO_STYLE.test(v))) continue;
       // The frame's WINNING colour, off any side, ranked like the stroke; none
-      // declared is the preflight's `currentcolor` (DL23), which paints.
+      // declared is the preflight's `currentcolor` (DL23). Every allowed colour but
+      // `CanvasText` is drawn in the ink.
       const colour = winner(applies, new RegExp(`^${edge}(?:-[a-z]+)*-color$`));
-      if (colour !== undefined && !framePaints(colour.value)) continue;
+      const seen =
+        colour === undefined
+          ? inked
+          : framePaints(colour.value) && (/^canvastext$/i.test(colour.value) || inked);
+      if (!seen) continue;
       const widths = mine.filter((d) => new RegExp(`^${edge}(?:-[a-z]+)*-width$`).test(d.property));
       if (widths.some((d) => (sheet.lengthPx(d.value) ?? 0) > 0)) return true;
     }
@@ -565,8 +610,8 @@ describe("a checked state survives forced-colors: active", () => {
 
   /**
    * Why `tokens` draw nothing the mode keeps in `state` though they may declare a
-   * paint, for a message: the reveal that hides them, or a frame in a colour the
-   * mode leaves on its ground. Null when neither; `paintsIn` decides, this names.
+   * paint, for a message: the reveal that hides them, an ink or a frame in a colour
+   * the mode leaves on its ground. Null when none; `paintsIn` decides, this names.
    */
   const unseenBy = (tokens: readonly string[], state?: string): string | null => {
     const applies = tokens
@@ -575,8 +620,19 @@ describe("a checked state survives forced-colors: active", () => {
     const hidden = hiding(applies);
     if (hidden !== undefined)
       return `is hidden under the mode by ${hidden.property}: ${hidden.value}`;
-    const frame = [/^border(?:-[a-z]+)*-color$/, /^outline(?:-[a-z]+)*-color$/]
-      .map((property) => winner(applies, property))
+    const ink = winner(applies, /^color$/);
+    if (ink !== undefined && !framePaints(ink.value))
+      return `is inked in color: ${ink.value}, a colour the mode leaves on its ground`;
+    // Only an edge that HAS a width is framed at all (layer 1 r5 LOW-7).
+    const frame = (["border", "outline"] as const)
+      .filter((edge) =>
+        applies.some(
+          (d) =>
+            new RegExp(`^${edge}(?:-[a-z]+)*-width$`).test(d.property) &&
+            (sheet.lengthPx(d.value) ?? 0) > 0,
+        ),
+      )
+      .map((edge) => winner(applies, new RegExp(`^${edge}(?:-[a-z]+)*-color$`)))
       .find((d) => d !== undefined && !framePaints(d.value));
     return frame === undefined
       ? null
@@ -602,7 +658,7 @@ describe("a checked state survives forced-colors: active", () => {
     // part's other elements are drawn under.
     for (const site of sites) {
       expect(
-        site.state,
+        site.state ?? "",
         `${site.file}: the revealed element's state was not read off the sheet`,
       ).toMatch(/^:is\(:where\(\.group\\\/(?:checkbox|radio)\):has\(:checked\) \*\)$/);
     }
@@ -667,15 +723,26 @@ describe("a checked state survives forced-colors: active", () => {
     // the mode forces: the preflight resets every border to `0 solid`, and the
     // shorthand leaves the colour at its initial value (DL23, read off this sheet;
     // Chromium drew the undeclared thumb frame rgb(255, 255, 255) on black).
+    // EVERY rule with no class that sets a frame's colour is read, not only the
+    // one spelled `*` (layer 1 r5 LOW-5: a `:where(*)` rule passed a `*`-only pin).
+    const FRAME_COLOUR_OR_SHORTHAND =
+      /^(?:border|outline)(?:-[a-z]+)*-color$|^(?:border|outline)(?:-(?:top|right|bottom|left|inline|block)(?:-(?:start|end))?)?$/;
     const preflight: string[] = [];
     postcss.parse(sheet.css).walkRules((rule) => {
-      if (rule.selector.split(",").some((part) => part.trim() === "*"))
-        rule.walkDecls(/^border(?:-color)?$/, (d) => void preflight.push(`${d.prop}: ${d.value}`));
+      if (rule.selector.includes(".")) return;
+      for (const d of rule.nodes) {
+        if (d.type === "decl" && FRAME_COLOUR_OR_SHORTHAND.test(d.prop))
+          preflight.push(`${rule.selector.replace(/\s+/g, " ")} { ${d.prop}: ${d.value} }`);
+      }
     });
     expect(
       preflight,
-      "the preflight no longer resets a frame to 0 solid, so an undeclared frame colour may not be currentcolor",
-    ).toEqual(["border: 0 solid"]);
+      "a rule with no class sets a frame's colour, so an undeclared frame may not be currentcolor",
+    ).toEqual([
+      "*, ::after, ::before, ::backdrop, ::file-selector-button { border: 0 solid }",
+      "table { border-color: inherit }",
+      ":-moz-focusring:where(:not(iframe)) { outline: auto }",
+    ]);
 
     // ⚠️ THE BUCKET CUT, anchored on the PREDICATE'S behaviour rather than a
     // table asserted against itself: a background is not a foreground, a stroke
@@ -724,6 +791,7 @@ describe("a checked state survives forced-colors: active", () => {
     // source compiles a `forced-colors:` hiding utility, and none should.
     for (const [property, value, hides] of [
       ["display", "none", true],
+      ["display", "contents", true],
       ["visibility", "hidden", true],
       ["visibility", "collapse", true],
       ["opacity", "0%", true],
@@ -796,6 +864,76 @@ describe("a checked state survives forced-colors: active", () => {
         },
       );
     }
+
+    // ⚠️ AND THE INK THOSE FRAMES FOLLOW (layer 1 r5 MED-1, DL23): the mode REVERTS
+    // an author frame colour to `currentcolor`, which is the element's `color`, and
+    // it keeps a system `color` as written. So a `currentcolor` or author frame, and
+    // a `currentcolor` stroke, draw in the element's winning `color`; a `CanvasText`
+    // frame does not follow it. Measured: the thumb, the tick and the dot with
+    // `forced-colors:text-[Canvas]` each hashed their two states IDENTICAL.
+    const forcedDecl = (property: string, value: string): Placed => ({
+      property,
+      value,
+      placement: "forced",
+      state: null,
+    });
+    for (const [ink, frame, paints] of [
+      ["Canvas", null, false],
+      ["Canvas", "var(--primary)", false],
+      ["Canvas", "currentcolor", false],
+      ["Canvas", "CanvasText", true],
+      ["CanvasText", null, true],
+      ["var(--primary)", null, true],
+    ] as const) {
+      withPlaced(
+        {
+          "probe:fc-ink": [forcedDecl("color", ink)],
+          "probe:fc-frame-colour": frame === null ? [] : [forcedDecl("border-color", frame)],
+        },
+        () =>
+          expect(
+            savedUnderForcedColors([
+              "forced-colors:border-4",
+              "probe:fc-ink",
+              "probe:fc-frame-colour",
+            ]),
+            `a forced frame in ${frame ?? "no declared colour"} on a ${ink} ink reads as ${paints ? "painting nothing" : "painting"}`,
+          ).toBe(paints),
+      );
+    }
+    withPlaced({ "probe:fc-ink": [forcedDecl("color", "Canvas")] }, () =>
+      expect(
+        savedUnderForcedColors(["forced-colors:stroke-current", "probe:fc-ink"]),
+        "a currentcolor stroke on a Canvas ink reads as painting",
+      ).toBe(false),
+    );
+    // ...and an `!important` declaration outranks every normal one, whatever its
+    // placement (layer 1 r5 LOW-3: `forced-colors:opacity-0!` on the tick hashed the
+    // checkbox IDENTICAL, over the checked state's own `opacity-100`).
+    withPlaced(
+      { "probe:fc-opacity-0-important": [{ ...forcedDecl("opacity", "0%"), important: true }] },
+      () =>
+        expect(
+          savedUnderForcedColors([...tick.tokens, "probe:fc-opacity-0-important"], tick.state),
+          "an important forced opacity-0 loses to the checked state's opacity-100",
+        ).toBe(false),
+    );
+    // ...and the unconditional read takes the state too: a revealed tick with an
+    // unconditional frame is saved in every mode once revealed (layer 1 r5 LOW-4:
+    // read at rest it is opacity-0, and the pin above could not fail).
+    withPlaced(
+      {
+        "probe:frame": [
+          { property: "border-style", value: "solid", placement: "unconditional", state: null },
+          { property: "border-width", value: "2px", placement: "unconditional", state: null },
+        ],
+      },
+      () =>
+        expect(
+          savedUnconditionally([...tick.tokens, "probe:frame"], tick.state),
+          "a revealed tick with an unconditional frame reads as unsaved in the state it reveals in",
+        ).toBe(true),
+    );
   });
 
   it("gives every revealed element a foreground or a forced-colors treatment", () => {
@@ -876,7 +1014,8 @@ describe("a checked state survives forced-colors: active", () => {
    * The element's OWN treatment of the state: a `forced-colors:<state>:`
    * declaration of something the mode keeps that CHANGES it from the element's
    * rest drawing - a 4px frame over a 2px one - on an element that, in that
-   * state, still paints a foreground the mode keeps. A treatment equal to the
+   * state or at rest, paints a foreground the mode keeps (DL23: one that hides it
+   * in the state is a treatment too). A treatment equal to the
    * rest (`border-2` over `border-2`) tells the two states apart by nothing.
    */
   const ownTreatment = (tokens: readonly string[], state: string): Placed[] => {
@@ -893,7 +1032,10 @@ describe("a checked state survives forced-colors: active", () => {
         const before = restOf(d.property);
         return before === undefined || lengthOrValue(before.value) !== lengthOrValue(d.value);
       });
-    const paints = paintsIn(tokens, ["unconditional", "forced", "forced-state"], { state });
+    // In the state OR at rest: an element that vanishes in the state tells the two
+    // apart by vanishing (layer 1 r5 LOW-1, DL23).
+    const kinds = ["unconditional", "forced", "forced-state"] as const;
+    const paints = paintsIn(tokens, kinds, { state }) || paintsIn(tokens, kinds);
     return paints ? changes : [];
   };
 
@@ -902,7 +1044,7 @@ describe("a checked state survives forced-colors: active", () => {
   /**
    * What one element does under `state` that the mode can carry: the carrier
    * properties its `state` rules change (it moves; it is revealed), and whether
-   * it paints a foreground the mode keeps while in that state. An element that
+   * it paints a foreground the mode keeps in that state or at rest. An element that
    * changes and paints carries the state; one that changes and paints nothing is
    * Canvas on Canvas however far it moves (the Switch's thumb).
    */
@@ -912,7 +1054,11 @@ describe("a checked state survives forced-colors: active", () => {
       .filter((d) => d.placement === "state" && d.state === state)
       .map((d) => d.property)
       .filter((property) => CARRIES.test(property));
-    const paints = paintsIn(tokens, ["unconditional", "forced", "forced-state"], { state });
+    // In the state OR at rest (layer 1 r5 LOW-1, DL23): a carrier that paints in
+    // exactly one of the two and changes a kept property between them draws two
+    // pictures; one that paints in neither draws one.
+    const kinds = ["unconditional", "forced", "forced-state"] as const;
+    const paints = paintsIn(tokens, kinds, { state }) || paintsIn(tokens, kinds);
     return { tokens: [...tokens], changes: [...new Set(changes)], paints };
   };
 
@@ -1285,7 +1431,13 @@ describe("a checked state survives forced-colors: active", () => {
         "probe:fc-canvas": colour("Canvas", "forced", null),
         "probe:fc-canvastext": colour("CanvasText", "forced", null),
         "probe:checked-author": colour("var(--primary)", "state", track.state),
-        "probe:fc-checked-canvas": colour("Canvas", "forced-state", track.state),
+        "probe:fc-checked-canvas": colour("Canvas", "forced-state", radio.state),
+        "probe:fc-ink-canvas": [
+          { property: "color", value: "Canvas", placement: "forced", state: null },
+        ],
+        "probe:checked-invisible": [
+          { property: "visibility", value: "hidden", placement: "state", state: track.state },
+        ],
       },
       () => {
         expect(
@@ -1305,10 +1457,27 @@ describe("a checked state survives forced-colors: active", () => {
           "a bare forced Canvas outranks the state's own author colour",
         ).toBe(true);
         expect(
-          carrierOf([...thumb, "probe:checked-author", "probe:fc-checked-canvas"], track.state)
-            .paints,
-          "the mode's Canvas frame of the state itself reads as painting",
+          carrierOf([...dot, "probe:fc-checked-canvas"], radio.state).paints,
+          "the mode's Canvas frame of the checked state itself reads as painting",
         ).toBe(false);
+        // The ink (layer 1 r5 MED-1): each carrier's own `color` in Canvas.
+        for (const [name, tokens, state] of [
+          ["thumb", thumb, track.state],
+          ["tick", tick, checked.state],
+          ["dot", dot, radio.state],
+        ] as const) {
+          expect(
+            carrierOf([...tokens, "probe:fc-ink-canvas"], state).paints,
+            `a ${name} inked in Canvas under the mode reads as painting`,
+          ).toBe(false);
+        }
+        // A carrier that paints at rest and VANISHES in the state tells the two
+        // apart by vanishing: it carries the state (layer 1 r5 LOW-1; Chromium drew
+        // the thumb with `group-has-checked/switch:invisible` DIFFERENT).
+        expect(
+          carrierOf([...thumb, "probe:checked-invisible"], track.state).paints,
+          "a thumb that vanishes when checked reads as carrying nothing",
+        ).toBe(true);
       },
     );
     // Hand-placed, as below: a colour-only treatment of the state, a reveal whose
@@ -1336,6 +1505,9 @@ describe("a checked state survives forced-colors: active", () => {
         "probe:fc-pressed-reveal": [
           { property: "opacity", value: "100%", placement: "forced-state", state: toggleState },
         ],
+        "probe:fc-pressed-hidden": [
+          { property: "display", value: "none", placement: "forced-state", state: toggleState },
+        ],
         "probe:fc-switch-frame": frame(track.state),
       },
       () => {
@@ -1343,6 +1515,12 @@ describe("a checked state survives forced-colors: active", () => {
           ownTreatment(["border-2", "probe:fc-pressed-highlight"], toggleState),
           "a forced colour reads as the state's treatment",
         ).toEqual([]);
+        expect(
+          ownTreatment(["border-2", "probe:fc-pressed-hidden"], toggleState).map(
+            (d) => `${d.property}: ${d.value}`,
+          ),
+          "a square the mode hides when pressed, framed at rest, reads as no treatment",
+        ).toEqual(["display: none"]);
         expect(
           ownTreatment(["stroke-primary-foreground", "probe:fc-pressed-reveal"], toggleState),
           "a reveal painted only by an author stroke reads as a treatment",
