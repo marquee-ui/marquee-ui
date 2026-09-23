@@ -10795,7 +10795,7 @@ built sheet's forced-colors block holds `.forced-colors\:hidden{display:none}`):
 
 - `playwright test e2e/forced-colors-controls.spec.ts --project=mobile-chromium --project=desktop-chromium` exit 1,
   "2 failed / 10 passed (33.4s)".
-- The new arm `e2e/forced-colors-controls.spec.ts:430`, "/game/[slug]: the report sheet's guideline radio keeps
+- The new arm `e2e/forced-colors-controls.spec.ts:430` at `af59033e` (at the shipping arm `c88fb80a`, r7's fixes, and at thepile's merged head `40f27a4c` the test sits at `:458` and its message key is `"picture"`; re-run RED there, `2 failed / 10 passed (31.9s)`; DL24 layer 2 LOW-2), "/game/[slug]: the report sheet's guideline radio keeps
   unchecked and checked apart under forced colors", is RED on both projects. Each reads
   `- "dark": "the dot is drawn"` / `+ "dark": "0.0% of the pixels changed"`, and the same for light
   (`/game/hades: the report sheet's rule 11 radio`).
@@ -11035,7 +11035,8 @@ hides, fades, recolours or scales it; no carrier part renders another part, so t
 on `Card` is DEFERRED to the next byte-moving bump [V]: one thepile site (`ReviewCard`), served by `role="article"`,
 zero tag readers on its routes, zero client bytes either way; to be built no later than the first `Card` route onto an
 `<article>` that a test finds by tag (`FeedItem`'s three reader lines in thepile). The radio's forced-colours backstop
-is thepile's now: FOLLOWUPS-11's `RadioGroup` arm under `ReportSheet` measured RED at thepile `af59033e` with the dot
+is thepile's now: FOLLOWUPS-11's `RadioGroup` arm under `ReportSheet` measured RED at thepile `af59033e` and again at the shipping arm
+`c88fb80a` (the test at `:458` at thepile's merged head `40f27a4c`, its message key `"picture"`) with the dot
 hidden (0.0% at both projects in both palettes; 8.67% of the circle at the head against the spec's 2% floor).
 
 **What thepile's `Button` census asks of the library** (`docs/slices/DESIGN-LIB-f-tiers-button.md` in thepile, all
@@ -11051,7 +11052,7 @@ the census's order, none taken and none refused here:
   `/[username]/followers`, `FollowButton` on `/[username]`, `FacePicker` on `/settings/profile`): mono 11px caps, radius
   0, `bg-raised`, `cut-10` when on;
 - a `size="lg"` with a scrim secondary (`HeroButtons` on `/`: 48px / `text-base` / `px-5`, and a `bg-bg/60` ground with a
-  6px blur; a third copy of the primary string at `HomeIslands.tsx:119`), or an AUDIT-FIX to the house button, Ankit's
+  6px blur; the hero pair's third site at `HomeIslands.tsx:119`, the second copy of the primary string in the tree (two copies, not three: DL24 layer 2 LOW-5)), or an AUDIT-FIX to the house button, Ankit's
   [V] in thepile;
 - an inline width (`/settings`' export anchor, the closest string in thepile: `primaryRounded` plus `inline-flex
 self-start py-2.5`, NOT pure because `w-full` outranks `w-auto` by sheet order).
@@ -11070,9 +11071,15 @@ test); `src/radio-group.tsx:40-43`'s docblock recommending a colour-only checked
 MED-3), and `:155-157`'s falsified border-colour sentence, both comment-only and both waiting for the next bump; and, for
 thepile, `FacePicker.tsx:344` draws a colour-only selected state (REASONED, a CROSS for its next FOLLOWUPS).
 
-**A record corrected.** Earlier records (thepile's cursor since DL12) call `ui@0.1.1` to `ui@0.1.6` tags. They are not:
-`git tag -l` lists `ui@0.1.0` and `tokens@0.1.0` only, and npm holds `0.1.0` alone. The six version-line commits, by
-`git log -S'"version": "0.1.N"' -- packages/ui/package.json`, are `c99b71e` (0.1.1), `c9115f7` (0.1.2), `5976422`
-(0.1.3), `66a15da` (0.1.4), `40b94a8` (0.1.5) and `ed6a393` (0.1.6); the `a885aea` the records name for 0.1.3 is a test
-commit after it, so the 0.1.3 pack point is read from DL18's LIB-VENDOR-0.1.3 record before anything is tagged. Tags are
-created at push time, at each pack point, after the freeze.
+**A record corrected, then corrected again.** Earlier records (thepile's cursor since DL12) call `ui@0.1.1` to `ui@0.1.6`
+tags. They are not: `git tag -l` lists `ui@0.1.0` and `tokens@0.1.0` only, and npm holds `0.1.0` alone. The first form of
+this paragraph (the DL24 reconciler, before layer 2) then named the six VERSION-LINE commits by `git log -S` as the tag
+points and called `a885aea` "a test commit after" 0.1.3's; DL24 layer 2 LOW-3 measured that wrong for two of six: `git diff
+--stat 5976422 a885aea -- packages/ui/src packages/ui/r packages/ui/package.json` is two shipped files (the radio dot fix
+`b8c4819`), so `a885aea` IS the commit thepile's vendored 0.1.3 was packed from (as thepile's `vendor/marquee-ui/README.md`
+and this file's LIB-VENDOR-0.1.3 record already said), and 0.1.2's vendored tarball was packed at `0b135c1`, four shipped
+files past the version line `c9115f7` that the README names. The rule, then: a tag goes on the commit the VENDORED tarball
+was packed from, never on the version line by itself. At push time, after the freeze: `ui@0.1.1` at `c99b71e`; `ui@0.1.2`
+at `c9115f7` (the README) or `0b135c1` (the pack line), settled by `pnpm pack` at each and `cmp` against thepile's
+`vendor/marquee-ui/marquee-ui-ui-0.1.2.tgz`; `ui@0.1.3` at `a885aea`; `ui@0.1.4` at `66a15da`; `ui@0.1.5` at `40b94a8`;
+`ui@0.1.6` at `ed6a393`. No script in either repo depends on the tags existing (layer 2's check 9).
