@@ -8572,13 +8572,15 @@ jsdom, caller's aria-pressed={true}         <button type="button" aria-pressed="
 The brief's reading holds (⚠️ it was UNVERIFIED): a typed button, `aria-pressed`, `data-state`, and
 nothing drawn (shadcn's `toggle` item, fetched, is that plus a `cva` of `variant` default/outline and
 `size` default/sm/lg, its pressed state `data-[state=on]:bg-accent`, its sizes `h-8`-`h-10`, all under
-the 44px floor). The last line is the one that decides it: every product site passes `aria-pressed`
-from its own state, and Radix spreads a caller's attribute over its own while keeping `data-state`
-from its internal state, so a site moved onto it as written announces "pressed" under a drawing that
-reads `data-state="off"` - exactly the disagreement a part exists to remove. Radix's one contribution
-the sites lack is uncontrolled state, and none of the twelve is uncontrolled: three are optimistic
-writes (the likes, list membership) whose state lives in the product. Refused, and no dependency was
-added.
+the 44px floor). The last line needs reading carefully (layer 1, LOW-3, corrected here): a caller
+passing a raw `aria-pressed` beside Radix's own state gets `aria-pressed="true"` over
+`data-state="off"`, but Radix's controlled API, `pressed={liked}`, keeps the two in step
+(`probe-static.txt`: `pressed=true` → `aria-pressed="true" data-state="on"`). So that line decides
+only a site moved over the wrong way, and it is NOT the reason. The reasons are the others, each
+measured: the part draws nothing, it is a `"use client"` module and a new dependency, and the one
+thing it adds that the sites lack is uncontrolled state, which none of the twelve uses - three are
+optimistic writes (the likes, list membership) whose state lives in the product. Refused, and no
+dependency was added.
 
 **What shipped.**
 
@@ -8588,7 +8590,7 @@ bg-raised text-base text-foreground-2 transition-colors` at rest,
   `not-aria-pressed:hover:border-muted not-aria-pressed:hover:text-foreground` for the hover, and
   `aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground
 aria-pressed:shadow-lift` pressed, plus the house disabled pair `disabled:cursor-not-allowed
-disabled:opacity-50`; and `Toggle`, a `<button data-slot="toggle">` that defaults `type="button"`
+disabled:opacity-50` and `forced-colors:aria-pressed:border-4` (below); and `Toggle`, a `<button data-slot="toggle">` that defaults `type="button"`
   and `aria-pressed={false}` (a toggle with no state is announced as a plain button; `switch.tsx`
   writes its `aria-checked` default for the same reason) over `cn(toggleClass, className)`. No
   directive and no hook, so a Server Component can render one (`client-boundary.test.ts` walks it and
@@ -8597,17 +8599,33 @@ disabled:opacity-50`; and `Toggle`, a `<button data-slot="toggle">` that default
   selected is `aria-current` (the ToggleGroup measurement's `<a type="button">` is what `asChild`
   produced there). No focus ring of its own: `Button`'s posture, the platform's outline or the
   consumer's.
-- **Hover is scoped to the unpressed state, and that is a measurement, not a taste.** In this
-  package's compiled sheet the rules sit at `.hover\:border-muted:hover` 24710 <
-  `.not-aria-pressed\:hover\:border-muted:not([aria-pressed="true"]):hover` 25380 <
-  `.aria-pressed\:border-primary[aria-pressed="true"]` 28082 (`probe/toggle-order.txt`), and in
-  thepile's exact Tailwind, 4.3.2, compiled in a scratch package outside its tree, the same order
-  (`tw432/order-4.3.2.txt`: 4509 < 4638 < 4837). A plain `hover:` border and an `aria-pressed:`
+- **Hover is scoped to the unpressed state, and that is a measurement, not a taste.** In a PROBE
+  compile of this package's fixture (one that also named two candidates no committed source holds;
+  `probe/toggle-order.txt`) the rules sit in the order `.hover\:border-muted:hover` <
+  `.not-aria-pressed\:hover\:border-muted:not([aria-pressed="true"]):hover` <
+  `.aria-pressed\:border-primary[aria-pressed="true"]`, and layer 1 re-read the same order in the
+  head's own sheet at `3286ea4b` (its byte offsets differ from the probe's by a uniform 141, LOW-4;
+  the offsets are dropped here because they belong to one compile, and the ORDER is the claim). In
+  thepile's exact Tailwind, 4.3.2, compiled in a scratch package outside its tree, the order is the
+  same (`tw432/order-4.3.2.txt`). A plain `hover:` border and an `aria-pressed:`
   border are both `(0,2,0)`, so on a pressed toggle under the pointer the pressed border wins by
   SOURCE ORDER ALONE - right today, and decided by where Tailwind happens to emit two variants.
   `not-aria-pressed:hover:` never matches a pressed toggle, so nothing is left for the order to
   decide; the product's two ternaries have the same property by construction (the pressed branch
   carries no hover class).
+- **The pressed state survives forced colors, and that was layer 1's HIGH-1.** As first committed,
+  every difference between the two states was a colour or the shadow, which `forced-colors: active`
+  forces to the system pair or drops: r6 rendered the compiled sheet in headless Chromium
+  (`playwright-core` 1.61.1, `emulateMedia({ forcedColors: "active" })`) and the pressed and
+  unpressed toggles were byte-identical. `forced-colors:aria-pressed:border-4` doubles the pressed
+  frame to 4px in the mode's own ink - width is geometry and is not forced, `radio-group.tsx`'s dot
+  answer. Re-measured the same way at `d9fd00f7` (`$BATCH_SCRATCH/s2/fc-probe/result.txt`, the class
+  string read from the commit by `git show`): forced, unpressed `97379242dffd` and pressed
+  `291052f2cc8a` DIFFER (computed `border 2px` against `4px`, both `rgb(255, 255, 255)` on
+  `rgb(0, 0, 0)`, no shadow), and with the one token removed they are `97379242dffd` twice; unforced,
+  the shipped string and the string without the token hash identically in both states
+  (`45463068c2a3`, `0dcc814ea3e9`), so the normal drawing did not move. The product's like squares
+  carry the same hole today, so the consumption closes it rather than opening it.
 - `packages/ui/stories/toggle.stories.tsx`: `Default` (a caller-held `Favourite`, whose play presses
   it, releases it and reads the SAME accessible name both ways), `Pressed`, and `Disabled` (whose play
   reads `toBeDisabled` and a click that changes nothing). The glyph is `♥`, a general favourite, not
@@ -8618,23 +8636,36 @@ disabled:opacity-50`; and `Toggle`, a `<button data-slot="toggle">` that default
 
 ### The guards, and the runs that reddened them
 
-`test/toggle-drawing.test.tsx`, **nine** tests: (1) the instrument - a specificity function checked
+`test/toggle-drawing.test.tsx`, **thirteen** tests as it ships (nine at `70d6efc7`; layer 1's fixes
+added four and rewrote the instrument, below): (1) the instrument - a specificity function checked
 against four selectors whose specificity the spec fixes, the Default story's toggle found with its
 slot and `aria-pressed="false"`, and a compiled rule for every drawn property; (2-5) one test per
-state (rest, hover, pressed, pressed and hovered), each collecting every compiled rule the RENDERED
-story's classes contribute (a nested `&` resolved against its parents; any enclosing at-rule other
-than a layer or `@media (hover: hover)` refused with a throw), matching each against the story's own
-element in that state with `Element.matches` (`:hover` stripped and gated on the state), picking the
-winner of `border-color`, `background-color`, `color` and `--tw-shadow` by specificity then order,
-comparing it to the role the like square's branch names, AND failing when the two strongest rules tie
-on specificity and disagree, i.e. when source order decided; (6) the disabled pair, `opacity: 50%` and
-`cursor: not-allowed` on the Disabled story's element and neither on an enabled one; (7) the rendered
-classes ARE `toggleClass`, so a plain-join consumer gets the string these arms evaluated; (8) the
-44px floor on BOTH axes, `min-height` and `min-width` resolving to `--hit-min`; (9) `data-slot`,
-`type="button"`, `aria-pressed="false"` by default, the caller's class LAST with the part's string
-intact before it, and a caller's `type` and `aria-pressed` passed through. Beside it:
-`tailwind-compile.test.tsx`'s 44px sweep measures all three stories' buttons, `stories.test.tsx` runs
-the two plays, and `registry.test.ts` derives the item's `registryDependencies` from its imports.
+state (rest, hover, pressed, pressed and hovered), each collecting every compiled declaration the
+RENDERED story's classes contribute, its selector resolved by climbing EVERY ancestor before anything
+is decided (a nested `&` against each rule above it) and its conditions then MODELLED - a layer
+transparent, `@media (hover: hover)` a pointer device, `@supports (color: color-mix(…))` true,
+`@media (forced-colors: active)` that mode's only, anything else a throw - matching each against the
+story's own element in that state with `Element.matches` (`:hover` stripped and gated on the state),
+picking the winner of `border-color`, `border-width`, `background-color`, `color` and `--tw-shadow`
+by specificity then order, comparing it to the role the like square's branch names, AND failing when
+the two strongest declarations come from different rules that tie on specificity and disagree, i.e.
+when source order decided; (6) the disabled pair, `opacity: 50%` and `cursor: not-allowed` on the
+Disabled story's element and neither on an enabled one; (7) the rendered classes ARE `toggleClass`,
+so a plain-join consumer gets the string these arms evaluated; (8) the 44px floor on BOTH axes; (9)
+`data-slot`, `type="button"`, `aria-pressed="false"` by default, the caller's class LAST with the
+part's string intact before it, a caller's `type`, `aria-pressed` and `onClick` passed through; (10)
+a caller's CONFLICTING class wins (`bg-surface` replaces `bg-raised`, `aria-pressed:bg-primary`
+kept); (11) `aria-pressed="mixed"` is kept and draws the rest state; (12) under forced colors, with
+every property the mode forces set aside, pressed and rest still differ; (13) `toggleClass` is the
+like square's upstream string renamed through `fidelity.test.tsx`'s table entries, with each
+departure (`grid` → `inline-grid`, the box → the floor, `hover:` scoped, the branches prefixed, three
+tokens added) named and each replaced upstream token checked to exist. ⚠️ As first committed, (2-5)'s
+docblock claimed every unmodelled at-rule was refused with a throw, and it was not: a climb that met
+an at-rule NESTED inside the rule had no selector yet and dropped the declaration silently, which is
+the shape Tailwind gives every opacity-modified colour (layer 1, HIGH-2: a pressed glyph at `/0`
+was GREEN). Beside it: `tailwind-compile.test.tsx`'s 44px sweep measures all three stories' buttons,
+`stories.test.tsx` runs the two plays, and `registry.test.ts` derives the item's
+`registryDependencies` from its imports and now its `type` from its files' directory.
 
 **Red first**: the file ran before `toggle.tsx` existed (`Failed to resolve import "@/toggle"`), then
 `Tests 8 passed (8)` against the part. **Then every guard, reddened in the DETACHED worktree** at the
@@ -8671,7 +8702,8 @@ registry rebuilt, the whole suite run, the tree restored; logs `mut-T*.log`, `mu
 
 T1 is the one worth reading twice: with plain `hover:` every VALUE is still right (the pressed border
 wins by order, as the sheet measured), and the arm reddens on the tie, which is the property the part
-claims. T16 was the one GREEN, and it is closed. The collapse pass over the new files is layer 1's.
+claims. T16 was the one GREEN, and it is closed. The collapse pass over the new files is layer 1's
+(below).
 
 ### The pipeline, end to end
 
@@ -8741,6 +8773,22 @@ every width…"), a count of CSS properties, not of families.
     decision about the doors, not a toggle.
 11. **`fidelity.test.tsx:36`'s prose count moved** with the others (DL19 decision 7's precedent;
     comment-only, "the counts where the package describes itself").
+12. **The pressed state's forced-colors treatment is a 4px frame.** [V] Layer 1 HIGH-1: without it
+    the two states were one picture in that mode. Geometry was taken over the system-colour fill r6
+    also probed (`forced-color-adjust: none` + `Highlight`/`HighlightText`, which separated them too)
+    because it is `RadioGroup`'s precedent, one token, and readable out of the compiled sheet by the
+    arm that guards it; the fill is the louder picture (`fc-probe/active-shipped-*.png`: the frame is
+    visible, not emphatic), and choosing between them is a look Ankit owns.
+13. **`forced-colors-state.test.tsx`'s site rule is NOT widened here.** It walks `toggle.tsx` and is
+    blind to it, because it only knows an element REVEALED by a checked state; a general rule over
+    every state variant would have to know that `Switch`'s colour-only track is saved by its moving
+    thumb, which is a design of its own. `Toggle`'s guard is its own arm 12, and the widening is
+    recorded for the next library stream (that file is outside this fence).
+14. **Two package-wide arms beside the part, as declared fence widenings** (DL19 decision 8's
+    precedent): `input-merge.test.tsx`'s second arm (a caller's conflicting `w-64` replaces `w-full`:
+    D11's merge observed at a part, layer 1 LOW-1) and `registry.test.ts`'s item-type arm (each item's
+    `type` derived from its files' directory, layer 1 LOW-5: a consumer's drift check counts the
+    `registry:ui` items).
 
 ### thepile inputs
 
@@ -8762,7 +8810,11 @@ every width…"), a count of CSS properties, not of families.
   blockifies to the `grid` they wear today, and the four states resolve to the same roles the two
   ternaries draw (`border-line-strong` ≡ `border-border-strong` and the rest, `fidelity.test.tsx`'s
   rename table; thepile's `globals.css` aliases each pair). The consumption slice reads the four
-  states on the BUILT page, which this package cannot.
+  states on the BUILT page, which this package cannot. **One thing DOES change, and only in one
+  mode**: under `forced-colors: active` the pressed like square gains a 4px frame where today's two
+  ternaries leave pressed and unpressed identical (decision 12); a consumption slice with a
+  forced-colors arm (`page.emulateMedia({ forcedColors: "active" })`, r6's probe shape) can observe
+  it, and no shot runs in that mode.
 - **The instruments that name them**, read at `0592d9af`: `LogModal.test.tsx:271-290` (`getByRole
 ("button", { name: /^like$/i })`, `aria-pressed` true/false), `GameActions.test.tsx:291-604`
   (`getByTestId("like")`, `aria-pressed`), and the e2e `like` testid in `a11y.spec.ts:340`
@@ -8822,3 +8874,91 @@ name collision); `data-slot="input"` by nothing; no file in `packages/` named `p
   (this stream's DESCRIPTION) beside line 3 (s1's version), and the tail of `docs/as-built.md`. Neither
   is a consumer of the other's behaviour. **UNOWNED: 0.** **NEW between the two runs: 5** - `Toggle`,
   `toggleClass` and the three story exports, all this stream's own.
+- ⚠️ **Missed by run 2, found by layer 1**: two DIRECTORY WALKERS read `toggle.tsx` without naming
+  it, so no path arm can see them - `forced-colors-state.test.tsx` (`:157-172`, every
+  `packages/ui/src/*.tsx`; it passed because its site rule is blind to a colour-only state, which
+  was HIGH-1) and `focus-outline.test.tsx` (it passed, and correctly: the part declares no
+  `outline-none`). The walkers are listed by `git grep -l -E 'readdirSync|PUBLISHED_SOURCE_FILES|STORY_FILES|STORY_SUITES' -- packages`,
+  which is the arm a part-adding stream's scan 3 needs in this repository.
+
+**Run 3, after layer 1's fixes** (diff `9dbb43c2...d9fd00f7`, `scan-run3.txt`, `diff`ed against run
+2): the only moves are this stream's own - `toggleClass` gains `forced-colors:aria-pressed:border-4`
+(its one literal, still pinned by nothing but `r/toggle.json`), scan 4 picks up the test's
+`aria-pressed="mixed"`, and the drawing test's `getByRole("button", { name: "Probe" })` lines move
+and grow from two to four. No new exported symbol, no new CROSS, nothing UNOWNED.
+
+## Layer 1 (reviewer, detached worktree of 3286ea4bd245eebcd6daff4080e1444a87ac9854, slot r6, marquee-ui, no database)
+
+**2 HIGH, 1 MED, 5 LOW**, over **33 mutations of its own** (it did not re-run the stream's T1-T19 and
+I1-I4), of which **20 stayed GREEN**: twelve were findings (M1-M6, M8, M11, M13, S2, N1, R1), and
+eight are GREEN by design and say so in their own row (I5, I6, I7, I8, I10, I11, I12, and S1, the
+package's documented limit that a play is counted, not its assertions). Its full report is `$BATCH_SCRATCH/r6/report.md`; its forced-colors probe
+`$BATCH_SCRATCH/r6/fc-probe/`. Its baseline on the untouched committed head: `pnpm install
+--frozen-lockfile` + `pnpm build` exit 0, then `Test Files 35 passed (35)` / `Tests 592 passed (592)`.
+It rebuilt the registry after every source edit and ran the FULL suite each time. The table is its
+own, verbatim:
+
+| file                                   | test                             | mutation applied                                                                                       | red / GREEN                                                                                                         | what it asserts now                                                                                                                                                                                               |
+| -------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| toggle-drawing.test.tsx                | all nine                         | M1: `border-2` dropped from `toggleClass` (preflight's `border: 0 solid` then leaves no border at all) | **GREEN** 592/592                                                                                                   | Border COLOUR in four states, never the border's WIDTH. A toggle with no visible edge passes all four state arms                                                                                                  |
+| toggle-drawing.test.tsx                | all nine                         | M2: `place-items-center` dropped                                                                       | **GREEN** 592/592                                                                                                   | Nothing pins the glyph centring                                                                                                                                                                                   |
+| toggle-drawing.test.tsx                | all nine                         | M3: `inline-grid` changed to `inline-block`                                                            | **GREEN** 592/592                                                                                                   | Nothing pins the display                                                                                                                                                                                          |
+| toggle-drawing.test.tsx                | all nine                         | M4: `text-base` dropped                                                                                | **GREEN** 592/592                                                                                                   | Nothing pins the glyph size                                                                                                                                                                                       |
+| toggle-drawing.test.tsx                | all nine                         | M5: `transition-colors` dropped                                                                        | **GREEN** 592/592                                                                                                   | Nothing pins the transition (low value, recorded for completeness)                                                                                                                                                |
+| toggle-drawing.test.tsx                | plain-join arm, caller-class arm | M6: `cn(toggleClass, className)` changed to a plain join                                               | **GREEN** 592/592                                                                                                   | The caller class is last and the string is intact. The merge (D11: a caller's conflicting class wins) is never observed                                                                                           |
+| toggle-drawing.test.tsx                | instrument + 4 states + disabled | M7: `sm:bg-surface` added (a drawn property under a flat `@media`)                                     | red, 6                                                                                                              | `Error: background-color of .sm\:bg-surface sits under @media (width >= 40rem)`: the loud refusal fires for the FLAT shape                                                                                        |
+| toggle-drawing.test.tsx                | pressed, pressed and hovered     | **M8: `aria-pressed:bg-primary` changed to `aria-pressed:bg-primary/50`**                              | **GREEN** 592/592                                                                                                   | The instrument reads the fallback `background-color: var(--primary)` and SILENTLY drops the nested `@supports` value that browsers apply. See HIGH-2                                                              |
+| toggle-drawing.test.tsx                | hover                            | M10: `not-aria-pressed:hover:border-muted` changed to `…/border-muted/50`                              | red, 6                                                                                                              | `border-color of … sits under @supports (color: color-mix(in lab, red, red))`: loud here, because under `@media (hover: hover)` the selector was resolved before the at-rule                                      |
+| toggle-drawing.test.tsx                | pressed, pressed and hovered     | **M11: `aria-pressed:text-primary-foreground` changed to `…/0` (the pressed glyph fully transparent)** | **GREEN** 592/592                                                                                                   | Same silent drop as M8. A pressed toggle with an invisible heart passes all nine                                                                                                                                  |
+| stories.test.tsx (toggle/Default play) | toggle/Default, the play counter | M9: Toggle drops the caller's `onClick` (`onClick={undefined}` after the spread)                       | red, 2                                                                                                              | `toHaveAttribute("aria-pressed", "true")`, and `plays that actually executed`                                                                                                                                     |
+| toggle-drawing.test.tsx                | caller-class arm                 | M12: `type={type ?? "button"}` changed to `type="button"`                                              | red, 1                                                                                                              | `toHaveAttribute("type", "submit")`                                                                                                                                                                               |
+| toggle-drawing.test.tsx                | all nine, and both plays         | M13: `aria-pressed={ariaPressed ? true : false}` (`"mixed"` becomes pressed)                           | **GREEN** 592/592                                                                                                   | The docblock's "`"mixed"` draws as not pressed" is never exercised                                                                                                                                                |
+| toggle-drawing.test.tsx                | 4 state arms                     | I5: `byOrder` hard-wired to `false`                                                                    | GREEN 592/592 (expected: no tie at the head)                                                                        | The values alone. Nothing ties at the head, so this GREEN is not a finding                                                                                                                                        |
+| toggle-drawing.test.tsx                | 4 state arms                     | I6: T1 (plain `hover:`) with `byOrder` hard-wired to `false`                                           | **GREEN** 592/592                                                                                                   | Confirms the stream's own T1 note: the regression the part exists to prevent is caught ONLY by the `byOrder` half, because every VALUE is still right                                                             |
+| toggle-drawing.test.tsx                | all                              | I7: the at-rule refusal `throw` changed to `return`                                                    | GREEN (expected: nothing sits under an unmodelled at-rule at the head)                                              | Nothing. The refusal is live (M7)                                                                                                                                                                                 |
+| toggle-drawing.test.tsx                | all                              | I8: M7 with the refusal changed to `return`                                                            | **GREEN** 592/592                                                                                                   | Without the throw, a responsive override of a drawn property is invisible. The throw is its one guard, and it is live                                                                                             |
+| toggle-drawing.test.tsx                | instrument                       | I9: `specificity` loses its `:not()` case                                                              | red, 1                                                                                                              | `:not() counts its argument: expected [ +0, 4, +0 ] to deeply equal [ +0, 3, +0 ]`. Only the self-check sees it                                                                                                   |
+| toggle-drawing.test.tsx                | 4 state arms                     | I10: `resolve` sorts by source order only (no specificity)                                             | **GREEN** 592/592                                                                                                   | Specificity decides no VALUE in this sheet: Tailwind emits every higher-specificity variant after its base, so order and specificity agree. Specificity is load-bearing only through `byOrder` and the self-check |
+| toggle-drawing.test.tsx                | all                              | I11: `mount` reads `classes` from `toggleClass` instead of from the element                            | GREEN (equivalent while the plain-join arm holds)                                                                   | Not a finding                                                                                                                                                                                                     |
+| toggle-drawing.test.tsx                | all                              | I12: `resolve` stops splitting the selector list on `,`                                                | GREEN (no comma selector among the toggle's rules)                                                                  | The split has no input to act on today. Not a finding                                                                                                                                                             |
+| toggle-drawing.test.tsx                | hover                            | I13: `resolve` treats every state as unhovered                                                         | red, 1                                                                                                              | `the hover state's border-color: expected 'var(--border-strong)' to be 'var(--muted)'`                                                                                                                            |
+| toggle.stories.tsx (Default play)      | toggle/Default                   | S1: the Default play returns before its first line                                                     | **GREEN** 592/592                                                                                                   | The documented limit of `stories.test.tsx` (it counts plays that RAN, not what they asserted)                                                                                                                     |
+| toggle.stories.tsx + toggle.tsx        | all                              | S2: S1 plus Toggle dropping `onClick`                                                                  | **GREEN** 592/592                                                                                                   | Only the Default play's body guards the forwarding of a caller's `onClick`. No non-story arm does                                                                                                                 |
+| toggle.stories.tsx (Disabled play)     | toggle/Disabled                  | S3: Favourite's `onClick` changed to `onPointerDown`                                                   | red, 2                                                                                                              | `toHaveAttribute("aria-pressed", "false")`. The play's "a click changes nothing" half is live (user-event does dispatch pointerdown to a disabled button)                                                         |
+| toggle.stories.tsx                     | toggle/Disabled, disabled arm    | S4: Favourite stops passing `disabled`                                                                 | red, 3                                                                                                              | `toBeDisabled()` in the play and in arm 6                                                                                                                                                                         |
+| toggle.stories.tsx                     | pressed, pressed and hovered     | S5: the Pressed story renders `<Favourite />`                                                          | red, 2                                                                                                              | `expected 'false' to be 'true'` (the story's own `aria-pressed` check at `toggle-drawing.test.tsx:224`)                                                                                                           |
+| input-merge.test.tsx                   | the one arm                      | N1: `input.tsx` `cn(inputClass, className)` changed to a plain join                                    | **GREEN** 592/592                                                                                                   | Only "last, and the field string intact". Merge semantics (D11) are unobserved, although the file is named `input-merge`                                                                                          |
+| input-merge.test.tsx                   | the one arm                      | N2: `input.tsx` forces `type="text"` after the spread                                                  | red, 1                                                                                                              | `toHaveAttribute("type", "email")`                                                                                                                                                                                |
+| input-merge.test.tsx                   | the one arm                      | N3: `input.tsx` imports `clsx` as `cn` (no twMerge)                                                    | red, 1, but **not in this file**: only `registry.test.ts` `input: expected [ '@marquee/utils' ] to deeply equal []` | Same gap as N1. Only the import-derived dependency check notices                                                                                                                                                  |
+| registry.test.ts                       | all                              | R1: the toggle item's `type` changed from `registry:ui` to `registry:component` (registry rebuilt)     | **GREEN** 592/592                                                                                                   | No arm reads an ITEM's `type`, and thepile's drift test counts `registry:ui` items (the stream's own "22 items, 21 of them `registry:ui`"). Pre-existing, package-wide                                            |
+| source-files.ts (STORY_FILES)          | source-coverage, brand-guard     | R2: `toggle.stories.tsx` removed from `STORY_FILES`                                                    | red, 2 files                                                                                                        | `story walk does not match the declared set … Unexpected: [packages/ui/stories/toggle.stories.tsx]`                                                                                                               |
+| story-suites.ts                        | stories.test counters            | R3: the `toggle` key kept but mapped to the `toast` module                                             | red, 3                                                                                                              | `to have a length of 107 but got 108`; `… 77 but got 78`                                                                                                                                                          |
+| fidelity.test.tsx                      | n/a                              | The docblock count only; no assertion moved, so there is nothing to collapse                           | n/a                                                                                                                 | Unchanged                                                                                                                                                                                                         |
+
+### What each GREEN row cost, and what changed
+
+Every fix was re-run against its own mutation in the DETACHED worktree (`../marquee-ui-s2-mut`, the
+same driver, each mutation's diff confirmed before the run, the registry rebuilt, the whole suite
+run, `git status --short` empty after; logs `$BATCH_SCRATCH/s2/mut-*-716819d.log`) at `716819d2`,
+the head carrying every fix but the rename arm's message (`d9fd00f7`, a message only):
+
+| layer-1 row(s) | finding   | what changed                                                                                                                                                                                   | the re-run, at `716819d2`                                                                                                                                                                                                                                   |
+| -------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| (the part)     | HIGH-1    | `forced-colors:aria-pressed:border-4` on the part; arm 12 reads, out of the sheet, what forced colors keeps, and asks pressed and rest to differ in it                                         | H1 (the token removed): **red**, `what forced colors keeps that tells pressed from rest: expected [] to not deeply equal []` and the rename arm. In headless Chromium: 2 hashes with the token, 1 without (`fc-probe/result.txt`)                           |
+| M8, M11        | HIGH-2    | `candidatesFor` climbs every ancestor before it decides; `@supports (color: color-mix(…))` modelled true, so a nested override is a later candidate; `byOrder` ignores one rule's own fallback | M8 **red**: `the pressed state's background-color: expected 'color-mix(in oklab, var(--primary) 50…' to be 'var(--primary)'`; M11 **red**: `the pressed state's color: expected 'color-mix(in oklab, var(--primary-for…' to be 'var(--primary-foreground)'` |
+| M1             | MED-1     | `border-width` joins `DRAWN`, `2px` in all four states                                                                                                                                         | **red**, 7: `the rest state's border-width: expected undefined to be '2px'` (and hover, pressed, pressed and hovered, mixed, the forced anchor, the rename arm)                                                                                             |
+| M2, M3, M4, M5 | MED-1     | arm 13: `toggleClass` is the like square's upstream string renamed, each departure named, each replaced upstream token checked to exist                                                        | each **red**, 1: the rename arm (`expected [ 'aria-pressed:bg-primary', …(17) ] to deeply equal [ …(18) ]`; M3 the same length, a different token); at `d9fd00f7` the arm's message is `toggleClass against the like square renamed, with its departures`   |
+| M6             | LOW-1     | arm 10: a caller's `bg-surface` replaces `bg-raised`, `aria-pressed:bg-primary` kept                                                                                                           | **red**: `the part's rest ground, merged away: expected [ 'inline-grid', 'min-h-hit', …(18) ] to not include 'bg-raised'`                                                                                                                                   |
+| N1, N3         | LOW-1     | `input-merge.test.tsx`'s second arm: a caller's `w-64` replaces `w-full`                                                                                                                       | N1 **red**: `the field's width, merged away: expected [ 'w-full', 'min-h-hit', …(11) ] to not include 'w-full'` (N3, `clsx` as `cn`, is the same join and was not re-run)                                                                                   |
+| M13            | LOW-2     | arm 11: `aria-pressed="mixed"` kept and drawing the rest state                                                                                                                                 | **red**: `toHaveAttribute("aria-pressed", "mixed")`                                                                                                                                                                                                         |
+| (doc)          | LOW-3     | the Radix paragraph: the raw-attribute disagreement decides only a mis-migration; the refusal stands on the other three grounds                                                                | prose                                                                                                                                                                                                                                                       |
+| (doc)          | LOW-4     | the hover-order bullet drops the probe compile's byte offsets and keeps the order                                                                                                              | prose                                                                                                                                                                                                                                                       |
+| R1             | LOW-5     | `registry.test.ts`: each item's `type` derived from its files' directory, and `utils` the one `registry:lib`                                                                                   | **red**: `toggle: expected 'registry:component' to be 'registry:ui'`                                                                                                                                                                                        |
+| S2             | (row)     | arm 9 passes a `vi.fn()` `onClick` and clicks                                                                                                                                                  | **red**, 3: `the caller's onClick: expected "vi.fn()" to be called 1 times, but got 0 times`, beside the Default play                                                                                                                                       |
+| I6, I10        | by design | `byOrder` and specificity decide no VALUE in this sheet (Tailwind emits every stronger variant after its base); they are load-bearing through the tie check, which T1 and I2 redden            | recorded                                                                                                                                                                                                                                                    |
+| I8             | by design | the throw is the one guard of an unmodelled condition, and M7 and M10 show it live; it now also covers the nested shape                                                                        | recorded                                                                                                                                                                                                                                                    |
+| S1             | standing  | a play whose body returns early is invisible to a suite that counts plays (`stories.test.tsx:48-65`); S2's arm now carries the one behaviour the Default play was the only guard of            | not re-run                                                                                                                                                                                                                                                  |
+| (consumers)    | scan      | the two directory walkers the path arms cannot see, and the command that lists them                                                                                                            | prose (Consumers, above)                                                                                                                                                                                                                                    |
+
+The file now has **thirteen** tests and the suite **598** (+6 on 592: four drawing arms, the Input
+conflict arm, the registry type arm).
