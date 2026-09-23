@@ -472,6 +472,9 @@ describe("Toggle: the house pressed state, drawn from aria-pressed", () => {
       ...UPSTREAM.pressed.split(" ").map((token) => `aria-pressed:${renamed(token)}`),
       ...ADDED,
     ].sort();
-    expect(toggleClass.split(/\s+/).filter(Boolean).sort()).toEqual(expected);
+    expect(
+      toggleClass.split(/\s+/).filter(Boolean).sort(),
+      "toggleClass against the like square renamed, with its departures",
+    ).toEqual(expected);
   });
 });
