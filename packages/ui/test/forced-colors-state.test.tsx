@@ -732,9 +732,25 @@ describe("a checked state survives forced-colors: active", () => {
       ownTreatment(["border-2", "forced-colors:border-4"], toggleState),
       "a forced-colors rule that is not the state's reads as the state's treatment",
     ).toEqual([]);
-    // (A frame whose style resolves to none is `paintsIn`'s style half, which
-    // `border-none` reddened in DL18; no source compiles `border-none` today, so
-    // there is no real token to anchor it on here.)
+    // The PAINT GATE: a changed width whose style resolves to none paints
+    // nothing. No source compiles `border-none` today, so its two declarations
+    // (DL18's read of the emitted rule) are placed BY HAND under a name no
+    // utility can have, and removed after - the predicate is what is under test
+    // here, not the sheet. Without this, dropping the gate stayed GREEN (DL21
+    // mutation M7).
+    const none = "probe:border-none";
+    placed.set(none, [
+      { property: "--tw-border-style", value: "none", placement: "unconditional", state: null },
+      { property: "border-style", value: "none", placement: "unconditional", state: null },
+    ]);
+    try {
+      expect(
+        ownTreatment(["border-2", none, "forced-colors:aria-pressed:border-4"], toggleState),
+        "a frame whose style resolves to none reads as a paint",
+      ).toEqual([]);
+    } finally {
+      placed.delete(none);
+    }
     // The stroke: an author colour is not a paint for a carrier, currentcolor is,
     // and the revealed-element arms' default reading is untouched.
     expect(
