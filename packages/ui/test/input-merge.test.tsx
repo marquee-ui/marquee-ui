@@ -26,4 +26,18 @@ describe("Input: the caller's class", () => {
     expect(classes.slice(0, -1), "the field's own string, intact").toEqual(inputClass.split(/\s+/));
     expect(field).toHaveAttribute("type", "email");
   });
+
+  it("lets a caller's conflicting class win over the field's: a merge, not a join", () => {
+    // D11: `cn` merges, so a caller's width REPLACES the field's `w-full` rather
+    // than sitting beside it for the stylesheet's order to pick. The arm above
+    // passes a class that conflicts with nothing, and a plain join satisfied it
+    // (DL20 layer 1, LOW-1).
+    render(<Input aria-label="Email" className="w-64" />);
+    const classes = (screen.getByRole("textbox", { name: "Email" }).getAttribute("class") ?? "")
+      .split(/\s+/)
+      .filter(Boolean);
+    expect(classes, "the caller's width").toContain("w-64");
+    expect(classes, "the field's width, merged away").not.toContain("w-full");
+    expect(classes, "the rest of the field, kept").toContain("min-h-hit");
+  });
 });

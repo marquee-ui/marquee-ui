@@ -21,6 +21,14 @@ import { cn } from "@/lib/utils";
  * there is nothing for the order to decide (`test/toggle-drawing.test.tsx`
  * evaluates all four states).
  *
+ * ⚠️ THE `forced-colors:` BORDER IS THE WHOLE PRESSED STATE IN THAT MODE.
+ * Forced colors sends every colour here to one of two system colours and drops
+ * the shadow, so without it pressed and unpressed are the SAME picture (layer 1
+ * of DL20, HIGH-1, two byte-identical screenshots in headless Chromium). Width is
+ * geometry and survives, so the pressed toggle's frame doubles to 4px in the
+ * user's own ink - `radio-group.tsx`'s dot answer - and outside that media query
+ * the drawing is unchanged.
+ *
  * No `asChild`: `aria-pressed` belongs to a button, and a link that stays
  * pressed is a link whose state is the page (`aria-current`). No focus ring of
  * its own, `Button`'s posture: the platform's outline, or the consumer's.
@@ -28,7 +36,7 @@ import { cn } from "@/lib/utils";
  * toggle on the 44px floor on both axes.
  */
 export const toggleClass =
-  "inline-grid min-h-hit min-w-hit place-items-center border-2 border-border-strong bg-raised text-base text-foreground-2 transition-colors not-aria-pressed:hover:border-muted not-aria-pressed:hover:text-foreground aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:shadow-lift disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-grid min-h-hit min-w-hit place-items-center border-2 border-border-strong bg-raised text-base text-foreground-2 transition-colors not-aria-pressed:hover:border-muted not-aria-pressed:hover:text-foreground aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:shadow-lift disabled:cursor-not-allowed disabled:opacity-50 forced-colors:aria-pressed:border-4";
 
 export function Toggle({
   className,

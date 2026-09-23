@@ -41,11 +41,14 @@ afterEach(cleanup);
 
 const toggles = composeStories(toggleStories);
 
-/** The drawn properties. The shadow is read as `--tw-shadow`, the one a `shadow-*` utility sets. */
-const DRAWN = ["border-color", "background-color", "color", "--tw-shadow"] as const;
+/**
+ * The drawn properties. The shadow is read as `--tw-shadow`, the one a `shadow-*`
+ * utility sets; the border's WIDTH is read beside its colour, because a colour
+ * on a border preflight has zeroed draws nothing (layer 1, MED-1: `border-2`
+ * dropped was GREEN).
+ */
+const DRAWN = ["border-color", "border-width", "background-color", "color", "--tw-shadow"] as const;
 type Drawn = (typeof DRAWN)[number];
-/** Every property an arm below resolves: the drawn four, and the disabled pair. */
-const PROPERTIES = [...DRAWN, "opacity", "cursor"] as const;
 
 const STATES = [
   { name: "rest", story: "Default", hovered: false },
@@ -64,24 +67,28 @@ type StateName = (typeof STATES)[number]["name"];
 const EXPECTED: Record<StateName, Record<Drawn, string | undefined>> = {
   rest: {
     "border-color": "var(--border-strong)",
+    "border-width": "2px",
     "background-color": "var(--raised)",
     color: "var(--foreground-2)",
     "--tw-shadow": undefined,
   },
   hover: {
     "border-color": "var(--muted)",
+    "border-width": "2px",
     "background-color": "var(--raised)",
     color: "var(--foreground)",
     "--tw-shadow": undefined,
   },
   pressed: {
     "border-color": "var(--primary)",
+    "border-width": "2px",
     "background-color": "var(--primary)",
     color: "var(--primary-foreground)",
     "--tw-shadow": "var(--shadow-lift)",
   },
   "pressed and hovered": {
     "border-color": "var(--primary)",
+    "border-width": "2px",
     "background-color": "var(--primary)",
     color: "var(--primary-foreground)",
     "--tw-shadow": "var(--shadow-lift)",
@@ -89,6 +96,8 @@ const EXPECTED: Record<StateName, Record<Drawn, string | undefined>> = {
 };
 
 const CLASS = /\.((?:\\.|[^\s.,:>+~(){}[\]])+)/g;
+const classNames = (selector: string): string[] =>
+  [...selector.matchAll(CLASS)].map((m) => m[1]!.replace(/\\(.)/g, "$1"));
 
 /**
  * Selector specificity as `[ids, classes + attributes + pseudo-classes, types]`,
@@ -116,14 +125,31 @@ function specificity(selector: string): [number, number, number] {
   return total;
 }
 
-type Candidate = { selector: string; order: number; property: string; value: string };
+type Candidate = {
+  selector: string;
+  order: number;
+  property: string;
+  value: string;
+  /** Declared inside `@media (forced-colors: active)`: it applies only in that mode. */
+  forced: boolean;
+};
 
 /**
  * Every declaration the class list contributes, each with its FULL selector (a
- * nested `&` resolved against its parents) and its position in the sheet.
- * Enclosing at-rules other than a layer and `@media (hover: hover)` are refused
- * loudly: a drawn property under any other condition is a state this arm does
- * not model, and an instrument that silently dropped it would read green.
+ * nested `&` resolved against every rule above it) and its position in the
+ * sheet.
+ *
+ * The climb goes all the way up BEFORE anything is decided, because Tailwind
+ * nests an at-rule INSIDE a rule as often as around it: an opacity-modified
+ * colour is a fallback declaration plus a nested `@supports (color: color-mix(…))`
+ * block, and a climb that stopped at that inner at-rule had no selector yet and
+ * dropped the value every browser applies (layer 1, HIGH-2: a fully transparent
+ * pressed glyph was GREEN). The conditions are then MODELLED, not skipped: a
+ * layer is transparent, `@media (hover: hover)` is a pointer device (the hover
+ * states are `:hover`'s), `@supports (color: color-mix(…))` is every engine this
+ * package targets, and `@media (forced-colors: active)` marks the declaration as
+ * that mode's. Any other condition on one of these classes throws: a state this
+ * file does not model must not read as green.
  */
 function candidatesFor(classes: readonly string[]): Candidate[] {
   const wanted = new Set(classes);
@@ -131,46 +157,56 @@ function candidatesFor(classes: readonly string[]): Candidate[] {
   let order = 0;
   postcss.parse(sheet.css).walkDecls((decl) => {
     order += 1;
-    if (!(PROPERTIES as readonly string[]).includes(decl.prop)) return;
     let selector = "";
+    const conditions: string[] = [];
     for (let at = decl.parent as Node | undefined; at && at.type !== "root"; at = at.parent) {
       if (at.type === "rule") {
         const own = (at as Rule).selector;
-        selector = selector === "" ? own : selector.replace(/&/g, own);
+        if (selector === "") selector = own;
+        else selector = selector.includes("&") ? selector.replace(/&/g, own) : `${own} ${selector}`;
       } else if (at.type === "atrule") {
         const { name, params } = at as AtRule;
-        if (name === "layer" || (name === "media" && params === "(hover: hover)")) continue;
-        if (name === "property") return;
-        const names = [...selector.matchAll(CLASS)].map((m) => m[1]!.replace(/\\(.)/g, "$1"));
-        if (names.some((n) => wanted.has(n)))
-          throw new Error(`${decl.prop} of ${selector} sits under @${name} ${params}`);
-        return;
+        if (name !== "layer") conditions.push(`@${name} ${params}`);
       }
     }
-    const names = [...selector.matchAll(CLASS)].map((m) => m[1]!.replace(/\\(.)/g, "$1"));
-    if (!names.some((n) => wanted.has(n))) return;
-    out.push({ selector, order, property: decl.prop, value: decl.value });
+    if (!classNames(selector).some((n) => wanted.has(n))) return;
+    let forced = false;
+    for (const condition of conditions) {
+      if (condition === "@media (hover: hover)") continue;
+      if (condition.startsWith("@supports (color: color-mix(")) continue;
+      if (condition === "@media (forced-colors: active)") {
+        forced = true;
+        continue;
+      }
+      throw new Error(
+        `${decl.prop} of ${selector} sits under ${condition}, which this file does not model`,
+      );
+    }
+    out.push({ selector, order, property: decl.prop, value: decl.value, forced });
   });
   return out;
 }
 
 /**
- * What wins `property` on `element`, hovered or not: specificity, then order.
- * `byOrder` is true when the two strongest applying rules tie on specificity and
- * DISAGREE, i.e. the value was decided by where Tailwind happened to emit the
- * rules, which is the dependency `not-aria-pressed:hover:` exists to remove.
+ * What wins `property` on `element`: specificity, then order, among the rules
+ * that apply in this mode. `byOrder` is true when the two strongest applying
+ * declarations come from DIFFERENT rules that tie on specificity and disagree,
+ * i.e. the value was decided by where Tailwind happened to emit two rules, which
+ * is the dependency `not-aria-pressed:hover:` exists to remove. (One rule's own
+ * fallback and its `@supports` override tie by design and are not counted.)
  */
 function resolve(
   candidates: readonly Candidate[],
   element: Element,
-  hovered: boolean,
+  mode: { hovered: boolean; forced: boolean },
   property: string,
 ): { value: string | undefined; byOrder: boolean } {
   const applying = candidates.filter((c) => {
     if (c.property !== property) return false;
+    if (c.forced && !mode.forced) return false;
     return c.selector.split(",").some((one) => {
       const needsHover = /(?<!\\):hover\b/.test(one);
-      if (needsHover && !hovered) return false;
+      if (needsHover && !mode.hovered) return false;
       return element.matches(one.replace(/(?<!\\):hover\b/g, "").trim());
     });
   });
@@ -180,9 +216,75 @@ function resolve(
   };
   applying.sort((x, y) => rank(x, y) || x.order - y.order);
   const [top, next] = [applying.at(-1), applying.at(-2)];
-  const byOrder = !!top && !!next && rank(top, next) === 0 && top.value !== next.value;
+  const byOrder =
+    !!top &&
+    !!next &&
+    rank(top, next) === 0 &&
+    top.selector !== next.selector &&
+    top.value !== next.value;
   return { value: top?.value, byOrder };
 }
+
+/**
+ * What forced colors overrides or drops (CSS Color Adjust 1, "properties affected
+ * by forced colors mode"), plus custom properties, which paint nothing by
+ * themselves. Whatever is left is what the mode lets an author draw with.
+ */
+const FORCED_BY_THE_MODE =
+  /^(?:color|background-color|border(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?-color|outline-color|text-decoration-color|column-rule-color|caret-color|accent-color|fill|stroke|box-shadow|text-shadow|scrollbar-color|--.+)$/;
+
+const NORMAL = { hovered: false, forced: false } as const;
+const HOVERED = { hovered: true, forced: false } as const;
+const FORCED = { hovered: false, forced: true } as const;
+
+/**
+ * THE MOVE IS A RENAME. The like square as the product wears it, copied from
+ * `LogForm.tsx:640-644` at thepile `0592d9af` (`GameActions.tsx:500-504` differs
+ * only in the box, `h-[46px] w-[46px]`), and the entries of
+ * `fidelity.test.tsx`'s `RENAME` table (`:58-75`) that it uses, each spelled
+ * exactly as that table spells it.
+ */
+const UPSTREAM = {
+  base: "grid h-11 w-11 place-items-center border-2 text-base transition-colors",
+  pressed: "border-accent bg-accent text-on-accent shadow-hard",
+  rest: "border-line-strong bg-raised text-text-secondary hover:border-text-muted hover:text-text",
+} as const;
+const RENAME: Readonly<Record<string, string>> = {
+  "bg-accent": "bg-primary",
+  "border-accent": "border-primary",
+  "text-on-accent": "text-primary-foreground",
+  "shadow-hard": "shadow-lift",
+  "border-line-strong": "border-border-strong",
+  "text-text": "text-foreground",
+  "text-text-secondary": "text-foreground-2",
+  "border-text-muted": "border-muted",
+};
+/**
+ * What the part changes on the way, each with its reason. The base tokens it
+ * REPLACES must exist upstream (checked below), so a departure that no longer
+ * applies is as loud as a missing one.
+ */
+const REPLACED: Readonly<Record<string, string[]>> = {
+  // A part may sit in an inline context; inside the product's two flex parents
+  // both blockify to the same grid.
+  grid: ["inline-grid"],
+  // The box is the caller's (44 in the log sheet, 46 on the game page); the part
+  // keeps only the 44px floor, on both axes.
+  "h-11": ["min-h-hit"],
+  "w-11": ["min-w-hit"],
+};
+const ADDED = [
+  // The house disabled pair (`Button`, `Switch`): neither product site disables.
+  "disabled:cursor-not-allowed",
+  "disabled:opacity-50",
+  // The pressed state's one paint that survives forced colors (layer 1, HIGH-1).
+  "forced-colors:aria-pressed:border-4",
+];
+const renamed = (token: string): string => {
+  const at = token.lastIndexOf(":");
+  const [variant, utility] = [token.slice(0, at + 1), token.slice(at + 1)];
+  return variant + (RENAME[utility] ?? utility);
+};
 
 /** The one toggle a story renders, and its classes, left mounted for `matches()`. */
 function mount(Story: () => ReactElement): { element: HTMLElement; classes: string[] } {
@@ -225,7 +327,7 @@ describe("Toggle: the house pressed state, drawn from aria-pressed", () => {
       const candidates = candidatesFor(classes);
       const resolved = DRAWN.map((property) => ({
         property,
-        ...resolve(candidates, element, hovered, property),
+        ...resolve(candidates, element, { hovered, forced: false }, property),
       }));
       for (const { property, value } of resolved) {
         expect(value, `the ${name} state's ${property}`).toBe(EXPECTED[name][property]);
@@ -244,15 +346,18 @@ describe("Toggle: the house pressed state, drawn from aria-pressed", () => {
     const disabled = mount(toggles.Disabled);
     expect(disabled.element).toBeDisabled();
     const off = candidatesFor(disabled.classes);
-    expect(resolve(off, disabled.element, false, "opacity").value, "disabled opacity").toBe("50%");
-    expect(resolve(off, disabled.element, false, "cursor").value, "disabled cursor").toBe(
+    expect(resolve(off, disabled.element, NORMAL, "opacity").value, "disabled opacity").toBe("50%");
+    expect(resolve(off, disabled.element, NORMAL, "cursor").value, "disabled cursor").toBe(
       "not-allowed",
     );
     cleanup();
     const enabled = mount(toggles.Default);
     const on = candidatesFor(enabled.classes);
-    expect(resolve(on, enabled.element, true, "opacity").value, "enabled opacity").toBeUndefined();
-    expect(resolve(on, enabled.element, true, "cursor").value, "enabled cursor").toBeUndefined();
+    expect(
+      resolve(on, enabled.element, HOVERED, "opacity").value,
+      "enabled opacity",
+    ).toBeUndefined();
+    expect(resolve(on, enabled.element, HOVERED, "cursor").value, "enabled cursor").toBeUndefined();
   });
 
   it("hands a plain-join consumer the string it renders: the merge removed nothing", () => {
@@ -283,5 +388,84 @@ describe("Toggle: the house pressed state, drawn from aria-pressed", () => {
     render(<Toggle aria-label="Probe" aria-pressed type="submit" />);
     const pressed = screen.getByRole("button", { name: "Probe", pressed: true });
     expect(pressed).toHaveAttribute("type", "submit");
+  });
+
+  it("lets a caller's conflicting class win over the part's, and leaves the pressed rules alone", () => {
+    // `cn` MERGES (D11): a caller's ground replaces the rest ground, it is not
+    // appended beside it. A plain join here was GREEN (layer 1, LOW-1).
+    render(<Toggle aria-label="Probe" className="bg-surface" />);
+    const classes = (screen.getByRole("button", { name: "Probe" }).getAttribute("class") ?? "")
+      .split(/\s+/)
+      .filter(Boolean);
+    expect(classes, "the caller's ground").toContain("bg-surface");
+    expect(classes, "the part's rest ground, merged away").not.toContain("bg-raised");
+    expect(classes, "the pressed ground, a different group").toContain("aria-pressed:bg-primary");
+  });
+
+  it('draws "mixed" as not pressed, and keeps the attribute', () => {
+    // The docblock's claim, held (layer 1, LOW-2): the pressed rules select
+    // `[aria-pressed="true"]`, and a part that coerced the value would announce
+    // AND draw a mixed state as pressed.
+    render(<Toggle aria-label="Probe" aria-pressed="mixed" />);
+    const control = screen.getByRole("button", { name: "Probe" });
+    expect(control).toHaveAttribute("aria-pressed", "mixed");
+    const classes = (control.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
+    const candidates = candidatesFor(classes);
+    for (const property of DRAWN) {
+      expect(resolve(candidates, control, NORMAL, property).value, `mixed ${property}`).toBe(
+        EXPECTED.rest[property],
+      );
+    }
+  });
+
+  it("keeps the pressed state visible under forced colors, where every colour and the shadow are the mode's", () => {
+    // Forced colors sends colours to two system colours and drops shadows, so
+    // the pressed state has to differ in something the mode KEEPS. Without the
+    // `forced-colors:` border the two states were byte-identical in headless
+    // Chromium (layer 1, HIGH-1); jsdom cannot emulate the mode, so this reads
+    // what the mode leaves an author to draw with, out of the sheet.
+    const kept = (story: () => ReactElement): Record<string, string | undefined> => {
+      const { element, classes } = mount(story);
+      const candidates = candidatesFor(classes);
+      const properties = [...new Set(candidates.map((c) => c.property))]
+        .filter((property) => !FORCED_BY_THE_MODE.test(property))
+        .sort();
+      const out = Object.fromEntries(
+        properties.map((property) => [
+          property,
+          resolve(candidates, element, FORCED, property).value,
+        ]),
+      );
+      cleanup();
+      return out;
+    };
+    const rest = kept(toggles.Default);
+    const pressed = kept(toggles.Pressed);
+    // Anchor: the mode leaves real geometry to compare, the border's width among it.
+    expect(rest["border-width"], "the rest border under forced colors").toBe("2px");
+    const differing = [...new Set([...Object.keys(rest), ...Object.keys(pressed)])].filter(
+      (property) => rest[property] !== pressed[property],
+    );
+    expect(differing, "what forced colors keeps that tells pressed from rest").not.toEqual([]);
+  });
+
+  it("is the like square renamed, with every departure named and every upstream token accounted for", () => {
+    // The four state arms read four properties; this reads the whole string, so
+    // the box, the centring, the glyph size and the transition cannot go quietly
+    // (layer 1, MED-1: each of them dropped was GREEN).
+    const base = UPSTREAM.base.split(" ");
+    for (const token of Object.keys(REPLACED)) {
+      expect(base, `the departure for ${token} no longer applies`).toContain(token);
+    }
+    const expected = [
+      ...base.flatMap((token) => REPLACED[token] ?? [renamed(token)]),
+      ...UPSTREAM.rest
+        .split(" ")
+        .map(renamed)
+        .map((token) => (token.startsWith("hover:") ? `not-aria-pressed:${token}` : token)),
+      ...UPSTREAM.pressed.split(" ").map((token) => `aria-pressed:${renamed(token)}`),
+      ...ADDED,
+    ].sort();
+    expect(toggleClass.split(/\s+/).filter(Boolean).sort()).toEqual(expected);
   });
 });
