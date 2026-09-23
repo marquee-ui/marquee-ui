@@ -8425,4 +8425,12 @@ item nobody declared`. The hyphen was NOT in the bump's red: it appeared only on
 "twenty-one", as the anchor arm naming `the items the library ships`. Green at 19/19 after the lists
 moved. The detail is in thepile's slice doc.
 
+### For the next bump (thepile's DL20 layer 1, LOW-3)
+
+`src/textarea.tsx:20`'s docblock cites `test/textarea-drawing.test.tsx`, a path relative to
+`packages/ui/`. Inside a consumer's copy (`components/ui/textarea.tsx`, byte-pinned) it names a file the
+consumer does not have; `packages/ui/test/textarea-drawing.test.tsx` would read correctly in both repos.
+Not changed here: `src/**` is another stream's fence this batch, and a docblock edit re-packs the item,
+so it rides the next bump.
+
 No push, no tag, no `npm publish`, no PR: the freeze holds.
