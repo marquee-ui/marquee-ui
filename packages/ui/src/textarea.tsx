@@ -16,8 +16,9 @@ import { inputClass } from "./input";
  * The pad is `py-2`, 8px, and not a taste value: an `Input` centres its text
  * at `(44 - 2 * 2 - 16 * 1.55) / 2` = 7.6px below the top border, and 8px is
  * the spacing-grid step nearest it, so a textarea under an input starts its
- * first line where the input's text sits. `test/textarea-drawing.test.tsx`
- * derives that number from the compiled sheet rather than typing it.
+ * first line where the input's text sits. marquee-ui's
+ * `packages/ui/test/textarea-drawing.test.tsx` derives that number from the
+ * compiled sheet rather than typing it.
  *
  * It is a STRING built on `inputClass`, not a copy of it, so the field has one
  * definition: whatever `Input`'s focus, border or ground become, this becomes
