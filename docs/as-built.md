@@ -8380,3 +8380,128 @@ Reddened in the detached worktree at the arm's commit `d099be10` (`mut-X1*.log`)
 
 X1a and X1c are the two the suite could not see before this file, and each reddens it and nothing
 else. The file is one test, so the suite at this commit is **34 files / 579 tests**.
+
+### 2. The `Progress` measurement, and the answer
+
+**No `Progress` family ships**, Radix or house. The audit's column names it on two lines at
+`0592d9af` (`awk -F'|' '{print $4}' docs/design-audit.md | command grep -c -w Progress` → **2**;
+`awk -F'|' '$4 ~ /Progress/ {print NR}'` → `390`, `400`): row 390 (`/[username]/list/[slug]`,
+"Progress for ListProgress's bars", its why "the progress bars are hand-drawn divs") is the demand,
+and row 400 is DL11's refusal ("no `Progress`: `ImportPreview` draws no bar"). So the demand is ONE
+file, and it was read whole, with the pure module whose arithmetic it draws.
+
+**What `ListProgress.tsx` draws** (`components/lists/ListProgress.tsx`, `"use client"`, 350 lines):
+
+- a `<div aria-hidden="true" data-testid="progress-cells" className="grid gap-1">` (`:208-217`)
+  whose columns are an INLINE style, `repeat(N, minmax(0,1fr))` signed in (`:213-215`, "an inline
+  style because it is a runtime number"), each cell a `<span data-testid="progress-cell" data-lit>`
+  over `cn("h-3.5 border", lit ? "border-accent bg-accent" : "border-line-strong bg-overlay")`
+  (`:219-229`);
+- signed out, ONE `progress-track` span, `h-3.5 border border-line-strong bg-overlay` (`:231-234`), in
+  a box whose height is reserved to the pixel against the signed-in shape (the comment `:197-207`:
+  dropping it moved the hydration jump from 31.2px to 83.6px at 390, and `mobile-390.spec.ts`
+  compares the two states' box heights);
+- the caption `<p data-testid="progress-caption" aria-live="polite">` (`:237-247`), which "IS the panel
+  for a screen reader" and changes twice (the viewer's answer, then the bulk move), reading
+  `6 OF 10 PLAYED · 60%` plus `1 CELL PER UP TO N GAMES` when it buckets and `ALL ON YOUR PILE`
+  (`captionFor`, `:306-311`).
+
+**And the thing the composition did not say, read in `lib/list-progress.ts`: the cells are a MAP,
+not a fill.** `cells` is "the bar, IN LIST ORDER: one cell per game up to the cap, `true` where that
+game is on a played-family shelf", and the docblock (`:52-57`) is explicit: "⚠️ A MAP, NOT A FILL,
+and `design/hubs.html` is explicit about it: its ten cells are lit at positions 1, 2, 4, 5, 9 and 10,
+not as the first six … the map says WHERE in the list the reader is". Past `MAX_CELLS = 20` (`:30`)
+each cell is a slice of the list lit on a STRICT MAJORITY (`:109-127`), and `perCell` is the largest
+slice, not `ceil(total / 20)` (`:59-68`). That is product arithmetic, in a pure module with its own
+edges, and it is the whole of the "bucketing".
+
+**What Radix's part renders, measured** (`renderToStaticMarkup`, `probe-static.mjs` →
+`probe-static.txt`). `@radix-ui/react-progress` 1.1.16 opens its `dist/index.mjs` with
+`"use client";`, exports `Root`/`Indicator`, and depends on `react-context` and `react-primitive`:
+
+```
+value=60              <div aria-valuemax="100" aria-valuemin="0" aria-valuenow="60" aria-valuetext="60%" role="progressbar" data-state="loading" data-value="60" data-max="100"><div data-state="loading" data-value="60" data-max="100" style="transform:translateX(-40%)"></div></div>
+value=100             <div … aria-valuenow="100" aria-valuetext="100%" role="progressbar" data-state="complete" …>
+value=6 max=10        <div aria-valuemax="10" aria-valuemin="0" aria-valuenow="6" aria-valuetext="60%" role="progressbar" data-state="loading" data-value="6" data-max="10">…
+value=null            <div aria-valuemax="100" aria-valuemin="0" role="progressbar" data-state="indeterminate" data-max="100"><div data-state="indeterminate" data-max="100"></div></div>
+getValueLabel         <div … aria-valuenow="6" aria-valuetext="6 OF 10 PLAYED" role="progressbar" …>
+aria-hidden passed    <div … aria-valuenow="6" aria-valuetext="60%" role="progressbar" data-state="loading" … aria-hidden="true">
+Indicator, no style   <div data-state="loading" data-value="6" data-max="10"></div>
+value=150             console: "Invalid prop `value` of value `150` … Defaulting to `null`." → data-state="indeterminate"
+max=0                 console: "Invalid prop `max` of value `0` … Defaulting to `100`."
+```
+
+So the brief's reading holds (⚠️ it was UNVERIFIED): a `role="progressbar"` root with
+`aria-valuemin/max/now`, an `aria-valuetext`, `data-state` and `data-value`/`data-max`, and an
+`Indicator` that is a bare `<div>` - the translate in the first line is the PROBE's, passed by hand;
+Radix writes no style. Two things it did not say: every value below `max` is
+`data-state="loading"`, and the indicator's geometry is entirely the caller's. shadcn's `progress`
+item (`ui.shadcn.com/r/styles/new-york-v4/progress.json`, fetched, `$BATCH_SCRATCH/s2/radix-probe/`)
+supplies it as `translateX(-${100 - (value || 0)}%)`, which ignores `max`: at `value=6 max=10`
+it draws **6%** of a track whose `aria-valuetext` says **60%** (`probe-dom.txt`, the item's own
+expression evaluated). Its track is `relative h-2 w-full overflow-hidden rounded-full bg-primary/20`:
+one CONTINUOUS rounded bar.
+
+**The tree's OTHER progress drawing, which the composition's grep could not see.** Its measurement
+was `role="(progressbar|meter)"|<progress` over `apps/web/src/**/*.tsx`, which prints nothing, and
+reads as "no other progress drawing". A grep for the drawing rather than the role
+(the regex ``style=\{\{[^}]*width: `\$\{[^`]*\}%` `` over the same tree, less tests and `og/`;
+`$BATCH_SCRATCH/s2/progress-drawing-grep.txt`) finds three, one of which IS a
+progress bar: **`components/tiers/Deal.tsx:222-228`**, the tier deal's position,
+
+```
+<div aria-hidden="true" data-testid="deal-bar" className="h-1 w-full bg-line">
+  <div data-testid="deal-bar-fill" className="h-full bg-accent" style={{ width: `${(at / total) * 100}%` }} />
+</div>
+```
+
+with its own comment (`:214-221`) refusing the role by name: "`aria-hidden`, SO THE CARD COUNT IS
+ANNOUNCED ONCE. The eyebrow above is the accessible statement of exactly this fact; a `progressbar`
+role here would put the same number in a second place and a screen reader would read the deal's
+position twice per card". The other two are not progress: `ReviewCard.tsx:107`'s three blurred
+spoiler bars at fixed widths, and `StarDisplay.tsx:53`'s star-fill clip (`role="img"` with
+`aria-label="3.5 out of 5"`, the glyphs `aria-hidden`). Class B, recorded: the composition's "the tree
+holds no other progress drawing" was a grep for the ROLE, and both of the tree's progress drawings
+exist precisely because they refused the role.
+
+**So there are two sites, and they draw two different things:**
+
+| site                                       | drawing                                                                                                    | AT contract                                                                                       | what a `value`/`max` part could draw |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| `ListProgress.tsx:208-235`                 | N ≤ 20 bordered 14px cells lit at their LIST POSITIONS (a map), or one 14px track signed out; runtime grid | cells `aria-hidden`; the `aria-live="polite"` caption carries count, %, scale, "all on your pile" | nothing: a map is not a value        |
+| `Deal.tsx:222-228` (no audit row names it) | a 4px square track (`h-1 w-full bg-line`) with an accent fill at `at / total`                              | bar `aria-hidden`; the eyebrow `Card {at + 1} of {total}` is the statement                        | this one, once                       |
+
+The two share ONE token, the fill's `bg-accent`; their tracks differ in height (14px against 4px),
+ground (`bg-overlay` against `bg-line`) and edge (a 1px `border-line-strong` against none).
+
+**The answer, three measured grounds, each sufficient:**
+
+- **Radix would add ARIA both sites refuse, and draw nothing.** Its root is always
+  `role="progressbar"` with the value announced; both product sites are `aria-hidden` on purpose, one
+  because a live caption says more than a value can (the scale and the "all on your pile" line are not
+  in any `aria-valuetext` a number produces) and one because the eyebrow already says it and a second
+  statement doubles it. Passing `aria-hidden` through (measured above) leaves a hidden
+  `progressbar` with a value nobody hears: dead ARIA on a `"use client"` module and a new
+  dependency, over an indicator the caller still has to position. And "progress" is the wrong role for
+  the demand site even on its own terms: "6 of 10 played" is a scalar in a known range, WAI-ARIA's
+  `meter`, not a task's progress, and Radix's `data-state="loading"` for every value below `max` says
+  so in its own attribute (a reading of the spec and of the markup, not a screen-reader run).
+- **The demand site's drawing is a map, and a `value`/`max` part can only draw a fill.** A house
+  "cell meter" that lit the first `round(value / max × N)` cells would contradict the product's
+  documented design (`list-progress.ts:52-57`, `design/hubs.html`'s positions 1, 2, 4, 5, 9, 10); one
+  that took `cells: boolean[]` would be a `.map` over spans whose only decision - which cells are lit
+  and what a bucket means - is the product's arithmetic. _A part with nothing to draw is a rename_
+  (the Select answer), and this one's drawing is two class strings and a grid.
+- **Each drawing has ONE site.** The cell strip is `ListProgress` alone; the continuous bar is `Deal`
+  alone, and no audit row names it. Neither is hand-written twice, which is the line `Textarea` crossed
+  (five sites, one missing pad) and `Collapsible` did not.
+
+**So the AT contract question has a measured answer too**: a house part would have had to choose
+between writing a role the product refuses at both of its sites, or writing nothing, and a part that
+writes nothing and draws two class strings is not a part. If the product ever wants a real meter -
+announced, one statement, no caption beside it - **this is the row that says so**, and it arrives as
+a product decision about the caption first. Nothing ships for item 2; **the reconciler corrects row
+390's cell**: `Progress` for ListProgress's "bars" becomes "no `Progress` (DL20: the cells are a
+positional map with a live caption, not a value; the family is refused, marquee-ui `docs/as-built.md`
+"2. The `Progress` measurement")", and its why cell's "the progress bars are hand-drawn divs" becomes
+"the progress cells are a hand-drawn map, deliberately `aria-hidden` beside a live caption".
