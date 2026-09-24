@@ -1,5 +1,5 @@
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { Card, CardTitle } from "@/card";
 
@@ -42,18 +42,27 @@ describe("Card renders the caller's element through asChild", () => {
     const drawing = ownTokens(() => render(<Card />), "card");
     expect(drawing, "the default card wears no class: the read is empty").toContain("border-2");
 
+    // React never writes a boolean to an unknown attribute, so a leaked `asChild` is
+    // seen only in the warning it logs (layer 1 r5 LOW-3: an attribute check could not
+    // fail).
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     const { container } = render(
       <Card asChild>
         <article aria-label="A review">body</article>
       </Card>,
     );
+    const warned = errors.mock.calls.flat().map(String);
+    errors.mockRestore();
+    expect(
+      warned.filter((m) => /asChild/i.test(m)),
+      "asChild reached the DOM element",
+    ).toEqual([]);
     const card = slot("card");
     expect(card.tagName, "the card is not the caller's element").toBe("ARTICLE");
     expect(container.firstElementChild, "the part wrapped the caller's element").toBe(card);
     expect(tokens(card), "the article does not wear the card's drawing").toEqual(drawing);
     expect(card).toHaveAttribute("aria-label", "A review");
     expect(card).toHaveTextContent("body");
-    expect(card.hasAttribute("aschild") || card.hasAttribute("asChild")).toBe(false);
   });
 
   it("joins the caller's class on the part with the child's own", () => {

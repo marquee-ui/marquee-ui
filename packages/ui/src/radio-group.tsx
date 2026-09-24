@@ -157,10 +157,10 @@ const circleClass =
  *
  * ⚠️ THE `forced-colors:` BORDER IS THE WHOLE CHECKED STATE IN THAT MODE, AND
  * NOTHING ELSE HERE CARRIES IT. Forced colors discards every AUTHOR colour: a
- * `background-color` becomes `Canvas`, and a `border-color` or `outline-color`
- * REVERTS to `currentcolor`, the element's ink, which the mode forces to
- * `CanvasText`. (A system colour the author writes is kept as written, and a
- * `box-shadow` is dropped.) So a dot whose only paint is a background
+ * `background-color` becomes `Canvas` (its alpha kept), and a `border-color` or
+ * `outline-color` REVERTS to `currentcolor`, the element's ink, which the mode
+ * forces to `CanvasText`. (A system colour the author writes is kept as written,
+ * and a `box-shadow` is dropped.) So a dot whose only paint is a background
  * sits Canvas on Canvas inside a circle whose fill went Canvas too, and CHECKED
  * AND UNCHECKED BECOME THE SAME PICTURE. The consuming product measured exactly
  * that before this line existed: the two circles hashed identical, where the

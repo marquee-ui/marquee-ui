@@ -418,6 +418,19 @@ describe("the width axis", () => {
       set(buttonVariants({ variant: "primaryRounded", width: "auto" })),
     );
     expect(button.hasAttribute("width"), "width leaked onto the <button>").toBe(false);
+    cleanup();
+    // ...and through asChild, onto the caller's element (layer 1 r5 LOW-4).
+    render(
+      <Button asChild variant="primaryRounded" width="auto">
+        <a href="/export">Export my data</a>
+      </Button>,
+    );
+    const link = document.querySelector('[data-slot="button"]')!;
+    expect(link.tagName).toBe("A");
+    expect(set(link.getAttribute("class") ?? "")).toEqual(
+      set(buttonVariants({ variant: "primaryRounded", width: "auto" })),
+    );
+    expect(link.hasAttribute("width"), "width leaked onto the asChild element").toBe(false);
   });
 });
 

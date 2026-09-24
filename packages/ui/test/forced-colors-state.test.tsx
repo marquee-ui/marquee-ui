@@ -75,6 +75,25 @@ import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.
  * clause is the Switch's hole: its thumb moves, and paints nothing. `Toggle`'s
  * pressed square was the site this kind was written for (DL20 decision 13).
  *
+ * AND A THIRD KIND (DL28): a HOST with no state at all whose REST drawing is a
+ * background ALONE. The mode turns an author fill to `Canvas`, so it is Canvas on
+ * Canvas and VANISHES, and neither kind above could see it: `Separator` drew its
+ * rule as `bg-border` on a 2px box, and every rule it drew was gone in both forced
+ * palettes with this file green (thepile's served `/transparency`, DL27). Read from
+ * the same literals, placed by the same sheet, each value of a static axis
+ * (`[data-orientation]`) its own rest drawing (`placeAxes`); a site when it sizes a
+ * box of its own and paints a fill with nothing the mode keeps (`backgroundAlone`).
+ * ⚠️ ITS LIMITS, RECORDED (layer 1 r5, DL28). It reads a literal, and a `cn(…)`
+ * call's string arguments joined (`hostsOf`), never a `cva` base with its axis
+ * values: a size in the base and a fill in a variant is two hosts, neither a site.
+ * It cannot see CONTENT, so two proxies stand in for it: a string that sizes no box
+ * is taken to fill behind content (the avatar's `ground` values, the ribbon's band),
+ * and a string that declares an ink (`color`) is taken to draw text. An empty box
+ * with a stray `text-*` passes: the 0.1.6 rule plus `text-muted` was GREEN here and
+ * drew 0 pixels in both forced palettes. And an axis rule is ranked at its media's
+ * placement, below a `forced` bare class, where the cascade ranks it above by
+ * specificity; no shipped part has an axis rule and a bare one on one property.
+ *
  * ⚠️ BOTH KINDS COUNT A STROKE ONLY WHEN IT IS `currentcolor`, which the mode
  * forces through `color`. The revealed-element arms used to count ANY stroke,
  * which the measurement above falsified, and for one batch (DL21) the two kinds
@@ -561,11 +580,11 @@ const KNOWN_STATE_GAPS: Readonly<Record<string, string>> = {};
 
 /**
  * A HOST drawn at rest in a background alone that knowingly ships short (the third
- * kind), keyed `"<file>: <its literal>"`, with the reason. The same expiring device: an
+ * kind), keyed `"<file>: <its tokens, sorted>"` (`restKey`), with the reason. The same expiring device: an
  * entry whose host no longer reads as a site fails, so the fix deletes it.
  */
 const KNOWN_REST_GAPS: Readonly<Record<string, string>> = {
-  "sheet.tsx: mx-auto h-1 w-10 shrink-0 rounded-full bg-border-strong md:hidden":
+  "sheet.tsx: bg-border-strong h-1 md:hidden mx-auto rounded-full shrink-0 w-10":
     "the sheet's grab handle, found by this kind at its first run (DL28) beside Separator and outside that stream's fence: measured in headless Chromium on the compiled sheet, it draws 160 pixels in normal colours and 0 in both forced palettes, so the swipe affordance vanishes. A REQUEST for sheet.tsx's next owner",
 };
 
@@ -633,6 +652,47 @@ function literalsOf(source: string): string[][] {
 
 const literals = (file: string): string[][] =>
   literalsOf(readFileSync(resolve(process.cwd(), "packages/ui/src", file), "utf8"));
+
+/**
+ * The third kind's hosts in a source: every literal, and each `cn(…)` call's
+ * string-literal arguments JOINED as one more, so a size in one argument and a fill
+ * in the next are read as the element that wears both (layer 1 r5 MED-1, DL28: the
+ * 0.1.6 rule with `"bg-border"` as its own argument read as two literals, neither a
+ * site, and passed while it vanished). Only this kind reads it; `literals` is the
+ * other two kinds' and does not move.
+ */
+function hostsOf(source: string): string[][] {
+  const file = ts.createSourceFile(
+    "part.tsx",
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const out = literalsOf(source);
+  const visit = (node: ts.Node): void => {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === "cn"
+    ) {
+      const parts = node.arguments
+        .filter((a) => ts.isStringLiteral(a) || ts.isNoSubstitutionTemplateLiteral(a))
+        .map((a) => (a as ts.StringLiteral | ts.NoSubstitutionTemplateLiteral).text);
+      if (parts.length > 1) out.push(parts.join(" ").split(/\s+/).filter(Boolean));
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  return out;
+}
+
+const hosts = (file: string): string[][] =>
+  hostsOf(readFileSync(resolve(process.cwd(), "packages/ui/src", file), "utf8"));
+
+/** A host's key in `KNOWN_REST_GAPS`: its file and its token SET, so a reorder or a split into `cn` arguments keeps it. */
+const restKey = (file: string, tokens: readonly string[]): string =>
+  `${file}: ${[...tokens].sort().join(" ")}`;
 
 describe("a checked state survives forced-colors: active", () => {
   let sheet: CompiledSheet;
@@ -841,11 +901,10 @@ describe("a checked state survives forced-colors: active", () => {
         `${site.file}: the revealed element's state was not read off the sheet`,
       ).toMatch(/^:is\(:where\(\.group\\\/(?:checkbox|radio)\):has\(:checked\) \*\)$/);
     }
-    // ...and the walk reads STRINGS, so it must not have picked up the prose of
-    // `radio-group.tsx`'s docblocks, which spell utilities and the word "on".
-    for (const site of sites) {
-      expect(site.tokens, `${site.file} site`).not.toContain("on");
-    }
+    // (A comment is never a literal: the reader's own anchor, on a text written in
+    // "found the states drawn only in colour", is what proves it. The prose check
+    // that stood here could not fail, because no docblock carries a reveal token:
+    // layer 1 r5 LOW-6, DL28, proved it green with every comment read.)
     // ...and the placement walk CLASSIFIES, independent of any one fix: most of
     // the package is bare top-level utilities and a good share is behind a state
     // or a media query. (It does NOT count `forced` here - the forced-colors rules
@@ -1902,18 +1961,23 @@ describe("a checked state survives forced-colors: active", () => {
     ).toEqual([]);
   });
 
-  /** A host's REST drawings: one with no static axis, or one per axis value its tokens are drawn under. */
+  /**
+   * A host's REST drawings: the one with no static axis, and one per axis value its
+   * tokens are drawn under. The no-axis one is read ALWAYS: an axis rule the element
+   * never matches must not hide its rest drawing (layer 1 r5 MED-1, F20).
+   */
   const restDrawings = (tokens: readonly string[]): { axis: string | null; extra: Placed[] }[] => {
     const scoped = tokens.flatMap((token) => axes.get(token) ?? []);
     const values = [...new Set(scoped.map((d) => d.state!))];
-    return values.length === 0
-      ? [{ axis: null, extra: [] }]
-      : values.map((axis) => ({ axis, extra: scoped.filter((d) => d.state === axis) }));
+    return [
+      { axis: null, extra: [] },
+      ...values.map((axis) => ({ axis, extra: scoped.filter((d) => d.state === axis) })),
+    ];
   };
 
   /**
    * The author fill a rest drawing is drawn in ALONE, or null (the third kind, the
-   * header's last kind). A SITE when all of these hold:
+   * header's third paragraph of kinds). A SITE when all of these hold:
    *   - it is drawn at rest: no winning reveal hides it (`hiding`);
    *   - it SIZES a box of its own (`SIZES`), so the fill IS the drawing. A string that
    *     sizes nothing draws its fill only behind content, which a literal cannot see and
@@ -1952,10 +2016,10 @@ describe("a checked state survives forced-colors: active", () => {
     expect(rule, "separator.tsx's class string was not found among its literals").toBeDefined();
     const drawings = restDrawings(rule!);
     expect(
-      drawings.map((d) => d.axis).sort(),
-      "the static axis was not read off the sheet for separator.tsx",
-    ).toEqual(['[data-orientation="horizontal"]', '[data-orientation="vertical"]']);
-    for (const { axis, extra } of drawings) {
+      drawings.map((d) => d.axis),
+      "the static axis was not read off the sheet for separator.tsx, or the no-axis drawing was dropped",
+    ).toEqual([null, '[data-orientation="horizontal"]', '[data-orientation="vertical"]']);
+    for (const { axis, extra } of drawings.filter((d) => d.axis !== null)) {
       expect(
         extra
           .map((d) => d.property)
@@ -1964,6 +2028,15 @@ describe("a checked state survives forced-colors: active", () => {
         `${axis}: the rule does not size its own box`,
       ).toEqual(["height", "width"]);
     }
+    // ...and the HOST reader joins a `cn` call's string arguments into one more host,
+    // and nothing else: not one argument, not a comment (layer 1 r5 MED-1).
+    expect(
+      hostsOf('// cn("a", "b")\nconst x = cn("h-1 w-10", "bg-y", other);\nconst y = cn("z", c);'),
+      "a cn call's string arguments are not read as one host",
+    ).toEqual([["h-1", "w-10"], ["bg-y"], ["z"], ["h-1", "w-10", "bg-y"]]);
+    expect(restKey("f.tsx", ["b", "a"]), "a gap's key moves with token order").toBe(
+      restKey("f.tsx", ["a", "b"]),
+    );
     // ...and a static axis is not placed as a held state, nor a held state as an axis.
     expect(
       placeAxes('.a[data-state="open"] { color: red }').size,
@@ -1988,6 +2061,7 @@ describe("a checked state survives forced-colors: active", () => {
       "probe:rest-ink": at("unconditional", "color: var(--foreground)"),
       "probe:rest-blur": at("unconditional", "backdrop-filter: blur(8px)"),
       "probe:rest-hidden": at("unconditional", "opacity: 0"),
+      "probe:rest-inset": at("unconditional", "position: fixed; inset: 0"),
       "probe:rest-keyword": at("unconditional", "background-color: transparent"),
     };
     withPlaced(probes, () => {
@@ -1996,6 +2070,10 @@ describe("a checked state survives forced-colors: active", () => {
         "var(--border)",
       );
       expect(alone(), "an unsized fill (content's) reads as a site").toBeNull();
+      // `inset` sizes the box too: `Sheet`'s overlay is `fixed inset-0` (LOW-5).
+      expect(alone("probe:rest-inset"), "an inset fill does not read as a site").toBe(
+        "var(--border)",
+      );
       expect(alone("probe:rest-size", "probe:rest-frame"), "a frame does not save it").toBeNull();
       expect(
         alone("probe:rest-size", "probe:rest-fc-frame"),
@@ -2032,11 +2110,11 @@ describe("a checked state survives forced-colors: active", () => {
     const short: string[] = [];
     const found = new Set<string>();
     for (const file of partFiles()) {
-      for (const tokens of literals(file)) {
+      for (const tokens of hosts(file)) {
         for (const { axis, extra } of restDrawings(tokens)) {
           const fill = backgroundAlone(tokens, extra);
           if (fill === null) continue;
-          const key = `${file}: ${tokens.join(" ")}`;
+          const key = restKey(file, tokens);
           found.add(key);
           const gap = KNOWN_REST_GAPS[key];
           if (gap !== undefined) {
@@ -2051,7 +2129,7 @@ describe("a checked state survives forced-colors: active", () => {
     }
     expect(
       Object.keys(KNOWN_REST_GAPS).filter((key) => !found.has(key)),
-      "a KNOWN_REST_GAPS entry names a host that no longer draws in a background alone (fixed, or moved): delete it",
+      "a KNOWN_REST_GAPS entry names no host that draws in a background alone: delete it ONLY if the host now draws a paint the mode keeps; a host whose classes changed and still vanishes is re-keyed, never deleted",
     ).toEqual([]);
     expect(
       short,
