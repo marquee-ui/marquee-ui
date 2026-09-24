@@ -767,8 +767,8 @@ describe("a checked state survives forced-colors: active", () => {
         `${site.file}: the revealed element's state was not read off the sheet`,
       ).toMatch(/^:is\(:where\(\.group\\\/(?:checkbox|radio)\):has\(:checked\) \*\)$/);
     }
-    // ...and the walk reads STRINGS, so it must not have picked up the docblock
-    // in `radio-group.tsx` that spells `group-has-checked/radio:ring-2` in prose.
+    // ...and the walk reads STRINGS, so it must not have picked up the prose of
+    // `radio-group.tsx`'s docblocks, which spell utilities and the word "on".
     for (const site of sites) {
       expect(site.tokens, `${site.file} site`).not.toContain("on");
     }

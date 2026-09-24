@@ -39,10 +39,14 @@ import { cn } from "@/lib/utils";
  *
  * ⚠️ THE DRAWING IS OPTIONAL, BY COMPOSITION AND NOT BY A PROP. An item that
  * composes no `RadioGroupCircle` draws nothing of its own, and its selected state
- * is whatever the caller puts on a sibling: `group-has-checked/radio:ring-2` on an
- * avatar, a border on the row. That is the one composition a `variant="bare"` prop
- * would have made a configuration question (D6), and it is a real product's face
- * grid.
+ * is whatever the caller draws on a sibling (a face, the row). Draw it in
+ * something forced colors KEEPS: a border WIDER than the rest state's, an outline,
+ * or the caller's own `forced-colors:` treatment of the checked state. A ring is a
+ * `box-shadow`, which the mode drops, and a border that changes only its colour
+ * reverts to the same ink in both states (the rule is under the dot, below), so
+ * either one draws checked and unchecked as ONE picture in that mode. That is the
+ * one composition a `variant="bare"` prop would have made a configuration
+ * question (D6), and it is a real product's face grid.
  *
  * ⚠️ AND A ROW HOLDS NOTHING ELSE INTERACTIVE, for the same reason `Checkbox`'s
  * does: the overlay covers it. A deep link beside an option goes OUTSIDE the
@@ -152,9 +156,11 @@ const circleClass =
  * The dot, in the ink the fill guarantees.
  *
  * ⚠️ THE `forced-colors:` BORDER IS THE WHOLE CHECKED STATE IN THAT MODE, AND
- * NOTHING ELSE HERE CARRIES IT. Forced colors collapses every paint into two
- * system colours - a foreground (`color`, `border-color`) to `CanvasText` and
- * `background-color` to `Canvas` - so a dot whose only paint is a background
+ * NOTHING ELSE HERE CARRIES IT. Forced colors discards every AUTHOR colour: a
+ * `background-color` becomes `Canvas`, and a `border-color` or `outline-color`
+ * REVERTS to `currentcolor`, the element's ink, which the mode forces to
+ * `CanvasText`. (A system colour the author writes is kept as written, and a
+ * `box-shadow` is dropped.) So a dot whose only paint is a background
  * sits Canvas on Canvas inside a circle whose fill went Canvas too, and CHECKED
  * AND UNCHECKED BECOME THE SAME PICTURE. The consuming product measured exactly
  * that before this line existed: the two circles hashed identical, where the
