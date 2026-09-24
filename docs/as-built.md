@@ -12853,3 +12853,588 @@ repository's `fidelity.test.tsx` owns them.
 `src/radio-group.tsx:40-43`'s docblock and `:155-157`'s falsified sentence, comment-only, at that bump; `asChild` on `Card`
 DEFERRED to it; the `size="lg"` REFUSE, the slab REFUSE and the `link` REFUSE all standing on Ankit's [V]. DL27 shipped no
 library byte, so no tag or publish is added by it.
+
+## LIB-0.1.7: the width axis on `Button`, `Separator` drawn as a border and the guard's third kind, `asChild` on `Card` and `CardTitle`, the two `radio-group.tsx` docblocks, and `@marquee-ui/ui` 0.1.7 (2026-09-25)
+
+Batch DL28, stream s1, branch `s/lib-0.1.7` from `next` @ `c6383f04`. thepile is read-only throughout, at
+`b4acc323` (the DL28 composition), by `git -C /home/ankit/Code/thepile-next show b4acc323:<path>`. Under the push
+freeze: LOCAL commits, no tag, no publish, no PR. The passengers are four commits in the composition's order (iv),
+(iii), (ii), (i), each with `pnpm build:registry` run and `pnpm verify` green before it; layer 1 reviewed their head
+`4829960`; the bump is the version line on top of the reviewed bytes. Every reddening run ran in a DETACHED, BUILT
+worktree of a committed head (`../marquee-ui-s1-mut` at `35da30e`, then `4829960`; `pnpm install --frozen-lockfile`
+
+- `pnpm build`), through a driver (`$BATCH_SCRATCH/s1/mutate.py`, mutations in `muts.json`) that asserts each edit
+  matched once and LANDED, rebuilds the registry after a part or `registry.json` edit, runs the WHOLE suite, restores
+  and checks the tree clean; the head's test files were also run ALONE on a built detached worktree of the base
+  (`../marquee-ui-s1-base` at `c6383f04`, `on-base.sh`). Every browser measurement is headless Chromium through
+  `playwright-core` 1.61.1 (DL22's `fc-probe` form, copied to `$BATCH_SCRATCH/s1/probe/`) on the tree's own compiled
+  sheet (`sheet.mts`: the tree's `loadCompiledSheet`; `sheet2.mts`: the same fixture plus one `@source inline("self-start")`
+  line, so the caller's class compiles as Tailwind emits it), drawing the tree's REAL parts rendered to static markup
+  through their own `cn` (`markup.tsx`, `renderToStaticMarkup` under `tsx`). Candidate shapes were measured in two
+  more detached trees (`../marquee-ui-s1-A`, `-B`) whose `separator.tsx` was edited for the measurement alone.
+
+**The base, re-measured**: `pnpm verify` at `c6383f04` exit **0**, `Test Files 35 passed (35)`, `Tests 604 passed
+(604)` (`verify-base.log`). The composition's 35 / 604: held.
+
+### (iv) The two `radio-group.tsx` docblocks (`f2b0d7c`), comment-only
+
+- `:40-43` recommended, for an item that composes no `RadioGroupCircle`, a selected state drawn as
+  "`group-has-checked/radio:ring-2` on an avatar, a border on the row", the pattern DL24's layer 1 rendered IDENTICAL
+  in both forced palettes. Now (`:40-49`): draw it in something forced colors KEEPS, "a border WIDER than the rest
+  state's, an outline, or the caller's own `forced-colors:` treatment of the checked state", because a ring is a
+  `box-shadow`, which the mode drops, and a border that changes only its colour reverts to the same ink in both
+  states. It names no utility, so the consumer's sheet gains no rule from a comment.
+- `:155-157` said the mode forces "a foreground (`color`, `border-color`) to `CanvasText`". Now (`:159-163`), the
+  rule the guard's own header states (`forced-colors-state.test.tsx:23-33`): an author `background-color` becomes
+  `Canvas`, an author `border-color` or `outline-color` REVERTS to `currentcolor`, the element's ink, which the mode
+  forces to `CanvasText`; a system colour the author writes is kept as written; a `box-shadow` is dropped. `:40-49`
+  points at it rather than restating it.
+- The guard's comment that quoted the old prose (`forced-colors-state.test.tsx:770-771`) follows. `r/radio-group.json`
+  rebuilt. Minified, the part is byte-identical (3,488 B, 1,580 B gz, both trees: `bytes.txt`).
+- `pnpm verify` at `f2b0d7c`: exit **0**, 35 / 604.
+- ⚠️ The story the first docblock described, `stories/radio-group.stories.tsx:175` (`NoDrawing`), still draws its
+  checked face as `group-has-checked/radio:border-primary` plus a ring, which DL24 measured IDENTICAL under the mode.
+  It is outside this fence: REQUEST 3.
+
+### (iii) `asChild` on `Card` and `CardTitle` (`6319657`)
+
+`Card` and `CardTitle` take `asChild` in `Button`'s shape: `Slot` from `@radix-ui/react-slot` when it is set, the
+part's own element when not, `data-slot` and the classes on whichever renders. The docblock says why these two (a
+card's right element is the consumer's; a title's heading level is the page's) and why not the other four (no
+measured demand). No `"use client"`: `client-boundary.test.ts:162` still reads `reactRuntimeImports(read("card.tsx"))`
+as `[]` (green, RUN).
+
+**The arm that demands the dependency, quoted.** With the part edited and `r/` rebuilt but the item not yet
+declaring it, `registry.test.ts:463` ("declares exactly the npm dependencies its own sources import, per item",
+DL25's arm) went red, the only red in `registry` + `card-structure` + `client-boundary` (`Tests 1 failed | 36
+passed (37)`, `iii-deps-red.log`):
+
+```
+AssertionError: a registry item's dependencies differ from its own sources' bare imports: declare what it imports, drop what it does not
++   "card: imports @radix-ui/react-slot and does not declare it",
+```
+
+So DL24's "NO test demands it" no longer holds since DL25, as the composition predicted. `registry.json`'s card item
+gains `"dependencies": ["@radix-ui/react-slot@^1.3.3"]`; the counters do not move: `:320` (`> 5`), `:335` (`23`),
+`:363` (`23`), `:526` (`> 5`, and `derived` equals `declared`, both one higher) and `:595` (`23` files compared).
+
+- **Red first**: the new `test/card-structure.test.tsx` (5 tests) against the base's `card.tsx` in the working tree:
+  `Tests 3 failed | 2 passed (5)`, `the card is not the caller's element: expected 'DIV' to be 'ARTICLE'` and `the
+title is not the caller's element: expected 'H3' to be 'H2'` (`iii-red-base.log`); and the head's file ALONE on
+  the built base worktree: `Tests 3 failed | 606 passed (609)`, the same three, for `4829960`'s file and again for
+  the pack point's (`onbase-iii.log`, `onbase-iii-3419865.log`; the latter also reads React's warning for the
+  `asChild` the base leaks onto its `div`).
+- Two stories with plays (`AsAnArticle`, `TitleAtAnotherLevel`); `DECLARED_STORIES` 107 → 109, `DECLARED_PLAYS`
+  77 → 79.
+- `pnpm verify` at `6319657`: exit **0**, `Test Files 36 passed (36)`, `Tests 611 passed (611)`.
+
+### (ii) `Separator`: (A) against (B), MEASURED, then (B) (`35da30e`)
+
+The two shapes, as the composition wrote them, each in its own detached tree: **(A)** the base string plus
+`forced-colors:data-[orientation=horizontal]:border-t-2 forced-colors:data-[orientation=vertical]:border-l-2`
+(thepile's site class moved into the part, per orientation); **(B)** the rule drawn as a border, no background:
+`shrink-0 border-border data-[orientation=horizontal]:h-0 data-[orientation=horizontal]:w-full
+data-[orientation=horizontal]:border-t-2 data-[orientation=vertical]:h-full data-[orientation=vertical]:w-0
+data-[orientation=vertical]:border-l-2`. The compiled sheets (`sheet-{base,A,B}.css`, 38,565 / 38,925 / 38,827 B)
+hold `.data-\[orientation\=horizontal\]\:border-t-2[data-orientation="horizontal"] { border-top-style:
+var(--tw-border-style); border-top-width: 2px; }` and `…:h-0[…] { height: 0px; }`: **Tailwind 4.3.3's `border-t-2`
+emits `border-top-width: 2px`** (the composition's ⚠️ UNVERIFIED: held).
+
+`sep.mjs`: the tree's `<Separator />` and `<Separator orientation="vertical" />` (a 200px block, a 40px flex row), at a
+16px and a 24px root, forced colours none, active + dark, active + light; per case the clip's sha256, the part's
+box, and the pixels that differ from the page ground.
+
+| root | mode            | base `c6383f04`                           | (A)                                      | (B), and the head `35da30e`              |
+| ---- | --------------- | ----------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| 16px | none, h         | `6124c5914216` 200x2, 400 px              | `6124c5914216` 200x2, 400 px             | **`6124c5914216`** 200x2, 400 px         |
+| 16px | none, v         | `7f3cdd2fde92` 2x40, 80 px                | `7f3cdd2fde92` 2x40, 80 px               | **`7f3cdd2fde92`** 2x40, 80 px           |
+| 16px | forced dark, h  | `2ff78119cf42` 200x2, **0 px**            | `afc4be5f25bd` 400 px rgb(255, 255, 255) | `afc4be5f25bd` 400 px rgb(255, 255, 255) |
+| 16px | forced dark, v  | `2ff78119cf42` 2x40, **0 px**             | `09e2c08a6398` 80 px                     | `09e2c08a6398` 80 px                     |
+| 16px | forced light, h | `04484b3c6307` 200x2, **0 px**            | `7563fb55389c` 400 px rgb(0, 0, 0)       | `7563fb55389c` 400 px rgb(0, 0, 0)       |
+| 16px | forced light, v | `04484b3c6307` 2x40, **0 px**             | `c4748cbf14e4` 80 px                     | `c4748cbf14e4` 80 px                     |
+| 24px | none, h         | `01a7093a9432` **200x3**, 600 px          | `01a7093a9432` 200x3, 600 px             | `6124c5914216` **200x2**, 400 px         |
+| 24px | none, v         | `11edae60f813` **3x40**, 120 px           | `11edae60f813` 3x40, 120 px              | `7f3cdd2fde92` **2x40**, 80 px           |
+| 24px | forced, h and v | 0 px in both palettes, boxes 200x3 / 3x40 | 400 / 80 px, the box still 200x3 / 3x40  | 400 / 80 px, boxes 200x2 / 2x40          |
+
+- The instrument is shown able to fail at the base: every forced case draws 0 pixels, the two forced palettes
+  each hash one picture for both orientations (the ground alone), and the unit's growth is visible (3px at 24px).
+- **(B) is byte-identical to the base at a 16px root in normal colours**, both orientations (hash, box and pixel
+  count), draws the rule in the forced ink in both palettes, and is 2px at a 24px root where the base drew 3px.
+  (A) draws the same forced pixels, but keeps the rem unit (3px at 24px) and puts a 2px border in a 3px box there.
+- **Taken: (B)** (decision 1). **What it moves at 24px**: every horizontal rule's box is 1px shorter than 0.1.6 drew
+  it (2px against 3px; at a 32px root 2px against 4px), and a vertical one 1px narrower: the unit fix, a visible
+  change at a raised root only. On thepile's `/transparency` (thirty rules) that is the page 30px shorter at a 24px
+  root than with 0.1.6, back to the fixed 2px border the route drew before the part (DL27's r6 MED-2).
+- The head's own compile and markup (`sheet-head-ii.css`, 38,827 B, the same bytes as (B)'s): all twelve cases hash
+  exactly as (B)'s (`sep-head-ii/result.txt`).
+- **Recolouring moves too**: with no background, a caller's `bg-*` class sits under the border and draws nothing
+  visible; the rule is recoloured with a border colour now. The docblock says so. thepile's two routes pass only a
+  positional class and `forced-colors:border-t-2` (read at `b4acc323`), neither a colour.
+- **The `[…]` count moves: 4 → 6** (`data-[orientation=horizontal]` three times, `data-[orientation=vertical]` three
+  times; thepile's guard regex over the file, `brackets.txt`). The composition predicted "0 with (B), the four
+  `data-[orientation=…]` kept": a class B correction, because (B) as the composition spelled it scopes SIX utilities.
+  **(B2), measured as the alternative that keeps four**: `h-0 w-full shrink-0 border-t-2 border-border
+data-[orientation=vertical]:h-full data-[orientation=vertical]:w-0 data-[orientation=vertical]:border-t-0
+data-[orientation=vertical]:border-l-2` (the horizontal drawing unconditional, the vertical one scoped over it)
+  hashes EXACTLY as (B) in all twelve cases (`sep-B2/result.txt`). It is not taken: it moves the horizontal rule's
+  geometry out of the orientation scope, so a caller's bare `h-*` or `w-*` then competes with the part's by sheet
+  order (thepile's join) or merge (this package's `cn`), where 0.1.6 and (B) keep the part's scoped utilities
+  winning by specificity (decision 2, [V]).
+- Minified, `separator.tsx` is 439 → 519 B, 255 → 269 B gz (`bytes.txt`).
+
+**The guard's third kind** (`forced-colors-state.test.tsx`; line numbers below are the PACK POINT's, `3419865`, after
+layer 1's fixes). The two kinds read an element REVEALED by a checked state (`:1126` at the base, `:1259` now) and a
+STATE an element holds (`:1795`, `:1928` now); a stateless part whose rest drawing is a fill is
+in neither, which is how the file was green while every rule vanished. The arm:
+
+- `placeAxes` (`:348`): a rule `.utility[data-<name>="<value>"]` whose attribute is not a held state, under no
+  media query or under forced colors alone, filed under the utility with the axis condition as its `state` and the
+  placement of its media. `placeAll` still files these `conditional` and no existing reader moves ("an orientation
+  reads as a held state", `:1465`, still green).
+- `hostsOf` (`:664`, layer 1): every literal, and each `cn(…)` call's string arguments joined as one more host.
+- `restDrawings` (`:1969`): a host's rest drawings, the one with no axis and one per static-axis value its tokens are
+  drawn under (the no-axis one always, since layer 1).
+- `backgroundAlone` (`:1994`): a SITE when the drawing is not hidden, SIZES a box of its own (`SIZES`, `:592`), has
+  a winning `background-color` that is not a bare keyword, no ink of its own (`color`), no kept filter
+  (`KEPT_FILTERS`, `:601`), and no frame, outline or `currentcolor` stroke in any placement that applies
+  (`paintsIn`, which gains an `extra` option, `:772`, for one axis value's rules; no existing call passes it).
+- Two arms: "found the hosts drawn at rest, and tells a fill alone from a drawing the mode keeps" (`:2012`: both of
+  `Separator`'s orientations read off the sheet, each sizing its own box; `placeAxes` refusing a held state and a
+  non-forced media query; `hostsOf` and `restKey` on written texts; the predicate on hand-placed declarations, three
+  positives and eight negatives) and "gives every host drawn at rest in a background alone a paint the mode keeps"
+  (`:2109`), with an expiring `KNOWN_REST_GAPS` (`:586`, keyed by the host's token set) in `KNOWN_STATE_GAPS`' form.
+- The header (`:78-97`) states the third kind and its limits (layer 1).
+
+**What the third kind names at the base** is the finding the composition asked for. The first cut (no `SIZES`
+clause, no filter clause) named EIGHT drawings in four files: `separator.tsx` under both orientations; `sheet.tsx`'s
+overlay (`fixed inset-0 z-50 bg-scrim backdrop-blur-sm …`) and grab handle (`mx-auto h-1 w-10 shrink-0 rounded-full
+bg-border-strong md:hidden`); `ribbon.tsx`'s band (`-rotate-3 overflow-hidden bg-brand shadow-band`); and three
+`avatar.tsx` literals, `bg-surface`, `bg-raised` and `border-border-strong bg-surface`. Each was then DRAWN
+(`others.mjs` / `others2.mjs` on the base sheet, pixels the element changes, with and without it):
+
+| name                                           | normal | forced dark | forced light | verdict                                                                                                                                    |
+| ---------------------------------------------- | ------ | ----------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `sheet.tsx` grab handle                        | 160    | **0**       | **0**        | VANISHES: a finding, declared in `KNOWN_REST_GAPS` with this measurement and handed on (REQUEST 1)                                         |
+| `sheet.tsx` overlay, over text                 | 47,999 | 12,850      | 13,235       | drawn: its blur alone changes 14,860 / 14,724, its fill alone 1,843 (the alpha kept, dimming the text): `KEPT_FILTERS`                     |
+| `ribbon.tsx` band, around its track's text     | 11,632 | **0**       | **0**        | the stripe vanishes, the text (the track's own ink) stays: not a host that SIZES itself; recorded as a finding (REQUEST 2), not a site     |
+| `avatar.tsx` `bg-surface`, `bg-raised`         | -      | -           | -            | not hosts: the `ground` axis's two values in `avatarImageVariants`, each a fragment of the image's string (which frames or holds an image) |
+| `avatar.tsx` `border-border-strong bg-surface` | -      | -           | -            | not a host: one piece of `avatarBadgeVariants`' base, concatenated with `+` beside `grid h-2/5 w-2/5` and `border-2` from the edge axis    |
+
+So the arm reads a literal as a host only when it SIZES a box of its own (the fill IS the drawing), and counts a
+kept filter as a paint. With both clauses the base names three drawings: `separator.tsx` twice and the grab handle.
+The handle is outside this fence and is declared, with its numbers, in `KNOWN_REST_GAPS`; the arm is RED at the base
+naming `separator.tsx` under `[data-orientation="horizontal"]` and `[data-orientation="vertical"]` and nothing else:
+the head's file ALONE on the built base worktree, `Tests 1 failed | 605 passed (606)`, for `4829960`'s file and the
+pack point's alike (`onbase-ii.log`, `onbase-ii-3419865.log`). GREEN at the head. Its limit is the literal's: content a literal cannot see, and a `cva` host read as its pieces, which the
+`SIZES` clause keeps out of the arm rather than reading whole (decision 3, [V]).
+
+- `fidelity.test.tsx`'s `separator` pin (`NEW_PARTS`, `:736` at the pack point) moves to the new string and says why
+  (`:733-735`).
+- `pnpm verify` at `35da30e`: exit **0**, `Test Files 36 passed (36)`, `Tests 613 passed (613)`.
+
+### (i) The width axis on `Button`, W-box (`4829960`)
+
+DL27's recommendation, built as written: `width: { full: "", auto: "" }`; two compound rows over `["primary",
+"primaryRounded", "secondary", "danger"]`, `full` → `grid w-full`, `auto` → `inline-grid`, appended AFTER the two
+`armed` rows (the existing rows keep their indices); `primary`'s and `primaryRounded`'s strings and `secondaryBase`
+lose `grid w-full`; `defaultVariants` gains `width: "full"`; `ghost` untouched. `Button` destructures `width` and
+passes it to the table, so it never reaches the DOM (at the base `<Button width="auto">` rendered `width="auto"` on the
+`<button>`, `markup-base.json`). The docblock says why an axis and not an appended `w-auto` (both sheets emit `.w-auto`
+before `.w-full`, DL27) and that a flex column still stretches an inline box, so `self-start` stays the caller's.
+cva 0.7.1 takes an array in a compound row (RUN: the fidelity block below).
+
+**The default emission of every variant**, quoted from the head's own `buttonVariants` (`markup-head-i.json`): the
+SET equals the base's for every variant, the ORDER moves for the four grid variants (`grid w-full` last), `ghost` is
+byte-identical. The composition's ⚠️ UNVERIFIED prediction for `primaryRounded` holds exactly.
+
+```
+primary        min-h-[46px] place-items-center bg-primary px-4 text-sm font-bold text-primary-foreground shadow-lift transition-[transform,box-shadow] hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0_var(--foreground)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:hover:translate-x-0 disabled:hover:translate-y-0 motion-reduce:transition-none grid w-full
+primaryRounded min-h-hit place-items-center rounded-md bg-primary px-4 text-sm font-bold text-primary-foreground shadow-lift hover:bg-primary-hover hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 grid w-full
+secondary      min-h-hit place-items-center rounded-md border-2 px-4 text-sm font-semibold hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 border-border-strong text-foreground hover:border-muted grid w-full
+danger         min-h-hit place-items-center rounded-md border-2 px-4 text-sm font-semibold hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 text-destructive hover:border-destructive border-border-strong grid w-full
+danger armed   … text-destructive hover:border-destructive border-destructive grid w-full
+ghost          inline-flex h-11 items-center rounded-md border-2 border-border px-4 text-sm text-foreground-2 transition-colors hover:border-border-strong hover:text-foreground
+primaryRounded, width="auto": min-h-hit place-items-center rounded-md bg-primary px-4 text-sm font-bold text-primary-foreground shadow-lift hover:bg-primary-hover hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 inline-grid
+```
+
+**The rendered rows** (`width.mjs`, DL27 `geometry-b.mjs`'s form: the element's box against its parent's at 390 /
+768 / 1280 with a 16px gutter and a 720px column; each tree's own `<Button>` through its own `cn`, on its own sheet
+with `self-start` compiled; `width-base.txt`, `width-head-i.txt`):
+
+| row                                                           | base `c6383f04` (390 / 768 / 1280)        | head `4829960`                                                         |
+| ------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------- |
+| `primaryRounded` `width="auto"` + `self-start`, flex column   | **358 / 720 / 720** x 44, `grid`          | **135.02** x 44 at every width, `grid` (blockified)                    |
+| `primaryRounded` `width="auto"`, block parent                 | **358 / 720 / 720** x 44, `grid`          | **135.02** x 44 at every width, `inline-grid`                          |
+| `primaryRounded` `width="auto"`, flex column, no `self-start` | 358 / 720 / 720                           | 358 / 720 / 720: the column stretches it; the caller owes `self-start` |
+| every variant at its DEFAULT (6 × 2 parents)                  | 358 / 720 / 720 (ghost 110.59 in a block) | the same box and the SAME clip hash, 39 of 39 rows                     |
+
+- The base rows are the instrument failing where it should: `width` did nothing there, so the "auto" rows drew the
+  column. 135.02 is DL27's S1 number, in the same fallback font.
+- The DEFAULT draws what 0.1.6 drew: the twelve default rows (six variants in two parents) and the `default +
+self-start` row, at three widths, each box and each clip's sha256 equal base to head (`SAME` in all 39).
+- `fidelity.test.tsx`: the six `button.*` CASES rows pin each variant at its default and now SAY so (`:213-218`: the
+  SET is upstream's, the order is not, which the file never asserts); a new "the width axis" block (`:376`, 4 tests)
+  pins `full` as the default and LAST (`endsWith(" grid w-full")` for the four and for `danger armed`), `auto` as the
+  swap of exactly those two tokens for `inline-grid`, `ghost` byte-identical at both values, and the axis reaching
+  the element through `Button` with no `width` attribute. **Red at the base**: the head's file alone on the built
+  base worktree, `Tests 4 failed | 604 passed (608)` (`onbase-i.log`; the pack point's file, `onbase-i-3419865.log`,
+  the same four), the three axis tests that can fail there and
+  the moved `separator` pin; "leaves ghost alone" is green at the base by construction (it pins what did not move).
+- Two stories with plays (`WidthFull`, `WidthAuto`, the latter with the caller's `self-start` in a flex column);
+  `DECLARED_STORIES` 109 → 111, `DECLARED_PLAYS` 79 → 81. `CallerClassWins` (`className: "w-auto"` on `secondary`) is
+  unchanged and still green: this package's `cn` merges `w-full` away; it is the one reader in the library of the
+  appended form DL27 measured wrong under a join.
+- Minified, `button.tsx` is 1,868 → 2,071 B, **702 → 757 B gz (+55)** standalone (`bytes.txt`; DL27's estimate over
+  the serialised config was +50). The true route delta is LIB-VENDOR-0.1.7's `exact.mjs`.
+- `pnpm verify` at `4829960`: exit **0**, `Test Files 36 passed (36)`, `Tests 619 passed (619)`.
+
+### The reddening runs (class E)
+
+In `../marquee-ui-s1-mut`, BUILT, at the committed head named; every edit grep-confirmed as landed in the log's
+`LANDED:` block before the run was read; the whole suite each time (`mut-<name>-<sha>.log`):
+
+| id    | at        | mutation                                         | red (the whole suite) | the assertion                                                                                                                                                                                        |
+| ----- | --------- | ------------------------------------------------ | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ii-1  | `35da30e` | `separator.tsx`'s string back to the base's fill | 2 / 613               | the third kind: `separator.tsx: "shrink-0 bg-border …" under [data-orientation="horizontal"] is drawn in background-color: var(--border) alone`, and the vertical twin; the `separator` fidelity pin |
+| ii-2  | `35da30e` | `KNOWN_REST_GAPS` emptied                        | 1 / 613               | the third kind naming `sheet.tsx: "mx-auto h-1 w-10 shrink-0 rounded-full bg-border-strong md:hidden" at rest …`                                                                                     |
+| ii-3  | `35da30e` | shape (A) in place of (B)                        | 1 / 613               | the `separator` fidelity pin ONLY: the third kind is GREEN on (A), whose forced frames paint (measured above), as it should be                                                                       |
+| ii-4  | `35da30e` | the `SIZES` clause deleted                       | 2 / 613               | the anchor `an unsized fill (content's) reads as a site`; the invariant naming the three `avatar.tsx` fragments and `ribbon.tsx`'s band (the first cut)                                              |
+| ii-5  | `35da30e` | `axes = new Map()` (no axis walk)                | 1 / 613               | the anchor `the static axis was not read off the sheet for separator.tsx`                                                                                                                            |
+| i-1   | `4829960` | `Button` stops passing `width`                   | 3 / 619               | "reaches the element through Button" (the class set), `button/WidthAuto`'s play (`to include 'inline-grid'`), the play counter                                                                       |
+| i-2   | `4829960` | the width rows moved before the `armed` rows     | 1 / 619               | `danger: … border-border-strong` does not end with `grid w-full`                                                                                                                                     |
+| i-3   | `4829960` | a `ghost` row added to `auto`                    | 1 / 619               | "leaves ghost alone at both values"                                                                                                                                                                  |
+| i-4   | `4829960` | `width: "full"` dropped from `defaultVariants`   | 6 / 619               | the five grid `button.*` CASES rows (the SET lost `grid w-full`) and the axis block's default pin                                                                                                    |
+| iii-1 | `4829960` | `Card`'s host always `div`                       | 4 / 619               | `the card is not the caller's element: expected 'DIV' to be 'ARTICLE'`, the class-join case, `card/AsAnArticle`'s play, the counter                                                                  |
+| iii-2 | `4829960` | the card item's `dependencies` dropped           | 1 / 619               | `registry.test.ts:463`'s `card: imports @radix-ui/react-slot and does not declare it`                                                                                                                |
+| iii-3 | `4829960` | `CardTitle`'s host always `h3`                   | 3 / 619               | `expected 'H3' to be 'H2'`, `card/TitleAtAnotherLevel`'s play, the counter                                                                                                                           |
+
+And the head's test files ALONE on the built base (`on-base.sh`, `on-base-pp.sh`), at `4829960` and again at the pack
+point: (i) 4 / 608, (ii) 1 / 606 naming `separator.tsx` twice and nothing else, (iii) 3 / 609, each quoted in its
+section above.
+
+### Layer 1's fixes (`77539bd`, `611e642`), before the bump
+
+r5 reviewed `4829960` (0 HIGH, 1 MED, 7 LOW, 41 mutations, 8 GREEN; its table is the `## Layer 1` section at the
+end of this one, verbatim). Each fix was RUN against the mutation that found it, in the detached worktree moved to
+the fix's committed head and rebuilt (`mut-L1-*-77539bd.log`, `mut-L1-C3-611e642.log`; r5's own edits, copied from
+its `muts-r5.json`, with the gap entry's new key):
+
+| r5 row(s) | finding | what changed                                                                                                                                                                                                                                                                                                          | the re-run                                                                                                                                                                                                                       |
+| --------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F18       | MED-1   | `hostsOf`: a `cn(…)` call's string arguments are ALSO read joined, as one host (third kind only; `literals` and the other two kinds do not move). Pinned on a text in the anchor arm                                                                                                                                  | **red** 1 / 619: `separator.tsx: "shrink-0 data-[orientation=horizontal]:h-0.5 … bg-border" under [data-orientation="horizontal"] is drawn in background-color … alone`                                                          |
+| F16, F17  | MED-1   | `KNOWN_REST_GAPS` keyed by the host's token SET (`restKey`, pinned), so a split or a reorder keeps the key; the stale-entry message says "re-key, never delete" while the host still vanishes                                                                                                                         | F16 (split, gap kept) **GREEN**, which is right: the same vanishing handle, still declared. F17 (split, gap deleted) **red** 1 / 619, naming the joined host `mx-auto h-1 w-10 shrink-0 rounded-full md:hidden bg-border-strong` |
+| F20       | MED-1   | `restDrawings` always returns the no-axis drawing too                                                                                                                                                                                                                                                                 | **red** 2 / 619: the invariant naming the handle `… data-[orientation=vertical]:border-2" at rest`, and fidelity's `sheet.handle` pin                                                                                            |
+| F19       | MED-1   | NOT closed: a string that declares an ink is taken to draw text, the proxy for content a literal cannot see. Recorded in the header with the measurement (the 0.1.6 rule plus `text-muted`: 0 pixels in both forced palettes, GREEN), with the other limits: no `cva` composition, the sizing proxy, and LOW-1's rank | **GREEN** 619 / 619, as recorded                                                                                                                                                                                                 |
+| (F11)     | MED-1   | the two new mechanisms' own mutations                                                                                                                                                                                                                                                                                 | `hostsOf` join removed: **red** (`a cn call's string arguments are not read as one host`); the no-axis drawing removed: **red** 2 (the anchor, and the handle's gap reading stale)                                               |
+| C3        | LOW-3   | `card-structure.test.tsx` watches React's warning, not an attribute: first a spy inside the test (`77539bd`), which C3 still passed because React logs the unknown-prop warning ONCE per prop per module and the test's first render (the default `Card`) had spent it; then a spy around EVERY test (`611e642`)      | at `77539bd` **GREEN** (recorded); at `611e642` **red** 1 / 619: `asChild reached a DOM element: expected [ 'asChild', 'aschild' ] to deeply equal []`                                                                           |
+| W6        | LOW-4   | fidelity's axis test also renders `<Button asChild variant="primaryRounded" width="auto"><a>` and pins the class set and no `width` attribute                                                                                                                                                                         | **red** 1 / 619: `width leaked onto the asChild element`                                                                                                                                                                         |
+| F13       | LOW-5   | an `inset` probe in the anchor (the overlay's `fixed inset-0` form)                                                                                                                                                                                                                                                   | **red** 1 / 619: `an inset fill does not read as a site`. The other thirteen `SIZES` members still decide nothing; each can only ADD a site                                                                                      |
+| R1        | LOW-6   | the prose check `not.toContain("on")` deleted with a comment saying why: no docblock carries a reveal token, so it could not fail; the literal reader's anchor in "found the states drawn only in colour" is the proof that a comment is not read                                                                     | -                                                                                                                                                                                                                                |
+| -         | LOW-2   | the header gains the third kind's paragraph and its limits; `backgroundAlone`'s pointer now true                                                                                                                                                                                                                      | prose                                                                                                                                                                                                                            |
+| -         | LOW-1   | recorded in the header (an axis rule ranked at its media's placement); no shipped part has an axis rule and a bare one on one property                                                                                                                                                                                | prose                                                                                                                                                                                                                            |
+| W8        | LOW-7   | not changed: jsdom lays nothing out, so the flex-column claim stands on `width.mjs`'s rows alone and is cited as measured, not as tested. The "LIB-0.1.7" citations resolve with this section                                                                                                                         | -                                                                                                                                                                                                                                |
+| (nit)     | radio   | `radio-group.tsx:160` says a background becomes `Canvas` "(its alpha kept)"; `r/radio-group.json` rebuilt                                                                                                                                                                                                             | prose                                                                                                                                                                                                                            |
+
+The suite stays **36 files / 619 tests** (every change is inside existing tests). `pnpm verify` at `77539bd` and at
+`611e642`: exit **0**, 36 / 619. r5's ii-3 correction is taken: ii-3 is a control (the third kind GREEN on (A), whose
+forced frames paint), and it is recorded that way above. r5's scan-3 additions are in run 2b below.
+
+### The bump: THE PACK POINT (`3419865`)
+
+`packages/ui/package.json:3` `0.1.6` → `0.1.7`, nothing else in the file (the description's "twenty-one" stays; no
+family is added; the registry's 22 items stay). `command grep -l '0\.1\.6' packages/ui/r/*.json` printed one file,
+`r/separator.json`, whose docblock names "the 0.1.6 rule" in prose, not a version field; `pnpm build:registry` after
+the edit left `git status --short` showing the manifest alone: **`r/` does not move by the version line**. `pnpm
+verify` on that tree (the reviewed head `611e642` plus the version line, committed as it stood): exit **0**,
+`All matched files use Prettier code style!`, `✔ Building registry.`, `└  Storybook build completed successfully`,
+`Test Files 36 passed (36)`, `Tests 619 passed (619)` (`verify-bump.log`, started 03:32:05 IST).
+
+⚠️ **The pack point is `341986517e003143d61122f995bdd87d433ed0a1`**, and the post-freeze `ui@0.1.7` tag and `pnpm
+publish` belong there and nowhere else. It holds REVIEWED bytes: layer 1 ran on `4829960`, its fixes landed at
+`77539bd` and `611e642` (tests and one comment), and the bump is the version line on top. The block below is
+docs-only, so a pack at this branch's head is the same tarball.
+
+```
+$ pnpm --filter @marquee-ui/ui pack --pack-destination ~/.thepile-scratch/DL28/s1/pack/
+$ stat -c %s marquee-ui-ui-0.1.7.tgz ; sha256sum marquee-ui-ui-0.1.7.tgz
+111601
+ac50c1996adef9e1bab941d5d0ee4e0ff32f1784be8ea0cc1a145b94aaf80a79
+```
+
+`prepack` (`pnpm -w build:registry && git diff --exit-code -- r`) ran inside the pack, exit 0; `git status --short`
+empty after. The tarball's 47 `r/` + `src/` files are each `cmp`-equal to `git show 3419865:packages/ui/<path>`: 47
+compared, 0 differ.
+
+### What the tarball carries, measured against the 0.1.6 TARBALL
+
+The 0.1.6 tarball is thepile's (`git -C /home/ankit/Code/thepile-next show b5876896:vendor/marquee-ui/marquee-ui-ui-0.1.6.tgz`),
+**109,699 B, sha256 `f68530c251fe17297e936cc16c9c767f65759ecffcf233dc5a8dfe932b094d09`**, both verified before the
+compare. Both extracted, every file compared by `cmp`:
+
+|                                                    | `ui@0.1.6`'s tarball | this one    |
+| -------------------------------------------------- | -------------------- | ----------- |
+| bytes                                              | 109,699              | **111,601** |
+| entries                                            | 49                   | 49          |
+| `r/` json files (incl. `registry.json`)            | 23                   | 23          |
+| `tar -tzf \| grep -cE '\.(test\|spec)\.\|stories'` | 0                    | 0           |
+
+```
+differ:    r/button.json     src/button.tsx        (the width axis)
+           r/separator.json  src/separator.tsx     (the rule drawn as a border)
+           r/card.json       src/card.tsx          (asChild on Card and CardTitle; the item's dependencies)
+           r/radio-group.json src/radio-group.tsx  (the two docblocks; comment-only, minified identical)
+           r/registry.json                         (the card item's dependencies)
+           package.json                            (version 0.1.6 -> 0.1.7 and nothing else: every other field equal as parsed JSON)
+identical: LICENSE; r/ and src/ of accordion, alert, avatar, badge, breadcrumb, checkbox, description-list, form,
+           input, label, pagination, ribbon (ribbon.tsx, ribbon.css), sheet, switch, textarea, toast, toggle, utils
+           (lib/utils.ts); src/index.ts
+```
+
+Against (b)'s prediction ("`button`, `card`, `radio-group`, `separator` and nothing else", ⚠️ UNVERIFIED there):
+**held**, plus `r/registry.json` (the index carries the card item's new `dependencies`) and the manifest.
+
+### `@marquee-ui/tokens` does NOT bump with it (re-measured)
+
+`git diff --stat tokens@0.1.0 HEAD -- packages/tokens/src` prints nothing, and `git diff --stat c6383f04 HEAD --
+packages/tokens` prints nothing. `git diff --stat c6383f04 HEAD -- packages/ui/src packages/ui/r
+packages/ui/package.json packages/tokens registry.json` names exactly the four parts, their four jsons,
+`r/registry.json`, the card item in `registry.json` and the version line (11 files). ONE tarball is vendored downstream.
+
+### For the consumer (LIB-VENDOR-0.1.7)
+
+- **The pack point**: `341986517e003143d61122f995bdd87d433ed0a1`, `marquee-ui-ui-0.1.7.tgz`, **111,601 B**, sha256
+  `ac50c1996adef9e1bab941d5d0ee4e0ff32f1784be8ea0cc1a145b94aaf80a79`, at `~/.thepile-scratch/DL28/s1/pack/`. Read the
+  library at that sha in a detached worktree; this branch's later commit is docs-only.
+- **FOUR copies thepile re-adds**: `button`, `card`, `radio-group`, `separator` (all four in `marquee-drift.test.ts`'s
+  `CONSUMED` at `b4acc323`). No other item moved; no item is added or removed.
+- **The drift-test prediction** (REASONED from the arms at `b4acc323`, not run): the four byte arms red, AND ONE MORE
+  ARM the composition did not predict: "declares every dependency the copies import at runtime"
+  (`scripts/marquee-drift.test.ts:366-414`) pins `card: []` by name (`:396`), and the card item now declares
+  `@radix-ui/react-slot`, so it reds on `card` until that line reads `card: ["@radix-ui/react-slot"]`. Its second half
+  stays green: `@radix-ui/react-slot` is already in `apps/web/package.json:21`. That line is outside s4's named byte
+  arms: a finding for s4's fence (REQUEST T2).
+- **`Button`'s default emission of every variant** is quoted in "(i)" above. The SET is 0.1.6's for every variant; the
+  ORDER moves for the four grid variants (`grid w-full` last); `ghost` is byte-identical. The box and the pixels are
+  0.1.6's (rendered, 39 of 39 rows). The served class attribute of every grid-variant wearer changes.
+- **thepile's two byte pins of `primaryRounded` CONTRADICT each other after the flip** (REQUEST T1, [V]):
+  `components/ui/form-styles.test.ts:110` asserts `primaryButtonClass` is BYTE-equal to the renamed upstream literal
+  (`:62-63`, "copied, not typed", `grid` first, `w-full` third: its docblock says a reorder must redden), and `:144`
+  asserts it is BYTE-equal to the vendored `buttonVariants({ variant: "primaryRounded" })`, which now ends `… grid
+w-full`. No single literal satisfies both, and no cva placement of the axis restores 0.1.6's order (decision 5). The
+  composition's (e)(1) names `:144` and `:63`; re-spelling `:63` would make "copied, not typed" false. One of the two
+  pins has to change form, and that is thepile's call.
+- **`e2e/pile-card.spec.ts:54`** follows `buttonVariants({ variant: "secondary" })` by construction (read, untouched):
+  its served-attribute pin moves with the part.
+- **What `Separator` draws** (the table in "(ii)"): at a 16px root in normal colours, byte-identical to 0.1.6 in both
+  orientations; at a 24px root 2px where 0.1.6 drew 3px (each of `/transparency`'s thirty rules 1px thinner, the page
+  30px shorter than with 0.1.6 at that root, [V]); under both forced palettes drawn in the forced ink by the part
+  itself, so the site class `forced-colors:border-t-2` becomes redundant: under the mode it re-declares the part's own
+  2px top border. `app/transparency/page.tsx:245` and its reference render `page.test.tsx:399` still spell it; retiring
+  it is s4's (e)(2). A caller that recolours a rule now needs a border colour.
+- **`Card`**: renders a `div` and `CardTitle` an `h3` exactly as before when `asChild` is not passed; `ReviewCard`
+  (the one site) is unchanged by the vendoring. `<Card asChild><article>` is available for the next `Card` route.
+- **The `[…]` count of each moved copy** (thepile's guard regex over the file at the pack point, `bytes-packpoint.txt`):
+  `button.tsx` **3** (`min-h-[46px]`, `transition-[transform,box-shadow]`, `shadow-[4px_4px_0_var(--foreground)]`; the
+  composition counted two, missing the transition), unchanged from 0.1.6; `separator.tsx` **6**, from 4 (decision 2:
+  thepile's `total` ceiling moves +2 with a `_note` naming the vendored copy, or (B2) is taken); `card.tsx` **0**;
+  `radio-group.tsx` **0**.
+- **Bytes** (standalone, esbuild-minified, gzip -9; the route delta is s4's `exact.mjs`): `button.tsx` 702 → 757 B gz
+  (+55; rides every client chunk that carries `button.tsx`, `/lists/page` named first by the composition);
+  `separator.tsx` 255 → 269 (+14); `card.tsx` 343 → 389 (+46; server-only in thepile's one chain, by DL24's read);
+  `radio-group.tsx` 1,580 → 1,580.
+
+### Consumers
+
+**Run 1, before any code** (`scan1.txt`, `scan1-thepile.txt`, at `c6383f04`, an empty diff, so by hand over the
+named surface): `buttonVariants` is read by `src/index.ts`, `test/fidelity.test.tsx` and `r/button.json`;
+`secondaryBase` by `fidelity.test.tsx` (the fixture row's name) and the upstream fixture and its generator
+(`test/fixtures/**`, which this stream does not touch: the fixture is upstream's, the rows compare SETS); `Separator`,
+`Card`, `CardTitle` by the barrel, their stories and `fidelity.test.tsx`; the four parts' files by
+`tokens/test/helpers/source-files.ts`, `brand-guard.test.ts`, `client-boundary.test.ts`, `registry.test.ts`,
+`focus-outline.test.tsx`, `forced-colors-state.test.tsx`, `choice-structure.test.tsx`. The four literal class
+strings: `fidelity.test.tsx` and the upstream fixture only. Role `separator`: the three plays in
+`separator.stories.tsx`, unchanged. In thepile (CROSS, recorded, never edited): `form-styles.ts:40` and
+`form-styles.test.ts:63` / `:110` / `:144` (`primaryButtonClass`), `e2e/pile-card.spec.ts:56`, `ShareDoor.tsx:47`'s
+comment, `RankInTierSheet.tsx:212` (its own string, not a `Button`), `app/transparency/page.tsx:245` and
+`page.test.tsx:399` (the site class), `e2e/forced-colors-controls.spec.ts:729`, `ReviewCard.tsx` / `.test.tsx` (`Card`).
+
+**Run 2, at the passengers' head** (`scan2.txt`, `c6383f04...4829960`) and **run 2b at the pack point**
+(`scan2b.txt`, `scan2-thepile.txt`, `c6383f04...3419865`):
+
+- **Scan 1, exported symbols**: `Card`, `CardTitle` (their props gain `asChild`) and four stories, `AsAnArticle`,
+  `TitleAtAnotherLevel`, `WidthFull`, `WidthAuto`, both runs. Readers of `Card` / `CardTitle`: the barrel, the card
+  stories, `card-structure.test.tsx`, `fidelity.test.tsx`; the stories are read by `helpers/story-suites.ts`. The
+  guard's new module-local names (`hostsOf`, `restKey`, `placeAxes`, `restDrawings`, `backgroundAlone`,
+  `KNOWN_REST_GAPS`, `SIZES`, `KEPT_FILTERS`, `STATIC_AXIS`) are read by that file alone.
+- **Scan 2, path helpers**: none. **Scan 4**: two `aria-label`s, test and story inputs; the implicit roles the
+  diff adds (`article`, a level-2 `heading`) are read by the new story plays and test alone.
+- **Scan 3, tests naming a touched non-test file**: run 2 listed eight; run 2b, taken per file with the
+  directory walkers, lists `choice-drawing`, `choice-structure`, `entry-point` and `helpers/story-suites.ts` too
+  (through which `tailwind-compile.test.tsx` renders the new stories under the 44px floor), and the walkers
+  `focus-outline`, `forced-colors-state`, `client-boundary`, `entry-point`, `registry` and
+  `tokens/test/project-coverage` (r5 found three of these first). Every one is in the 36-file suite that ran green
+  at each commit.
+- **Scan 5, the class strings**: the new strings are pinned by `fidelity.test.tsx` alone (`inline-grid` also by
+  `toggle-drawing.test.tsx`, the toggle's own); the OLD button strings (`grid min-h-hit w-full …`,
+  `grid min-h-[46px] w-full …`) are pinned in this repository only by the upstream fixture, which is compared as a
+  SET. In thepile: `form-styles.ts:40`, `form-styles.test.ts:63` (REQUEST T1).
+- **CROSS: 4**, all thepile, all s4's (REQUESTs T1 to T4). **UNOWNED: 0. NEW between the runs**: the guard's names
+  above; the card dependency arm in thepile's drift test (T2) and `form-styles.test.ts:110` (T1), both found by
+  reading run 2's hits whole. The fence: `git diff --name-only c6383f04...3419865` names only files the brief allows.
+
+### Decisions
+
+1. **`Separator`: shape (B), the rule drawn as a border** [V]. Byte-identical to 0.1.6 at a 16px root in normal
+   colours (both orientations), drawn in the forced ink in both palettes where 0.1.6 drew nothing, fixed at 2px. What
+   it moves: at a raised root every rule is thinner than 0.1.6 drew it (2px against 3px at 24px, against 4px at 32px),
+   which is the unit fix; and a caller recolours it with a border colour, not a background. (A) was measured and not
+   taken: it fixes the mode and leaves the unit open.
+2. **(B) spelled with six orientation-scoped utilities, not (B2)'s four** [V]. The composition's (B) scopes both
+   drawings, as 0.1.6 and shadcn's own separator do, so a caller's bare `h-*` / `w-*` keeps losing to the part's by
+   specificity. The cost is two more `[…]` in thepile's vendored copy (4 → 6). (B2) is pixel-identical in all twelve
+   cases and keeps four, at the price of the horizontal geometry competing with a caller's class by sheet order.
+3. **The guard's third kind reads a HOST that sizes its own box** [V]. Without that clause the literal reader names
+   `cva` pieces (`avatar.tsx`'s `ground` values and a concatenation piece) and a band whose content carries its own
+   ink (`ribbon.tsx`); with it, the base names `Separator` and `Sheet`'s grab handle and nothing else, and both were
+   drawn and measured vanishing. A kept filter counts as a paint (the sheet overlay's blur, measured drawn in both
+   palettes). The alternative, reading each host WHOLE by rendering the stories, is a different instrument than the
+   file's literals; not built.
+4. **`Sheet`'s grab handle declared in `KNOWN_REST_GAPS`**, with its measurement, rather than fixed: `sheet.tsx` is
+   outside this fence. The entry expires when the handle is fixed or its string moves (ii-2 proves the arm names it
+   without the entry).
+5. **The width axis's classes come LAST in the emission** [V]: the two width rows are appended after the two `armed`
+   rows, so every grid variant's default ends `… grid w-full` (`danger`: `… border-border-strong grid w-full`). No
+   placement keeps 0.1.6's byte order: cva emits compound classes after every variant string, and 0.1.6 had `w-full`
+   third. The SET, the box and the pixels are 0.1.6's (rendered); the served class attribute of every grid-variant
+   wearer changes. i-2 proves the order is pinned.
+6. **`width` is passed by `Button` and never reaches the DOM**, pinned (the base rendered `width="auto"` on the
+   `<button>`).
+7. **`asChild` on `Card` and `CardTitle` only**; the other four have no demand. The dependency is declared because
+   DL25's arm now demands it (quoted).
+8. **The two docblocks name no utility** (`:40-49`): a comment is a Tailwind source, in this package's fixture and in
+   every consumer's sheet, so naming one would add a rule to thepile's CSS from prose.
+9. **`fidelity.test.tsx`'s six button rows are not re-pinned to an order**: the file compares SETS on purpose (its
+   header); the axis block pins where the axis lands instead. The order a consumer pins is quoted here, not pinned.
+
+### REQUESTs and findings (to the orchestrator)
+
+1. **REQUEST, for `sheet.tsx`'s next owner (library, a byte-moving bump): the grab handle VANISHES under forced
+   colours.** `mx-auto h-1 w-10 shrink-0 rounded-full bg-border-strong md:hidden` draws 160 pixels in normal colours
+   and 0 in both forced palettes (`others-base.txt`), a fill alone on a sized box: the swipe affordance is gone. The
+   third kind names it; it is declared in `KNOWN_REST_GAPS` with that measurement and the entry expires on the fix
+   (a border, or a `forced-colors:` frame, as `Separator` now draws).
+2. **Finding, for `ribbon.tsx`'s next owner (library)**: the band's stripe (`bg-brand`, 11,632 pixels around its
+   track's text in normal colours) draws 0 pixels in both forced palettes; the text stays (the track's own ink). Not
+   a site of the third kind (the band sizes no box: its content does), so nothing reddens; a cosmetic call for
+   whoever owns the band.
+3. **REQUEST, for `stories/radio-group.stories.tsx`'s next owner (library, test-only)**: `NoDrawing` (`:175`) still
+   draws its checked face as `group-has-checked/radio:border-primary` plus a ring, IDENTICAL under the mode (DL24).
+   The docblock now says what to draw instead; the story should draw one (a wider border, an outline or a
+   `forced-colors:` treatment), and the guard reads no story.
+
+### REQUESTs for thepile (LIB-VENDOR-0.1.7, s4; CROSS, recorded here, never edited)
+
+- **T1 [V]**: `components/ui/form-styles.test.ts:110` (the literal is the renamed upstream, byte for byte) and `:144`
+  (the literal is the vendored default emission, byte for byte) cannot both hold after the flip; the width axis moves
+  `grid w-full` to the end and no placement restores 0.1.6's order. One pin changes form, or the upstream fixture at
+  `:62-63` stops being "copied, not typed". The composition's (e)(1) names `:144` and `:63`, not `:110`.
+- **T2**: `scripts/marquee-drift.test.ts:396` pins `card: []` in the per-item runtime-dependency arm; 0.1.7's card
+  item declares `@radix-ui/react-slot`, so that arm reds beside the four byte arms (predicted, not run). The line
+  becomes `card: ["@radix-ui/react-slot"]`; the package is already a thepile dependency.
+- **T3**: `app/transparency/page.tsx:245` and `page.test.tsx:399`'s `forced-colors:border-t-2` become redundant with
+  the part's own border (the composition's (e)(2)), and s2's `/[username]` class likewise; the arm at
+  `e2e/forced-colors-controls.spec.ts:735` should read the rule drawn with the class gone.
+- **T4**: thepile's arbitrary-values `total` moves +2 with `separator.tsx`'s re-count (4 → 6), a `_note`d raise naming
+  the vendored copy, unless Ankit takes (B2) (decision 2).
+
+### UNVERIFIED (every claim of (b) measured)
+
+- 35 / 604 at the base: **held**.
+- "cva emits variant classes in the order of the `variants` object and compound classes AFTER them, so
+  `primaryRounded`'s default is predicted to become `min-h-hit place-items-center … grid w-full`": **held**, byte
+  for byte (quoted in "(i)").
+- "Tailwind 4.3.3's `border-t-2` emits `border-top-width: 2px`": **held** (the compiled sheet; so does the
+  orientation-scoped form).
+- "(B) byte-identical at 16px, 2px against 3px at 24px, drawn under both forced palettes": **held**, measured, and
+  held again by r5 on its own trees.
+- "which arm demands the card item's `dependencies`": `registry.test.ts:463` (DL25's per-item arm), **quoted**; the
+  counters at `:320`, `:335`, `:363`, `:526`, `:595` do not move (RUN).
+- "`client-boundary.test.ts:162` stays true": **held** (RUN).
+- "`test/stories.test.tsx:70` `DECLARED_STORIES = 107`, `:69` `DECLARED_PLAYS = 77`": **held** at the base; now 111 / 81.
+- "`fidelity.test.tsx:214-218` … `:328-331` `button.secondaryBase`": the six rows are `:213-218` at the base (the
+  cite is off by one) and the `secondaryBase` exception `:331`; they pin SETS and did not move (the default keeps the
+  SET); a comment now says so (`:213-218` at the pack point), and the axis's own block (`:376`) pins the rest.
+- "the moved copies: predicted `button`, `card`, `radio-group`, `separator` and nothing else": **held** by the `cmp`
+  list, plus `r/registry.json` and the manifest.
+- "`separator.tsx` carries four `data-[orientation=…]` today, `button.tsx` one `min-h-[46px]` and one `hover:shadow-[…]`,
+  `radio-group.tsx` ⚠️": `separator.tsx` 4 → **6** at the head (not "0 with (B), the four kept": (B) scopes six);
+  `button.tsx` **3** (the composition missed `transition-[transform,box-shadow]`), unchanged; `radio-group.tsx`
+  **0**; `card.tsx` **0**.
+- "the drift reds exactly the byte arms of the copies s1 names, and nothing else in `marquee-drift.test.ts`" ((e), for
+  s4): **corrected by read**: the per-item dependency arm reds on `card` too (T2).
+- "`form-styles.test.ts:144` goes red; `:63` with it" ((e)): **incomplete by read**: `:110` pins the literal against
+  the upstream's byte order, which is what makes the two pins contradict (T1).
+- The third kind's "which parts it names at the base beyond `separator`" (a FINDING): `sheet.tsx`'s grab handle
+  (measured vanishing, declared and REQUESTed); the first cut's other five were measured and are not sites (the table
+  in "(ii)").
+- +50 B gz for the width axis (DL27's serialised-config estimate): **+55 B gz** standalone, minified (`bytes.txt`); the
+  route number is s4's.
+
+### The gate
+
+`pnpm verify` exit **0** at every commit, from the root, the tree clean after: `c6383f04` (the base, 35 / 604),
+`f2b0d7c` (35 / 604), `6319657` (36 / 611), `35da30e` (36 / 613), `4829960` (36 / 619), `77539bd` (36 / 619),
+`611e642` (36 / 619), and **the pack point `3419865`: `Test Files 36 passed (36)`, `Tests 619 passed (619)`**
+(logs `verify-{base,iv,iii,ii,i,l1,l1b,bump}.log`, exits beside them). This block lands in one docs-only commit after
+them. No push, no tag, no `pnpm publish`, no PR: the freeze holds. The tag `ui@0.1.7` belongs at `3419865` when it
+lifts.
+
+### Layer 1 (reviewer, detached worktree of 482996098f83c819f311a4ba06035d81ca20d08c, slot r5, marquee-ui, no database)
+
+**0 HIGH, 1 MED, 7 LOW** over 41 mutations in r5's own detached worktree (`../marquee-ui-r5`, and `../marquee-ui-r5-base` at `c6383f04`), its own driver (`$BATCH_SCRATCH/r5/mutate-r5.py`, `muts-r5.json`, logs `r5/mut-<name>.log`), each edit asserted landed, the registry rebuilt after a part edit, the WHOLE suite run and the tree checked clean; its `pnpm verify` on the untouched head exit 0, 36 / 619. It re-ran both measurement tables on its own trees: both HELD, row for row. Its full report is `$BATCH_SCRATCH/r5/report.md`. The table is its own, verbatim; every GREEN row is answered in "Layer 1's fixes" above:
+
+| file                                         | test                                                                               | mutation applied                                                                                                              | red / GREEN                                                                                                                                                 | what it asserts now                                                                                    |
+| -------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| fidelity.test.tsx, stories.test.tsx          | "auto swaps grid w-full for inline-grid…", button/WidthAuto                        | W1: `auto` row class `inline-grid` -> `grid`                                                                                  | red (3)                                                                                                                                                     | auto's set is pinned, and the play reads `inline-grid`                                                 |
+| fidelity.test.tsx, stories.test.tsx          | same two                                                                           | W2: `auto` row -> `inline-grid w-full`                                                                                        | red (3)                                                                                                                                                     | `auto` may not keep `w-full`                                                                           |
+| fidelity.test.tsx                            | "leaves ghost alone…", CASES button.ghost                                          | W3: `ghost` added to the FULL rows                                                                                            | red (3)                                                                                                                                                     | ghost is outside the axis at the default too (the stream ran only the auto-row form)                   |
+| fidelity.test.tsx                            | "full is the default…", CASES dangerIdle/dangerArmed                               | W4: `danger` dropped from the full rows                                                                                       | red (3)                                                                                                                                                     | every grid variant gets `grid w-full` by default                                                       |
+| fidelity.test.tsx, stories.test.tsx          | "reaches the element… never as an attribute", WidthAuto                            | W5: `width` spread onto the `<button>`                                                                                        | red (3), "width leaked onto the <button>"                                                                                                                   | the attribute leak on the button branch                                                                |
+| (none)                                       | (none)                                                                             | W6: `width` spread onto the **asChild** `<Slot>`                                                                              | **GREEN** 36/619                                                                                                                                            | nothing renders `asChild` with `width` (LOW-4)                                                         |
+| fidelity.test.tsx                            | "full is the default, and ends … with grid w-full"                                 | W7: full row `grid w-full` -> `w-full grid`                                                                                   | red (1)                                                                                                                                                     | the emission order the byte-literal consumers pin                                                      |
+| stories.test.tsx                             | button/WidthAuto                                                                   | W8: story's `className="self-start"` removed                                                                                  | **GREEN** 36/619                                                                                                                                            | the flex-column claim is not in the suite (jsdom does no layout); it stands on width.mjs alone (LOW-7) |
+| card-structure.test.tsx                      | "renders an <article>…", "joins the caller's class…"                               | C1: Card drops its drawing under asChild                                                                                      | red (2)                                                                                                                                                     | the article wears the card's drawing                                                                   |
+| card-structure.test.tsx, stories.test.tsx    | same, card/AsAnArticle                                                             | C2: Card drops `data-slot` under asChild                                                                                      | red (4)                                                                                                                                                     | slot kept on the caller's element                                                                      |
+| card-structure.test.tsx                      | "renders an <article>…" `hasAttribute("aschild")` clause                           | C3: `{...({ asChild })}` spread onto the Host                                                                                 | **GREEN** 36/619 (stderr: "React does not recognize the `asChild` prop on a DOM element")                                                                   | nothing: React never writes a boolean to an unknown attribute (LOW-3)                                  |
+| card-structure.test.tsx, fidelity.test.tsx   | "stays a <div>…", fidelity `card`                                                  | C4: Card `asChild = true` by default                                                                                          | red (4)                                                                                                                                                     | the default is a div                                                                                   |
+| card-structure.test.tsx                      | "renders an <h2> as the title…"                                                    | C5: CardTitle drops its drawing under asChild                                                                                 | red (1)                                                                                                                                                     | the h2 wears the title's drawing                                                                       |
+| card-structure.test.tsx, fidelity, stories   | "stays an <h3>…", card-title, card/Default                                         | C6: CardTitle `asChild = true` by default                                                                                     | red (5)                                                                                                                                                     | the default is an h3                                                                                   |
+| card-structure.test.tsx                      | "joins the caller's class…"                                                        | C7: Card drops the caller's `className`                                                                                       | red (1)                                                                                                                                                     | the caller's class is joined                                                                           |
+| registry.test.ts (+ card-structure, stories) | "declares exactly the npm dependencies … per item"                                 | C8: Slot import removed from card.tsx, registry dep KEPT                                                                      | red (7), incl. the registry drift arm                                                                                                                       | the STALE direction (the stream ran the missing direction)                                             |
+| client-boundary.test.ts                      | "does not spend the boundary…"                                                     | C9: `"use client"` added to card.tsx                                                                                          | red (1), `[ 'card.tsx' ]`                                                                                                                                   | react-slot is still read as a server module for card                                                   |
+| forced-colors-state.test.tsx                 | both new arms                                                                      | F1: `backgroundAlone` returns null first                                                                                      | red (2): probe + gap expiry                                                                                                                                 | the predicate and the gap                                                                              |
+| forced-colors-state.test.tsx                 | both new arms                                                                      | F2: hiding clause dropped                                                                                                     | red (2): probe, and radio-group's hidden dot named                                                                                                          | the hide clause                                                                                        |
+| forced-colors-state.test.tsx                 | "found the hosts drawn at rest…"                                                   | F3: keyword clause dropped                                                                                                    | red (1), probe only                                                                                                                                         | the keyword clause (no part decides it)                                                                |
+| forced-colors-state.test.tsx                 | both new arms                                                                      | F4: `color` clause dropped                                                                                                    | red (2): probe, and button primary + primaryRounded named                                                                                                   | the ink clause                                                                                         |
+| forced-colors-state.test.tsx                 | both new arms                                                                      | F5: filter clause dropped                                                                                                     | red (2): probe, and the sheet overlay named                                                                                                                 | the filter clause                                                                                      |
+| forced-colors-state.test.tsx                 | both new arms                                                                      | F6: `paintsIn` clause dropped                                                                                                 | red (2): probe, and five framed hosts named (checkbox box, radio circle, sheet content, switch track, thumb)                                                | the frame clause                                                                                       |
+| forced-colors-state.test.tsx                 | "found the hosts…"                                                                 | F7: `...extra` dropped from `backgroundAlone`                                                                                 | red (1), probe only                                                                                                                                         | the axis size joins (no part decides it at this sha)                                                   |
+| forced-colors-state.test.tsx                 | "found the hosts…"                                                                 | F8: `...extra` dropped from `paintsIn`                                                                                        | red (1), probe only; the two existing kinds unaffected                                                                                                      | the axis frame joins                                                                                   |
+| forced-colors-state.test.tsx                 | "found the hosts…"                                                                 | F9: `placeAxes` accepts held states                                                                                           | red (1), "a held state read as an axis"                                                                                                                     | the held-state exclusion                                                                               |
+| forced-colors-state.test.tsx                 | "found the hosts…"                                                                 | F10: `placeAxes` accepts any media                                                                                            | red (1)                                                                                                                                                     | the media restriction                                                                                  |
+| forced-colors-state.test.tsx                 | "found the hosts…"                                                                 | F11: `restDrawings` never returns an axis                                                                                     | red (1), anchor                                                                                                                                             | the anchor on Separator's two orientations                                                             |
+| forced-colors-state.test.tsx                 | both new arms                                                                      | F12: `KEPT_FILTERS = /^$/`                                                                                                    | red (2)                                                                                                                                                     | the kept-filter list                                                                                   |
+| forced-colors-state.test.tsx                 | both new arms                                                                      | F13: `SIZES` narrowed to `width\|height`                                                                                      | **GREEN** 36/619                                                                                                                                            | 14 of the 16 SIZES members are decided by nothing (LOW-5)                                              |
+| forced-colors-state.test.tsx                 | "gives every host…"                                                                | F14: gap reason shortened to "the grab handle"                                                                                | red (1), `expected 15 to be greater than 80`                                                                                                                | the reason floor                                                                                       |
+| forced-colors-state.test.tsx                 | "gives every host…"                                                                | F15: `found.add(key)` dropped                                                                                                 | red (1), gap expiry                                                                                                                                         | the expiry                                                                                             |
+| forced-colors-state.test.tsx                 | "gives every host…"                                                                | F16: sheet handle split into `cn("mx-auto h-1 w-10 shrink-0 rounded-full md:hidden", "bg-border-strong")` (same rendered set) | red (1), only as **"names a host that no longer draws … delete it"**                                                                                        | a no-op refactor expires the gap (MED-1)                                                               |
+| (none)                                       | (none)                                                                             | F17: F16 + the gap entry deleted, as the message instructs                                                                    | **GREEN** 36/619                                                                                                                                            | handle still vanishes: same class set, others.mjs 0 px in both forced palettes (MED-1)                 |
+| (none)                                       | (none)                                                                             | F18: 0.1.6 fill Separator reinstated with `"bg-border"` as its own literal, pin set back to 0.1.6                             | **GREEN** 36/619                                                                                                                                            | the exact defect this batch fixed; Chromium: 0 px in both forced palettes (MED-1)                      |
+| (none)                                       | (none)                                                                             | F19: 0.1.6 fill Separator + inert `text-muted`, pin set back                                                                  | **GREEN** 36/619                                                                                                                                            | the `color` proxy; Chromium: 0 px in both forced palettes (MED-1)                                      |
+| fidelity.test.tsx only                       | sheet.handle (class-set pin)                                                       | F20: handle + `data-[orientation=vertical]:border-2` (never matches: no attribute), gap deleted                               | red only on fidelity's SET pin; **forced-colors-state GREEN**                                                                                               | the no-axis drawing is never read once an axis exists (MED-1)                                          |
+| forced-colors-state.test.tsx (+ fidelity)    | "gives every host…"                                                                | F21: 0.1.6 fill in ONE literal, pin set back (the stream's ii-1 with the pin moved)                                           | red (1)                                                                                                                                                     | control: the natural revert is caught                                                                  |
+| stories.test.tsx                             | "runs all 80 play functions…"                                                      | S1: `DECLARED_PLAYS` 81 -> 80                                                                                                 | red (1)                                                                                                                                                     | the counter                                                                                            |
+| stories.test.tsx                             | "runs all 81 play functions…"                                                      | S2: WidthAuto's `play` renamed                                                                                                | red (1), composed 80                                                                                                                                        | a play leaving the count                                                                               |
+| forced-colors-state.test.tsx                 | "found a sheet and the revealed elements to measure" (`not.toContain("on")`, :847) | R1: `literalsOf` also pushes every `/* */` comment                                                                            | **GREEN for that test**; red came from a DIFFERENT arm, "found the states drawn only in colour…" (`the literal reader read a comment, or missed a literal`) | the prose check cannot see prose (LOW-6)                                                               |
+
+**The stream's 12, read from its logs:** each went red where it said. One correction to the record: **ii-3 (shape A) reddened only `fidelity > separator`**, which is the class-set pin that any string edit reddens. `forced-colors-state` stayed green, and that is correct: shape A draws 400/80 px in both forced palettes (`sep-A/result.txt`). ii-3 is therefore a control showing the third kind accepts a forced-only frame, not a red of that arm.
