@@ -652,9 +652,12 @@ const NEW_PARTS: readonly (readonly [string, () => void, string])[] = [
     "inline-flex items-center gap-1 rounded-sm border-2 px-2 py-0.5 font-mono text-2xs font-bold uppercase tracking-label border-success bg-success-muted text-success",
   ],
   [
+    // 0.1.7: a border on a box of no height (or width), not a fill on a 2px one. It
+    // survives forced colors and is 2px at any root; byte-identical at a 16px root
+    // (measured in Chromium, marquee-ui's `docs/as-built.md`, "LIB-0.1.7").
     "separator",
     () => render(<Separator />),
-    "shrink-0 bg-border data-[orientation=horizontal]:h-0.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-0.5",
+    "shrink-0 border-border data-[orientation=horizontal]:h-0 data-[orientation=horizontal]:w-full data-[orientation=horizontal]:border-t-2 data-[orientation=vertical]:h-full data-[orientation=vertical]:w-0 data-[orientation=vertical]:border-l-2",
   ],
   ["accordion-item", () => renderAccordion(), "border-b-2 border-border"],
   [
