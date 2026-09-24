@@ -57,13 +57,27 @@ const uiPkg = JSON.parse(readFileSync(resolve(root, "packages/ui/package.json"),
  */
 const uiDeps = uiPkg.dependencies;
 
-/** A declared dependency's package name, its `@<range>` stripped: `@radix-ui/react-slot@^1.3.3` → `@radix-ui/react-slot`. */
-const packageName = (dependency: string): string =>
-  dependency.slice(0, dependency.lastIndexOf("@"));
+/**
+ * A declared dependency's package name, its `@<range>` stripped:
+ * `@radix-ui/react-slot@^1.3.3` → `@radix-ui/react-slot`. One with no range is its own
+ * name (a scoped name's leading `@` is not a range), and the range check reddens it
+ * for the missing range (layer 1 r5 LOW-8: the first edition cut its last letter).
+ */
+const packageName = (dependency: string): string => {
+  const at = dependency.lastIndexOf("@");
+  return at > 0 ? dependency.slice(0, at) : dependency;
+};
 
 /**
- * Every bare package a source text imports: `@/…` and `./…` are the item's own
- * registry, a scoped name is its first two segments, any other its first.
+ * Every bare package a source text names in a `from "…"` clause (an import or a
+ * re-export): `@/…` and `./…` are the item's own registry, a scoped name is its
+ * first two segments, any other its first. It is the union check's rule, one copy.
+ * ⚠️ So it misreads three shapes (layer 1 r5 LOW-6, each run): a side-effect
+ * `import "x"` and a dynamic `import("x")` are not read at all, and a COMMENT that
+ * spells `from "x"` is read as an import. No part source holds any of the three
+ * today (the arm is green over all twenty-two items); reading literals through the
+ * TypeScript scanner, as `forced-colors-state.test.tsx` does, would close all three
+ * and moves the union check with it, so it is a REQUEST rather than a local fork.
  */
 const bareImports = (text: string): string[] => {
   const names: string[] = [];
@@ -293,9 +307,11 @@ describe("registry.json", () => {
     ).toEqual([]);
 
     let derived = 0;
+    let declared = 0;
     const drift: string[] = [];
     for (const item of registry.items) {
       drift.push(...dependencyDrift(item.name, item.dependencies ?? [], sourcesOf(item), peers));
+      declared += (item.dependencies ?? []).length;
       derived += new Set(
         sourcesOf(item)
           .flatMap(bareImports)
@@ -306,8 +322,14 @@ describe("registry.json", () => {
       drift,
       "a registry item's dependencies differ from its own sources' bare imports: declare what it imports, drop what it does not",
     ).toEqual([]);
-    // Anchor: the pairs reached from the imports, which the declared lists also hold.
-    expect(derived).toBe(21);
+    // Anchor: the walk reached every declared pair from the imports (21 at DL25), so a
+    // walk over no item or no import cannot pass. Not a counter to move: a part that
+    // declares what it imports moves both sides (layer 1 r5 LOW-5).
+    expect(
+      declared,
+      "no item declares a dependency: the walk has nothing to compare",
+    ).toBeGreaterThan(5);
+    expect(derived, "the imports reached fewer pairs than the items declare").toBe(declared);
   });
 
   it("keeps no stylesheet's first token a comment", () => {

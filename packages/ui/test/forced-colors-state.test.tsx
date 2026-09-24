@@ -87,15 +87,19 @@ import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.
  * fixture compiles with `source(none)` over `src` and `stories`, so a utility a
  * TEST mentions cannot compile itself into existence and pass this file.
  *
- * ⚠️ WHAT IT CANNOT SEE: A PARENT. A GUARD LIMIT, RECORDED RATHER THAN CLOSED (DL24).
- * Every read here is ELEMENT-LOCAL: one string's own declarations, placed through
+ * ⚠️ WHAT IT CANNOT SEE: A PARENT, AND A CARRIER'S OTHER GEOMETRY. A GUARD LIMIT,
+ * RECORDED RATHER THAN CLOSED (DL24, DL25). Every read here is ELEMENT-LOCAL: one string's own declarations, placed through
  * the sheet. But `visibility` and `color` INHERIT, and an ancestor's `opacity` takes
  * its whole subtree with it, so an element a carrier sits inside - a track, a box, a
  * circle, a part's root or row - that the mode hides, fades to nothing or inks in
  * `Canvas` passes this file while Chromium draws the two states identical. (A
  * carrier's OWN `scale` of zero is read, as a hide, since DL25: the thumb
  * `+ forced-colors:scale-0`, DL23 layer 1's P20, was the one of these that was
- * element-local, `scaledToNothing` below.) Each of these is `Tests 17 passed (17)` at
+ * element-local, `scaledToNothing` below. Its OTHER geometry is not read: the thumb
+ * `+ forced-colors:rotate-x-90`, a named utility that turns it edge-on through
+ * `transform`, `+ forced-colors:[transform:scale(0)]` or
+ * `+ forced-colors:[clip-path:inset(50%)]` each passes this file while Chromium draws
+ * the two states identical, DL25 layer 1 LOW-4.) Each of these is `Tests 17 passed (17)` at
  * `3ecf4ee` with the control hashing IDENTICAL in headless Chromium, both forced
  * palettes: the track `+ forced-colors:invisible` or `+ forced-colors:text-[Canvas]`,
  * the box AND the circle `+ forced-colors:invisible` or `+ forced-colors:opacity-0`,
@@ -111,8 +115,9 @@ import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.
  * four rules, each on a carrier itself. The chain table is in marquee-ui's
  * `docs/as-built.md`, "DESIGN-LIB-d-measure-2". So a `forced-colors:`, `opacity-`,
  * `invisible`, `hidden`, `scale-` or `text-` colour class on anything a carrier sits
- * inside is an edit this file will NOT catch: read that chain by hand, or build the
- * arm the as-built costs.
+ * inside, or a `rotate-`, `transform` or `clip-path` class on a carrier itself, is an
+ * edit this file will NOT catch: read that chain by hand, or build the arm the
+ * as-built costs.
  */
 
 /**
@@ -362,7 +367,11 @@ const HIDES: Readonly<Record<"display" | "visibility" | "opacity", RegExp>> = {
   opacity: /^(?:0+(?:\.0*)?|\.0+)%?$/,
 };
 
-/** `value`'s space-separated words, a parenthesised group kept whole (`calc(0% * -1)` is one word). */
+/**
+ * `value`'s space-separated words, a parenthesised group kept whole: `scale-[calc(0_*_2)]`
+ * compiles to `scale: calc(0 * 2)`, ONE word (Tailwind's own `-scale-0` puts its `calc()`
+ * inside the variable, so only an arbitrary value reaches this).
+ */
 const words = (value: string): string[] => {
   const out: string[] = [];
   let depth = 0;
@@ -395,7 +404,10 @@ const zeroFactor = (factor: string): boolean => {
  * `forced-colors:scale-0`, `scale-x-0`, `scale-y-0`, `scale-z-0`, `-scale-0` and
  * `scale-[0]` each hashed the two states IDENTICAL (DL21's defect hashes: a zero
  * z makes the matrix non-invertible, and such an element is not rendered either),
- * while `scale-50`, `-scale-x-100` and `scale-none` drew them apart. Tailwind v4
+ * while `scale-50`, `-scale-x-100` and `scale-none` drew them apart. So did layer 1's
+ * (r5, DL25): a bare `scale-0`, `scale-0` in the checked state (in that state),
+ * `scale-100 forced-colors:scale-[0]`, `forced-colors:scale-x-0 scale-50` and
+ * `forced-colors:scale-[calc(0_*_2)]`, each IDENTICAL. Tailwind v4
  * writes the utility through custom properties, read off the compiled sheet:
  * `scale-0` is `--tw-scale-x: 0%; --tw-scale-y: 0%; --tw-scale-z: 0%; scale:
  * var(--tw-scale-x) var(--tw-scale-y)`, `scale-x-0` sets the x alone, `scale-z-0`
@@ -407,7 +419,8 @@ const zeroFactor = (factor: string): boolean => {
  * variable no declaration sets is its registered initial, `1`, or, unregistered,
  * invalid, which computes `scale: none`: `1` stands for both, and neither is zero.
  * Element-local, like `HIDES`: an ANCESTOR scaled to nothing is the header's limit,
- * and a `transform: scale(0)` (no utility writes one) is not read.
+ * and so is the carrier's other geometry, a `transform` or a `clip-path` that removes
+ * it (`rotate-x-90` is a named utility that does, through `transform`).
  */
 const scaledToNothing = (applies: readonly Placed[]): Placed | undefined => {
   const won = winner(applies, /^scale$/);
@@ -906,9 +919,8 @@ describe("a checked state survives forced-colors: active", () => {
     // each `var()` resolved to its own winning custom property. Each row is a
     // utility's declarations as the compiled sheet writes them, hand-placed forced,
     // with Chromium's verdict on the Switch's thumb wearing it under the mode
-    // (IDENTICAL = hides; `scaledToNothing`'s docblock). After the table, two
-    // utilities on one element: the x from the forced rule, the y from the bare one
-    // (Chromium: IDENTICAL, so each variable is its own winner).
+    // (IDENTICAL = hides; `scaledToNothing`'s docblock). After the table: two
+    // utilities on one element, and a zero the element sets itself.
     const XY = "var(--tw-scale-x) var(--tw-scale-y)";
     /** A compiled rule's body, `prop: value; …`, as declarations in one placement. */
     const placedAs = (placement: Placement, body: string): Placed[] =>
@@ -927,6 +939,7 @@ describe("a checked state survives forced-colors: active", () => {
         true,
       ],
       ["scale-[0]", "scale: 0", true],
+      ["scale-[calc(0_*_2)]", "scale: calc(0 * 2)", true],
       ["scale-50", `--tw-scale-x: 50%; --tw-scale-y: 50%; --tw-scale-z: 50%; scale: ${XY}`, false],
       ["-scale-x-100", `--tw-scale-x: calc(100% * -1); scale: ${XY}`, false],
       ["scale-none", "scale: none", false],
@@ -938,22 +951,49 @@ describe("a checked state survives forced-colors: active", () => {
         ).toBe(!hides),
       );
     }
+    // Two utilities on one element, in BOTH token orders, because the sheet's rank and
+    // not the class string's order decides (layer 1 r5 LOW-1, LOW-2): the winning
+    // `scale` itself, and each variable's own winner. Chromium: IDENTICAL, all four.
+    for (const [pair, bare, forced] of [
+      [
+        "scale-50 and forced-colors:scale-x-0",
+        `--tw-scale-x: 50%; --tw-scale-y: 50%; --tw-scale-z: 50%; scale: ${XY}`,
+        `--tw-scale-x: 0%; scale: ${XY}`,
+      ],
+      [
+        "scale-100 and forced-colors:scale-[0]",
+        `--tw-scale-x: 100%; --tw-scale-y: 100%; --tw-scale-z: 100%; scale: ${XY}`,
+        "scale: 0",
+      ],
+    ] as const) {
+      withPlaced(
+        { "probe:bare": placedAs("unconditional", bare), "probe:fc": placedAs("forced", forced) },
+        () => {
+          for (const order of [
+            ["probe:bare", "probe:fc"],
+            ["probe:fc", "probe:bare"],
+          ] as const) {
+            expect(
+              savedUnderForcedColors(["forced-colors:border-4", ...order]),
+              `a forced-colors frame under ${pair} (${order.join(" then ")}) reads as painting`,
+            ).toBe(false);
+          }
+        },
+      );
+    }
+    // ...and a zero the ELEMENT sets, not the mode (layer 1 r5 MED-1): a bare one
+    // applies in every mode (Chromium: the thumb `+ scale-0`, IDENTICAL).
     withPlaced(
       {
-        "probe:scale-50": placedAs(
+        "probe:scale-0": placedAs(
           "unconditional",
-          `--tw-scale-x: 50%; --tw-scale-y: 50%; --tw-scale-z: 50%; scale: ${XY}`,
+          `--tw-scale-x: 0%; --tw-scale-y: 0%; --tw-scale-z: 0%; scale: ${XY}`,
         ),
-        "probe:fc-scale-x-0": placedAs("forced", `--tw-scale-x: 0%; scale: ${XY}`),
       },
       () =>
         expect(
-          savedUnderForcedColors([
-            "forced-colors:border-4",
-            "probe:scale-50",
-            "probe:fc-scale-x-0",
-          ]),
-          "a forced scale-x-0 over a bare scale-50 reads as painting",
+          savedUnderForcedColors(["forced-colors:border-4", "probe:scale-0"]),
+          "a forced-colors frame under a bare scale-0 reads as painting",
         ).toBe(false),
     );
 
@@ -1570,6 +1610,18 @@ describe("a checked state survives forced-colors: active", () => {
           carrierOf([...thumb, "probe:checked-scale-0"], track.state).paints,
           "a thumb scaled to nothing only when checked reads as carrying nothing",
         ).toBe(true);
+        // ...because IN that state it draws nothing (layer 1 r5 MED-1: the pin above
+        // held whether or not a state-placed scale was read).
+        expect(
+          paintsIn(
+            [...thumb, "probe:checked-scale-0"],
+            ["unconditional", "forced", "forced-state"],
+            {
+              state: track.state,
+            },
+          ),
+          "a thumb scaled to nothing in its checked state reads as painting in it",
+        ).toBe(false);
         expect(
           carrierOf([...thumb, "probe:fc-hidden"], track.state).paints,
           "a moving thumb the mode hides reads as painting",
