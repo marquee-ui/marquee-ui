@@ -1,5 +1,5 @@
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 
 import { Card, CardTitle } from "@/card";
 
@@ -17,7 +17,26 @@ import { Card, CardTitle } from "@/card";
  * dropped the prop and wrapped the child in the part's own `div` (what the part did
  * before 0.1.7) reads as the wrong element rather than passing on the child's text.
  */
-afterEach(cleanup);
+/**
+ * React never writes a boolean to an unknown attribute, so a leaked `asChild` shows
+ * only as the warning it logs, and React logs it ONCE per prop per module: the first
+ * render that leaks it, whichever test that is. So every test is watched from its
+ * first render (layer 1 r5 LOW-3: an attribute check could not fail, and a spy
+ * installed mid-test missed the warning the test's first render had already spent).
+ */
+let errors: MockInstance<typeof console.error>;
+beforeEach(() => {
+  errors = vi.spyOn(console, "error");
+});
+afterEach(() => {
+  const leaked = errors.mock.calls
+    .flat()
+    .map(String)
+    .filter((m) => /asChild/i.test(m));
+  errors.mockRestore();
+  cleanup();
+  expect(leaked, "asChild reached a DOM element").toEqual([]);
+});
 
 const tokens = (element: Element): string[] =>
   (element.getAttribute("class") ?? "").split(/\s+/).filter(Boolean).sort();
@@ -42,21 +61,11 @@ describe("Card renders the caller's element through asChild", () => {
     const drawing = ownTokens(() => render(<Card />), "card");
     expect(drawing, "the default card wears no class: the read is empty").toContain("border-2");
 
-    // React never writes a boolean to an unknown attribute, so a leaked `asChild` is
-    // seen only in the warning it logs (layer 1 r5 LOW-3: an attribute check could not
-    // fail).
-    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     const { container } = render(
       <Card asChild>
         <article aria-label="A review">body</article>
       </Card>,
     );
-    const warned = errors.mock.calls.flat().map(String);
-    errors.mockRestore();
-    expect(
-      warned.filter((m) => /asChild/i.test(m)),
-      "asChild reached the DOM element",
-    ).toEqual([]);
     const card = slot("card");
     expect(card.tagName, "the card is not the caller's element").toBe("ARTICLE");
     expect(container.firstElementChild, "the part wrapped the caller's element").toBe(card);
