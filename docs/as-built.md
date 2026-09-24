@@ -12212,3 +12212,45 @@ and 56 by row 14 (MED-2); 29, 38 and 40 by the join-`cn` wording (MED-1); 43 (LO
 | 59  | `AGENTS.md:76`, `:81` (steps 6, 7); step 7 stays true                                                                                                                                                         | AGENTS.md at cab7037                                                                                                                                                                                              | HOLDS                                |                                                                                                                     |
 | 60  | "For the consumer": `0.1.6`, `files: ["r","src"]`, no byte moves                                                                                                                                              | `packages/ui/package.json`; fence (row 1)                                                                                                                                                                         | HOLDS                                |                                                                                                                     |
 | 61  | REQUEST 1: cells `:385`, `:407`, `:410`, `:422` (+ `:411`) to correct                                                                                                                                         | row 45                                                                                                                                                                                                            | HOLDS                                | also consider `:408`, whose problem column already names `DoorTab` + `SortChips` as two chip shapes (MED-2)         |
+
+## DL26 reconciler: the scanner reader in, the slab family refused, and thepile's verdicts recorded (2026-09-24)
+
+Written by the DL26 orchestrator after the batch's three streams merged (this library's `s/design-lib-d-slab-scanner`
+at `4b6fef78`, verify 35 / 603 exit 0 on the merged `next`; thepile's `s/design-lib-f-tier-share-button` at `16baaa38`
+and `s/FOLLOWUPS-13` at `920b17cc`). No shipped byte moved this batch: `git diff --stat f4168bef 4b6fef78 --
+packages/ui/src packages/ui/r packages/ui/package.json packages/tokens registry.json` is empty, so there is no bump
+and LIB-VENDOR has nothing to do.
+
+**What the library decided (the section above, DESIGN-LIB-d-slab-scanner).** The registry test reads a part
+source's imports through the TypeScript scanner (an `ImportDeclaration`, an `ExportDeclaration` with `from`, a
+side-effect `import "x"`, a dynamic `import("x")` with a string or template argument; a comment spelling `from "x"`
+no longer read; the file parsed by its extension), in the per-item arm and the union check alike, with the reader's
+own test (602 → 603); the registry-dependencies check stays on its regex (REQUEST 4, the next owner's). The mono slab
+family, MEASURED against nineteen sites in seven thepile files plus the `SortChips` sibling, is recommended REFUSE as
+a `Button` variant [V]: two paddings, three box shapes, five ON-state mechanisms, `cut-10` a thepile utility with no
+library token, every NEVER thepile's join-only `cn`'s. thepile's reconciler corrected the four audit cells (`:385`,
+`:407`, `:410` with `:411` by "same as", `:422` at `533c7f13`) so the follow controls and the profile's `SLAB` actions
+keep their product strings, and recorded the focus probe's finding (REQUEST 2: the selected `DoorTab`, `FollowButton`'s
+Follow face and `FacePicker`'s selected style chip draw no visible focus ring under `cut-10`) as an AUDIT-FIX [V] on
+`/[username]`, `/[username]/[shelf]/[[...view]]` and `/settings/profile`, FOLLOWUPS-14's.
+
+**thepile's verdicts this batch, recorded here (class J).** The third `Button` route of f is DONE on
+`/[username]/tier/[slug]` (`docs/slices/DESIGN-LIB-f-tier-share-button.md`, thepile `25291476`): `ShareDoor`'s boxed
+share on `<Button variant="secondary">` around its kept single grid item, the budget read on both builds before the
+change was committed (113,846 → 115,874 of 116,300, +2,028 B, 426 B left: the part in a new shared chunk of its own
+and `form-styles` leaving the route chunk), the served page differing by `data-slot` alone; `secondaryButtonClass`
+now has ZERO product wearers, its deletion a FOLLOWUPS-14 change with one owner. `Badge`'s fourteen OPEN audit rows
+were CENSUSED on thepile's rendered base against the 0.1.6 tarball's `badgeVariants` and NONE is pure (7 AUDIT-FIX
+[V], 6 demand wrong, 1 an addition): the part stays unconsumed until Ankit wants a hub count drawn as a framed chip.
+FOLLOWUPS-13 (`docs/slices/FOLLOWUPS-13.md`, thepile `e39c2d4b`) closed DL25 layer 2's MED-1 on `/search` (the
+result links' highlight and keyboard focus under forced colours: `focus:outline-none` dropped, the highlight on
+`forced-colors:outline-2 forced-colors:outline-offset-2`, the shipping arm `e2e/forced-colors-controls.spec.ts:658`
+at `e39c2d4b`), put the activity rail's tile on the spacing scale, pinned `FixSteamPrivacy`'s retry as a reload and
+gave "Count another profile" its 44px target with zero layout change. Nothing measured there changes a library part.
+
+**Open REQUESTs the library holds after this batch**: the registry-dependencies check (`./x`, `@/lib/utils`) on the
+scanner, with a rule that skips a non-part sibling such as `./ribbon.css` (s1's REQUEST 4); `src/radio-group.tsx:40-43`'s
+docblock recommending a colour-only checked face and `:155-157`'s falsified border-colour sentence, both comment-only
+and both waiting for the next byte-moving bump; `asChild` on `Card` DEFERRED to that same bump; `size="lg"` with a
+scrim and the inline width from thepile's DL24 census, not measured yet; the slab REFUSE and the `link` REFUSE both
+standing on Ankit's [V].
