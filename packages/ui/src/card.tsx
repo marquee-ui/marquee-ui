@@ -1,3 +1,4 @@
+import { Slot } from "@radix-ui/react-slot";
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
@@ -8,10 +9,22 @@ import { cn } from "@/lib/utils";
  * and a footer sit on the same gutter as the content without each re-declaring
  * it. "A card inside an accordion item" is a `Card` inside an `AccordionItem`,
  * and needs no prop on either.
+ *
+ * `Card` and `CardTitle` take `asChild`, as `Button` does: the caller's element is
+ * rendered with the part's slot and classes on it. A card's right element is the
+ * consumer's (an `<article>` a reader selects by tag, a `<section>`, an `<li>`), and a
+ * title's heading level is the page's (`<CardTitle asChild><h2>`). Neither has the
+ * content-model reason `RadioGroupItem` refuses it on. The other four parts do not
+ * take it: nothing has asked them for another element.
  */
-export function Card({ className, ...props }: ComponentProps<"div">) {
+export function Card({
+  className,
+  asChild = false,
+  ...props
+}: ComponentProps<"div"> & { asChild?: boolean }) {
+  const Host = asChild ? Slot : "div";
   return (
-    <div
+    <Host
       data-slot="card"
       className={cn(
         "flex flex-col gap-3 rounded-md border-2 border-border bg-surface p-4",
@@ -28,9 +41,14 @@ export function CardHeader({ className, ...props }: ComponentProps<"div">) {
   );
 }
 
-export function CardTitle({ className, ...props }: ComponentProps<"h3">) {
+export function CardTitle({
+  className,
+  asChild = false,
+  ...props
+}: ComponentProps<"h3"> & { asChild?: boolean }) {
+  const Host = asChild ? Slot : "h3";
   return (
-    <h3
+    <Host
       data-slot="card-title"
       className={cn("font-display text-lg text-foreground", className)}
       {...props}

@@ -124,6 +124,7 @@
       "type": "registry:ui",
       "title": "Card",
       "description": "The house surface, as parts: header, title, description, content, footer.",
+      "dependencies": ["@radix-ui/react-slot@^1.3.3"],
       "registryDependencies": ["@marquee/utils"],
       "files": [
         {

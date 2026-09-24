@@ -35,3 +35,40 @@ export const Default: Story = {
 export const ContentOnly: Story = {
   args: { children: <CardContent>Just content.</CardContent> },
 };
+
+/**
+ * The caller's element as the card, through `asChild`: an `<article>` a reader can
+ * select by tag, wearing the card's slot and drawing.
+ */
+export const AsAnArticle: Story = {
+  render: () => (
+    <Card asChild>
+      <article aria-label="A review of Hollow Knight">
+        <CardContent>The card is the article, not a div around it.</CardContent>
+      </article>
+    </Card>
+  ),
+  play: async ({ canvasElement }) => {
+    const card = within(canvasElement).getByRole("article", { name: "A review of Hollow Knight" });
+    await expect(card.tagName).toBe("ARTICLE");
+    await expect(card).toHaveAttribute("data-slot", "card");
+    await expect(canvasElement.querySelectorAll('[data-slot="card"]')).toHaveLength(1);
+  },
+};
+
+/** The title at the page's heading level, through `asChild`: an `<h2>` with the title's slot. */
+export const TitleAtAnotherLevel: Story = {
+  render: () => (
+    <Card>
+      <CardHeader>
+        <CardTitle asChild>
+          <h2>Hollow Knight</h2>
+        </CardTitle>
+      </CardHeader>
+    </Card>
+  ),
+  play: async ({ canvasElement }) => {
+    const title = within(canvasElement).getByRole("heading", { level: 2, name: "Hollow Knight" });
+    await expect(title).toHaveAttribute("data-slot", "card-title");
+  },
+};
