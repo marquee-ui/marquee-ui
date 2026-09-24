@@ -45,6 +45,7 @@ const built = (name: string): RegistryItem =>
 const uiPkg = JSON.parse(readFileSync(resolve(root, "packages/ui/package.json"), "utf8")) as {
   dependencies: Record<string, string>;
   devDependencies: Record<string, string>;
+  peerDependencies: Record<string, string>;
   files: string[];
   exports: Record<string, unknown>;
 };
@@ -55,6 +56,73 @@ const uiPkg = JSON.parse(readFileSync(resolve(root, "packages/ui/package.json"),
  * against THAT list is what made the mistake look correct.
  */
 const uiDeps = uiPkg.dependencies;
+
+/**
+ * A declared dependency's package name, its `@<range>` stripped:
+ * `@radix-ui/react-slot@^1.3.3` → `@radix-ui/react-slot`. One with no range is its own
+ * name (a scoped name's leading `@` is not a range), and the range check reddens it
+ * for the missing range (layer 1 r5 LOW-8: the first edition cut its last letter).
+ */
+const packageName = (dependency: string): string => {
+  const at = dependency.lastIndexOf("@");
+  return at > 0 ? dependency.slice(0, at) : dependency;
+};
+
+/**
+ * Every bare package a source text names in a `from "…"` clause (an import or a
+ * re-export): `@/…` and `./…` are the item's own registry, a scoped name is its
+ * first two segments, any other its first. It is the union check's rule, one copy.
+ * ⚠️ So it misreads three shapes (layer 1 r5 LOW-6, each run): a side-effect
+ * `import "x"` and a dynamic `import("x")` are not read at all, and a COMMENT that
+ * spells `from "x"` is read as an import. No part source holds any of the three
+ * today (the arm is green over all twenty-two items); reading literals through the
+ * TypeScript scanner, as `forced-colors-state.test.tsx` does, would close all three
+ * and moves the union check with it, so it is a REQUEST rather than a local fork.
+ */
+const bareImports = (text: string): string[] => {
+  const names: string[] = [];
+  for (const match of text.matchAll(/from "([^".][^"]*)"/g)) {
+    const specifier = match[1]!;
+    if (specifier.startsWith("@/") || specifier.startsWith(".")) continue;
+    names.push(
+      specifier.startsWith("@")
+        ? specifier.split("/").slice(0, 2).join("/")
+        : specifier.split("/")[0]!,
+    );
+  }
+  return names;
+};
+
+/** The texts of an item's `.ts` / `.tsx` files. */
+const sourcesOf = (item: RegistryItem): string[] =>
+  item.files
+    .filter((f) => /\.tsx?$/.test(f.path))
+    .map((f) => readFileSync(resolve(root, f.path), "utf8"));
+
+/**
+ * What an item's `dependencies` get wrong against its OWN sources, one line per
+ * package, naming the item: a bare import it does not declare (a `shadcn add`
+ * consumer without the package gets an import that resolves to nothing), and a
+ * declared package none of its files imports (a consumer installs it for nothing).
+ * A `peer` is the consumer's own and is never an item's to declare.
+ */
+const dependencyDrift = (
+  name: string,
+  declared: readonly string[],
+  sources: readonly string[],
+  peers: ReadonlySet<string>,
+): string[] => {
+  const imported = new Set(sources.flatMap(bareImports).filter((n) => !peers.has(n)));
+  const names = new Set(declared.map(packageName));
+  return [
+    ...[...imported]
+      .filter((n) => !names.has(n))
+      .map((n) => `${name}: imports ${n} and does not declare it`),
+    ...[...names]
+      .filter((n) => !imported.has(n))
+      .map((n) => `${name}: declares ${n} and does not import it as a dependency`),
+  ];
+};
 
 describe("registry.json", () => {
   it("declares the twenty-one part families plus the one shared lib", () => {
@@ -143,9 +211,8 @@ describe("registry.json", () => {
     let checked = 0;
     for (const item of registry.items) {
       for (const dependency of item.dependencies ?? []) {
-        const at = dependency.lastIndexOf("@");
-        const name = dependency.slice(0, at);
-        const range = dependency.slice(at + 1);
+        const name = packageName(dependency);
+        const range = dependency.slice(name.length + 1);
         expect(uiDeps[name], `${item.name}: ${name} is not a dependency of @marquee-ui/ui`).toBe(
           range,
         );
@@ -197,6 +264,72 @@ describe("registry.json", () => {
     }
     // Anchor: the same total the count above holds, reached from the imports.
     expect(derived).toBe(23);
+  });
+
+  it("declares exactly the npm dependencies its own sources import, per item", () => {
+    // The ranges above are checked only for what an item DECLARES, and the union
+    // below only against the package: a `card` that imported `Slot` and declared
+    // nothing, or a `button` that stopped declaring `class-variance-authority`, was
+    // GREEN on the whole suite (DL24 layer 1 r5 MED-2; DL25 re-ran both). So each
+    // item's set is DERIVED from its own files' bare imports and compared, both ways.
+    const peers = new Set(Object.keys(uiPkg.peerDependencies));
+    expect([...peers].sort(), "the peers a consumer brings, which no item declares").toEqual([
+      "react",
+      "react-dom",
+    ]);
+    // The READER, on texts written here: each direction, a peer, the item's own
+    // registry and a deep import.
+    expect(
+      dependencyDrift("x", [], ['import { Slot } from "@radix-ui/react-slot";'], peers),
+      "an undeclared import reads as declared",
+    ).toEqual(["x: imports @radix-ui/react-slot and does not declare it"]);
+    expect(
+      dependencyDrift(
+        "x",
+        ["class-variance-authority@^0.7.1"],
+        ['import { useId } from "react";'],
+        peers,
+      ),
+      "a declared package no source imports reads as imported",
+    ).toEqual(["x: declares class-variance-authority and does not import it as a dependency"]);
+    expect(
+      dependencyDrift(
+        "x",
+        ["@radix-ui/react-slot@^1.3.3", "clsx@^2.1.1"],
+        [
+          'import { Slot } from "@radix-ui/react-slot/dist/index";',
+          'import { clsx } from "clsx/lite";\nimport { useId } from "react";',
+          'import { createPortal } from "react-dom";\nimport { cn } from "@/lib/utils";\nimport { Label } from "./label";',
+        ],
+        peers,
+      ),
+      "a peer, the item's own registry or a deep import reads as a dependency",
+    ).toEqual([]);
+
+    let derived = 0;
+    let declared = 0;
+    const drift: string[] = [];
+    for (const item of registry.items) {
+      drift.push(...dependencyDrift(item.name, item.dependencies ?? [], sourcesOf(item), peers));
+      declared += (item.dependencies ?? []).length;
+      derived += new Set(
+        sourcesOf(item)
+          .flatMap(bareImports)
+          .filter((n) => !peers.has(n)),
+      ).size;
+    }
+    expect(
+      drift,
+      "a registry item's dependencies differ from its own sources' bare imports: declare what it imports, drop what it does not",
+    ).toEqual([]);
+    // Anchor: the walk reached every declared pair from the imports (21 at DL25), so a
+    // walk over no item or no import cannot pass. Not a counter to move: a part that
+    // declares what it imports moves both sides (layer 1 r5 LOW-5).
+    expect(
+      declared,
+      "no item declares a dependency: the walk has nothing to compare",
+    ).toBeGreaterThan(5);
+    expect(derived, "the imports reached fewer pairs than the items declare").toBe(declared);
   });
 
   it("keeps no stylesheet's first token a comment", () => {
@@ -285,22 +418,7 @@ describe("the built registry in packages/ui/r", () => {
   it("declares as RUNTIME dependencies everything the shipped sources import", () => {
     // The package advertises `exports["."]`, so an installed copy has to resolve
     // every bare import in `src/`. A devDependency does not install for a consumer.
-    const imported = new Set<string>();
-    for (const item of registry.items) {
-      for (const file of item.files.filter(
-        (f) => f.path.endsWith(".tsx") || f.path.endsWith(".ts"),
-      )) {
-        const text = readFileSync(resolve(root, file.path), "utf8");
-        for (const match of text.matchAll(/from "([^".][^"]*)"/g)) {
-          const specifier = match[1]!;
-          if (specifier.startsWith("@/") || specifier.startsWith(".")) continue;
-          const name = specifier.startsWith("@")
-            ? specifier.split("/").slice(0, 2).join("/")
-            : specifier.split("/")[0]!;
-          imported.add(name);
-        }
-      }
-    }
+    const imported = new Set(registry.items.flatMap(sourcesOf).flatMap(bareImports));
     expect(imported.size).toBeGreaterThan(4);
     const peers = new Set(["react", "react-dom"]);
     const missing = [...imported].filter((name) => !(name in uiDeps) && !peers.has(name));
