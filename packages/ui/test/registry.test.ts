@@ -75,9 +75,9 @@ const packageName = (dependency: string): string => {
 type Source = { path: string; text: string };
 
 /**
- * Every bare package a source imports: `@/…` and `./…` are the item's own registry, a
- * scoped name is its first two segments, any other its first. The ONE reader both
- * dependency checks call (the per-item arm and the union check).
+ * Every module specifier a source names, in source order. The ONE walk all three
+ * dependency checks stand on: `bareImports` below for the per-item arm and the union
+ * check, `registryImports` for the registry-dependencies check.
  *
  * Read through the TypeScript scanner, as `forced-colors-state.test.tsx` reads its
  * literals, at exactly four positions: an import's specifier (`import … from "x"`
@@ -91,7 +91,7 @@ type Source = { path: string; text: string };
  * (unknowable), `import x = require("x")`, a `require("x")` call, and a type-position
  * `typeof import("x")`.
  */
-const bareImports = ({ path, text }: Source): string[] => {
+const specifiersOf = ({ path, text }: Source): string[] => {
   const specifiers: string[] = [];
   const visit = (node: ts.Node): void => {
     if (
@@ -111,14 +111,44 @@ const bareImports = ({ path, text }: Source): string[] => {
     ts.forEachChild(node, visit);
   };
   visit(ts.createSourceFile(path, text, ts.ScriptTarget.Latest));
-  return specifiers
+  return specifiers;
+};
+
+/**
+ * Every bare package a source imports: `@/…` and `./…` are the item's own registry, a
+ * scoped name is its first two segments, any other its first.
+ */
+const bareImports = (source: Source): string[] =>
+  specifiersOf(source)
     .filter((specifier) => !specifier.startsWith("@/") && !specifier.startsWith("."))
     .map((specifier) =>
       specifier.startsWith("@")
         ? specifier.split("/").slice(0, 2).join("/")
         : specifier.split("/")[0]!,
     );
-};
+
+/**
+ * Every registry item a source imports, as `@marquee/<name>`: the shared lib by
+ * `@/lib/utils`, a sibling part by `./<name>` (a `.js` suffix stripped). Any other
+ * specifier is not this registry's (a bare package is `bareImports`' to read).
+ *
+ * ONE rule for a sibling that is not a part: a STYLESHEET (`.css`) is skipped. The
+ * one in the tree is `ribbon.tsx`'s side-effect `import "./ribbon.css"`, a file the
+ * `ribbon` item ships among its OWN `files`, never an item of its own. The rule is by
+ * extension and not by the registry's item names, on purpose: a names rule would also
+ * skip a sibling `./helpers` or a misspelled part, which no item ships and a
+ * consumer's `shadcn add` copy cannot resolve, and that is exactly the import this
+ * check exists to redden. A stylesheet no item ships is `registers every component
+ * source exactly once`'s to catch.
+ */
+const registryImports = (source: Source): string[] =>
+  specifiersOf(source).flatMap((specifier) =>
+    specifier === "@/lib/utils"
+      ? ["@marquee/utils"]
+      : specifier.startsWith("./") && !specifier.endsWith(".css")
+        ? [`@marquee/${specifier.slice(2).replace(/\.js$/, "")}`]
+        : [],
+  );
 
 /** An item's `.ts` / `.tsx` files. */
 const sourcesOf = (item: RegistryItem): Source[] =>
@@ -273,26 +303,41 @@ describe("registry.json", () => {
     // write a copy whose `./input` resolves to nothing (DL19 layer 1, MED-3). So the
     // set is DERIVED from each shipped source's own imports - a sibling part by
     // `./<name>`, the shared lib by `@/lib/utils` - and compared, per item.
+    // Until DL27 it read them with a regex over `from "…"`: a COMMENT spelling a
+    // sibling import reddened it (a false red on prose) and a side-effect
+    // `import "./x"` was never read (a false green on a real import). Now through
+    // `registryImports`, the scanner's specifiers, whose one rule skips a stylesheet.
+    // The READER, on a text written here: every position, and the rule.
+    const text = [
+      '// import { Label } from "./label"',
+      '/** export * from "./toast" */',
+      "const prose = 'import x from \"./alert\"';",
+      'import "./toggle";',
+      'import { Input } from "./input.js";',
+      'import "./ribbon.css";',
+      'import { cn } from "@/lib/utils";',
+      'import { Slot } from "@radix-ui/react-slot";',
+      'export { Badge } from "./badge";',
+      'export const later = () => import("./sheet");',
+    ].join("\n");
+    expect(registryImports(part(text)), "the sibling reader, over every import shape").toEqual([
+      "@marquee/toggle",
+      "@marquee/input",
+      "@marquee/utils",
+      "@marquee/badge",
+      "@marquee/sheet",
+    ]);
     let derived = 0;
     for (const item of registry.items) {
-      const required = new Set<string>();
-      for (const file of item.files.filter((f) => /\.tsx?$/.test(f.path))) {
-        const text = readFileSync(resolve(root, file.path), "utf8");
-        for (const match of text.matchAll(/from "(\.\/[^"]+|@\/lib\/utils)"/g)) {
-          const specifier = match[1]!;
-          required.add(
-            specifier === "@/lib/utils"
-              ? "@marquee/utils"
-              : `@marquee/${specifier.slice(2).replace(/\.js$/, "")}`,
-          );
-        }
-      }
+      const required = new Set(sourcesOf(item).flatMap(registryImports));
       expect([...(item.registryDependencies ?? [])].sort(), item.name).toEqual(
         [...required].sort(),
       );
       derived += required.size;
     }
-    // Anchor: the same total the count above holds, reached from the imports.
+    // Anchor: the same total the count above holds, reached from the imports. And the
+    // rule, holding on the tree: `ribbon` imports `./ribbon.css` and declares
+    // `@marquee/utils` alone, so a reader without the rule reddens `ribbon` here.
     expect(derived).toBe(23);
   });
 
