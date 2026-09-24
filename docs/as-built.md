@@ -12799,3 +12799,59 @@ My copies of the probes are in `r5/probe/`, repointed to my worktree and to r5's
 | UNVERIFIED: base content check `:460` / `:470`, head `:512`; `:251` inside `:240-253`; base `bareImports` `:94-113`, filter `:115`, end `:121` | `git show 748cecbd:`                                                                                                                                                                                                                                | holds                                                                                            |
 | 35 / 603 at the base, 35 / 604 at the head                                                                                                     | 18 to 19 `it(` in the file; full vitest at the head `35 passed`, `604 passed`                                                                                                                                                                       | holds                                                                                            |
 | DL24 bullets `:11054-11058`; CROSS `DESIGN-LIB.md:6436-6440`; head lines `:302-324`, `:314`, `:315`, `:323`, `:94-115`, `:121-128`, `:146-153` | read                                                                                                                                                                                                                                                | holds                                                                                            |
+
+## DL27 reconciler: the ownership rule in, two measurements ending as REQUESTs, and thepile's verdicts recorded (2026-09-24)
+
+`s/design-lib-d-deps-lg-inline` @ `4a5bae6` merged into `next` at `100f4dca` (`--no-ff`); `pnpm verify` on the merged tree
+from the root exit 0, 35 files / 604 tests (22:10:37-22:10:56 IST); `git diff --stat 748cecbd 100f4dca -- packages/ui/src
+packages/ui/r packages/ui/package.json packages/tokens registry.json` EMPTY, so no byte thepile vendors moved and there is
+no bump. What landed: the registry-dependencies check reads each part source's imports through the TypeScript scanner and
+resolves every import to the item that SHIPS its file (`specifiersOf`, `registryImports`, `registryDrift`; a comment never
+read; a side-effect sibling import read; a helper no item ships, another item's stylesheet, an unregistered or nested
+stylesheet, `@/label`, `@/lib/merge` and `../x` each red; the source's own item's files skipped), test-only, 603 → 604.
+`size="lg"` with a scrim, MEASURED against thepile's three hero sites, is recommended REFUSE [V]: a size axis alone makes
+none pure, the scrim is a `className` and not an axis, and DL24's AUDIT-FIX with a width axis makes all three pure. The
+inline width, MEASURED against thepile's two settings anchors, is recommended BUILD as a width axis (`full` / `auto`,
+W-box) at the next byte-moving bump [V]: both sheets emit `.w-auto` before `.w-full`, so the axis takes `w-full` out of the
+string rather than appending. thepile's reconciler recorded both verdicts in its audit (`docs/design-audit.md`'s `/` and
+`/settings` rows at `724e20dd`) and the hero AUDIT-FIX and `DangerZone`'s dead pair as its own follow-ups.
+
+**thepile's verdicts this batch, recorded here (class J).** The first `Separator` route of f is DONE on `/transparency`
+(`docs/slices/DESIGN-LIB-f-separator.md`, thepile `dea151f4`): `TunableRow`'s thirty rules on `<Separator decorative
+className="forced-colors:border-t-2" />`, the copy `components/ui/separator.tsx` `cmp`-identical to the 0.1.6 tarball's
+`package/src/separator.tsx`, `separator` consumed, `@radix-ui/react-separator` added; 0 boxes and 0 pixels different at
+three widths in normal colours at a 16px root and, with the site class, in both forced palettes; the accessibility tree
+identical. **Two findings on the part itself, the library's REQUEST for the next byte-moving bump (from thepile's layer 1
+on the served page, `e2e/forced-colors-controls.spec.ts:735` at thepile `c3e41a1c`):** (a) `Separator`'s only paint is a
+background, so every rule it draws VANISHES under forced colours (both palettes; 20,764 / 31,200 / 28,080 pixels at 390 /
+768 / 1280 on thirty rules); the part needs `forced-colors:border-t-2` / `forced-colors:border-l-2` per orientation, or
+the rule drawn as a border, AND `forced-colors-state.test.tsx`'s guard an arm for a part whose REST drawing is
+colour-only: it reads states drawn only in colour and cannot see a stateless part; (b) the rule is sized in rem (`h-0.5`:
+3px at a 24px root, 4px at 32px, against the base's fixed 2px, the page growing 30px and 60px over thirty rules), a unit
+question for the part. thepile's share is the site className alone. The twelve OPEN `Separator` rows were censused before
+the route was built: PURE 1, PURE with a positional class 1 (`/[username]`'s `SectionHead` x7, the next route), PURE-W 3
+(identical only with a wrapper element, refused as a restructure), AUDIT-FIX 1, ADDITION 6. DL26 s1's REQUEST 2 (the three
+cut ON drawings with no visible focus ring) is CLOSED in thepile (`docs/slices/CUT-FOCUS-RING.md`, thepile `9a878639`):
+the ring lives once on `DOOR_CLASS.tabSelected` on the negative-offset token form (`focus-visible:outline-on-accent
+focus-visible:-outline-offset-4`, which Tailwind already emitted), `FOL_LOUD` and `CHIP_ON` carrying the same two
+utilities; -4px in `on-accent` chosen by contrast on the built head (486 / 1,060 / 486 pixels inside the box at >= 3:1 for
+the selected tab, the Follow face and the pressed chip, against 0 at >= 3:1 for -2px in the accent, which only turns the
+border into the fill); the DL26 probe's base numbers (36 / 2 / 36 inside, `outline … @ 2px · clip polygon`) reproduced
+exactly before the fix; three reads in `e2e/focus.spec.ts:188,199,211` red on the base with CLIPPED, each also taking a
+picture because `expectFocusRing` passes an accent ring on an accent fill. FOLLOWUPS-14 (`docs/slices/FOLLOWUPS-14.md`,
+thepile `5a981509`) deleted `secondaryButtonClass`, `dangerButtonClass` and `secondaryBase`, the pile retries now pinned
+against `buttonVariants({ variant: "secondary" })` from the vendored `button.tsx` itself (e2e's tsconfig follows the
+`.tsx` import), so nothing in thepile pins the secondary and danger strings against the original upstream any more: this
+repository's `fidelity.test.tsx` owns them.
+
+**CROSS answered.** thepile's DL27 composition (`docs/slices/DESIGN-LIB.md` "## Batch DL27" (b-i) at `ad2a3944`) cites
+`registry.test.ts:270-296`, `:281`, `:283-287`, `:290`, `:296` and `bareImports` `:94-113`: those are the base's lines
+(`748cecbd`) and the record stays as written; at `c02172e` and on `next` the check is `:338-364` (`:352` the drift,
+`:356-359` its compare, `:363` the anchor), `specifiersOf` `:94-115`, `bareImports` `:121-128`, `registryImports`
+`:152-167` and `registryDrift` `:174-189`.
+
+**Open REQUESTs the library holds after this batch**: the width axis (W-box `full` / `auto`) at the next byte-moving bump
+[V]; `Separator`'s forced-colours paint and rem unit, and the guard's arm for a stateless part drawn only in colour (above);
+`src/radio-group.tsx:40-43`'s docblock and `:155-157`'s falsified sentence, comment-only, at that bump; `asChild` on `Card`
+DEFERRED to it; the `size="lg"` REFUSE, the slab REFUSE and the `link` REFUSE all standing on Ankit's [V]. DL27 shipped no
+library byte, so no tag or publish is added by it.
