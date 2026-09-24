@@ -11083,3 +11083,271 @@ was packed from, never on the version line by itself. At push time, after the fr
 at `c9115f7` (the README) or `0b135c1` (the pack line), settled by `pnpm pack` at each and `cmp` against thepile's
 `vendor/marquee-ui/marquee-ui-ui-0.1.2.tgz`; `ui@0.1.3` at `a885aea`; `ui@0.1.4` at `66a15da`; `ui@0.1.5` at `40b94a8`;
 `ui@0.1.6` at `ed6a393`. No script in either repo depends on the tags existing (layer 2's check 9).
+
+## DESIGN-LIB-d-guard-arms: a carrier scaled to nothing, each item's dependencies from its imports, and the `link` variant measured (2026-09-24, batch DL25)
+
+Batch DL25, stream s1, branch `s/design-lib-d-guard-arms` from `next` @ `8d9d569`. thepile is read-only throughout, at
+`43a9aead` by `git -C … show` (the composition is `docs/slices/DESIGN-LIB.md` "## Batch DL25", paragraph (b), the
+"Shared surfaces" paragraph and the s1 row). Under the push freeze: LOCAL commits, no tag, no publish, no PR, **no bump**.
+Two test-only arms and one measurement, no `src/` edit: `b8e98cc` (the `scale` arm, in
+`packages/ui/test/forced-colors-state.test.tsx`), `0de0a17` (the `dependencies` arm, in `packages/ui/test/registry.test.ts`)
+and this section. No fixture was needed. `git diff --stat 8d9d569 HEAD -- packages/ui/src packages/ui/r
+packages/ui/package.json packages/tokens registry.json` prints nothing.
+
+Every mutation ran in ONE detached worktree (`../mut-guard-arms`, at `8d9d569` for the premise, then moved to the
+committed head `0de0a17`), tokens built in it, through a driver (`$BATCH_SCRATCH/s1/muts/mut.py`, DL24 s1's with a
+per-mutation test list and a `post` command). It asserts each find matched once and confirms the marker LANDED by
+`grep -n -F`. It runs the `post` command (`pnpm build:registry`, so the content check `registry.test.ts:362` is fresh
+and cannot be the red that is read), then the pair from the REPO ROOT (`forced-colors-state.test.tsx` and
+`registry.test.ts`, verbose). It restores with `git checkout -- .` and checks the tree clean. Logs are
+`muts/<id>-base.log` and `muts/<id>-head.log`. The Chromium column is DL24 s1's probe, copied to
+`$BATCH_SCRATCH/s1/fc-probe/`: the guard's own fixture compiled from the mutated tree, the four controls rendered in
+headless Chromium under `forcedColors: active` in both palettes, each state hashed.
+
+**The base, re-measured**: `pnpm verify` at `8d9d569` exit **0**, `Test Files 35 passed (35)`, `Tests 601 passed
+(601)` (`verify-base.log`), the tree clean after. The composition's 35 / 601 holds.
+
+### What was measured
+
+- **What Tailwind compiles a `scale` utility to** (`probe/scale-sheet.mjs`, this repo's Tailwind over an inline
+  source, printing every rule naming `scale`). ⚠️ The composition's `--tw-scale-x: 0%; --tw-scale-y: 0%; scale:
+var(--tw-scale-x) var(--tw-scale-y)` is short one property (class B): `.scale-0` and `.forced-colors\:scale-0` (the
+  latter inside `@media (forced-colors: active)`) each declare `--tw-scale-x: 0%; --tw-scale-y: 0%; --tw-scale-z: 0%;
+scale: var(--tw-scale-x) var(--tw-scale-y)`. `scale-x-0` sets the x alone. `scale-z-0` writes `scale:
+var(--tw-scale-x) var(--tw-scale-y) var(--tw-scale-z)`, a third word. `-scale-0` writes `calc(0% * -1)` in each
+  variable, `scale-[0]` a bare `scale: 0`, and `scale-none` `scale: none`. The three variables are registered
+  `@property … { syntax: "*"; inherits: false; initial-value: 1 }`. No `scale-` utility compiles in the real sheet
+  (`git grep` over `src` and `stories`: none), so every pin is hand-placed and every red is a mutation.
+- **What Chromium draws** (`fc-probe/run-scale-base.txt`, `run-scale-base-2.txt`: the Switch's thumb, both hosts, both
+  forced palettes, unchecked hash = checked hash). IDENTICAL, the thumb not drawn: `forced-colors:scale-0` (P20),
+  `scale-x-0`, `scale-y-0`, **`scale-z-0`**, `-scale-0` and `scale-[0]`, each `aee70fc72f4e` / `005e818e4050`
+  (dark / light, DL21's defect hashes), and `scale-50 forced-colors:scale-x-0` (the x from the forced rule, the y from
+  the bare one). DIFFERENT: `forced-colors:scale-50` (P20g, `b3efd1ef1a98` / `b35a98918c77` dark), `-scale-x-100` (a
+  mirror) and `scale-none` (the base's own hashes), and `group-{aria,has}-checked/switch:scale-0` (vanishing only
+  when checked, `963127a43230` / `aee70fc72f4e`: two pictures). ⚠️ **A zero on ANY axis hides, z included** (class B
+  against the composition's "x or y", and against this stream's own first reading). The thumb under `scale-z-0` still
+  measures 16 x 16 and still translates 20px, and draws nothing: a matrix with a zero scale factor is not invertible,
+  and Chromium does not render such an element.
+- **The registry, walked** (a node walk over `registry.json` with `registry.test.ts`'s own specifier rule, then the
+  arm's own count). There are **22** items. **21** (item, package) pairs are imported, and the same 21 are declared: no
+  item misses a dependency and none declares an extra one (the composition's measurement holds). Fifteen items
+  declare something; seven declare nothing (`card`, `checkbox`, `input`, `ribbon`, `textarea`, `toast`, `toggle`).
+  ⚠️ **Nine** items declare `@radix-ui/react-slot`, not eight (class B, DL24's REQUEST 4 and the composition):
+  `alert`, `avatar`, `badge`, `breadcrumb`, `button`, `form`, `pagination`, `radio-group`, `switch`. Each of them
+  imports `react` and declares nothing for it, and `toast` imports `react-dom` the same way. So the exclusion set is
+  the package's `peerDependencies`, `react` and `react-dom`, read from `packages/ui/package.json` rather than typed.
+
+### The `scale` arm (`b8e98cc`)
+
+`scaledToNothing` (`forced-colors-state.test.tsx:412`) reads the element's WINNING `scale` (`winner`, ranked as every
+other winner in the file). Each `var()` in it resolves to the winning declaration of THAT custom property on the same
+element in the same state; a variable nothing sets stands at `1` (its registered initial, or, unregistered, invalid,
+which computes `none`). The declaration hides when any factor is zero (`0`, `0%`, or a `calc()` product with a zero
+factor). `hiding` (`:430`) returns it after `HIDES`' three properties, so both of `hiding`'s readers take it: `paintsIn`,
+and `unseenBy`, which names the resolved value (`is hidden under the mode by scale: var(--tw-scale-x) var(--tw-scale-y),
+resolved 0% 0%`). `HIDES` itself (`:359-363`) is unchanged. Element-local: an ancestor scaled to nothing stays the
+header's LIMIT. The header's four statements of the scale case are corrected in the same commit, all comments:
+
+- the "WHAT IS CHECKED" list (`:60-64`);
+- the LIMIT paragraph's heading (`:90`), which now names the parent only;
+- the `:95` sentence, "Nor is a carrier's own `scale` read as anything but movement", replaced by one saying a carrier's
+  own `scale` of zero is read since DL25, and the thumb dropped from the list of edits the file misses;
+- the last sentence, which moved `scale-` into the classes on an ANCESTOR the file will not catch.
+
+Two hand-placed pins make the arm red without a mutation: a nine-row table in "tells the mechanisms apart" (`:905`), each
+row a utility's compiled rule body verbatim beside Chromium's verdict, plus the two-utility row, and two carrier pins in
+"tells the carriers apart" (`:1541`: the thumb scaled to nothing under the mode paints nothing; scaled only when checked it
+carries).
+
+| id   | mutation (all on detached worktrees; `r/` rebuilt unless said)                               | at `8d9d569` (premise)                                                                                            | at `0de0a17` (the head)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Chromium                      |
+| ---- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------- |
+| P20  | `switch.tsx:92` `thumbClass` + ` forced-colors:scale-0`                                      | **GREEN** `Tests 22 passed (22)` (without the rebuild: `1 failed`, the content check's `switch … is stale` alone) | **RED** `Tests 3 failed \| 20 passed (23)`: the invariant, `switch.tsx: the group-aria-checked/switch state (…) is drawn in ["border-color","background-color"] alone; … and a sibling that changes ["translate"] and is hidden under the mode by scale: var(--tw-scale-x) var(--tw-scale-y), resolved 0% 0%` (and its `group-has-checked` twin); `group-aria-checked/switch: the moving thumb paints nothing the mode keeps`; the hand pin `a thumb scaled to nothing only when checked reads as carrying nothing` (the real thumb is already scaled) | IDENTICAL, both hosts         |
+| P20g | the same + ` forced-colors:scale-50`, the green twin                                         | GREEN 22 / 22                                                                                                     | **GREEN** `Tests 23 passed (23)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | DIFFERENT: the green is right |
+| C1   | the arm collapsed: `hiding` returns `undefined` where it returned `scaledToNothing(applies)` | (the arm is not at the base)                                                                                      | **RED** `Tests 2 failed \| 21 passed (23)`: `a forced-colors frame under scale-0 reads as painting`, `a moving thumb scaled to nothing under the mode reads as painting`                                                                                                                                                                                                                                                                                                                                                                               | n/a                           |
+
+### The `dependencies` arm (`0de0a17`)
+
+"declares exactly the npm dependencies its own sources import, per item" (`registry.test.ts:255`). For every item,
+`dependencyDrift` (`:95`) compares the bare package names its `.ts`/`.tsx` files import (peers aside) with the names in its
+`dependencies` (the range stripped as the range check strips it). It returns one line per difference, naming the item and
+the package, in both directions: `<item>: imports <pkg> and does not declare it` and `<item>: declares <pkg> and does not
+import it as a dependency`. The peers are pinned as `["react", "react-dom"]`. The reader is pinned on three literal texts:
+each direction, and a peer, the item's own `@/` and `./` imports and a deep import (`clsx/lite`) that read as nothing wrong.
+The 21 pairs are an anchor. The specifier rule (`:294-300` at the base) is ONE helper now, `bareImports` (`:68`), and
+`sourcesOf` (`:83`) and `packageName` (`:61`) are the other two. The union check (`:396`) and the range check (`:196`) read
+them, so their behaviour moved nowhere (the full suite at the head is the proof, below).
+
+| id  | mutation                                                                                                                                                                                                               | at `8d9d569` (premise)                                                                                                              | at `0de0a17` (the head)                                                                                                                                                                                |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| D1  | `src/card.tsx` + `import { Slot } from "@radix-ui/react-slot"`, USED (`Card` takes `asChild`: `const Host = asChild ? Slot : "div"`); `registry.json` untouched, `r/` NOT rebuilt (the brief's form)                   | RED `Tests 1 failed \| 21 passed (22)`: the content check's `card: packages/ui/src/card.tsx is stale` alone                         | **RED** `Tests 2 failed \| 21 passed (23)`: the arm's `card: imports @radix-ui/react-slot and does not declare it`, AND the content check's `card … is stale` (the built bytes lag, as the brief said) |
+| D1r | D1 with `r/` rebuilt by `pnpm build:registry`, so only a dependency reader can see it                                                                                                                                  | **GREEN** `Tests 22 passed (22)`; the WHOLE suite `Test Files 35 passed (35)` / `Tests 601 passed (601)` (r5's MED-2, reproduced)   | **RED** `Tests 1 failed \| 22 passed (23)`: the arm alone, `card: imports @radix-ui/react-slot and does not declare it`                                                                                |
+| D2  | `registry.json`'s `button` item minus `class-variance-authority@^0.7.1`, `r/button.json` and `r/registry.json` rebuilt by `pnpm build:registry` (not by hand); the `post` confirms `["@radix-ui/react-slot@^1.3.3"]`   | **GREEN** 22 / 22; the WHOLE suite 35 / 601: the union check reads `package.json`, unchanged, so the pre-arm suite could not see it | **RED** `Tests 1 failed \| 22 passed (23)`: the arm alone, `button: imports class-variance-authority and does not declare it`                                                                          |
+| D3  | the stale direction on the real registry: `card` + `"dependencies": ["class-variance-authority@^0.7.1"]`, `r/` rebuilt (the driver's `landed` names `description-list`'s identical line; the `post` confirms `card`'s) | **GREEN** 22 / 22                                                                                                                   | **RED** `Tests 1 failed \| 22 passed (23)`: `card: declares class-variance-authority and does not import it as a dependency`                                                                           |
+| C2  | `dependencyDrift`'s stale half dropped (`&& false`)                                                                                                                                                                    | (the arm is not at the base)                                                                                                        | **RED** 1 failed: `a declared package no source imports reads as imported`                                                                                                                             |
+| C3  | its missing half dropped                                                                                                                                                                                               | (the arm is not at the base)                                                                                                        | **RED** 1 failed: `an undeclared import reads as declared`                                                                                                                                             |
+
+### The `link` variant, measured (a REQUEST, Ankit's [V])
+
+No `src/` edit. The seven sites are file reads at thepile `43a9aead`. The rendered readings are DL24 s2's census
+(`docs/slices/DESIGN-LIB-f-tiers-button.md`, the table's rows 2, 12, 13, 14 and 15, and the probe's own
+`census.base.out.json` / `census.base.fresh.json` in `~/.thepile-scratch/DL24/s2/probe/`, extracted to
+`$BATCH_SCRATCH/s1/link-census-readings.txt`), on the base build `86ed7e82` at 390, 768 and 1280, all three equal. The
+five class strings the composition quotes are each verbatim at `43a9aead`. Three of its line citations are not (class B):
+
+- `TryAnother` is `page.tsx:292-299`, its link `:295-297` inside `:294`'s `<p className="text-sm">`, not `:290-294`;
+- `/feed`'s end link is `:100-105` (`:99` is the text before it);
+- the census rows are 2, **12**, 13, 14, 15 (row 11 is `FacePicker`'s slab).
+
+`apps/` is identical between `1b039405` and `43a9aead`.
+
+The candidate is the string two sites already wear, in the library's tokens (`text-primary-ink` is thepile's
+`text-accent-ink`, `globals.css:123`): **K = `inline-flex min-h-11 items-center font-mono text-xs text-primary-ink
+underline`**. PURE here means the site's drawing is K plus a `className` that ADDS utilities. thepile's `cn` is a plain
+join (DESIGN-LIB-a4 [V]), so a `className` utility on a property K already sets is decided by stylesheet order, not by
+the caller (the census's `/settings` row is the measured instance).
+
+| #   | site                                                     | file:lines at `43a9aead`                                                      | string (thepile tokens)                                                                                                          | box (rendered)                                                                                                                  | ink rest / hover (rendered)                                                                          | underline rest / hover | mono                            | size                        | against K                                                                                                                                      |
+| --- | -------------------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------- | ------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `/impossible-autumn` "See the whole release calendar"    | `app/impossible-autumn/page.tsx:171-176`                                      | `inline-flex w-fit min-h-hit min-w-hit items-center font-mono text-sm underline underline-offset-2 hover:text-accent`            | `min-h-hit min-w-hit` (44 x 44 floor), `w-fit`; `display: flex`, 270 x 44                                                       | `rgb(242, 245, 232)` (the page's ink, inherited) / `rgb(228, 255, 58)`                               | yes / yes, offset 2    | yes                             | 14px (`text-sm`)            | **NEVER pure**: ink (inherited vs `primary-ink`) and size (14 vs 12) each conflict; `w-fit min-w-hit underline-offset-2 hover:text-accent` add |
+| 2   | `/impossible-autumn`, the second anchor                  | `:177-182`                                                                    | the same string                                                                                                                  | the same                                                                                                                        | the same                                                                                             | the same               | yes                             | 14px                        | **NEVER pure**, as row 1                                                                                                                       |
+| 3   | `/feed` "Find members"                                   | `app/feed/page.tsx:52-57`                                                     | `flex min-h-11 items-center font-mono text-xs text-accent-ink underline`                                                         | `min-h-11`; `display: flex`, 84 x 44                                                                                            | `rgb(228, 255, 58)` in every state                                                                   | yes / yes              | yes                             | 12px                        | **PURE**: `flex` vs `inline-flex` draws nothing (a flex item is blockified: rows 1 and 5, `inline-flex` in source, render `flex`)              |
+| 4   | `/feed` "Find more members" (the caught-up line)         | `:100-105`                                                                    | `-my-3 inline-flex min-h-11 items-center py-3 text-accent-ink underline underline-offset-4`                                      | `min-h-11 py-3 -my-3`, a 44px band inside a line of text; NOT RENDERED by the census (a last page with items needs follow rows) | `accent-ink` (file)                                                                                  | yes / yes, offset 4    | inherited (`<p>`'s `font-mono`) | 12px inherited (`text-xs`)  | **PURE by addition**: `-my-3 py-3 underline-offset-4`, none on a property K sets (mono and 12px equal K's by inheritance). FILE read           |
+| 5   | `/` and `/home`, each rail's "more" door (one component) | `components/home/Section.tsx:61-66`                                           | `inline-flex min-h-11 items-center whitespace-nowrap font-mono text-xs uppercase tracking-label text-accent-ink hover:underline` | `min-h-11`, `nowrap`; `display: flex`, 110 x 44 (four on `/home`)                                                               | `rgb(228, 255, 58)` in every state                                                                   | **no** / yes           | yes                             | 12px, caps, 1.44px tracking | **NEVER pure**: underlined at rest vs on hover only (`underline` beside `no-underline` is stylesheet order); caps, tracking, `nowrap` add      |
+| 6   | `/notifications` "Your feed"                             | `app/notifications/page.tsx:67-72`                                            | row 3's string                                                                                                                   | `display: flex`, 63 x 44                                                                                                        | `rgb(228, 255, 58)` in every state                                                                   | yes / yes              | yes                             | 12px                        | **PURE**, as row 3                                                                                                                             |
+| 7   | `/pile/[steamid]` `TryAnother` "Count another profile"   | `app/pile/[steamid]/page.tsx:295-297` (in `:294`'s `<p className="text-sm">`) | `underline hover:text-text`                                                                                                      | **none**: `display: inline`, auto x auto, `min-height: 0`                                                                       | `rgb(242, 245, 232)` / the SAME (`hover:text-text` is the inherited ink: a hover that draws nothing) | yes / yes              | no (grotesk, inherited)         | 14px (the `<p>`'s)          | **NEVER pure**: box, font, size and ink all conflict                                                                                           |
+
+Every rendered site has `border-width: 0`, a transparent ground, `border-radius: 0`, `padding: 0` and weight 400, and
+wears the app's global focus ring (`outline: solid 2px rgb(228, 255, 58)`, offset 2px), which is not in any string.
+
+- **The common set.** Across all seven: nothing. Row 5 underlines on hover only, and row 7 has no box. Across the six
+  with a box: a 44px min-height, `items-center`, and a flex display (rendered `flex` on all five the census rendered).
+  Five of six underline at rest, four of six are `accent-ink`, four of six are 12px, and all six draw mono (row 4 by
+  inheritance).
+- **One string, pure where?** K is pure on three sites (rows 3, 4, 6) and on two routes, `/feed` and `/notifications`.
+  It is never pure on four: rows 1 and 2 need two more axes (a size, sm or xs, and an ink, inherited or
+  `primary-ink`), row 5 needs a third (an underline at rest or on hover), and row 7 is not reachable from any boxed
+  string. The most a variant can carry and stay pure by addition on the five rows 1 to 4 and 6 is the intersection,
+  `inline-flex min-h-11 items-center font-mono underline`, which leaves the ink and the size to every caller: a tap band
+  with an underline, not a drawing.
+- **Is it a `Button` at all?** No. None of the seven carries anything `Button`'s five drawings are made of: no border, no
+  ground, no radius, no padding, and weight 400 against the part's 600 or 700. `buttonVariants` has no shared base
+  (`cva("")`, `button.tsx:29`), so a `link` variant would share nothing with the part but `data-slot="button"` and
+  `Slot`. The house's text link with a 44px band already ships, and it is not a `Button`: `BreadcrumbLink`'s `linkClass`
+  (`breadcrumb.tsx:61-62`, `inline-flex min-h-11 items-center underline underline-offset-2 hover:text-foreground`).
+  Row 7 is a link inside a sentence, which WCAG 2.5.8's inline exception covers, and `Button asChild` would draw a 44px
+  band inside a paragraph; the census already called its demand wrong.
+- **The cost, an ESTIMATE.** K is 78 B raw and 86 B by `gzip -c | wc -c` alone (78 bytes cannot pay gzip's framing).
+  In context it is smaller: `button.tsx`'s variant literals, minified by hand to `key:"…"` pairs, gzip to 393 B, and to
+  420 B with `link:"…"` added (+27 B); the source's `cva` call goes from 1,117 to 1,147 B (+30 B). It would land in the
+  client chunk of every thepile route that renders a client `Button`: `/tiers/page` has 1,165 B of headroom, `/page` 867
+  B and `/home/page` 862 B on the DL24 merged build. The true delta is the LIB-VENDOR stream's `exact.mjs` read at the
+  bump. Cost does not decide this one.
+
+**Recommendation: REFUSE** [V]. The demand is four drawings, not one: a single variant is pure on 3 of 7 sites, and
+reaching the rest takes three more axes on a part whose five drawings share none of them. The cells to correct are in
+thepile's `docs/design-audit.md` at `43a9aead`. The composition's `:415`/`:416`/`:418` are the census base's (`86ed7e82`)
+numbers; the DL24 reconciler's edits moved each row by five. The reconciler writes the cells:
+
+- `:374` `/impossible-autumn` prescribes `Button` (`variant="link"`) for the two anchors: they stay `Link` text links;
+- `:420` `/feed`: "Find members" leaves the `Button asChild` list ("Older activity" and "Browse members" stay: the census
+  read them against `ghost`, not `link`);
+- `:421` `/home`: "Button `asChild` for the rail doors" becomes text links, kept;
+- `:423` `/notifications`: "Button `asChild` for the "Your feed" door" becomes a text link, kept;
+- `:426` `/pile/[steamid]`: "count another profile" leaves the `Button asChild` list (the retry anchors are s2's
+  consumption this batch).
+
+If Ankit wants one text-link look across the six boxed sites, that is a thepile AUDIT-FIX to one drawing (the
+`impossible-autumn` and `home` shots move), and only then a text-link part generalised from `BreadcrumbLink`'s string,
+a NEW family measured on its own terms, never a `Button` variant. If he says BUILD: K goes into the next byte-moving
+bump (0.1.7, with `asChild` on `Card` and the two `radio-group.tsx` docblocks). It is pure on rows 3, 4 and 6, and rows
+1, 2 and 5 become REQUESTs for axes or AUDIT-FIXes.
+
+**Not measured this batch** (the cursor's order, `link` first by count): the mono slab family, `size="lg"` with a scrim,
+and the inline width.
+
+### Decisions
+
+1. **The `scale` arm reads a zero on ANY axis as a hide, z included**, because Chromium drew `scale-z-0` identical
+   (above). The composition said "x or y", and this stream's first reading of the spec agreed with it until the render
+   said otherwise. The pin table records all eleven verdicts.
+2. **The `dependencies` arm is a pure function pinned on literal texts, beside the real registry.** On the real
+   registry the arm is green today and can only go red under a mutation, so without the literal pins a one-direction
+   collapse would stay green in the suite (C2 and C3 above are red because of them). The peers are
+   `package.json`'s `peerDependencies`, not a typed list.
+3. **`link` on `Button`: REFUSE, with five cells to correct** [V]. The table and the reasons are above.
+4. **The specifier rule is extracted, not copied.** `registry.test.ts:285-310`'s loop and `:142-156`'s name split
+   became `bareImports`, `sourcesOf` and `packageName`, which the old checks and the arm read. The brief says to reuse
+   the rule rather than re-invent it, and a second copy is the drift DL14 paid for. The two old checks assert exactly
+   what they asserted before; the full suite at the head is the proof.
+5. **The header's other three statements of the scale case are corrected with the `:95` sentence** (the "WHAT IS
+   CHECKED" list, the LIMIT heading, and the last sentence's class list). Each said the carrier's own scale was
+   unread, and a comment left saying so is the stale-docblock class.
+6. **`hiding` returns the winning `scale` with its resolved factors in `value`**, so `unseenBy`'s existing message names
+   the zero (P20's red above quotes it) without a new message path.
+7. **P20 rebuilds `r/`** in its mutation, so the red read is the guard's and not the content check's. The unrebuilt
+   premise run is kept (`muts/P20-norebuild-base.log`): there the content check reddens alone.
+8. **No fixture.** Both arms' pins are hand-placed declarations and literal texts in the test files.
+
+### REQUESTs and findings (to the orchestrator)
+
+1. **REQUEST [V], `link` on `Button`: REFUSE.** Correct thepile's audit cells `:374`, `:420`, `:421`, `:423` and `:426`
+   (the reconciler's). The alternative, if Ankit wants one text-link drawing: a thepile AUDIT-FIX first, then a new
+   text-link family measured from `BreadcrumbLink`'s string.
+2. **Class B corrections to the composition and the brief**:
+   - `scale-0` declares `--tw-scale-z: 0%` too;
+   - a zero on ANY axis hides (z measured), not "x or y";
+   - nine items declare `@radix-ui/react-slot`, not eight;
+   - `TryAnother` is `:292-299` (the link `:295-297`), not `:290-294`;
+   - `/feed`'s end link is `:100-105`, not `:99-105`;
+   - the audit cells are `:374`/`:420`/`:421`/`:423`/`:426` at `43a9aead` (the brief's `:415`/`:416`/`:418` are
+     `86ed7e82`'s);
+   - the census rows are 2, 12, 13, 14, 15, not 2, 11, 13, 14, 15.
+3. **CROSS for the reconciler (records, never edited here)**: thepile's composition at `43a9aead` cites this repo's
+   `forced-colors-state.test.tsx:358-362` (`HIDES`, now `:359-363`), `:89-114` (the LIMIT, now `:90-116`), `:95` (the
+   sentence, now `:95-98`) and `:366` (`hiding`'s read, now `:432`), and `registry.test.ts:142-156`, `:173-200`,
+   `:251`, `:285-310` and `:294-300` (now `:196-209`, `:226-253`, `:362`, `:396-404` and `bareImports` at `:68-80`).
+   `DESIGN-LIB.md:5461` still cites the walk at `:425` (`:571` at this head).
+4. **J, recorded**: DL24's REQUEST 3 CROSS (`FacePicker.tsx:344`'s colour-only selected face) is TAKEN this batch by
+   thepile's FOLLOWUPS-12 (s3). This stream edits nothing there; the reconciler writes the verdict line. The two
+   `radio-group.tsx` docblocks (`:40-43`, `:155-157`) still wait for the next byte-moving bump.
+
+### Consumers
+
+**Run 1, before any code** (`scan-run1.txt`, at `8d9d569`, an empty diff), in the library's form:
+
+- (a) The files naming either test file in `packages` and `docs`: `src/radio-group.tsx:174` (a path, no line) and its
+  copy in `r/radio-group.json`, `src/ribbon.css:20` (`registry.test.ts` "holds that rule", no line) and its copy in
+  `r/ribbon.json`, and `test/choice-drawing.test.tsx:194` (a comment). `docs/as-built.md` names them on 169 lines.
+  Neither test file exports anything (`git grep '^export'`: none), so nothing imports them, and neither owns a fixture.
+- (b) `<file>:<line>` citations in `docs` and `src`: all in `docs/as-built.md`, each a dated record at its own sha
+  (`registry.test.ts:60`/`:142`/`:210`… in the LIB-0.1.x sections, `:215`, `:285`, `:151`; `forced-colors-state.test.tsx:452`,
+  `:425`, `:449`, `:89-114` in DL24's). None is a live pointer.
+- (c) thepile at `43a9aead`: `apps/web/src/components/ui/radio-group.tsx:174` and `ribbon.css:20` (the vendored copies,
+  no line), `docs/08-agent-failures.md:40` and `:413`, `docs/slices/DESIGN-LIB-f-report-radio.md:411`,
+  `LIB-VENDOR-0.1.2.md:284,286,387`, `LIB-VENDOR-0.1.3.md:41,102`, `LIB-VENDOR-0.1.4.md:257-258`,
+  `LIB-VENDOR-0.1.5.md:277,366,368,373`, 39 lines of `docs/slices/DESIGN-LIB.md`, and `STATUS.md:377`, `:8444`.
+  `packages/contracts/src/api-v1.ts:109` is thepile's own registry test, not this one.
+
+**Run 2, at the code commit point** (`scan-run2.txt`, `8d9d569...0de0a17`):
+
+- Diff names: `packages/ui/test/forced-colors-state.test.tsx` and `packages/ui/test/registry.test.ts`.
+- (a), (b) and (c) print what run 1 printed, line for line. Scan 1 (exported symbols): none. Scan 4 (role and aria
+  strings): none. Scan 5 (class literals added in a `.tsx`): `forced-colors:border-4`, already the dot's and in the
+  file, and the `probe:*` placement keys, which no class can be. The fixture compiles `src` and `stories` only, so none
+  compiles, and `git grep` finds no test or JSON pinning them.
+- **CROSS: 1** (REQUEST 3's citations, owner the orchestrator's composition). **UNOWNED: 0. NEW between the runs:
+  none.** The fence `git diff --stat` prints nothing.
+
+### For the consumer (LIB-VENDOR)
+
+**NO byte of any copy moves and NO bump is needed, so thepile has nothing to vendor.** The diff is two test files and
+this document. The tarball carries no test (`files: ["r", "src"]`), and `packages/ui/package.json` is still `0.1.6`, so
+the pack point stays `ed6a393` and the tarball stays `marquee-ui-ui-0.1.6.tgz`. For thepile to know (class J, recorded
+here, not edited there): the registry now fails an item whose `dependencies` differ from its imports. So when `asChild` on
+`Card` is built at the next bump, the `card` item must declare `@radix-ui/react-slot@^1.3.3` in the same commit, or
+this arm is red. That is the arm doing its job (D1r above is exactly that edit).
+
+### The gate
+
+The one gate is `pnpm verify` at the head from the repo root (`verify-head.log`, `verify-head.exit`), written below once
+it has run.
