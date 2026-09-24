@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 /** The tone-free secondary skeleton: a variant must pick its own ink AND border. */
 const secondaryBase =
-  "grid min-h-hit w-full place-items-center rounded-md border-2 px-4 text-sm font-semibold hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0";
+  "min-h-hit place-items-center rounded-md border-2 px-4 text-sm font-semibold hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0";
 
 /**
  * `armed` is a compound axis rather than an appended class, and that shape is the
@@ -25,13 +25,21 @@ const secondaryBase =
  * `border-border-strong` silently and permanently. The compound SWAPS the token.
  * `cn`'s merge semantics would also resolve it, but a variant table should not
  * depend on the caller's merge function to be correct.
+ *
+ * `width` is a compound axis for the same reason (0.1.7). The four grid variants
+ * fill their parent by default (`full`: `grid w-full`); `auto` draws an inline box
+ * sized to its label (`inline-grid`). An appended `w-auto` would LOSE: the sheet
+ * emits `.w-auto` before `.w-full`, so under a `cn` that only joins, the variant's
+ * `w-full` wins by order. A flex column still stretches an inline box, so there
+ * `self-start` stays the caller's. `ghost` is sized to its text already and has no
+ * rows here. The axis's classes are appended after the variant's string.
  */
 export const buttonVariants = cva("", {
   variants: {
     variant: {
       /** The board's primary: the offset block, lifting INTO its shadow on hover. */
       primary:
-        "grid min-h-[46px] w-full place-items-center bg-primary px-4 text-sm font-bold text-primary-foreground shadow-lift transition-[transform,box-shadow] hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0_var(--foreground)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:hover:translate-x-0 disabled:hover:translate-y-0 motion-reduce:transition-none",
+        "min-h-[46px] place-items-center bg-primary px-4 text-sm font-bold text-primary-foreground shadow-lift transition-[transform,box-shadow] hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0_var(--foreground)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:hover:translate-x-0 disabled:hover:translate-y-0 motion-reduce:transition-none",
       /**
        * The second primary, and it is a whole other button rather than just other
        * corners: rounded, 44px, lift-on-hover. Kept because ~10 auth and settings
@@ -39,7 +47,7 @@ export const buttonVariants = cva("", {
        * the way past.
        */
       primaryRounded:
-        "grid min-h-hit w-full place-items-center rounded-md bg-primary px-4 text-sm font-bold text-primary-foreground shadow-lift hover:bg-primary-hover hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0",
+        "min-h-hit place-items-center rounded-md bg-primary px-4 text-sm font-bold text-primary-foreground shadow-lift hover:bg-primary-hover hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0",
       secondary: `${secondaryBase} border-border-strong text-foreground hover:border-muted`,
       /** Destructive ink always; the border joins once armed. */
       danger: `${secondaryBase} text-destructive hover:border-destructive`,
@@ -48,12 +56,23 @@ export const buttonVariants = cva("", {
         "inline-flex h-11 items-center rounded-md border-2 border-border px-4 text-sm text-foreground-2 transition-colors hover:border-border-strong hover:text-foreground",
     },
     armed: { true: "", false: "" },
+    width: { full: "", auto: "" },
   },
   compoundVariants: [
     { variant: "danger", armed: true, class: "border-destructive" },
     { variant: "danger", armed: false, class: "border-border-strong" },
+    {
+      variant: ["primary", "primaryRounded", "secondary", "danger"],
+      width: "full",
+      class: "grid w-full",
+    },
+    {
+      variant: ["primary", "primaryRounded", "secondary", "danger"],
+      width: "auto",
+      class: "inline-grid",
+    },
   ],
-  defaultVariants: { variant: "primary", armed: false },
+  defaultVariants: { variant: "primary", armed: false, width: "full" },
 });
 
 export type ButtonProps = ComponentProps<"button"> &
@@ -71,11 +90,12 @@ export function Button({
   className,
   variant,
   armed,
+  width,
   asChild = false,
   type,
   ...props
 }: ButtonProps) {
-  const classes = cn(buttonVariants({ variant, armed }), className);
+  const classes = cn(buttonVariants({ variant, armed, width }), className);
   if (asChild) {
     // No `type` on this branch, deliberately: React's anchor props accept one and
     // `<a type="submit">` is a silent no-op that reads like a working submit.

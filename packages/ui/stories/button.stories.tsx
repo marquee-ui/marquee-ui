@@ -91,3 +91,40 @@ export const CallerClassWins: Story = {
     await expect(button.className).not.toContain("w-full");
   },
 };
+
+/**
+ * The width axis at its default: the four grid variants fill their parent. The axis
+ * owns `grid w-full`, so a caller never appends a width to undo it.
+ */
+export const WidthFull: Story = {
+  args: { variant: "primaryRounded", width: "full", children: "Continue" },
+  render: (args) => (
+    <div className="flex flex-col gap-3">
+      <Button {...args} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const button = within(canvasElement).getByRole("button", { name: "Continue" });
+    await expect(button.className.split(" ")).toEqual(expect.arrayContaining(["grid", "w-full"]));
+    await expect(button.className).not.toContain("inline-grid");
+  },
+};
+
+/**
+ * `width="auto"`: an inline box sized to its label, in a block parent or a row. A flex
+ * COLUMN still stretches it, so there the caller adds `self-start`, as here.
+ */
+export const WidthAuto: Story = {
+  args: { variant: "primaryRounded", width: "auto", children: "Export my data" },
+  render: (args) => (
+    <div className="flex flex-col gap-3">
+      <Button {...args} className="self-start" />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const button = within(canvasElement).getByRole("button", { name: "Export my data" });
+    await expect(button.className.split(" ")).toContain("inline-grid");
+    await expect(button.className.split(" ")).not.toContain("w-full");
+    await expect(button).not.toHaveAttribute("width");
+  },
+};
