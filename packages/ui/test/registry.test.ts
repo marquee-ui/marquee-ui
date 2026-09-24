@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { resolve } from "node:path";
+import { posix, resolve } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
@@ -127,30 +127,66 @@ const bareImports = (source: Source): string[] =>
         : specifier.split("/")[0]!,
     );
 
+/** Every file the registry ships, to the item that ships it. */
+const shippedBy: ReadonlyMap<string, string> = new Map(
+  registry.items.flatMap((item) => item.files.map((file) => [file.path, item.name] as const)),
+);
+
 /**
- * Every registry item a source imports, as `@marquee/<name>`: the shared lib by
- * `@/lib/utils`, a sibling part by `./<name>` (a `.js` suffix stripped). Any other
- * specifier is not this registry's (a bare package is `bareImports`' to read).
+ * The registry items a source's imports require, for the item `own` it belongs to.
+ * Each specifier is resolved to the FILE a consumer's `shadcn add` copy needs: a
+ * relative one (`./x`, `../x`) against the source's own directory, and `@/lib/…`
+ * against `packages/ui/src/lib/`, trying the name as written and with `.tsx` / `.ts`
+ * (a `.js` suffix read as the TypeScript file it compiles from). The item that ships
+ * that file is required, as `@marquee/<item>`.
  *
- * ONE rule for a sibling that is not a part: a STYLESHEET (`.css`) is skipped. The
- * one in the tree is `ribbon.tsx`'s side-effect `import "./ribbon.css"`, a file the
- * `ribbon` item ships among its OWN `files`, never an item of its own. The rule is by
- * extension and not by the registry's item names, on purpose: a names rule would also
- * skip a sibling `./helpers` or a misspelled part, which no item ships and a
- * consumer's `shadcn add` copy cannot resolve, and that is exactly the import this
- * check exists to redden. A stylesheet no item ships is `registers every component
- * source exactly once`'s to catch. ⚠️ NOT caught, by this rule or a names rule: a
- * part importing ANOTHER item's stylesheet (`card` importing `./ribbon.css`), green
- * at the regex base and here alike (DL27, measured); no part does today.
+ * ONE rule for a sibling that is not a part: a file the source's OWN item ships is
+ * never a dependency. That is `ribbon.tsx`'s `import "./ribbon.css"`, a file of the
+ * `ribbon` item itself. A file NO item ships reads as `unshipped <specifier>`, which
+ * no item can declare, so the check reddens naming it; so does any `@/…` outside
+ * `@/lib/`, because this reader resolves no other alias path (the items target only
+ * `components/ui/` and `lib/`). A bare package is `bareImports`' to read. (DL27 layer
+ * 1 r5 MED-2: a `.css` rule and an item-names rule each passed a part that imports a
+ * file its consumer never receives; this rule reddens each such shape r5 ran.)
  */
-const registryImports = (source: Source): string[] =>
-  specifiersOf(source).flatMap((specifier) =>
-    specifier === "@/lib/utils"
-      ? ["@marquee/utils"]
-      : specifier.startsWith("./") && !specifier.endsWith(".css")
-        ? [`@marquee/${specifier.slice(2).replace(/\.js$/, "")}`]
-        : [],
-  );
+const registryImports = (source: Source, own: string): string[] =>
+  specifiersOf(source).flatMap((specifier) => {
+    if (!specifier.startsWith(".") && !specifier.startsWith("@/")) return [];
+    const base = specifier.startsWith(".")
+      ? posix.join(posix.dirname(source.path), specifier)
+      : specifier.startsWith("@/lib/")
+        ? `packages/ui/src/${specifier.slice(2)}`
+        : undefined;
+    const stem = base?.replace(/\.js$/, "");
+    const owner =
+      stem === undefined
+        ? undefined
+        : [stem, `${stem}.tsx`, `${stem}.ts`].map((path) => shippedBy.get(path)).find(Boolean);
+    if (owner === own) return [];
+    return [owner === undefined ? `unshipped ${specifier}` : `@marquee/${owner}`];
+  });
+
+/**
+ * What an item's `registryDependencies` get wrong against its OWN sources, one line
+ * per name: a required item it does not declare (a consumer's copy imports a file it
+ * never receives), and a declared item none of its files imports.
+ */
+const registryDrift = (
+  name: string,
+  declared: readonly string[],
+  sources: readonly Source[],
+): string[] => {
+  const required = new Set(sources.flatMap((source) => registryImports(source, name)));
+  const names = new Set(declared);
+  return [
+    ...[...required]
+      .filter((n) => !names.has(n))
+      .map((n) => `${name}: imports ${n} and does not declare it`),
+    ...[...names]
+      .filter((n) => !required.has(n))
+      .map((n) => `${name}: declares ${n} and does not import it`),
+  ];
+};
 
 /** An item's `.ts` / `.tsx` files. */
 const sourcesOf = (item: RegistryItem): Source[] =>
@@ -308,44 +344,75 @@ describe("registry.json", () => {
     // Until DL27 it read them with a regex over `from "…"`: a COMMENT spelling a
     // sibling import reddened it (a false red on prose) and a side-effect
     // `import "./x"` was never read (a false green on a real import). Now through
-    // `registryImports`, the scanner's specifiers, whose one rule skips a stylesheet.
+    // `registryDrift` and `registryImports`, the scanner's specifiers resolved to the
+    // item that ships each file.
     let derived = 0;
+    const drift: string[] = [];
     for (const item of registry.items) {
-      const required = new Set(sourcesOf(item).flatMap(registryImports));
-      expect([...(item.registryDependencies ?? [])].sort(), item.name).toEqual(
-        [...required].sort(),
-      );
-      derived += required.size;
+      drift.push(...registryDrift(item.name, item.registryDependencies ?? [], sourcesOf(item)));
+      derived += new Set(sourcesOf(item).flatMap((source) => registryImports(source, item.name)))
+        .size;
     }
+    expect(
+      drift,
+      "a registry item's registryDependencies differ from the items that ship the files its sources import",
+    ).toEqual([]);
     // Anchor: the same total the count above holds, reached from the imports. And the
-    // rule, holding on the tree: `ribbon` imports `./ribbon.css` and declares
-    // `@marquee/utils` alone, so a reader without the rule reddens `ribbon` here.
+    // rule, holding on the tree: `ribbon` imports `./ribbon.css`, its own file, and
+    // declares `@marquee/utils` alone, so a reader without the rule reddens `ribbon`.
     expect(derived).toBe(23);
   });
 
-  it("reads a source's registry dependencies at every specifier position, skipping a stylesheet", () => {
-    // The check above's reader, on a text written here, in its own test so that its red
-    // names the reader and the check's red names an item (a pin inside the check
-    // reddened first and hid the item's line, measured in DL27).
+  it("reads a source's registry dependencies as the items that ship the files it imports", () => {
+    // The check above's reader and compare, on texts written here, in a test of their
+    // own so that a red here names the reader and the check's red names an item (a pin
+    // inside the check reddened first and hid the item's line, measured in DL27).
     const text = [
       '// import { Label } from "./label"',
       '/** export * from "./toast" */',
       "const prose = 'import x from \"./alert\"';",
+      'const path = "./alert";',
       'import "./toggle";',
       'import { Input } from "./input.js";',
       'import "./ribbon.css";',
       'import { cn } from "@/lib/utils";',
       'import { Slot } from "@radix-ui/react-slot";',
+      'import "./helpers";',
+      'import { Label } from "@/label";',
+      'import { merge } from "@/lib/merge";',
+      'import { x } from "../x";',
       'export { Badge } from "./badge";',
       'export const later = () => import("./sheet");',
     ].join("\n");
-    expect(registryImports(part(text)), "the sibling reader, over every import shape").toEqual([
+    const card = { path: "packages/ui/src/card.tsx", text };
+    expect(registryImports(card, "card"), "the sibling reader, over every import shape").toEqual([
       "@marquee/toggle",
       "@marquee/input",
+      "@marquee/ribbon",
       "@marquee/utils",
+      "unshipped ./helpers",
+      "unshipped @/label",
+      "unshipped @/lib/merge",
+      "unshipped ../x",
       "@marquee/badge",
       "@marquee/sheet",
     ]);
+    // The rule: a file the source's own item ships is not a dependency.
+    const ribbon = { path: "packages/ui/src/ribbon.tsx", text: 'import "./ribbon.css";' };
+    expect(registryImports(ribbon, "ribbon"), "the item's own stylesheet").toEqual([]);
+    // The compare, both ways, on DL19's swap (`textarea` declaring `label` for `input`).
+    const textarea = {
+      path: "packages/ui/src/textarea.tsx",
+      text: 'import { cn } from "@/lib/utils";\nimport { inputClass } from "./input";',
+    };
+    expect(
+      registryDrift("textarea", ["@marquee/label", "@marquee/utils"], [textarea]),
+      "the compare, both ways",
+    ).toEqual([
+      "textarea: imports @marquee/input and does not declare it",
+      "textarea: declares @marquee/label and does not import it",
+    ]);
+    expect(registryDrift("textarea", ["@marquee/input", "@marquee/utils"], [textarea])).toEqual([]);
   });
 
   it("reads a source's imports at every specifier position and nowhere else", () => {
