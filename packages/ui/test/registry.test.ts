@@ -139,7 +139,9 @@ const bareImports = (source: Source): string[] =>
  * skip a sibling `./helpers` or a misspelled part, which no item ships and a
  * consumer's `shadcn add` copy cannot resolve, and that is exactly the import this
  * check exists to redden. A stylesheet no item ships is `registers every component
- * source exactly once`'s to catch.
+ * source exactly once`'s to catch. ⚠️ NOT caught, by this rule or a names rule: a
+ * part importing ANOTHER item's stylesheet (`card` importing `./ribbon.css`), green
+ * at the regex base and here alike (DL27, measured); no part does today.
  */
 const registryImports = (source: Source): string[] =>
   specifiersOf(source).flatMap((specifier) =>
@@ -307,7 +309,24 @@ describe("registry.json", () => {
     // sibling import reddened it (a false red on prose) and a side-effect
     // `import "./x"` was never read (a false green on a real import). Now through
     // `registryImports`, the scanner's specifiers, whose one rule skips a stylesheet.
-    // The READER, on a text written here: every position, and the rule.
+    let derived = 0;
+    for (const item of registry.items) {
+      const required = new Set(sourcesOf(item).flatMap(registryImports));
+      expect([...(item.registryDependencies ?? [])].sort(), item.name).toEqual(
+        [...required].sort(),
+      );
+      derived += required.size;
+    }
+    // Anchor: the same total the count above holds, reached from the imports. And the
+    // rule, holding on the tree: `ribbon` imports `./ribbon.css` and declares
+    // `@marquee/utils` alone, so a reader without the rule reddens `ribbon` here.
+    expect(derived).toBe(23);
+  });
+
+  it("reads a source's registry dependencies at every specifier position, skipping a stylesheet", () => {
+    // The check above's reader, on a text written here, in its own test so that its red
+    // names the reader and the check's red names an item (a pin inside the check
+    // reddened first and hid the item's line, measured in DL27).
     const text = [
       '// import { Label } from "./label"',
       '/** export * from "./toast" */',
@@ -327,18 +346,6 @@ describe("registry.json", () => {
       "@marquee/badge",
       "@marquee/sheet",
     ]);
-    let derived = 0;
-    for (const item of registry.items) {
-      const required = new Set(sourcesOf(item).flatMap(registryImports));
-      expect([...(item.registryDependencies ?? [])].sort(), item.name).toEqual(
-        [...required].sort(),
-      );
-      derived += required.size;
-    }
-    // Anchor: the same total the count above holds, reached from the imports. And the
-    // rule, holding on the tree: `ribbon` imports `./ribbon.css` and declares
-    // `@marquee/utils` alone, so a reader without the rule reddens `ribbon` here.
-    expect(derived).toBe(23);
   });
 
   it("reads a source's imports at every specifier position and nowhere else", () => {
