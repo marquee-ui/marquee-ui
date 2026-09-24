@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -56,6 +57,8 @@ const uiPkg = JSON.parse(readFileSync(resolve(root, "packages/ui/package.json"),
  * against THAT list is what made the mistake look correct.
  */
 const uiDeps = uiPkg.dependencies;
+/** The packages a consumer brings itself, which no item declares and every check skips. */
+const peers: ReadonlySet<string> = new Set(Object.keys(uiPkg.peerDependencies));
 
 /**
  * A declared dependency's package name, its `@<range>` stripped:
@@ -68,36 +71,62 @@ const packageName = (dependency: string): string => {
   return at > 0 ? dependency.slice(0, at) : dependency;
 };
 
+/** One source file of an item: its path, which decides how it is parsed, and its text. */
+type Source = { path: string; text: string };
+
 /**
- * Every bare package a source text names in a `from "…"` clause (an import or a
- * re-export): `@/…` and `./…` are the item's own registry, a scoped name is its
- * first two segments, any other its first. It is the union check's rule, one copy.
- * ⚠️ So it misreads three shapes (layer 1 r5 LOW-6, each run): a side-effect
- * `import "x"` and a dynamic `import("x")` are not read at all, and a COMMENT that
- * spells `from "x"` is read as an import. No part source holds any of the three
- * today (the arm is green over all twenty-two items); reading literals through the
- * TypeScript scanner, as `forced-colors-state.test.tsx` does, would close all three
- * and moves the union check with it, so it is a REQUEST rather than a local fork.
+ * Every bare package a source imports: `@/…` and `./…` are the item's own registry, a
+ * scoped name is its first two segments, any other its first. The ONE reader both
+ * dependency checks call (the per-item arm and the union check).
+ *
+ * Read through the TypeScript scanner, as `forced-colors-state.test.tsx` reads its
+ * literals, at exactly four positions: an import's specifier (`import … from "x"`
+ * and the side-effect `import "x"`), a re-export's (`export … from "x"`), and a
+ * dynamic `import("x")` whose argument is a string literal. So a comment or a string
+ * that spells an import is never read as one. A `.ts` file is parsed as TypeScript
+ * and a `.tsx` as TSX, because an angle-bracket assertion in a `.ts` is an unclosed
+ * element to the TSX parser and hides every import after it.
+ * ⚠️ NOT read, and in no part source today: `import("x")` with a computed argument
+ * (unknowable), `import x = require("x")`, a `require("x")` call, and a type-position
+ * `typeof import("x")`.
  */
-const bareImports = (text: string): string[] => {
-  const names: string[] = [];
-  for (const match of text.matchAll(/from "([^".][^"]*)"/g)) {
-    const specifier = match[1]!;
-    if (specifier.startsWith("@/") || specifier.startsWith(".")) continue;
-    names.push(
+const bareImports = ({ path, text }: Source): string[] => {
+  const specifiers: string[] = [];
+  const visit = (node: ts.Node): void => {
+    if (
+      (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+      node.moduleSpecifier &&
+      ts.isStringLiteral(node.moduleSpecifier)
+    ) {
+      specifiers.push(node.moduleSpecifier.text);
+    } else if (
+      ts.isCallExpression(node) &&
+      node.expression.kind === ts.SyntaxKind.ImportKeyword &&
+      node.arguments[0] !== undefined &&
+      ts.isStringLiteralLike(node.arguments[0])
+    ) {
+      specifiers.push(node.arguments[0].text);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(ts.createSourceFile(path, text, ts.ScriptTarget.Latest));
+  return specifiers
+    .filter((specifier) => !specifier.startsWith("@/") && !specifier.startsWith("."))
+    .map((specifier) =>
       specifier.startsWith("@")
         ? specifier.split("/").slice(0, 2).join("/")
         : specifier.split("/")[0]!,
     );
-  }
-  return names;
 };
 
-/** The texts of an item's `.ts` / `.tsx` files. */
-const sourcesOf = (item: RegistryItem): string[] =>
+/** An item's `.ts` / `.tsx` files. */
+const sourcesOf = (item: RegistryItem): Source[] =>
   item.files
     .filter((f) => /\.tsx?$/.test(f.path))
-    .map((f) => readFileSync(resolve(root, f.path), "utf8"));
+    .map((f) => ({ path: f.path, text: readFileSync(resolve(root, f.path), "utf8") }));
+
+/** A text written in a test, read as a `.tsx` part. */
+const part = (text: string): Source => ({ path: "part.tsx", text });
 
 /**
  * What an item's `dependencies` get wrong against its OWN sources, one line per
@@ -109,7 +138,7 @@ const sourcesOf = (item: RegistryItem): string[] =>
 const dependencyDrift = (
   name: string,
   declared: readonly string[],
-  sources: readonly string[],
+  sources: readonly Source[],
   peers: ReadonlySet<string>,
 ): string[] => {
   const imported = new Set(sources.flatMap(bareImports).filter((n) => !peers.has(n)));
@@ -266,13 +295,50 @@ describe("registry.json", () => {
     expect(derived).toBe(23);
   });
 
+  it("reads a source's imports at every specifier position and nowhere else", () => {
+    // The reader both dependency checks call. Until DL26 it was a regex over
+    // `from "…"`: a COMMENT that spelled one was read as an import (a false red on
+    // prose), and a side-effect `import "x"` or a dynamic `import("x")` was not read
+    // at all (a false green on a real import; DL25 layer 1 r5 LOW-6, each run).
+    const text = [
+      '// import { Slot } from "@radix-ui/react-slot"',
+      '/** export * from "lodash" */',
+      'import "@radix-ui/react-toggle";',
+      'import { cva } from "class-variance-authority";',
+      'import type { ReactNode } from "react";',
+      'export { clsx } from "clsx/lite";',
+      'export * from "@scope/pkg/deep";',
+      "const prose = 'import x from \"left-pad\"';",
+      'export const lazy = () => import("tailwind-merge");',
+      "export const later = () => import(`@radix-ui/react-slot`);",
+      "export const unknown = (name: string) => import(name);",
+      'import { cn } from "@/lib/utils";',
+      'import { Label } from "./label";',
+      "export const node: ReactNode = prose;",
+    ].join("\n");
+    expect(bareImports(part(text)), "the reader, over every import shape").toEqual([
+      "@radix-ui/react-toggle",
+      "class-variance-authority",
+      "react",
+      "clsx",
+      "@scope/pkg",
+      "tailwind-merge",
+      "@radix-ui/react-slot",
+    ]);
+    // A `.ts` source is parsed as TypeScript, not TSX: `<number>value` is a type
+    // assertion there and an unclosed JSX element in a `.tsx`, which swallows every
+    // import after it (both measured, DL26).
+    const assertion =
+      'const value: unknown = 1;\nconst n = <number>value;\nexport const f = () => import("clsx");';
+    expect(bareImports({ path: "lib/x.ts", text: assertion }), "a .ts source").toEqual(["clsx"]);
+  });
+
   it("declares exactly the npm dependencies its own sources import, per item", () => {
     // The ranges above are checked only for what an item DECLARES, and the union
     // below only against the package: a `card` that imported `Slot` and declared
     // nothing, or a `button` that stopped declaring `class-variance-authority`, was
     // GREEN on the whole suite (DL24 layer 1 r5 MED-2; DL25 re-ran both). So each
     // item's set is DERIVED from its own files' bare imports and compared, both ways.
-    const peers = new Set(Object.keys(uiPkg.peerDependencies));
     expect([...peers].sort(), "the peers a consumer brings, which no item declares").toEqual([
       "react",
       "react-dom",
@@ -280,14 +346,14 @@ describe("registry.json", () => {
     // The READER, on texts written here: each direction, a peer, the item's own
     // registry and a deep import.
     expect(
-      dependencyDrift("x", [], ['import { Slot } from "@radix-ui/react-slot";'], peers),
+      dependencyDrift("x", [], [part('import { Slot } from "@radix-ui/react-slot";')], peers),
       "an undeclared import reads as declared",
     ).toEqual(["x: imports @radix-ui/react-slot and does not declare it"]);
     expect(
       dependencyDrift(
         "x",
         ["class-variance-authority@^0.7.1"],
-        ['import { useId } from "react";'],
+        [part('import { useId } from "react";')],
         peers,
       ),
       "a declared package no source imports reads as imported",
@@ -297,9 +363,11 @@ describe("registry.json", () => {
         "x",
         ["@radix-ui/react-slot@^1.3.3", "clsx@^2.1.1"],
         [
-          'import { Slot } from "@radix-ui/react-slot/dist/index";',
-          'import { clsx } from "clsx/lite";\nimport { useId } from "react";',
-          'import { createPortal } from "react-dom";\nimport { cn } from "@/lib/utils";\nimport { Label } from "./label";',
+          part('import { Slot } from "@radix-ui/react-slot/dist/index";'),
+          part('import { clsx } from "clsx/lite";\nimport { useId } from "react";'),
+          part(
+            'import { createPortal } from "react-dom";\nimport { cn } from "@/lib/utils";\nimport { Label } from "./label";',
+          ),
         ],
         peers,
       ),
@@ -420,7 +488,6 @@ describe("the built registry in packages/ui/r", () => {
     // every bare import in `src/`. A devDependency does not install for a consumer.
     const imported = new Set(registry.items.flatMap(sourcesOf).flatMap(bareImports));
     expect(imported.size).toBeGreaterThan(4);
-    const peers = new Set(["react", "react-dom"]);
     const missing = [...imported].filter((name) => !(name in uiDeps) && !peers.has(name));
     expect(missing, "imported at runtime but not a dependency or a peer").toEqual([]);
   });
