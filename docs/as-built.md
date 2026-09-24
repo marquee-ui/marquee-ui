@@ -11620,3 +11620,378 @@ recommending a colour-only checked face and `:155-157`'s falsified border-colour
 waiting for the next byte-moving bump; `asChild` on `Card` DEFERRED to that same bump; the slab family, `size="lg"` and
 the inline width from thepile's DL24 census, not measured yet. `AGENTS.md` step 7 now says an item's `dependencies` are
 its sources' own bare imports (s1's REQUEST 6, this commit).
+
+## DESIGN-LIB-d-slab-scanner: the mono slab family measured, and the import reader through the TypeScript scanner (2026-09-24, batch DL26)
+
+Batch DL26, stream s1, branch `s/design-lib-d-slab-scanner` from `next` @ `f4168be`. thepile is read-only throughout,
+at `533c7f13` by `git -C … show` (the composition is `docs/slices/DESIGN-LIB.md` "## Batch DL26", paragraph (b), the
+"Shared surfaces" paragraph and the s1 row). Under the push freeze: LOCAL commits, no tag, no publish, no PR, **no
+bump**. One test-only arm and one measurement, no `src/` edit: `38d77a0` (the reader, in
+`packages/ui/test/registry.test.ts`) and this section. No fixture and no helper file were needed. `git diff --stat
+f4168be HEAD -- packages/ui/src packages/ui/r packages/ui/package.json packages/tokens registry.json` prints nothing.
+
+**The base, re-measured**: `pnpm verify` at `f4168be` exit **0**, `Test Files 35 passed (35)`, `Tests 602 passed
+(602)` (`$BATCH_SCRATCH/s1/verify-base.log`, 18:41:37-18:41:55 IST), the tree clean after. The composition's 35 / 602
+holds.
+
+### What was measured (the slab family)
+
+The library's own finding comes first. DL20's Toggle measurement ("## DESIGN-LIB-d-meter-toggle", the paragraph "The
+door tab, four lines in three files") read the drawing as NOT a toggle's: `DOOR_CLASS.tabSelected` is also worn on
+`aria-current` links and on a plain button, so a `Toggle` variant would own the pressed half of a drawing whose other
+half is navigation; `cut-10` is a product `@utility` with no counterpart here; and it is the Tabs answer's territory
+(DL14: no `Tabs` family). Two thepile records say the same from the product side. `docs/slices/DESIGN-LIB.md:91` (D7)
+says "No product vocabulary in the library. `Door`, `Rail`, `Tier*` … stay in thepile … unless a pattern proves general".
+`docs/design-audit.md:437-438` lists "`Door` and `DoorTab` (`components/ui/Door.tsx`) stay in thepile" under "What is
+deliberately NOT in the 'should use' column". This measurement asks whether the pattern proves general.
+
+The sources are file reads at thepile `533c7f13`: `git grep -n -F 'DOOR_CLASS.tab' 533c7f13 -- apps/web/src`, the two
+re-spellings by name, and every line re-read. A wider `git grep -n -E 'text-2xs font-bold uppercase tracking-widest'`
+finds no other wearer (its other hits are `Door.tsx:20`'s row, an input, a label and a heading). **Seven files** (the
+census's three components were audit rows): `components/ui/Door.tsx`, `components/ui/Rail.tsx`,
+`components/tiers/Deal.tsx`, `components/tiers/TierEditor.tsx`, `components/profile/MemberFollowButton.tsx`,
+`components/profile/FollowButton.tsx`, `components/profile/FacePicker.tsx`. `DoorTab`'s one wearer is the shelf page's
+"Shelves" rail (`app/[username]/[shelf]/[[...view]]/page.tsx:265-284`).
+
+The rendered readings are DL24 s2's census (`census.base.fresh.json` / `census.base.out.json` in
+`~/.thepile-scratch/DL24/s2/probe/`, the base build `86ed7e82` at 390, 768 and 1280). None of the seven files'
+strings moved between `86ed7e82` and `533c7f13`: `git diff --stat` over the seven files and `globals.css` prints
+`FacePicker.tsx` alone, and that change is `:344`'s face ring, not a slab. So the census's readings are this tree's.
+It rendered four of the rows: `/members` and `/[username]/followers`' `MemberFollowButton` idle, `/[username]`'s
+`FOL_QUIET` (signed out) and `FOL_LOUD` (a fresh member), and `/settings/profile`'s two `SLAB`s. Each renders mono
+11px/16.5px at weight 700, uppercase, 1.1px tracking, radius 0 and `display: grid`.
+
+Two probes are new. They live in `$BATCH_SCRATCH/s1/probe/`. The CSS both thepile readings use is the main clone's
+capture build of `63e1d0cd` (`BUILD_ID` `i6r1Ha_HYF5Kx7q2vTUPg`, `static/css/16bc323f70e0a6a0.css`, copied as
+`thepile-63e1d0cd.css`). `git diff --stat 63e1d0cd 533c7f13 -- apps` prints nothing, so it is this tree's CSS.
+
+- **Emission order** (a read of that sheet, and `lib-sheet.mjs`, a compile of the candidates with this repo's Tailwind
+  and tokens). thepile emits `.px-0` before `.px-3\.5` before `.px-4` before `.px-\[14px\]`, `.border-line-strong`
+  before `.border-text`, `.bg-accent` before `.bg-raised`, and `.text-on-accent` before `.text-text-secondary`. The
+  library emits `.border-border-strong` before `.border-foreground`, `.bg-primary` before `.bg-raised`, and
+  `.text-foreground-2` before `.text-primary-foreground`. The ORDER is the claim here; offsets belong to one compile.
+- **What a focused slab draws** (`focus-probe.mjs`, `focus-probe.txt`). The probe loads that stylesheet with
+  transitions off and puts each site's class string, verbatim, on a `<button>` or an `<a>` in headless Chromium
+  (Playwright 1.61.1) at 390px. It Tabs to each element (`:focus-visible` is true on every row) and counts the pixels
+  that change in a frame 8px around the box, outside and inside the border box. The fonts do not load from `file://`,
+  so the boxes are not the census's, but the ring is what is read. Two controls show the instrument can see a ring:
+  `DOOR_CLASS.tab` changes **560 pixels outside** its box (max channel change 244) and `SELECTED_TAB`
+  (`TierEditor.tsx:74`, the inset fix) changes **478 inside** (244). The rows are in the table's focus column.
+
+The strings, in thepile's tokens (`TAB`, `Door.tsx:34-35`):
+
+- `DOOR_CLASS.tab` (`:39`): `grid min-h-hit place-items-center border-2 px-3.5 font-mono text-2xs font-bold uppercase
+tracking-widest border-line-strong bg-raised text-text-secondary`
+- `DOOR_CLASS.tabSelected` (`:40`): the same `TAB` + `border-text bg-accent text-on-accent cut-10`
+- `FOL_QUIET` (`FollowButton.tsx:117-118`): `inline-grid min-h-11 w-full place-items-center whitespace-nowrap border-2
+border-line-strong sm:w-fit sm:min-w-36 bg-raised px-4 font-mono text-2xs font-bold uppercase tracking-widest
+text-text-secondary transition-colors hover:border-text hover:text-text`
+- `FOL_LOUD` (`:120-121`): the same box with `border-text bg-accent text-on-accent transition-colors cut-10
+hover:bg-accent-hover`
+- `CHIP` / `CHIP_ON` (`FacePicker.tsx:61-65`): `inline-grid h-11 place-items-center whitespace-nowrap border-2 … px-[14px] …
+transition-colors`, the rest with `hover:border-text hover:text-text`, the on with `cut-10` and no hover
+- `SLAB` (`:67-68`): `CHIP`'s string with `px-4` and `disabled:opacity-50`
+
+**The candidates** are in the library's tokens. Every utility below compiled in `lib-sheet.mjs`.
+
+- **R**, one REST string: `DOOR_CLASS.tab` through the rename table. **R = `grid min-h-hit place-items-center border-2
+border-border-strong bg-raised px-3.5 font-mono text-2xs font-bold uppercase tracking-widest text-foreground-2`**. R has
+  no hover and no transition, because `DOOR_CLASS.tab` has neither and six sites wear it bare (rows 1 and 4 to 8).
+- **O**, one ON string: `SELECTED_TAB`'s delta (`TierEditor.tsx:74`, the one ON spelling that draws a ring), renamed.
+  **O = `border-foreground bg-primary text-primary-foreground focus-visible:outline-primary-foreground
+focus-visible:-outline-offset-4`** plus thepile's `cut-10`, which has no library counterpart (`git grep -E
+'\bcut-[0-9]+' -- packages` prints nothing). `-outline-offset-4` compiles to `outline-offset: calc(4px * -1)`, which
+  is thepile's `outline-offset-[-4px]` without an arbitrary value.
+
+PURE means what it meant for `link` (DL25): the site's drawing is the candidate plus a `className` that ADDS utilities.
+thepile's `cn` is a plain join (DESIGN-LIB-a4 [V]). So a `className` utility on a property the candidate sets is
+decided by stylesheet order, not by the caller.
+
+| #   | site                                                    | file:lines at `533c7f13`                                                                                                   | element · who owns the ON state                                                                                                                                                                     | drawing(s)                                                                                                             | box                                                                                                 | padding                                                                             | hover                                       | focus (the probe)                                                                                                                                                               | against R (rest)                                                                                                                                                                                 | against O (on)                                                                                                                                                                                                |
+| --- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `DoorTab`, the shelf page's "Shelves" rail              | `Door.tsx:77-97` (class `:92`); worn at `[shelf]/[[...view]]/page.tsx:267-282`                                             | `next/link`; `aria-current="page"` (`:91`) and a ternary, both from the `selected` prop                                                                                                             | `tab` / `tabSelected` (+ `border-dashed` on an empty shelf, `:278`)                                                    | `min-h-hit` floor                                                                                   | `px-3.5`                                                                            | none                                        | selected: **no ring**, 0 px outside, 36 anti-aliased edge px inside (max 23)                                                                                                    | **PURE**. `border-dashed` and `border-2` both write `border-style`, but `border-2` writes it as `var(--tw-border-style)`, which `border-dashed` sets, so either order draws dashed (both sheets) | colours pure through an `aria-[current=page]:` reading, with `cut-10` added by thepile; it would GAIN the ring it lacks                                                                                       |
+| 2   | `Rail`'s two arrows                                     | `Rail.tsx:74-81` (`ARROW`), worn `:287`, `:298`                                                                            | `<button aria-disabled>`; **no ON** ("deliberately WITHOUT `cut-10` … an arrow selects nothing", `:68-69`)                                                                                          | `tab` + `min-w-11 transition-colors hover:border-accent hover:text-text aria-disabled:…`                               | floor + `min-w-11`                                                                                  | `px-3.5`                                                                            | `border-accent`, `text-text`                | the house ring (unclipped)                                                                                                                                                      | **PURE** by addition                                                                                                                                                                             | n/a                                                                                                                                                                                                           |
+| 3   | `Deal` "See the board"                                  | `Deal.tsx:159-165` (class `:162`)                                                                                          | `<button>`; **nobody**: the ON drawing is the pair's primary, not a state                                                                                                                           | `tabSelected` + the inset ring                                                                                         | floor                                                                                               | `px-3.5`                                                                            | none                                        | the inset ring (= `SELECTED_TAB`'s)                                                                                                                                             | **NEVER**: it wears the ON drawing at rest                                                                                                                                                       | = O, but **NEVER** through an attribute reading (there is no attribute; it is emphasis)                                                                                                                       |
+| 4   | `Deal` "Go back one"                                    | `Deal.tsx:166-170` (class `:167`)                                                                                          | `<button>`; no ON                                                                                                                                                                                   | `tab`                                                                                                                  | floor                                                                                               | `px-3.5`                                                                            | none                                        | the house ring                                                                                                                                                                  | **PURE** (R exactly)                                                                                                                                                                             | n/a                                                                                                                                                                                                           |
+| 5   | `TierEditor` "Board"                                    | `TierEditor.tsx:474-482` (class `:479`)                                                                                    | `<button>`; `aria-pressed={!dealing}` (`:476`) AND a ternary on `dealing`: two channels                                                                                                             | `tab` / `SELECTED_TAB` + `flex-1 md:flex-none`                                                                         | floor                                                                                               | `px-3.5`                                                                            | none                                        | ON: the inset ring                                                                                                                                                              | **PURE** on the rest half by addition                                                                                                                                                            | = O; pure through an `aria-pressed:` reading plus thepile's `cut-10`                                                                                                                                          |
+| 6   | `TierEditor` "Deal · n"                                 | `:483-506` (class `:497`)                                                                                                  | as 5, `aria-pressed={dealing}` (`:485`)                                                                                                                                                             | as 5 + `-ml-[2px] disabled:opacity-50`                                                                                 | floor                                                                                               | `px-3.5`                                                                            | none                                        | ON: the inset ring                                                                                                                                                              | **PURE** on the rest half by addition                                                                                                                                                            | as 5                                                                                                                                                                                                          |
+| 7   | `TierEditor` "−"                                        | `:514-525` (class `:522`)                                                                                                  | `<button aria-label>`; no ON                                                                                                                                                                        | `tab min-w-hit px-0 disabled:opacity-50`                                                                               | floor + `min-w-hit`                                                                                 | `px-0` **dead**: `.px-0` is emitted before `.px-3\.5`, so the tab's 14px wins today | none                                        | the house ring                                                                                                                                                                  | **PURE** once the dead `px-0` goes (the sheet already draws R's padding; the box is the 44px floor either way)                                                                                   | n/a                                                                                                                                                                                                           |
+| 8   | `TierEditor` "+"                                        | `:529-537` (class `:534`)                                                                                                  | as 7                                                                                                                                                                                                | as 7                                                                                                                   | as 7                                                                                                | as 7                                                                                | none                                        | the house ring                                                                                                                                                                  | as 7                                                                                                                                                                                             | n/a                                                                                                                                                                                                           |
+| 9   | `MemberFollowButton` (`/members`, followers, following) | `MemberFollowButton.tsx:88-90` (`BLOCK`, `IDLE`, `ON`), worn `:173-186` (class `:181`)                                     | `<button>`; `aria-pressed={following}` (`:180`) AND a ternary                                                                                                                                       | `IDLE` = `tab` + `BLOCK` + `transition-colors hover:border-text-muted hover:text-text`; `ON` = `tabSelected` + `BLOCK` | floor + `w-full` (census 124 x 44 at all three widths)                                              | `px-3.5` (census 14px)                                                              | idle `border-text-muted`, `text-text`       | idle −2px house ring (census); ON: the ring is drawn INSIDE the clip over the 2px border, in the fill's own colour: 1,074 px, the border `rgb(242,245,232)` → `rgb(228,255,58)` | **PURE** on the rest half by addition                                                                                                                                                            | colours pure through `aria-pressed:`; the focus differs (−2px accent against O's −4px on-accent). "an `--accent` ring on an `--accent` fill is not a ring" is thepile's own sentence (`TierEditor.tsx:70-71`) |
+| 10  | `FollowButton`'s four doors                             | `FollowButton.tsx:218` (`Link`, sign in), `:238` (`<a>`, exit preview), `:256` (`Link`, edit), `:265` (`<a>`, public view) | no state                                                                                                                                                                                            | `FOL_QUIET`                                                                                                            | `min-h-11 w-full sm:w-fit sm:min-w-36` (census `:218`: 270 x 44 at 390, 173.7 x 44 at 768 and 1280) | `px-4` (census 16px)                                                                | `border-text`, `text-text`                  | the house ring (census: +2px, unclipped)                                                                                                                                        | **NEVER**: padding 16 against 14; also `min-h-11` against `min-h-hit` (equal at a 16px root only) and `inline-grid` (renders `grid` as a flex item)                                              | n/a                                                                                                                                                                                                           |
+| 11  | `FollowButton` Follow / Following                       | `:301-316` (class `:313`)                                                                                                  | `<button>`; `aria-pressed={following}` (`:309`) AND a ternary, **INVERTED**: pressed draws the quiet slab, unpressed the ON drawing ("Following is a STATE … Follow is the one action", `:310-312`) | `FOL_QUIET` / `FOL_LOUD`                                                                                               | as 10 (census `FOL_LOUD`: 226 x 44 at 390, 144 x 44 at 768 and 1280)                                | `px-4`                                                                              | quiet `border-text`; loud `bg-accent-hover` | `FOL_LOUD`: **no ring**, 0 px outside, 2 inside (max 15); the census read `outline 2px accent at +2px` under the polygon clip                                                   | **NEVER** (as 10)                                                                                                                                                                                | **NEVER**: padding, box and hover, and an `aria-pressed:` reading draws its polarity backwards                                                                                                                |
+| 12  | `FacePicker`'s four style chips                         | `FacePicker.tsx:301-313` (class `:310`) in `:299`'s `role="group"`                                                         | `<button>`; `aria-pressed` (`:304`) AND a ternary                                                                                                                                                   | `CHIP` / `CHIP_ON`                                                                                                     | `h-11` (a height, not a floor)                                                                      | `px-[14px]`                                                                         | rest `border-text`, `text-text`             | `CHIP_ON`: **no ring**, 0 px outside, 36 inside (max 25)                                                                                                                        | **PURE at a 16px root only**: `px-[14px]` is R's `px-3.5` spelled in px, and `inline-grid` renders `grid` in the `flex` strip; `h-11` adds a height to R's floor                                 | colours pure through `aria-pressed:` at a 16px root; it would GAIN the ring                                                                                                                                   |
+| 13  | `FacePicker`'s actions                                  | `:362` ("More"/"Shuffle"), `:375` ("Use my default"/"Yes, delete"), `:380` ("Cancel")                                      | `<button disabled>`; no state                                                                                                                                                                       | `SLAB`                                                                                                                 | `h-11` (census 92.7 x 44 and 149.41 x 44 at all three widths)                                       | `px-4` (census 16px)                                                                | `border-text`, `text-text`                  | the house ring (census: +2px, unclipped)                                                                                                                                        | **NEVER**: padding 16 against 14                                                                                                                                                                 | n/a                                                                                                                                                                                                           |
+
+- **The common set.** Across all nineteen source sites: `place-items-center border-2 font-mono text-2xs font-bold
+uppercase tracking-widest`, a grid display (`grid` or `inline-grid`; every rendered one is `display: grid`), and a
+  44px height in three spellings (`min-h-hit`, `min-h-11`, `h-11`). Each wears one of two colour trios, the rest's
+  `border-line-strong bg-raised text-text-secondary` or the ON's `border-text bg-accent text-on-accent` with `cut-10`.
+- **The axes that differ.**
+  - Padding: 14px (`px-3.5` on ten sites, two of them with a dead `px-0` beside it, and `px-[14px]` on one) or 16px
+    (`px-4` on eight).
+  - Box: the floor, a fixed height, or `w-full sm:w-fit sm:min-w-36`.
+  - Hover: four spellings (`border-text`, `border-text-muted` or `border-accent`, each with `text-text`, and
+    `bg-accent-hover`), and none on `DOOR_CLASS`.
+  - `transition-colors`: on the five re-spellings, `ARROW` and `IDLE`; not on `DOOR_CLASS`'s two strings,
+    `SELECTED_TAB` or `ON`.
+  - Focus on the ON half. Of the six ON spellings, two carry the inset ring (`Deal.tsx:162`, `SELECTED_TAB`), one
+    the −2px accent (`MemberFollowButton`), and three nothing that draws (`tabSelected` on `DoorTab`, `FOL_LOUD`,
+    `CHIP_ON`).
+  - Who owns the ON state: `aria-current` on one site; `aria-pressed` beside a ternary on four (`TierEditor` ×2,
+    `MemberFollowButton`, `FacePicker`'s chips); `aria-pressed` INVERTED on one (`FollowButton`); nobody on one
+    (`Deal.tsx:162`).
+- **One `Button` variant, `variant="slab"` = R, rest only, the ON state left to the consumer as today.**
+  - It is PURE whole on four rows (2, 4, 7, 8): five elements in three files, every one of them already wearing ONE
+    string (`DOOR_CLASS.tab`) from ONE definition.
+  - It is pure on the REST half of five more (1, 5, 6, 9, and 12 at a 16px root only). But each of those components
+    also draws the ON drawing, and **the ON half cannot be the consumer's `className` over R**. It is a swap of three
+    properties, and appending it is decided by emission order, which draws the wrong picture in both sheets.
+    - In thepile, `DOOR_CLASS.tab` + `border-text bg-accent text-on-accent` keeps the raised ground and the secondary
+      ink and moves the border alone (`.bg-raised` and `.text-text-secondary` are emitted after the ON's).
+    - In the library, R + O's trio draws the raised ground with the dark ink (`.bg-raised` after `.bg-primary`,
+      `.text-primary-foreground` after `.text-foreground-2`).
+    - That is why every product site swaps TWO full strings, and why `FacePicker.tsx:57-60` says so ("`border-*`,
+      `bg-*` and `text-*` twice on one element leaves the winner to the stylesheet's emission order").
+  - It is NEVER pure on the 16px half: rows 10, 11 and 13, eight source sites in the census's other two components.
+    That needs a second axis (a size or a padding). Row 3 needs an ON variant, not a state.
+- **Does the ON drawing belong in the library?** There are three ways it could, and each is measured against the
+  table.
+  - **(a) A `cut-10` token** in `packages/tokens/src/**`. The cut is product language: "the cut is earned by being
+    chosen" (`Door.tsx:13-16`), one of four sizes in `globals.css:499-513`. And a cut ON drawing must carry an inset
+    ring, because the clip removes the house ring; three of the six product ON spellings do not (the probe). A single
+    owner would have prevented that. But the owner can be `DOOR_CLASS` in thepile as well as a library part.
+  - **(b) An attribute reading in the part.** `aria-pressed:` is built in. `aria-current` is only the arbitrary
+    `aria-[current=page]:` in Tailwind 4, three more arbitrary values in thepile's vendored copy (⚠️ whether thepile's
+    arbitrary-values guard walks `components/ui/` is not read here). It would be pure on the colours of five of the
+    seven ON sites (rows 1, 5, 6, 9, 12), with thepile adding `cut-10` and the ring as additions. It is NEVER pure on
+    row 11 (inverted) or row 3 (no attribute). DL20 refused exactly this for `Toggle`: one variant would own the
+    pressed half of a drawing whose other half is `aria-current` navigation.
+  - **(c) Refused as product vocabulary.** D7 names `Door`, `Rail` and `Tier*`, which are four of the seven files, and
+    the audit's "deliberately NOT" list keeps `Door` / `DoorTab`.
+- **The cost, an ESTIMATE** (`probe/variants.mjs`, `cost.txt`). The script reads `button.tsx`'s `cva` object through
+  the TypeScript AST, expands `secondaryBase`, and minifies the five variants and two compound rows into `key:"…"`
+  pairs. It leaves out `defaultVariants`, which is why its base is 1,481 B / 440 B gz where DL25's file, with the
+  default row, was 1,499 / 446. R is 153 B raw and 140 B by `gzip -c | wc -c` alone. Added as `slab:"…"` it takes the
+  table from 1,481 to 1,642 B raw and from 440 to **496 B gz (+56 B)**. R with the attribute ON is 358 B raw and 214 gz
+  alone, **+115 B gz** in context. O alone as a second variant is +44 B gz. `button.tsx` sits in the client chunk of
+  every thepile route that renders a client `Button`: `/tiers/page` 1,166 B of headroom, `/page` 867, `/home/page`
+  862 on the DL25 gate's build (the brief's numbers, not re-read here). The true delta is the LIB-VENDOR stream's
+  `exact.mjs` at a bump. Cost does not decide this one.
+
+**Recommendation: REFUSE** [V]. The pattern does not prove general in one variant.
+
+- The family is two paddings and three boxes.
+- One rest string is pure whole only where `DOOR_CLASS.tab` already is ONE string in ONE file.
+- The ON half is a swap owned by four different mechanisms, one of them inverted, and marked by a product clip the
+  library has no token for.
+- D7 and the audit already keep `Door`/`DoorTab` in thepile, and DL14 and DL20 refused the family's ON half twice.
+
+The cells to correct are thepile's `docs/design-audit.md` at `533c7f13`, each re-read there (the reconciler's):
+
+- `:385` `/members`: "Still to take beside `Card`: `Button` (Follow) + `Pagination`". The follow control stays
+  `MemberFollowButton` on `DOOR_CLASS`; `Pagination` stays in the list.
+- `:407` `/[username]`: "`FollowButton` waits on a mono slab family the library does not ship". It becomes: refused
+  (DL26), `FOL_QUIET`/`FOL_LOUD` stay product strings under D7, and the Follow face's missing ring is an AUDIT-FIX
+  (REQUEST 2).
+- `:410` `/[username]/followers`: "Still to take: Button `asChild` for the follow control" goes. `:411`
+  `/[username]/following` is "same as" and follows it.
+- `:422` `/settings/profile`: "Button for Shuffle and Use my default" goes; `SLAB` stays. The strip's `CHIP_ON` ring
+  is REQUEST 2.
+
+If Ankit says BUILD: R goes into the next byte-moving bump (0.1.7, with `asChild` on `Card` and the two
+`radio-group.tsx` docblocks) as `variant="slab"`. It is pure whole on rows 2, 4, 7 and 8 and on the rest halves of 1,
+5, 6 and 9. Rows 10, 11 and 13 become a REQUEST for a size axis, and the ON half a REQUEST for the attribute reading
+(+115 B gz) or an ON variant (+44 B). Row 11's inverted polarity then needs a third axis, or stays product.
+
+**Not measured this batch** (the cursor's order, the slab first by count): `size="lg"` with a scrim, and the inline
+width.
+
+### The import reader (`38d77a0`)
+
+**The three shapes, re-counted at the base**: `git grep -n -E '^import "|import\(' -- packages/ui/src` prints ONE
+line, `packages/ui/src/ribbon.tsx:3:import "./ribbon.css";`. ⚠️ The composition's "None of the three shapes is in a
+part source today" is short one (class B). A side-effect import IS in a part source. It is relative, so the bare-name
+rule reads it as nothing and no item's derivation moves, and the real registry is green at the head. No dynamic
+import is in `src`. No `from "` appears anywhere in `src` but on an import or export line (`git grep -n -E 'from "'`,
+filtered). The registry has 22 items and 23 files, 22 of them `.ts`/`.tsx`. Nine items declare `@radix-ui/react-slot`
+(`button`, `form`, `radio-group`, `alert`, `avatar`, `badge`, `switch`, `breadcrumb`, `pagination`), and 21 pairs are
+declared (`registry-count.txt`). DL25's corrected nine holds.
+
+`bareImports` (`registry.test.ts:93` at `38d77a0`; every line number in this section is `38d77a0`'s unless it names
+another sha) is the ONE reader both dependency checks call. That is the per-item arm (`:336`, `:269` at the base) and
+the union check (`:486`, `:418` at the base).
+
+- **The positions.** It walks `ts.createSourceFile`'s AST and reads a specifier at exactly four positions: an
+  `ImportDeclaration`'s (`import … from "x"`, and the side-effect `import "x"`), an `ExportDeclaration`'s with a
+  `from`, and an `import(…)` call whose first argument `ts.isStringLiteralLike` (a string, or a template with no
+  substitution). A comment and a string are never read, whatever they spell.
+- **The bare-name rule is unchanged.** `@/` and `.` are skipped, a scoped name keeps its first two segments, any
+  other its first.
+- **Parsing by extension.** Each source is parsed by its own path's extension, `.ts` as TypeScript and `.tsx` as TSX.
+  This is measured, not taste (`probe/kind.mjs`): a `.ts` text holding `<number>value` read as TSX returns `[]` where
+  it should return `["clsx", "tailwind-merge"]`, because the TSX parser takes the assertion for an unclosed element
+  and loses every import after it. So a source is a `Source`, `{ path, text }`, and `sourcesOf` returns them.
+- **The peers.** The union check reads them from `peerDependencies`, one module-level `peers`, as the per-item arm
+  already did. Its typed `["react", "react-dom"]` is gone. Both sets are equal today, and the arm pins them.
+- **Not read** (named in the docblock, and none of them is in a part source): an `import(name)` with a computed
+  argument, `import x = require("x")`, a `require("x")` call, and a type-position `typeof import("x")`.
+- **A new test pins the reader on its own**, "reads a source's imports at every specifier position and nowhere else"
+  (`:298`), because two checks call it.
+  - It reads one text holding a line comment and a block comment that spell imports, a side-effect import, `import`
+    and `import type`, two re-exports (one deep, one scoped and deep), a string spelling an import, a string and a
+    template dynamic import, a computed one, and the item's own `@/` and `./` imports.
+  - It expects exactly `@radix-ui/react-toggle`, `class-variance-authority`, `react`, `clsx`, `@scope/pkg`,
+    `tailwind-merge` and `@radix-ui/react-slot`, in source order.
+  - It also reads a `.ts` source with an angle-bracket assertion.
+  - **Red first**: the new signature ran over DL25's regex body before the AST replaced it
+    (`redfirst-regex-body.log`). The pin was RED, `Tests 1 failed | 17 passed (18)`, because the regex read the line
+    comment's `@radix-ui/react-slot`, the block comment's `lodash` and the string's `left-pad`, and missed the
+    side-effect import and both dynamic ones. Green with the AST, 18 / 18.
+- **The suite grows by that one test**, from 35 / 602 to 35 / 603.
+
+Every mutation ran on a detached worktree of a committed sha: `../mut-slab-base` at `f4168be` (DL25's regex reader)
+and `../mut-slab-head` at `38d77a0`. The driver is `$BATCH_SCRATCH/s1/muts/mut.py`, DL25 s1's with the log directory
+moved.
+
+- It asserts each find matched once and confirms the marker LANDED by `grep -n -F`.
+- It runs the `post` command where one is given. For the three mutations below that is `pnpm build:registry`, so the
+  content check (`:452`, `:384` at the base) is fresh and cannot be the red that is read.
+- It runs `registry.test.ts` from the REPO ROOT, verbose, then restores with `git checkout -- .` and checks the tree
+  clean.
+- Logs are `muts/<id>-base.log` and `muts/<id>-head.log`; the summaries are `muts/run-base.txt`, `run-head.txt` and
+  `run-head-k.txt`.
+
+| id                                                                  | mutation of `src/card.tsx` (landed line)                                                                                                                                      | at `f4168be` (the regex reader)                                                                                                                                                                      | at `38d77a0` (the scanner)                                                                                                                                                                                                                                                                                                           |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| (a)                                                                 | `// import { Slot } from "@radix-ui/react-slot"` under the imports (`:3`), `r/` rebuilt                                                                                       | **RED** `Test Files 1 failed (1)` / `Tests 1 failed \| 16 passed (17)`: the per-item arm, `card: imports @radix-ui/react-slot and does not declare it` (the false positive that IS the defect)       | **GREEN** `Test Files 1 passed (1)` / `Tests 18 passed (18)`                                                                                                                                                                                                                                                                         |
+| (b)                                                                 | `import "@radix-ui/react-slot";` at the top (`:1`), `r/` rebuilt                                                                                                              | **GREEN** `Test Files 1 passed (1)` / `Tests 17 passed (17)`                                                                                                                                         | **RED** `Test Files 1 failed (1)` / `Tests 1 failed \| 17 passed (18)`: the per-item arm alone, `card: imports @radix-ui/react-slot and does not declare it`                                                                                                                                                                         |
+| (c)                                                                 | `void import("class-variance-authority");` in `Card`'s body (`:13`), `r/` rebuilt                                                                                             | **GREEN** `Test Files 1 passed (1)` / `Tests 17 passed (17)`                                                                                                                                         | **RED** `Test Files 1 failed (1)` / `Tests 1 failed \| 17 passed (18)`: the per-item arm alone, `card: imports class-variance-authority and does not declare it`                                                                                                                                                                     |
+| (a-nb), (b-nb), (c-nb)                                              | each of the three with `r/` NOT rebuilt (the built bytes lag)                                                                                                                 | (a-nb) `Tests 2 failed \| 15 passed (17)`: the arm's line AND the content check's `card: packages/ui/src/card.tsx is stale`; (b-nb) and (c-nb) `1 failed \| 16 passed (17)`: the content check alone | (a-nb) `1 failed \| 17 passed (18)`: the content check alone; (b-nb) and (c-nb) `2 failed \| 16 passed (18)`: the arm's line AND the content check's. The new reader's message is present in each red it owes                                                                                                                        |
+| (d), outside this fence, recorded                                   | `// import { Label } from "./label"` (`:3`), `r/` rebuilt                                                                                                                     | **RED** `1 failed \| 16 passed (17)`: "declares exactly the registry dependencies its sources import", `card: expected [ '@marquee/utils' ] to deeply equal [ '@marquee/label', '@marquee/utils' ]`  | **RED**, the same line, `1 failed \| 17 passed (18)`: that check (`:269`, `:240` at the base) keeps its own regex (REQUEST 4)                                                                                                                                                                                                        |
+| k1 to k5, the reader collapsed (the test file itself, at `38d77a0`) | k1 every source parsed as TSX; k2 the dynamic branch dropped; k3 `isStringLiteral` for `isStringLiteralLike`; k4 re-exports dropped; k5 the union check's peer filter dropped | (the reader is not at the base)                                                                                                                                                                      | each **RED** `1 failed \| 17 passed (18)`, for its own reason: k1 `a .ts source: expected [] to deeply equal [ 'clsx' ]`; k2, k3 and k4 `the reader, over every import shape` (five, six and five names of the seven); k5 `imported at runtime but not a dependency or a peer: expected [ 'react', 'react-dom' ] to deeply equal []` |
+
+Each predicted red is the red that was read. At the head, (b) and (c) redden the per-item arm and not the union
+check: `@radix-ui/react-slot` and `class-variance-authority` are both package dependencies, so the union is green on
+them, as it should be. The real registry is green on all twenty-two items at the head (the arm's `derived ===
+declared` holds at 21).
+
+### Decisions
+
+1. **The slab family as a `Button` variant: REFUSE** [V], with four cells to correct. The table and the reasons are
+   above. If BUILD: R in 0.1.7, and the 16px half and the ON half each become a REQUEST for an axis.
+2. **The three mutations, each as predicted**, on detached worktrees with `r/` rebuilt so the reader's red is read
+   alone:
+   - (a) RED at the base (the comment read as an import) and GREEN at the head;
+   - (b) and (c) GREEN at the base (neither shape read) and RED at the head, naming `card` and the package.
+     The unrebuilt runs are kept beside them.
+3. **The reader parses by extension**, because a TSX parse of a `.ts` source measured `[]` for two real imports. That
+   is the one reason `Source` carries a path, and it is pinned (k1 is red on it).
+4. **The union check reads `peerDependencies`**, the per-item arm's set, rather than its own typed list. The rule is
+   one copy (DL25 decision 4's reason), and nothing moves today.
+5. **The reader gets its own test** rather than more `dependencyDrift` pins. Two checks call it, and a pin through one
+   of them would not name the reader in its message. The suite is 603, not 602.
+6. **A template dynamic import is read, a computed one is not.** The first is as static as a string; the second is
+   unknowable. Both are pinned.
+7. **The registry-dependencies check is left on its regex** (mutation (d)). It is a check this stream consumes, and it
+   is not a one-line move onto `bareImports`' walk. Its rule reads `./x` and `@/lib/utils` and maps them to items, so
+   the scanner would read `ribbon.tsx`'s `import "./ribbon.css"` as a sibling `@marquee/ribbon.css`, which is not an
+   item. REQUEST 4.
+8. **The focus probe goes beyond the brief's table, on purpose.** The census's computed readings (an outline at +2px
+   under a polygon clip) could not say whether anything is drawn. The rendered frame says three ON spellings draw no
+   ring, and that is a thepile defect (REQUEST 2), not a library question.
+9. **No fixture and no helper file.** The reader is twelve lines in the test that owns it. `literalsOf` stays
+   `forced-colors-state.test.tsx`'s, read for its form and not imported: it returns literals, not specifiers.
+
+### REQUESTs and findings (to the orchestrator)
+
+1. **REQUEST [V], the slab family: REFUSE** as a `Button` variant. The reconciler corrects thepile's audit cells
+   `:385`, `:407`, `:410` and `:422` (and `:411` through "same as"). The alternative, if Ankit wants the library to
+   own it: R as `variant="slab"` at 0.1.7, a size axis for the 16px half, and an attribute reading or an ON variant
+   for the ON half.
+2. **REQUEST, a thepile AUDIT-FIX (WCAG 2.4.7): three cut ON drawings draw no focus ring.** Measured on the capture
+   build's CSS in Chromium:
+   - `DoorTab` selected: the current shelf on `/[username]/[shelf]/…`;
+   - `FollowButton`'s Follow face (`FOL_LOUD`): what every signed-in non-follower sees on a profile;
+   - `FacePicker`'s selected style chip (`CHIP_ON`).
+     `MemberFollowButton`'s ON draws its ring in the fill's own colour. thepile's own fix is `SELECTED_TAB`'s inset ring
+     (`TierEditor.tsx:74`). The guard gap: `e2e/focus.spec.ts:113` reads `follow-button` on `/pixel` signed in as nova,
+     and nova follows pixel (`packages/db/src/seed.ts:111`), so it reads the QUIET face and never the Follow face. No
+     `expectFocusRing` or sweep reads a selected `DoorTab` or a style chip (`git grep -n expectFocusRing 533c7f13 -- e2e`:
+     the shelf page's two reads are its sub-door and filter chip, `shelf-public.spec.ts:378,383`; the sweeps are `/`,
+     `/search?q=portal` and `/game/portal-2`).
+3. **Finding, thepile, cosmetic**: `TierEditor.tsx:522` and `:534` say `px-0` and draw 14px. `.px-0` is emitted before
+   `.px-3\.5`, so the tab's padding wins. The box is `min-w-hit` either way, so nothing is drawn wrong; the source says
+   something the page does not do.
+4. **REQUEST, for the registry test's next owner (test-only, no bump)**: the registry-dependencies check
+   (`registry.test.ts:269` at `38d77a0`) reads `./x` and `@/lib/utils` with a regex. So a comment spelling a sibling
+   import reddens it (mutation (d), red at the base and the head), and a side-effect or dynamic sibling import is not
+   read. The scanner fits if its rule skips a non-part file (`./ribbon.css`).
+5. **Class B corrections to the composition's paragraph (b) and the brief**:
+   - `TAB` is `Door.tsx:34-35`, not `:33-34` (`:33` closes the docblock);
+   - `Rail.tsx:75` (unread in the composition) is `ARROW`, `:74-81`: a rest-only tab with no ON, `min-w-11`, and a
+     fourth hover the composition's list misses, `hover:border-accent hover:text-text`;
+   - `TierEditor`'s switch and `MemberFollowButton` own their ON state by `aria-pressed` AND a ternary (`:476`,
+     `:485`; `:180`), not by a ternary alone. `Deal.tsx:162`'s ON has no owner at all: it is emphasis;
+   - the padding set rendered is {14, 16}: the two `px-0` are dead;
+   - one of the "three shapes" IS in a part source: `ribbon.tsx:3`'s relative side-effect import;
+   - the "`:251`-style built-registry content check" is `:384` at the base (`:251` is inside the
+     registry-dependencies check), `:452` at `38d77a0`.
+     The counts held: 35 / 602 at the base, 22 items, nine declaring `react-slot`, the seven files, the four audit
+     lines.
+6. **CROSS for the reconciler (records, never edited here)**. thepile's composition at `533c7f13` cites
+   `registry.test.ts:269` (the per-item arm, `DESIGN-LIB.md:6128`) and `:418` (the union check, `:6129`). At
+   `38d77a0` they are `:336` and `:486`, and `:269` now names a DIFFERENT test, the registry-dependencies check. It
+   also cites `:251` for the content check (`:6144`), which is `:452`. `:5811`'s `:285-310` is DL25's base and was
+   already recorded stale in DL25's REQUEST 3. The brief cites `:269` and `:418` too.
+7. **J, recorded**: this stream edits nothing in thepile. REQUEST 2's defect is measured here and lives there, so the
+   reconciler writes it into the audit (and FOLLOWUPS-14 or wherever it is taken).
+
+### Consumers
+
+**Run 1, before any code** (`scan-run1.txt`, at `f4168be`, an empty diff), in the library's form:
+
+- (a) `git grep -n 'registry.test\|bareImports' -- packages docs`: `src/ribbon.css:20` (a path, no line) and its copy
+  in `r/ribbon.json`, and `registry.test.ts`'s own four `bareImports` lines (`:82`, `:115`, `:317`, `:421`).
+  `docs/as-built.md` names them on 143 lines. `git grep '^export' -- packages/ui/test/registry.test.ts` prints
+  nothing, so nothing imports the test's helpers. `AGENTS.md:76` and `:81` name the file (steps 6 and 7).
+- (b) `git grep -n 'registry.test.ts:' -- docs packages/ui/src AGENTS.md`: all in `docs/as-built.md`, each a dated
+  record at its own sha (the LIB-0.1.x sections' `:60`/`:142`/`:210`/`:215`/`:151`…, DL24's `:285` and `:142`, DL25's
+  `:384`, `:269`, `:285-310`, `:142-156`). None is a live pointer; none in `src` or `AGENTS.md`.
+- (c) thepile at `533c7f13` (`git grep -c`): `ribbon.css` 1 (the vendored copy, no line), `docs/08-agent-failures.md`
+  1, `docs/slices/DESIGN-LIB.md` 23, `LIB-VENDOR-0.1.2.md` 3, `-0.1.3.md` 1, `-0.1.4.md` 2, `-0.1.5.md` 4.
+- The shapes: `git grep -n -E '^import "|import\(' -- packages/ui/src` → `ribbon.tsx:3` alone (above).
+
+**Run 2, at the code commit point** (`scan-run2.txt`, `f4168be...38d77a0`):
+
+- Diff names: `packages/ui/test/registry.test.ts` alone.
+- Scan 1 (exported symbols): its four `+` hits are strings INSIDE the new pin (`'export const lazy = …'`), not
+  exports; the file still exports nothing. Scan 4 (role and aria strings): none. Scan 5: no `.tsx` in the diff.
+- (a) adds the pin's two `bareImports` calls (`:319`, `:333`). (b) prints what run 1 printed; the moved lines are
+  `bareImports` `:82` → `:93`, the per-item arm `:269` → `:336`, the union check `:418` → `:486`, the content check
+  `:384` → `:452` and the registry-dependencies check `:240` → `:269`. Every citation of them is a dated record.
+  (c)'s line citations are REQUEST 6.
+- `AGENTS.md` step 7 ("`dependencies` equal to its sources' own bare imports") stays true. A side-effect and a dynamic
+  import are bare imports, and a comment never was. No REQUEST.
+- **CROSS: 1** (REQUEST 6, the composition's citations). **UNOWNED: 0. NEW between the runs: none.** The fence `git
+diff --stat` prints nothing.
+
+### For the consumer (LIB-VENDOR)
+
+**NO byte of any copy moves and NO bump is needed, so thepile has nothing to vendor.** The diff is one test file and
+this document. The tarball carries no test (`files: ["r", "src"]`), and `packages/ui/package.json` is still `0.1.6`, so
+the pack point and `marquee-ui-ui-0.1.6.tgz` stand. For thepile to know (class J, recorded here, not edited there):
+the registry now fails an item whose sources import a package by `import "x"` or `import("x")` without declaring it.
+So a part that lazy-loads a dependency at the next bump must declare it in the same commit.
+
+### The gate
+
+`pnpm verify` at the base `f4168be`: exit **0**, `Test Files 35 passed (35)` / `Tests 602 passed (602)`
+(`verify-base.log`). The reader adds one test, so the suite is 35 / 603 from `38d77a0` on (measured by `pnpm exec
+vitest run --coverage.enabled=false` at the working tree of `38d77a0` before the commit: `Test Files 35 passed (35)`,
+`Tests 603 passed (603)`). The stream's ONE gate is `pnpm verify` from the repo root at the commit that carries this
+section after layer 1 (`verify-head.log`, `verify-head.exit` and `verify-head.sha` in `$BATCH_SCRATCH/s1/`). Its runner
+lines are the stream's report line rather than a line here, because a commit recording them would move the head they
+certify.
+
+No push, no tag, no `npm publish`, no PR: the freeze holds.
