@@ -12834,9 +12834,7 @@ the route was built: PURE 1, PURE with a positional class 1 (`/[username]`'s `Se
 cut ON drawings with no visible focus ring) is CLOSED in thepile (`docs/slices/CUT-FOCUS-RING.md`, thepile `9a878639`):
 the ring lives once on `DOOR_CLASS.tabSelected` on the negative-offset token form (`focus-visible:outline-on-accent
 focus-visible:-outline-offset-4`, which Tailwind already emitted), `FOL_LOUD` and `CHIP_ON` carrying the same two
-utilities; -4px in `on-accent` chosen by contrast on the built head (486 / 1,060 / 486 pixels inside the box at >= 3:1 for
-the selected tab, the Follow face and the pressed chip, against 0 at >= 3:1 for -2px in the accent, which only turns the
-border into the fill); the DL26 probe's base numbers (36 / 2 / 36 inside, `outline … @ 2px · clip polygon`) reproduced
+utilities; -4px in `on-accent` chosen by contrast on the built head (486 / 1,060 / 486 pixels changed inside the box for the selected tab, the Follow face and the pressed chip, 446 / 1,054 / 446 of them at >= 3:1, against 0 at >= 3:1 for -2px in the accent, which only turns the border into the fill (thepile's layer 2 LOW-1: the inside count and the contrast count are two numbers)); the DL26 probe's base numbers (36 / 2 / 36 inside, `outline … @ 2px · clip polygon`) reproduced
 exactly before the fix; three reads in `e2e/focus.spec.ts:188,199,211` red on the base with CLIPPED, each also taking a
 picture because `expectFocusRing` passes an accent ring on an accent fill. FOLLOWUPS-14 (`docs/slices/FOLLOWUPS-14.md`,
 thepile `5a981509`) deleted `secondaryButtonClass`, `dangerButtonClass` and `secondaryBase`, the pile retries now pinned
