@@ -11591,3 +11591,32 @@ where it named `cls`, and the arm is green on it (the name is whole).
 | 44  | class B: a zero on ANY axis hides, z measured                                                                                                                   | CONFIRMED (my Chromium re-run of all eleven: the same hashes, `run-scale-r5.txt`, `run-scale2-r5.txt`)                                                                                                                                                                                                          |
 | 45  | class B: nine items declare `@radix-ui/react-slot`; seven declare nothing; 22 items; 21 pairs; each slot item imports `react`, `toast` imports `react-dom`      | CONFIRMED                                                                                                                                                                                                                                                                                                       |
 | 46  | class B: TryAnother `:292-299`, `/feed` `:100-105`, the audit cells, the census rows                                                                            | CONFIRMED (5, 6, 2, 42)                                                                                                                                                                                                                                                                                         |
+
+## DL25 reconciler: two guard arms in, the `link` variant refused, and thepile's verdicts recorded (2026-09-24)
+
+Written by the DL25 orchestrator after the batch's three streams merged (this library's `s/design-lib-d-guard-arms` at
+`6a488b05`, verify 35 / 602 exit 0 on the merged `next`; thepile's `s/design-lib-f-pile-button` and `s/FOLLOWUPS-12`).
+No shipped byte moved this batch: `git diff --stat 8d9d569 6a488b05 -- packages/ui/src packages/ui/r
+packages/ui/package.json packages/tokens registry.json` is empty, so there is no bump and LIB-VENDOR has nothing to do.
+
+**What the library decided (the section above, DESIGN-LIB-d-guard-arms).** Two arms, test-only: the forced-colours
+guard reads a winning `scale` with a zero on ANY axis (z included, measured in Chromium) on the carrier itself as a
+hide, so r5's P20 (the Switch thumb `+ forced-colors:scale-0`) is red at the head naming `switch.tsx` and a `scale-50`
+twin stays green; a carrier's other geometry (a `transform`, `rotate-x-90`, a `clip-path`) is recorded as a limit in the
+file header. The registry test reads each item's declared `dependencies` against that item's own sources' bare imports,
+both directions, peers from `peerDependencies`: a `Card` importing `Slot` undeclared, a `button` without
+`class-variance-authority`, and a `card` declaring it unused are each red at the head, and all twenty-two items agree
+today. The `link` variant on `Button` is MEASURED and recommended REFUSE [V]: seven thepile sites wear five strings,
+the best single string is pure on three of seven, and the other four need a size, an ink or an underline axis each (or,
+for `TryAnother`, a box it does not have). thepile's reconciler corrected the four text-link audit cells accordingly and
+recorded `TryAnother`'s 147 x 18 target as an AUDIT-FIX (s1's layer 1 MED-2; the 44px floor) for Ankit's [V].
+
+**thepile's verdicts this batch, recorded here (class J).** thepile's FOLLOWUPS-12 (s3) measured `FacePicker.tsx:344`'s colour-only selected face, this library's DL24 REQUEST 3 (a REASONED CROSS), IDENTICAL under forced colours on the base `43a9aead`: 0.0% of the picture changes in both palettes, on both chromium projects (13.14% in normal mode); at the head the selected face draws `forced-colors:outline-2 forced-colors:outline-offset-4` and reads 7.27% in both palettes, normal mode byte-identical at 390, 768 and 1280, `border-4` rejected by measurement (1.16% in the light palette, under the 2% floor, because the thicker border is drawn over the face's own art), so the outline is what `src/radio-group.tsx:40-43`'s docblock should recommend at the next bump; the shipping arm is thepile's `e2e/forced-colors-controls.spec.ts:544` at `849ba7c3` (merged at `17852dc7`), and it also reads that the mode is on and the face's `outline-style` `none` served and `solid` forced. The second `Button` route of f is DONE on `/pile/[steamid]` (`docs/slices/DESIGN-LIB-f-pile-button.md`, thepile `390e4fb4`): the three `secondaryButtonClass` anchors on `<Button asChild variant="secondary">` over their `<a>`, only `data-slot` differing on the built page, all fifteen budgeted routes byte-identical (the part renders on the server); `secondaryButtonClass` keeps one wearer, `ShareDoor.tsx:78` on the tier list page, the next route (2,450 B left against a ~2,051 B import). DL24 layer 2's MED-1 is closed in thepile (FOLLOWUPS-12, `849ba7c3`): `min-w-0` on the review card, necessary and not sufficient, plus `flex-wrap` on its meta row, red first at 32px with the fixture and at 24px with a 30-character display name.
+
+**Open REQUESTs the library holds after this batch**: the registry test's import reader through the TypeScript scanner's
+literals (side-effect and dynamic imports read, a comment spelling `from "x"` not; it moves the union check with the arm,
+which is why s1 left it; none of the three shapes is in a part source today); `src/radio-group.tsx:40-43`'s docblock
+recommending a colour-only checked face and `:155-157`'s falsified border-colour sentence, both comment-only and both
+waiting for the next byte-moving bump; `asChild` on `Card` DEFERRED to that same bump; the slab family, `size="lg"` and
+the inline width from thepile's DL24 census, not measured yet. `AGENTS.md` step 7 now says an item's `dependencies` are
+its sources' own bare imports (s1's REQUEST 6, this commit).

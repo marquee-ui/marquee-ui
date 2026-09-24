@@ -76,7 +76,10 @@ so a component copied out of the registry reads the same here as there.
 6. Move the counters in `packages/ui/test/registry.test.ts`: its item list, the
    `registryDependencies` count and the number of files compared.
 7. Add the item to `registry.json` with an explicit `target`
-   (`components/ui/<name>.tsx`), then `pnpm build:registry`, then commit `r/`.
+   (`components/ui/<name>.tsx`) and with `dependencies` equal to its sources' own
+   bare imports at `packages/ui/package.json`'s ranges, peers aside (batch DL25:
+   `registry.test.ts` reddens a missing one AND a stale one, per item), then
+   `pnpm build:registry`, then commit `r/`.
 8. Say the new count where the package describes itself: `README.md`, the
    `packages/ui/package.json` description, and the list at the top of this file.
 9. `pnpm verify`.
