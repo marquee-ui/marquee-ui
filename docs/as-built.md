@@ -12254,3 +12254,548 @@ docblock recommending a colour-only checked face and `:155-157`'s falsified bord
 and both waiting for the next byte-moving bump; `asChild` on `Card` DEFERRED to that same bump; `size="lg"` with a
 scrim and the inline width from thepile's DL24 census, not measured yet; the slab REFUSE and the `link` REFUSE both
 standing on Ankit's [V].
+
+## DESIGN-LIB-d-deps-lg-inline: the registry-dependencies check on the scanner, and `size="lg"` and the inline width measured (2026-09-24, batch DL27)
+
+Batch DL27, stream s1, branch `s/design-lib-d-deps-lg-inline` from `next` @ `748cecb`. thepile is read-only throughout,
+at `ad2a3944` by `git -C … show` (the composition is `docs/slices/DESIGN-LIB.md` "## Batch DL27", paragraph (b), the
+"Shared surfaces" paragraph and the s1 row). Under the push freeze: LOCAL commits, no tag, no publish, no PR, **no
+bump**. One test-only arm and two measurements, no `src/` edit: `8485c52` (the check on the scanner, in
+`packages/ui/test/registry.test.ts`), `81f5122` (its reader pinned in a test of its own), this section (`4871e86`), and
+layer 1's fixes (`c02172e`, the same test file: the rule resolved to the item that ships each file, the compare
+pinned). No fixture and no helper file were needed. `git diff --stat 748cecb HEAD -- packages/ui/src packages/ui/r
+packages/ui/package.json packages/tokens registry.json` prints nothing.
+
+**The base, re-measured**: `pnpm verify` at `748cecb` exit **0**, `Test Files 35 passed (35)`, `Tests 603 passed
+(603)` (`$BATCH_SCRATCH/s1/verify-base.log`; the unit phase started 21:22:06 IST, the exit file written 21:22:12), the
+tree clean after. The composition's 35 / 603 holds.
+
+### The registry-dependencies check on the scanner (`8485c52`, `81f5122`, `c02172e`)
+
+Every `registry.test.ts` line number from here on is `c02172e`'s unless it names another sha.
+
+- **The reader, and why a sibling.** `bareImports` returns BARE names: its filter drops every specifier that starts
+  with `@/` or `.` (`:115` at the base), so `./label` and `@/lib/utils`, the two shapes this check reads, never reach
+  its caller. Calling it would move the contract of a reader this stream consumes, and a second walk would be a second
+  copy of the four positions. So the walk moved out, unchanged, to `specifiersOf` (`:94-115`), which returns every
+  specifier in source order. `bareImports` (`:121-128`) is that walk and its own filter, with its output, its bare-name
+  rule and its test (`:418`) untouched and green. `registryImports(source, own)` (`:152-167`) is this check's reader
+  over the same walk, and `registryDrift` (`:174-189`) its per-item compare, in `dependencyDrift`'s shape. The check
+  (`:338-364`) collects `registryDrift` over every item (`:352`) where the regex was (`:281` at the base).
+- **The rule: resolved to the item that ships the file** (`c02172e`, layer 1 r5's MED-2). `registryImports` resolves
+  each relative specifier against the source's own directory, and `@/lib/…` against `packages/ui/src/lib/`, trying the
+  name as written and with `.tsx` / `.ts` (a `.js` suffix read as the TypeScript file). It returns `@marquee/<item>`
+  for the item whose `files` in `registry.json` hold that path (`shippedBy`, `:131`). ONE rule skips a sibling that is
+  not a part: a file the source's OWN item ships is never a dependency (`:165`); that is `ribbon.tsx:3`'s
+  `import "./ribbon.css"`. A file no item ships, and any `@/…` outside `@/lib/`, reads as `unshipped <specifier>`,
+  which no item can declare, so the check reddens naming it.
+- **Why this rule and not either of the brief's two** [V]. The brief offered a rule by the registry's item names or by
+  a `.css` extension. `81f5122` shipped the `.css` rule, and layer 1 measured both as dominated:
+  - The names rule passes (d), a side-effect `import "./helpers"` beside a real `src/helpers.ts` that no item ships,
+    on all nineteen tests (d-names, `81f5122`; r5's S-dnames-helpers). `registers every component source exactly once`
+    reads only top-level `.tsx` and `.css`, so nothing else sees a `.ts` helper.
+  - The `.css` rule passes (e), `card` importing ANOTHER item's stylesheet (`./ribbon.css`), and r5's missing, nested
+    and unregistered stylesheets, `@/label`, `@/lib/merge` and `../x`. Each of those is a copy importing a file its
+    consumer never receives, and each is green at the base too, so none is a regression.
+  - The ownership rule reddens all of them at `c02172e`, naming the item and the specifier (the table), and stays
+    green on the comment and `./input.js`. (e) now reads `card: imports @marquee/ribbon and does not declare it`,
+    which is also its fix: `card` declaring `@marquee/ribbon` gets `ribbon.css` installed with it (e-declared, whose
+    only reds are the two `23` counters, AGENTS.md step 6's to move).
+- **The tree's proof.** `derived` is 23 at the head (`:363`). `ribbon` declares `@marquee/utils` alone
+  (`registry.json`) while `ribbon.tsx:3` imports its own `./ribbon.css`, so with the own-file skip removed (norule) the
+  check reddens naming `ribbon: imports @marquee/ribbon`.
+- **The pin, in a test of its own** (`81f5122`, widened at `c02172e`). The first head (`8485c52`) pinned the reader
+  on a written text INSIDE the check. Removing the rule then reddened that pin first and the tree loop was never
+  reached, which is not the red the brief predicted (class E), so the pin moved to its own test (`:366`, now "reads a
+  source's registry dependencies as the items that ship the files it imports"). Each red names its own subject.
+  - One text, read as `card`'s: a line comment, a block comment, a string and a bare string literal that spell
+    sibling specifiers (never read), a side-effect sibling, a `.js` sibling, another item's stylesheet, `@/lib/utils`,
+    a bare package, `./helpers`, `@/label`, `@/lib/merge`, `../x`, a re-export and a dynamic import. It expects exactly
+    `@marquee/toggle`, `@marquee/input`, `@marquee/ribbon`, `@marquee/utils`, `unshipped ./helpers`, `unshipped
+@/label`, `unshipped @/lib/merge`, `unshipped ../x`, `@marquee/badge` and `@marquee/sheet`, in source order.
+  - `ribbon.tsx`'s own stylesheet reads as nothing ("the item's own stylesheet").
+  - `registryDrift` on DL19's swap (`textarea` declaring `label` for `input`) returns both lines, and nothing once
+    declared right (layer 1's LOW-2: a count compare in the check was green on that swap).
+  - So the `.css` rule, the names rule, the regex, every-`@/`-as-`@/lib/`, `../` read as nothing, a walk reading
+    every string literal and a size compare each redden it (the reader rows below).
+- **The suite grows by that one test**, from 35 / 603 to 35 / 604.
+
+Every mutation ran on a detached worktree of a committed sha: `../mut-dl27-base` at `748cecb` (the regex), and
+`../mut-dl27-head` at `8485c52`, `81f5122` and then, recreated, `c02172e`. The driver is `$BATCH_SCRATCH/s1/muts/mut.py`,
+DL26 s1's with one addition, `creates` (a new file, and its directory when it makes one, written, confirmed and removed
+by name on restore, because `git checkout -- .` leaves an untracked file behind).
+
+- It asserts each find matched once and confirms the marker LANDED by `grep -n -F`.
+- It runs `pnpm build:registry` where the row says "rebuilt", so the content check is fresh and cannot be the red that
+  is read.
+- It runs `registry.test.ts` from the REPO ROOT, verbose, then restores and checks the tree clean.
+- The check's red is one line in vitest's summary (`… expected [ Array(1) ] to deeply equal []`); the line it names is
+  read from the diff block in the log, and quoted below.
+- Logs are `muts/<id>-base.log` / `<id>-base3.log` (`748cecb`), `<id>-head.log` (`8485c52`), `<id>-head2.log`
+  (`81f5122`) and `<id>-head3.log` (`c02172e`); the summaries are `run-base.txt`, `run-base3.txt`, `run-head.txt`,
+  `run-head-k.txt`, `run-head2.txt`, `run-head2-k.txt`, `run-head3.txt` and `run-head3-k.txt`.
+
+| id                 | mutation (landed line)                                                                                                       | at `748cecb` (the regex)                                                                                                                            | at `c02172e` (the scanner, resolved to the owner)                                                                                                                                  |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| (a)                | `src/card.tsx:3` `// import { Label } from "./label"`, `r/` rebuilt                                                          | **RED** `Tests 1 failed \| 17 passed (18)`: the check, `card: expected [ '@marquee/utils' ] to deeply equal [ '@marquee/label', '@marquee/utils' ]` | **GREEN** `Tests 19 passed (19)`                                                                                                                                                   |
+| (b)                | `src/card.tsx:3` `import "./label";`, `r/` rebuilt                                                                           | **GREEN** `Tests 18 passed (18)`                                                                                                                    | **RED** `1 failed \| 18 passed (19)`: the check alone, `card: imports @marquee/label and does not declare it`                                                                      |
+| (b-nb)             | (b) with `r/` NOT rebuilt                                                                                                    | `1 failed \| 17 passed (18)`: the content check alone (`:460`), `card: packages/ui/src/card.tsx is stale`                                           | `2 failed \| 17 passed (19)`: the check's line AND the content check's (`:579`)                                                                                                    |
+| (c)                | `src/card.tsx:3` `import "./card.css";` beside a created empty, UNREGISTERED `src/card.css`, `r/` rebuilt                    | the check **GREEN**; `1 failed \| 17 passed (18)`: `registers every component source exactly once`                                                  | **RED** `2 failed \| 17 passed (19)`: the check, `card: imports unshipped ./card.css and does not declare it`, and the same other test                                             |
+| (c-own)            | (c) with `card.css` REGISTERED among `card`'s own files (`registry.json:135`), `r/` rebuilt                                  | the check **GREEN**; `1 failed`: the content check's counter, `expected 24 to be 23`                                                                | the check **GREEN** (the rule); `1 failed \| 18 passed (19)`: the same counter                                                                                                     |
+| (c-own-norule)     | (c-own) with `if (owner === own) return [];` removed (`:165`)                                                                | (no reader)                                                                                                                                         | **RED** `3 failed \| 16 passed (19)`: the check, `card: imports @marquee/card …` and `ribbon: imports @marquee/ribbon …`; the pin; the counter                                     |
+| (norule)           | the own-file skip removed, no source touched                                                                                 | (no reader)                                                                                                                                         | **RED** `2 failed \| 17 passed (19)`: the check, `ribbon: imports @marquee/ribbon and does not declare it`; the pin, `the item's own stylesheet: expected [ '@marquee/ribbon' ] …` |
+| (d)                | `src/card.tsx:3` `import "./helpers";` beside a created `src/helpers.ts` (`export {};`), `r/` rebuilt                        | **GREEN** `18 passed (18)`                                                                                                                          | **RED** `1 failed \| 18 passed (19)`: the check, `card: imports unshipped ./helpers and does not declare it`                                                                       |
+| (e)                | `src/card.tsx:3` `import "./ribbon.css";` (another item's stylesheet), `r/` rebuilt                                          | **GREEN** `18 passed (18)`                                                                                                                          | **RED** `1 failed \| 18 passed (19)`: the check, `card: imports @marquee/ribbon and does not declare it` (GREEN at `81f5122`: the `.css` rule's hole)                              |
+| (e-declared)       | (e) with `card` declaring `@marquee/ribbon` (`registry.json:127`), `r/` rebuilt                                              | **RED** `2 failed`: the check, `card: expected [ '@marquee/ribbon', '@marquee/utils' ] to deeply equal [ '@marquee/utils' ]`; the `23` count        | `2 failed \| 17 passed (19)`: the two `23` counters only (`expected 24 to be 23`, the anchor and "resolves every registry dependency"): the drift is clean                         |
+| (R-missingcss)     | `src/card.tsx:3` `import "./card.css";`, no such file, `r/` rebuilt                                                          | **GREEN** `18 passed (18)`                                                                                                                          | **RED**: `card: imports unshipped ./card.css and does not declare it`                                                                                                              |
+| (R-subdircss)      | `src/card.tsx:3` `import "./styles/card.css";` beside a created `src/styles/card.css`, `r/` rebuilt                          | **GREEN** `18 passed (18)`                                                                                                                          | **RED**: `card: imports unshipped ./styles/card.css and does not declare it`                                                                                                       |
+| (R-lib-undeclared) | `src/card.tsx:3` `import { merge } from "@/lib/merge";` beside a created `src/lib/merge.ts`, `r/` rebuilt                    | **GREEN** `18 passed (18)`                                                                                                                          | **RED**: `card: imports unshipped @/lib/merge and does not declare it`                                                                                                             |
+| (R-dotdot)         | `src/card.tsx:3` `import { r5 } from "../r5-outside";` beside a created `packages/ui/r5-outside.ts`, `r/` rebuilt            | **GREEN** `18 passed (18)`                                                                                                                          | **RED**: `card: imports unshipped ../r5-outside and does not declare it`                                                                                                           |
+| (R-alias-neutral)  | `form.tsx` imports `Label` through `@/label` and drops `@marquee/label`; `textarea` gains `import "./label"` and declares it | **RED** `1 failed`: `textarea: expected [ '@marquee/input', …(2) ] …` (the regex does not read `textarea`'s side-effect import)                     | **RED** `1 failed \| 18 passed (19)`: `form: imports unshipped @/label and does not declare it` (GREEN at `4871e86`)                                                               |
+| (R-js)             | `textarea.tsx` `./input` written `./input.js`, `r/` rebuilt                                                                  | **GREEN**                                                                                                                                           | **GREEN** `19 passed (19)` (intended: the strip)                                                                                                                                   |
+| (css-rule)         | `81f5122`'s `.css` rule returned ahead of the resolution                                                                     | (no reader)                                                                                                                                         | **RED** `1 failed \| 18 passed (19)`: the pin alone, `the sibling reader … expected [ '@marquee/toggle', …(5) ] to deeply equal [ '@marquee/toggle', …(9) ]`                       |
+| (names-rule)       | the item-names rule returned ahead of the resolution                                                                         | (no reader)                                                                                                                                         | **RED**, the pin alone (`…(4)` for `…(9)`); GREEN at `4871e86`, layer 1's MED-1                                                                                                    |
+| (k-regex)          | `registryImports`' walk replaced by the base's regex over `from "…"`                                                         | (no reader)                                                                                                                                         | **RED**, the pin alone, `expected [ '@marquee/label', …(5) ] …`; the check green (the regex reads the tree alike)                                                                  |
+| (f2)               | every `@/…` resolved as `@/lib/…` is                                                                                         | (no reader)                                                                                                                                         | **RED**, the pin alone (`@/label` reads as `@marquee/label`); GREEN at `4871e86`                                                                                                   |
+| (l)                | `../` read as nothing (the first guard narrowed to `./`)                                                                     | (no reader)                                                                                                                                         | **RED**, the pin alone (`…(8)` for `…(9)`); GREEN at `4871e86`                                                                                                                     |
+| (g4)               | the walk also reads every string literal                                                                                     | (no reader)                                                                                                                                         | **RED** `4 failed`: the new pin (`[ '@marquee/alert', …(20) ]`), `bareImports`' pin and the two npm checks; the new pin was GREEN on it at `4871e86`                               |
+| (drift-size)       | `registryDrift` returns `[]` when the two sets are the same size                                                             | (no reader)                                                                                                                                         | **RED**, the pin alone, `the compare, both ways: expected [] to deeply equal [ …(2) ]`                                                                                             |
+| (drift-size+j0)    | (drift-size) and DL19's swap in `registry.json` (`textarea` declaring `label` for `input`), `r/` rebuilt                     | (no reader)                                                                                                                                         | **RED**, the pin alone (the check is blind to the swap under the weakened compare; the pin is not)                                                                                 |
+| at `8485c52`       | the `.css` rule removed with the pin INSIDE the check                                                                        | (no reader)                                                                                                                                         | RED on the pin's message alone: the item's line never reached, which is why `81f5122` exists                                                                                       |
+
+Each predicted red is the red that was read, at `c02172e`. At the base, (a) is the regex reading a comment and (b),
+(d) are the regex not reading a side-effect import; at the head both halves invert. (c) is RED at the head where the
+brief predicted GREEN, by the rule's design: `shadcn add card` would write an import of a `card.css` it never
+installs (UNVERIFIED below).
+
+### `size="lg"` with a scrim, MEASURED
+
+The demand is DL24's (the reconciler block above, `:11054-11056`). The sources are file reads at thepile `ad2a3944`
+(`git grep -n 'min-h-12' -- apps/web/src`: exactly three lines), each line read whole and each string read by the probe
+from `git show` at its line, never retyped. `git diff --stat 192960c8 ad2a3944 -- apps packages` prints nothing, so the
+main clone's capture build of `192960c8` (`BUILD_ID` `AIn0bMB3zgpb57afbanmw`, `static/css/3a94a9c5e71200f7.css`, copied
+as `probe/thepile-192960c8.css`) is this tree's CSS.
+
+- `HeroButtons.tsx:17`, the hero's primary `<Link>`, in `:14`'s `flex flex-wrap gap-3`: `inline-flex min-h-12
+items-center rounded-md bg-accent px-5 text-base font-bold text-on-accent shadow-hard transition-transform
+hover:-translate-y-0.5 hover:bg-accent-hover active:translate-y-0`
+- `:23`, its secondary: `inline-flex min-h-12 items-center rounded-md border-2 border-line-strong bg-bg/60 px-5
+text-base font-bold text-text backdrop-blur-[6px] transition-transform hover:-translate-y-0.5 active:translate-y-0`
+- `HomeIslands.tsx:119` is NOT the hero: it is `SignupBand`'s one `<Link>` (`:101-125`, signed out only, `:103`
+  returns null signed in), in `:108`'s BLOCK `<section>` with `text-center`. Its string is `:17`'s with `mt-6` in front.
+
+**The candidates**, by the rename table (`fidelity.test.tsx:58-75`). thepile's `globals.css` aliases each pair, read in
+the sheet: `--shadow-hard:var(--shadow-lift)`, `--accent-hover:var(--primary-hover)`, `--line-strong:var(--border-strong)`.
+
+- The primary's `rounded-md`, `hover:bg-accent-hover` and `-translate-y-0.5` lift are `primaryRounded`'s (the square
+  `primary` lifts INTO its shadow), so **P = `primaryRounded`**.
+- The secondary's `border-2 border-line-strong text-text` are `secondary`'s, so **S = `secondary`** (`secondaryBase`
+  expanded).
+- `bg-bg/60` has no rename entry. It is the ground role (`background`) at 60%.
+
+**The instruments** (`$BATCH_SCRATCH/s1/probe/`):
+
+- **Emission order**: `sheet-order.mjs` over thepile's sheet (tailwindcss 4.3.2, thepile's lockfile) and over
+  `lib-probe.css`, which `lib-compile.mjs` (DL26's `lib-sheet.mjs` form) compiled from these strings with the library's
+  tailwindcss 4.3.3 and tokens.
+- **The library's own `cn`** (tailwind-merge, D11) over appended classes: `merge.mts`, `merge.txt`.
+- **The rendered box**: `geometry.mjs`, `geometry.txt`. Each site string and each candidate form is put on the element
+  inside the site's own parent classes, in headless Chromium (Playwright 1.61.1) against thepile's sheet, so under
+  thepile's join, at 390, 768 and 1280. It reads the box, display, min-height, padding, font size and weight, radius,
+  ground, backdrop, border and ink, and the ground, border and translate again hovered. Fonts do not load from
+  `file://`, so every width is site against candidate in one fallback font, not a census number. The harness puts a
+  16px body gutter at every width, where thepile's shell is `px-4 md:px-8` (`AppShell.tsx:142`), so a full-width
+  reading at 768 or 1280 (720, 736, 1248, 684, and the band's 800px section) is the harness's column, not the page's
+  (at 768 the page's is 704; layer 1 r5's LOW-5). No verdict rests on those numbers.
+
+**The order, in both sheets alike.** For each pair the second is emitted later and wins under a join: `.min-h-12` before
+`.min-h-hit` (thepile #232 / #246, library #41 / #43), `.px-4` before `.px-5` (#552 / #553, #55 / #56), `.text-base`
+before `.text-sm` (#614 / #618, #58 / #59), `.font-bold` before `.font-semibold` (#677 / #681, #60 / #61), and `.grid`
+before `.inline-flex` before `.inline-grid` (#181 / #185 / #186, #38 / #39 / #40). So an APPENDED `lg` loses two of its
+three utilities under thepile's join: the "H1 join" row (P + `className="min-h-12 px-5 text-base
+transition-transform"`) renders 44px tall at 14px with 20px padding, as wide as its row (358, 736, 1248). Under the
+library's `cn` the same `className` merges (`merge.txt`: `min-h-hit px-4 text-sm` dropped).
+
+| site              | file:line at `ad2a3944` | box (rendered in the site's parent)                                                    | radius            | padding            | font                  | ground                                        | shadow                        | hover                                                                                                   | against the candidate                                                                                                                                                                                                                                                              | with the axes                                                                                                                                                                 |
+| ----------------- | ----------------------- | -------------------------------------------------------------------------------------- | ----------------- | ------------------ | --------------------- | --------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| H1 hero primary   | `HeroButtons.tsx:17`    | `inline-flex items-center`, a flex-row child: 218.63 x 48 at all three widths          | `rounded-md` 10px | `px-5` 20px, no py | `text-base` 16px, 700 | `bg-accent` = `bg-primary`, rgb(228, 255, 58) | `shadow-hard` = `shadow-lift` | `-translate-y-0.5`, `bg-accent-hover` = `bg-primary-hover` (rgb(238, 255, 107)); `transition-transform` | P: SIZE (`min-h-12 px-5 text-base` against `min-h-hit px-4 text-sm`), WIDTH (`w-full`), `transition-transform` (an addition), `disabled:*` (inert on a link). Radius, shadow and hover are equal through the aliases; `grid place-items-center` draws the same box as a flex child | **PURE with size + width**: 218.63 x 48 and every reading equal, at three widths. Size ALONE keeps `w-full`: the row's full width                                             |
+| H2 hero secondary | `HeroButtons.tsx:23`    | 194.02 x 48                                                                            | 10px              | `px-5`             | `text-base`, 700      | the SCRIM, `bg-bg/60 backdrop-blur-[6px]`     | none                          | `-translate-y-0.5` only; the border stays rgb(58, 64, 35)                                               | S: SIZE, WIDTH, WEIGHT (`font-bold` against `font-semibold`) and the variant's `hover:border-muted` (hovered rgb(136, 143, 101)). The scrim and `transition-transform` are ADDITIONS: S sets no ground and no backdrop, and both render identically                                | **NEVER with size + width**: 192.53 x 48 at weight 600, and a hover border the site does not draw. The weight is an override (`.font-semibold` is emitted after `.font-bold`) |
+| B signup band     | `HomeIslands.tsx:119`   | `inline-flex` in a BLOCK `text-center` section: 150.19 x 48, centred (x+119.91 at 390) | 10px              | `px-5`             | 16px, 700             | as H1                                         | as H1                         | as H1                                                                                                   | P: as H1, plus `mt-6` (an addition) and the BOX. `grid` is block-level, so without `w-full` it still fills a block parent                                                                                                                                                          | size + width (`w-full` out): **358 x 48 at x+16** (736 and 1248 at 768 and 1280), NOT the site. With `grid` swapped for `inline-grid` too: 150.19 x 48 at x+119.91, identical |
+
+**The verdict (ii).**
+
+- `size="lg"` alone makes NO site pure: every site also needs the width.
+- With a width axis whose `auto` is an inline box (`inline-grid`), a size makes the two primary sites pure (H1, B):
+  one string in two files.
+- The secondary (H2) is NEVER pure by size and width: the weight and the hover are the variant's. The scrim is not an
+  axis at all: it is a `className` addition, drawn identically. So "`size="lg"` with a scrim" names one axis and one
+  addition, and the pair it describes cannot be pure under one owner by a size.
+
+**The cost, an ESTIMATE** (`probe/cost.mjs`, `cost.txt`). The script reads `button.tsx`'s whole `cva` config through
+the TypeScript AST (`secondaryBase` expanded, `defaultVariants` included, which DL26's `variants.mjs` left out: its
+1,481 / 440 B base is not this one's 1,623 B raw / 482 B gz) and serialises it minified. Every gz figure is `gzip -c <
+file | wc -c`: fed a file NAME, gzip stores it in the header, and the first form of this section's figures carried
+those bytes (layer 1 r5's LOW-1; so do DL26's, which were not re-read).
+
+- A `size` axis in `armed`'s compound form (`size: { md: "", lg: "" }`; `min-h-hit px-4 text-sm` moved out of
+  `primaryRounded`, `secondary` and `danger` into an `md` row, `min-h-12 px-5 text-base` in an `lg` row): +143 B raw,
+  **+54 B gz**.
+- With the inline-box width axis below as well: +318 B raw, **+93 B gz** together.
+- The string `min-h-12 px-5 text-base` alone is 23 B raw and 43 B gz.
+- The delta lands in every thepile route whose client chunk carries `button.tsx`. Which routes those are, and whether
+  `HeroButtons` (a server component) would put it in `/`'s client chunk at all, is not measured here (`SignupBand` is
+  in `HomeIslands.tsx`, which is client). The true delta is LIB-VENDOR's `exact.mjs` at a bump.
+
+**DL24's AUDIT-FIX, rendered**: the hero to the HOUSE button, 48px / `text-base` / `px-5` to 44px / `text-sm` / `px-4`.
+P and S take only the inline box, plus the sites' own additions (`transition-transform`; the scrim on S). The primary
+renders 188.3 x 44, the secondary 165.97 x 44 at weight 600 with the hover border, and the band 128.42 x 44 centred, at
+all three widths, against the sites' 218.63, 194.02 and 150.19 x 48. Every one of the three is then PURE with the width
+axis alone, the secondary included, because it TAKES the house weight and hover.
+
+**Recommendation (ii): REFUSE `size="lg"`** [V].
+
+- It is pure on no site alone, and with the width axis on two elements of one string in two files.
+- The pair it serves would be split. The secondary is never pure by a size (weight, hover), so the pair's shared 48px /
+  16px / 20px would live in two owners: the `lg` value in the library and the secondary's string in thepile.
+- The product reason this REFUSE overrides is `HeroButtons.tsx:9-10`: "48px tall, comfortably over the 44px floor,
+  because these are the two biggest decisions on the page". (The first form of this section quoted `:6`'s "Same shape
+  either way", which is about the signed-in and signed-out renders, not the pair: layer 1 r5's LOW-3.)
+- The AUDIT-FIX puts all three on the house button with ONE owner and ONE axis, the width, which (iii) recommends
+  building anyway. Its visible cost is the hero pair and the band at 44px / 14px / 16px, the secondary at weight 600
+  with a hover border, and the `home` shot's hero moving: Ankit's [V].
+- If Ankit keeps the 48px hero: BUILD `size: { md, lg }` in the compound form above at the next byte-moving bump (+54
+  B gz), the primary pure on H1 and B with the width axis, and `:23` stays a product string (or takes the house weight
+  and hover by its own AUDIT-FIX).
+
+### The inline width, MEASURED
+
+The demand is DL24's (`:11057-11058`). `git grep -n 'self-start' ad2a3944 -- apps/web/src/app/settings`: 11 hits in 7
+files, the composition's count, each read whole.
+
+- Three are button-shaped strings carrying `self-start` (align-self): `SettingsIslands.tsx:251`,
+  `InstallSettings.tsx:33` and `DeveloperSettings.tsx:118`.
+- Two match only through `sm:justify-self-start`: the button string `DangerZone.tsx:146` and the `className` on the
+  vendored `Button` at `DangerZone.tsx:102` (layer 1 r5's LOW-4).
+- Three are `tap-link` text links (`page.tsx:87`, `profile/page.tsx:53`, `steam/page.tsx:54`) and three are comments
+  (`page.tsx:83`, `profile/page.tsx:49`, `steam/page.tsx:50`).
+
+**The sheet-order fact, once.** Two same-specificity `width` utilities on one element are resolved by the order the
+stylesheet emits them, never by their order in the class attribute. Both sheets emit `.w-auto { width: auto }` BEFORE
+`.w-full { width: 100% }`: thepile's (4.3.2) at style rules #284 and #286 of 1,224, the library's compile (4.3.3) at #44
+and #46 of 79, with `.w-fit` between in each. So `w-full` in a variant string beats an appended `w-auto` under thepile's
+join. Rendered: the S1 and S2 "join" rows (P + `className="w-auto self-start py-2.5"`) are as wide as the column, 358 at
+390 and 720 at 768 and 1280. DL24's "NOT pure because `w-full` outranks `w-auto` by sheet order" holds. The library's
+own `cn` merges it (`merge.txt`: `w-full` dropped), which is D11's difference again and not what thepile runs. An
+inline width is therefore a `cva` AXIS that takes `w-full` out of the variant string, in `armed`'s compound form, and
+never an appended class. (A responsive `sm:w-auto` sits inside `@media (width >= 40rem)`, emitted after every base
+utility, thepile #969, so it does beat `w-full` at 640px and up: that is the variant order. See the `DangerZone` rows.)
+
+| site              | file:line at `ad2a3944`     | element · parent                                                                                                                           | box (rendered)                                                       | padding       | font                                                    | ground | hover                                                   | against P                                                                                                                                                                  | with the width axis                                                                                                     |
+| ----------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- | ------------- | ------------------------------------------------------- | ------ | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| S1 export         | `SettingsIslands.tsx:251`   | `<a download>` · `:238`'s `flex flex-col gap-3`                                                                                            | `inline-flex items-center self-start`: 135.02 x 44 at three widths   | `px-4 py-2.5` | `text-sm` 14px, 700                                     | as H1  | as H1 (lift, `bg-primary-hover`), no transition         | WIDTH (`w-full`). `self-start` and `py-2.5` are ADDITIONS, the caller's (P sets no `align-self` and no `py`); `disabled:*` inert on a link; the display draws the same box | **PURE**: 135.02 x 44, every reading equal. `self-start` is load-bearing: without it the stretch column draws 358 / 720 |
+| S2 install        | `InstallSettings.tsx:33`    | `<button>` · `page.tsx:46`'s `flex flex-col gap-3`                                                                                         | no display class (a blockified `block`), `self-start`: 103.05 x 44   | `px-4 py-2.5` | 14px, 700                                               | as H1  | as S1                                                   | as S1; `disabled:*` inert (the button is never disabled, `:30-34`)                                                                                                         | **PURE**: 103.05 x 44                                                                                                   |
+| D developer retry | `DeveloperSettings.tsx:118` | `<button>` · `:111`'s `flex max-w-content flex-col gap-2`                                                                                  | `self-start`: 112.77 x 44                                            | `px-4`, no py | `font-mono text-xs uppercase tracking-label`, 12px, 400 | none   | `hover:border-accent`, no lift                          | a DIFFERENT demand: S's skeleton with a mono label type                                                                                                                    | not this axis's (its type is the slab family's neighbour, DL26)                                                         |
+| K keep account    | `DangerZone.tsx:100-107`    | the vendored `Button variant="secondary"` + `className="sm:w-auto sm:justify-self-start"` (`:102`) · `:90`'s `flex … flex-col gap-3 … p-4` | FULL width at every width: 322 x 44 at 390, 684 x 44 at 768 and 1280 | S's           | S's                                                     | none   | S's                                                     | the one live APPENDED width in thepile. `sm:w-auto` wins at 640px and up, and the column's stretch refills the box; `sm:justify-self-start` does nothing to a flex item    | a thepile finding (REQUEST 3)                                                                                           |
+| X delete account  | `DangerZone.tsx:146`        | `<button>` · `:113`'s `flex … flex-col gap-3 … p-4`                                                                                        | `grid … sm:w-auto sm:justify-self-start`: 322 / 684 x 44, full width | `px-4`        | 14px, 700                                               | none   | `hover:bg-danger hover:text-on-accent`, a fill on hover | a DIFFERENT demand: against `danger` (semibold, lift, the border on `armed`) it is bold, filled on hover, and does not lift                                                | not this axis's; the same dead pair as K                                                                                |
+
+The controls show the instrument can see an inline width in those two containers: K + `self-start` renders 153.22 x 44
+at 1280 (322 at 390, where `w-full` still holds), and X + `self-start` 163.52 x 44 at every width.
+
+**The axis shape.** `width: { full: "", auto: "" }` with compound rows over the four grid variants (`primary`,
+`primaryRounded`, `secondary`, `danger`; `ghost` is `inline-flex` and wears no `w-full`), their strings losing what the
+axis owns. Two forms, both measured:
+
+- **W**: `w-full` alone moves (`full` is `w-full`, `auto` adds nothing). It serves S1 and S2, and the hero's H1 and H2
+  as flex-row children, but NOT the band (the block parent: 358 x 48). +97 B raw, **+39 B gz**.
+- **W-box**: `grid w-full` moves (`full` is `grid w-full`, `auto` is `inline-grid`). It serves all five, rendered
+  identical: H1 218.63, H2 192.53 (its weight aside), B 150.19 centred, S1 135.02, S2 103.05. +175 B raw, **+50 B gz**.
+  `inline-grid` is still blockified in a flex column, so `self-start` stays the caller's: `geometry-b.txt`'s row "S1
+  inline-grid no self-start" (`geometry-b.mjs`, `geometry.mjs` plus that one row) is as wide as the column.
+
+**Recommendation (iii): BUILD the width axis, W-box, at the next byte-moving bump** [V]. It is pure on both settings
+sites, the hero needs it under EITHER answer to (ii) (the AUDIT-FIX's rendered pair is pure only with it), and the
+appended alternative is measured to draw the wrong box in thepile's sheet. +50 B gz wherever `button.tsx` rides a
+client chunk; with (ii)'s BUILD branch, +93 B together. The build stream's consumer scan owes `fidelity.test.tsx`
+(it pins each variant's utility SET) and thepile's pins of the vendored strings a read, because the strings lose
+`grid w-full`.
+
+### Decisions
+
+1. **(ii) `size="lg"`: REFUSE** [V], with DL24's AUDIT-FIX restated and rendered (the hero pair and the band to 44px /
+   `text-sm` / `px-4`, the secondary to weight 600 with the hover border, the scrim a `className`): all three pure with
+   the width axis alone. If BUILD: `size: { md, lg }` in the compound form at the next bump, +54 B gz, pure on H1 and
+   B, and `:23` stays product.
+2. **(iii) The inline width: BUILD W-box at the next byte-moving bump** [V] (0.1.7, beside `asChild` on `Card` and
+   the two `radio-group.tsx` docblocks): pure on S1 and S2, +50 B gz.
+3. **The check on the scanner: DONE, test-only** (`8485c52`, `81f5122`, `c02172e`). (a) red at the base and green
+   at the head; (b) and (d) green at the base and red at the head naming `card` and what it imports; the own-file rule
+   green on (c-own) and red without it (naming `@marquee/card`); `derived` 23; `ribbon` the tree's proof.
+4. **A sibling reader over ONE walk.** `bareImports`' body is now the extracted `specifiersOf` plus its unchanged
+   filter; its output and its test are untouched and green. The alternative, a second walk in the test, would be a
+   second copy of the four positions [V].
+5. **The rule is neither of the brief's two: an import resolves to the item that ships its file, and the source's
+   own item's files are skipped** [V]. The brief offered a rule by item names or by `.css`; layer 1 proved both
+   dominated (MED-2) and this one reddens every shape either passed. It moves the brief's (c) prediction: an
+   unregistered `card.css` is RED at the head, and the rule's own reddening names the owner (`@marquee/card`), not
+   `@marquee/card.css`. If Ankit wants the brief's form back, `81f5122` is the `.css` rule, with (d)-shaped and
+   (e)-shaped holes recorded.
+6. **The pin lives in its own test**, so the suite is 604, not 603: inside the check it reddened first and hid the
+   item's line (measured at `8485c52`). Since `c02172e` it pins the rule against both rejected rules (MED-1).
+7. **The rendered probe goes beyond the brief's tables, on purpose.** A class list cannot say whether `grid` without
+   `w-full` fills a block parent (it does, B) or whether the scrim needs an axis (it does not, H2). It also found
+   `DangerZone`'s dead pair (REQUEST 3).
+8. **No fixture and no helper file.** The reader and the compare are about forty lines in the test that owns them.
+9. **The compare is `registryDrift`, pinned on written texts** (layer 1's LOW-2), in `dependencyDrift`'s shape, so a
+   weakened compare reddens the pin. What no test can hold is that the tree loop CALLS the reader and the compare
+   (r5's (i): the base's regex restored inside the loop is green on this tree, which has no shape the two read
+   differently). That limit is the same for the npm check, and recorded, not closed.
+
+### REQUESTs and findings (to the orchestrator)
+
+1. **REQUEST [V], (ii) REFUSE `size="lg"`**, for thepile the AUDIT-FIX at `ad2a3944`: `HeroButtons.tsx:17` and
+   `HomeIslands.tsx:119` to `primaryRounded` with `width="auto"` and `className="transition-transform"` (`mt-6` on the
+   band), `:23` to `secondary` with `width="auto"` and `className="bg-bg/60 backdrop-blur-[6px] transition-transform"`,
+   once the width axis ships. Visible: 48 to 44px, 16 to 14px, 20 to 16px padding, the secondary 700 to 600 with a
+   hover border; the `home` shot moves. The alternative is decision 1's BUILD branch.
+2. **REQUEST [V], (iii) BUILD W-box at the next byte-moving bump.** Then `SettingsIslands.tsx:251` and
+   `InstallSettings.tsx:33` become `primaryRounded` with `width="auto"` and `className="self-start py-2.5"` (the anchor
+   through `asChild`), zero pixels moved (rendered; layer 1 r5's `pixel-iso` counted 0 px at rest and hovered at three
+   widths).
+3. **Finding, thepile, cosmetic** (a REQUEST for its next FOLLOWUPS): `DangerZone.tsx:102` and `:146`'s `sm:w-auto
+sm:justify-self-start` draw nothing. Both buttons sit in a `flex flex-col` column, so the stretch refills an auto
+   width and `justify-self` does not apply to a flex item: both render full width at 390, 768 and 1280. Either delete
+   the pair or make it `sm:self-start`, which WOULD draw the inline width at 640px and up (the control rows): a visible
+   change, [V].
+4. **CROSS for the reconciler (records, never edited here).** thepile's DL27 composition at `ad2a3944`
+   (`DESIGN-LIB.md:6436-6440`) cites `registry.test.ts:270-296`, `:281`, `:283-287`, `:290`, `:296` and `bareImports`
+   at `:94-113`. At `c02172e` the check is `:338-364` with no regex (`:352` the drift, `:356-359` its compare, `:363`
+   the anchor), `specifiersOf` is `:94-115`, `bareImports` `:121-128`, `registryImports` `:152-167` and
+   `registryDrift` `:174-189`.
+5. **Class B corrections** to the composition's paragraph (b) and the brief are the UNVERIFIED list below.
+
+### UNVERIFIED (every brief claim measured)
+
+- 35 / 603 at the base: **held**. `derived` 23 at the head: **held**. `ribbon` declaring `@marquee/utils` alone:
+  **held** (`registry.json`, and the norule run).
+- "Tailwind 4.3.2 … the library's built stylesheet": thepile's lockfile pins tailwindcss **4.3.2**; the library runs
+  **4.3.3** (`node_modules/.pnpm/tailwindcss@4.3.3`). Both emit `.w-auto` before `.w-full`, so the answer is the same in
+  both.
+- "the `:251`-style built-registry content check": the content check is `:460` at the base (its message `:470`) and
+  `:512` at `81f5122`; `:251` is inside the npm-ranges test (`:240-253`). DL26's REQUEST 5 recorded the same.
+- `bareImports` at `:94-113`: the walk is `:94-113`, and the function runs to `:121` (the filter) at the base.
+- (c) "GREEN at the base and GREEN at the head": at the base THIS check is green and the FILE red on `registers every
+component source exactly once` (the created `card.css` is unregistered). At `81f5122` (the `.css` rule) the same.
+  At `c02172e` this check is RED too, `card: imports unshipped ./card.css`, by decision 5's design; its GREEN form is
+  (c-own), the stylesheet registered among `card`'s own files.
+- "the SAME mutation on a head whose reader has the rule removed: RED naming `@marquee/card.css`": **held** at
+  `81f5122`; at `8485c52` the in-check pin reddened first (decision 6); at `c02172e` the rule is the own-file skip, and
+  (c-own-norule) reddens naming `card: imports @marquee/card` (the owner, not the file).
+- "a non-part sibling … skipped by ONE stated rule (by the registry's item names, or by a `.css` extension)": both
+  measured dominated (layer 1 r5 MED-2); the stated rule is the owner's (decision 5).
+- The axes a size would NOT own: `shadow-hard` against `shadow-lift`, `rounded-md` on the primary and
+  `hover:bg-accent-hover` are **not differing axes** against the nearest candidate, `primaryRounded`. The rename table
+  maps each onto what P already wears, and the sheet aliases them. The scrim is not an axis: it is an addition. The box
+  `inline-flex items-center` against `grid w-full place-items-center` is `w-full` in a flex parent, and `grid` too in a
+  block one.
+- "the hero pair's third site at `HomeIslands.tsx:119`": it is `SignupBand`, signed out only, in a block parent. That
+  parent is why it needs the inline box.
+- "`HeroButtons.tsx:17`, `:23`, `HomeIslands.tsx:119` … exactly these three lines", "11 hits in 7 files, four
+  button-shaped", "`DeveloperSettings.tsx:118` (a mono secondary)", "`DangerZone.tsx:146` (a danger)": **held**.
+- `DangerZone.tsx:102`'s `sm:w-auto sm:justify-self-start` is on the vendored `Button`, the one live appended width in
+  thepile, and it draws nothing (REQUEST 3).
+- The DL24 bullets at `:11054-11058`: **held**.
+
+### Consumers
+
+**Run 1, before any code** (`scan1-a.txt`, `scan1-b.txt`, `scan1-c.txt`, at `748cecb`, an empty diff), in the
+library's form:
+
+- (a) `git grep -n 'registry.test\|bareImports' -- packages docs AGENTS.md`: 212 lines. Outside `docs/`: `AGENTS.md:76`
+  and `:81` (steps 6 and 7, the file by name), `src/ribbon.css:20` and its copy in `r/ribbon.json` (a path, no line),
+  and `registry.test.ts`'s own seven `bareImports` lines. The test file exports nothing, so nothing imports its
+  helpers.
+- (b) `git grep -n 'registry.test.ts:' -- docs packages/ui/src AGENTS.md`: 32 lines, all in `docs/as-built.md`, each a
+  dated record at its own sha. None is a live pointer; none in `src` or `AGENTS.md`.
+- (c) thepile at `ad2a3944`, `git grep -c` (BRE; `-F` in brackets): `docs/08-agent-failures.md` 1 (0), `DESIGN-LIB.md`
+  27 (24), `LIB-VENDOR-0.1.2.md` 3, `-0.1.3.md` 1, `-0.1.4.md` 2, `-0.1.5.md` 4. The lines this stream moves are cited
+  by the DL27 composition alone (REQUEST 4).
+
+**Run 2, at the code commit point** (`scan2-a.txt`, `scan2-b.txt`, `scan2-c.txt`, `748cecb...81f5122`):
+
+- Diff names: `packages/ui/test/registry.test.ts` alone.
+- Scan 1 (exported symbols): its one `+` hit is a string INSIDE the new pin (`'export const later = …'`), not an
+  export; `git grep -c '^export'` on the file is 0. Scan 2 (path helpers): none. Scan 3: no non-test file in the diff.
+  Scan 4 (role and aria strings): none. Scan 5: no `.tsx` in the diff.
+- (a), with the two new names added to the pattern (`registryImports`, `specifiersOf`): 222 lines. Outside `docs/` it
+  prints what run 1 printed plus the test file's own new lines (`specifiersOf` `:94`, `registryImports` `:146`, `:314`
+  and `:342`, the docblocks' `:79-80`, `:133` and `:311`). Nothing outside the file reads either name.
+- (b) prints what run 1 printed, 32 dated records. (c) prints what run 1 printed, 38 lines; the moved lines are cited
+  by the DL27 composition alone (REQUEST 4).
+- `AGENTS.md` steps 6 and 7 stay true: the counters and the item's `dependencies` rule are unchanged, and the
+  `registryDependencies` rule was never spelled there. `src/ribbon.css:20`'s "holds that rule" is the leading-comment
+  rule (`:463`), untouched. No REQUEST.
+- **CROSS: 1** (REQUEST 4). **UNOWNED: 0. NEW between the runs**: the two reader names, both inside the test file,
+  with no reader outside it. The fence `git diff --stat` prints nothing.
+
+**Run 2b, at layer 1's fix commit** (`scan2b-a.txt`, `scan2b-b.txt`, `scan2b-c.txt`, `748cecb...c02172e`):
+
+- Diff names: `docs/as-built.md` and `packages/ui/test/registry.test.ts`.
+- Scan 1: the one `+export` hit is still the pin's string; the file exports nothing. Scans 2 and 4: none. Scan 5: no
+  `.tsx` in the diff.
+- (a), with `registryDrift` and `shippedBy` added to the pattern: 249 lines. Outside `docs/` and the test file it
+  prints what run 1 printed (`AGENTS.md:76`, `:81`, `src/ribbon.css:20` and its copy in `r/ribbon.json`); the test
+  file names the readers on 25 lines, and no file outside it reads one.
+- (b) prints run 1's 32 records plus two of this section's own (`as-built.md:12519`, `:12560` at `4871e86`). (c) prints
+  what run 1 printed.
+- **CROSS: 1. UNOWNED: 0. NEW since run 2**: `registryDrift` and `shippedBy`, both inside the test file. The fence `git
+diff --stat` prints nothing.
+
+### For the consumer (LIB-VENDOR)
+
+**NO byte of any copy moves and NO bump is needed, so thepile has nothing to vendor.** The diff is one test file and
+this document. The tarball carries no test (`files: ["r", "src"]`), and `packages/ui/package.json` is still `0.1.6`, so
+the pack point and `marquee-ui-ui-0.1.6.tgz` stand. For thepile to know (class J, recorded here, not edited there): the
+registry now fails an item whose sources import a sibling part by `import "./x"` or `import("./x")` without declaring
+it, or import a file no item ships (an unregistered stylesheet, a helper, `@/…` outside `@/lib/`, `../…`), or
+another item's file without declaring that item; and it no longer fails one whose comment spells a sibling import. The REQUESTs for thepile are 1 (the hero's
+AUDIT-FIX, if Ankit takes REFUSE) and 3 (`DangerZone`'s dead pair); 2 is the library's own, at the next bump.
+
+### The gate
+
+`pnpm verify` at the base `748cecb`: exit **0**, `Test Files 35 passed (35)` / `Tests 603 passed (603)`
+(`verify-base.log`). The pin adds one test, so the suite is 35 / 604 from `81f5122` on. The stream's ONE gate is `pnpm
+verify` from the repo root at the commit that carries this section after layer 1 (`verify-head.log`,
+`verify-head.exit` and `verify-head.sha` in `$BATCH_SCRATCH/s1/`). Its runner lines are the stream's report line rather
+than a line here, because a commit recording them would move the head they certify.
+
+No push, no tag, no `npm publish`, no PR: the freeze holds.
+
+## Layer 1 (reviewer, detached worktree of 4871e866f370b784d2552c96c0b7e7e89401b870, slot r5, marquee-ui, no database)
+
+Layer 1 r5 reviewed `4871e86` in its own detached worktree (`../review-design-lib-d-deps-lg-inline`, removed after) and
+wrote `$BATCH_SCRATCH/r5/report.md`: findings 7 (0 HIGH / 2 MED / 5 LOW), 42 mutations on the test file and the tree
+plus 11 runs of an ownership-rule prototype, 17 stayed GREEN (2 intended, 3 by construction). Its baseline at `4871e86`:
+`registry.test.ts` 19 / 19, the full `vitest run` 35 / 604. Its collapse table, verbatim (the line numbers in it are
+`4871e86`'s):
+
+| file                              | test                           | mutation applied                                                                                      | red / GREEN                                                                                                              | what it asserts now                                                                                                                           |
+| --------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| packages/ui/test/registry.test.ts | check `:302` + pin `:326`      | (a) `registryImports` returns `[]` (`.slice(0, 0)` before `.flatMap`)                                 | red, 2 failed: check `button: expected [ '@marquee/utils' ] to deeply equal []`; pin `expected [] …`                     | both hold an empty reader                                                                                                                     |
+| same                              | check + pin                    | (b) reads every specifier: body becomes ``[`@marquee/${specifier}`]``                                 | red, 2 failed: check `utils: expected [] to deeply equal [ '@marquee/clsx', …(1) ]`; pin `[ '@marquee/./toggle', …(6) ]` | both hold a match-all                                                                                                                         |
+| same                              | check + pin                    | (c) `.css` rule dropped (`:150`)                                                                      | red, 2 failed: check `ribbon: … [ '@marquee/ribbon.css', …(1) ]`; pin                                                    | the tree (`ribbon`) and the pin both hold the rule                                                                                            |
+| same                              | check                          | (d1) anchor `23` changed to `22`                                                                      | red, `expected 23 to be 22`                                                                                              | the anchor bites                                                                                                                              |
+| same                              | check                          | (d3) loop over `registry.items.slice(0, 0)`, anchor kept                                              | red, `expected +0 to be 23`                                                                                              | the anchor catches an empty walk                                                                                                              |
+| same                              | check                          | (d5) loop skips `form`, anchor kept                                                                   | red, `expected 21 to be 23`                                                                                              | the anchor catches a narrowed walk                                                                                                            |
+| same                              | check                          | (d2) empty loop AND anchor deleted                                                                    | **GREEN** 19/19                                                                                                          | nothing: the anchor is the only guard on the walk (by construction)                                                                           |
+| same                              | check                          | (d4) loop skips `form` AND anchor deleted                                                             | **GREEN** 19/19                                                                                                          | nothing, as d2                                                                                                                                |
+| same                              | pin                            | (e) `.replace(/\.js$/, "")` dropped                                                                   | red, pin only (`expected [ '@marquee/toggle', …(4) ] …`); check GREEN, since no part imports `./x.js`                    | the pin alone holds the strip; with `textarea` on `./input.js` the check reddens too (R-js-nojs: `textarea: … [ '@marquee/input.js', …(1) ]`) |
+| same                              | check + pin                    | (f) `@/lib/utils` branch dropped                                                                      | red, 2 failed: check `button: … to deeply equal []`; pin                                                                 | both hold the lib mapping                                                                                                                     |
+| same                              | check + pin                    | (f2) `specifier === "@/lib/utils"` changed to `specifier.startsWith("@/")`                            | **GREEN** 19/19                                                                                                          | nothing pins what `@/<other>` reads as (MED-1, MED-2)                                                                                         |
+| same                              | check + pin                    | (l) `startsWith("./")` changed to `startsWith(".")` (admits `../`)                                    | **GREEN** 19/19                                                                                                          | nothing pins `../` (MED-1, MED-2)                                                                                                             |
+| same                              | both pins                      | (g1) `ts.isExportDeclaration` dropped from `specifiersOf`                                             | red, 2 failed: registry pin (…(3)) and `bareImports` pin (…(5)); check GREEN                                             | re-exports held by both pins, not by the tree                                                                                                 |
+| same                              | both pins                      | (g2) side-effect imports skipped (`!(isImportDeclaration && !importClause)`)                          | red, 2 failed: both pins; check GREEN                                                                                    | side-effect held by both pins, not by the tree                                                                                                |
+| same                              | both pins                      | (g3) dynamic `import()` disabled (`&& false`)                                                         | red, 2 failed: both pins; check GREEN                                                                                    | dynamic held by both pins                                                                                                                     |
+| same                              | `bareImports` pin + npm checks | (g4) walk reads every string literal                                                                  | red, 3 failed (`bareImports` pin, npm per-item, RUNTIME); **both new tests GREEN**                                       | caught only through the shared walk; the new pin's prose line cannot see it (MED-1)                                                           |
+| same                              | `bareImports` pin              | (g5) every source parsed as `.tsx`                                                                    | red, `a .ts source: expected [] to deeply equal [ 'clsx' ]`                                                              | the parse-by-extension holds                                                                                                                  |
+| same                              | `bareImports` pin + npm checks | (h1) `bareImports` keeps `.` specifiers                                                               | red, 3 failed: `the reader …`, npm per-item, RUNTIME `[ '.' ]`                                                           | `bareImports`' untouched test holds its filter                                                                                                |
+| same                              | same                           | (h2) `bareImports` keeps `@/` specifiers                                                              | red, 3 failed: RUNTIME `[ '@/lib' ]`                                                                                     | as h1                                                                                                                                         |
+| same                              | same                           | (h3) scoped name cut to one segment                                                                   | red, 3 failed: `[ '@radix-ui', …(7) ]`                                                                                   | as h1                                                                                                                                         |
+| same                              | check                          | (i) the base's inline regex restored at `:314`, `registryImports` untouched                           | **GREEN** 19/19                                                                                                          | nothing: the check's use of the reader is unpinned (LOW-2)                                                                                    |
+| same                              | check                          | (j0) `textarea` declares `@marquee/label` for `@marquee/input`, `r/` rebuilt                          | red, `textarea: expected [ '@marquee/label', '@marquee/utils' ] to deeply equal [ '@marquee/input', '@marquee/utils' ]`  | the per-item compare holds DL19's swap                                                                                                        |
+| same                              | check                          | (j1) compare replaced by a length compare + j0's swap, `r/` rebuilt                                   | **GREEN** 19/19                                                                                                          | nothing else in the file catches the swap (LOW-2)                                                                                             |
+| same                              | check                          | (j2) compare replaced by a length compare, tree untouched                                             | **GREEN** 19/19                                                                                                          | by construction (the tree is correct)                                                                                                         |
+| same                              | pin                            | (k-regex) `registryImports` replaced by the base regex over `from "…"`                                | red, pin only: `expected [ '@marquee/label', …(5) ] to deeply equal [ '@marquee/toggle', …(4) ]`                         | the pin holds the scanner (reproduces the stream's row)                                                                                       |
+| same                              | check                          | R-comment: `card.tsx:3` `// import { Label } from "./label"`, `r/` rebuilt                            | GREEN 19/19 (intended)                                                                                                   | the prose false-red is gone                                                                                                                   |
+| same                              | check                          | R-sideeffect: `card.tsx:3` `import "./label";`, rebuilt                                               | red, `card: expected [ '@marquee/utils' ] to deeply equal [ '@marquee/label', '@marquee/utils' ]`                        | holds (the stream's b)                                                                                                                        |
+| same                              | check                          | R-dynamic: `card.tsx:3` `export const lazyLabel = () => import("./label");`, rebuilt                  | red, same `card` message                                                                                                 | holds                                                                                                                                         |
+| same                              | check                          | R-reexport: `card.tsx:3` `export { Label } from "./label";`, rebuilt                                  | red, same `card` message                                                                                                 | holds                                                                                                                                         |
+| same                              | check                          | R-helpers: `card.tsx:3` `import "./helpers";` + created `src/helpers.ts`, rebuilt                     | red, `card: expected [ '@marquee/utils' ] to deeply equal [ Array(2) ]`                                                  | holds (the stream's d)                                                                                                                        |
+| same                              | check                          | S-dnames-helpers: R-helpers under the names rule                                                      | **GREEN** 19/19                                                                                                          | reproduces the stream's d-names hole                                                                                                          |
+| same                              | check + pin                    | S-names-tree: names rule, tree untouched                                                              | **GREEN** 19/19, **the pin included**                                                                                    | the pin does not hold decision 5 (MED-1)                                                                                                      |
+| same                              | registers `:244`               | S-c: `card.tsx:3` `import "./card.css";` + created `src/card.css`, rebuilt                            | red on `registers every component source exactly once` only; the check GREEN                                             | reproduces the stream's c                                                                                                                     |
+| same                              | check                          | R-othercss: `card.tsx:3` `import "./ribbon.css";`, rebuilt (the stream's e)                           | **GREEN** 19/19, tsc 0                                                                                                   | **confirmed** known limit; the ownership prototype reddens it (MED-2)                                                                         |
+| same                              | check                          | R-missingcss: `card.tsx:3` `import "./card.css";`, no file, rebuilt                                   | **GREEN** 19/19, tsc 0                                                                                                   | nothing (MED-2)                                                                                                                               |
+| same                              | check                          | R-subdircss: `card.tsx:3` `import "./styles/card.css";` + created file, rebuilt                       | **GREEN** 19/19, tsc 0                                                                                                   | nothing: refutes `:141-142` (MED-2)                                                                                                           |
+| same                              | check                          | R-alias-undeclared: `form.tsx` `./label` changed to `@/label`, `form` drops `@marquee/label`, rebuilt | red, 2 failed, both only `expected 22 to be 23`                                                                          | only the counters, not a reader                                                                                                               |
+| same                              | check                          | R-alias-neutral: as above + `textarea` gains `import "./label"` and declares it, rebuilt              | **GREEN** 19/19, tsc 0                                                                                                   | nothing (MED-2)                                                                                                                               |
+| same                              | check                          | R-lib-undeclared: `card.tsx:3` `import … from "@/lib/merge"` + created `src/lib/merge.ts`, rebuilt    | **GREEN** 19/19, tsc 0                                                                                                   | nothing (MED-2)                                                                                                                               |
+| same                              | check                          | R-dotdot: `card.tsx:3` `import { r5 } from "../r5-outside"` + created file, rebuilt                   | **GREEN** 19/19, tsc 0                                                                                                   | nothing (MED-2)                                                                                                                               |
+| same                              | check                          | R-js: `textarea.tsx:3` `./input` changed to `./input.js`, rebuilt                                     | GREEN 19/19 (intended)                                                                                                   | the `.js` strip works on the tree                                                                                                             |
+
+**Every GREEN row, answered** (the fixes are `c02172e`; each re-run is a row of the check's table above, on a detached
+worktree of `c02172e`):
+
+- **(d2), (d4)**: by construction. The anchor is the one guard on the walk, and a mutation that deletes the anchor AND
+  empties or narrows the walk removes the thing that would see it. Unchanged, as DL26 recorded for the npm arm.
+- **(f2)**: the pin now reads `@/label` and `@/lib/merge` as unshipped; (f2) re-run RED on the pin.
+- **(l)**: the pin now reads `../x` as unshipped; (l) re-run RED on the pin.
+- **(g4)**: the pin gained `const path = "./alert";`, a bare string literal that spells a relative specifier; (g4)
+  re-run reddens the new pin too.
+- **(i)**: an honest limit, decision 9. No test can hold that the tree loop calls the reader, and this tree has no
+  shape the two readers read differently.
+- **(j1)**: the compare is `registryDrift`, pinned on DL19's swap; (drift-size) and (drift-size+j0) re-run RED on the
+  pin.
+- **(j2)**: by construction (the tree is correct).
+- **R-comment, R-js**: intended (the prose false-red gone; the `.js` strip working).
+- **S-dnames-helpers, S-names-tree** (MED-1): the rule is now the owner's, and the names rule returned ahead of it
+  reddens the pin (names-rule); (d) is RED.
+- **R-othercss** (the stream's (e)): RED at `c02172e`, `card: imports @marquee/ribbon and does not declare it`.
+- **R-missingcss, R-subdircss, R-lib-undeclared, R-dotdot, R-alias-neutral** (MED-2): each RED at `c02172e`, naming the
+  item and `unshipped <specifier>` (the check's table).
+
+**The findings, answered.** MED-1: the pin names every shape, and the `.css` rule, the names rule, (f2), (l) and (g4)
+each redden it (`c02172e`). MED-2: the ownership rule adopted as decision 5 [V], the docblock rewritten to what it reads,
+the two overclaiming sentences gone. LOW-1: the gz figures re-measured without the file name (+54 / +39 / +50 / +93, the
+string 43 B); both recommendations stand. LOW-2: `registryDrift` pinned; the loop-call limit recorded (decision 9).
+LOW-3: the quote corrected to `HeroButtons.tsx:9-10`, the product reason the REFUSE overrides. LOW-4: the census
+sentence corrected (three carry `self-start`, two match through `sm:justify-self-start`). LOW-5: the `inline-grid`
+claim cites `geometry-b.txt`, and the harness's widths are marked as the harness's.
+
+Its second reader, verbatim:
+
+My copies of the probes are in `r5/probe/`, repointed to my worktree and to r5's output directory:
+
+- `geometry-b.mjs` re-run; its rows are **byte-identical** to the stream's `geometry-b.txt`, which is `geometry.txt` plus one row.
+- `cost.mjs` re-run; `cost.txt` is **identical**.
+- `merge.mts` re-run; `merge.txt` is **identical**.
+- `sheet-order.mjs` re-run over the thepile sheet and over the stream's `lib-probe.css`.
+- My own additions: `pixel-iso.mjs` (0-pixel comparisons, each row rendered alone), `button-classnames.mjs` (a scan of 30 files that import `Button`) and a raw-text offset check of the sheet.
+
+| claim                                                                                                                                          | re-read                                                                                                                                                                                                                                             | holds / wrong                                                                                    |
+| ---------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `thepile-192960c8.css` is the tree's CSS                                                                                                       | `cmp` is equal to `/home/ankit/Code/thepile/apps/web/.next/static/css/3a94a9c5e71200f7.css`; `BUILD_ID` `AIn0bMB3zgpb57afbanmw` written 20:48:26, after `192960c8`'s commit at 20:46:53; `git diff --stat 192960c8 ad2a3944 -- apps packages` empty | holds                                                                                            |
+| `min-h-12` is exactly three lines                                                                                                              | `git grep` at `ad2a3944`: HeroButtons `:17`, `:23`, HomeIslands `:119`                                                                                                                                                                              | holds                                                                                            |
+| H1 / H2 / B strings; `:119` is `:17` with `mt-6` in front; SignupBand `:101-125`, `:103` null signed in, `:108` a block `text-center` section  | `git show` at `ad2a3944`                                                                                                                                                                                                                            | holds                                                                                            |
+| thepile runs a JOIN, not a merge                                                                                                               | `apps/web/src/lib/utils.ts` at `ad2a3944` is `parts.filter(Boolean).join(" ")`; the vendored `button.tsx` is byte-identical to the library's                                                                                                        | holds                                                                                            |
+| aliases `--shadow-hard:var(--shadow-lift)`, `--accent-hover:var(--primary-hover)`, `--line-strong:var(--border-strong)`                        | read in the sheet; also `--bg:var(--background)`                                                                                                                                                                                                    | holds                                                                                            |
+| P = `primaryRounded`                                                                                                                           | renamed-set difference: size trio, `w-full`, display pair, `transition-transform`, `disabled:*`; against `primary` it would add radius, `min-h-[46px]`, a hover shadow and a translate-x                                                            | holds                                                                                            |
+| S = `secondary`                                                                                                                                | against `secondary`: size, width, weight, `hover:border-muted`, scrim and transition as additions; `ghost` (the other inline candidate) differs on border role, ink, lift and weight                                                                | holds                                                                                            |
+| `bg-bg/60` has no rename entry                                                                                                                 | `fidelity.test.tsx:58-75`                                                                                                                                                                                                                           | holds                                                                                            |
+| thepile order #232/#246, #552/#553, #614/#618, #677/#681, #181/#185/#186, of 1,224                                                             | `sheet-order.mjs` re-run, plus raw text offsets in the same order                                                                                                                                                                                   | holds                                                                                            |
+| library order #41/#43 … #60/#61 of 79                                                                                                          | re-run over the stream's `lib-probe.css`; my own 4.3.3 compile (58 rules, a different class list) gives the same relative order                                                                                                                     | holds                                                                                            |
+| `.w-auto` #284 < `.w-fit` #285 < `.w-full` #286; `sm:w-auto` #969 inside the 40rem media query                                                 | re-run (the sheet prints `min-width:40rem`)                                                                                                                                                                                                         | holds                                                                                            |
+| tailwindcss 4.3.2 (thepile) against 4.3.3 (library)                                                                                            | thepile `pnpm-lock.yaml` at `ad2a3944`; `node_modules/.pnpm/tailwindcss@4.3.3`                                                                                                                                                                      | holds                                                                                            |
+| `merge.txt` (the library `cn` drops `min-h-hit px-4 text-sm`, or `w-full`)                                                                     | re-run                                                                                                                                                                                                                                              | holds                                                                                            |
+| H1 join: 44px, 14px, 20px padding, as wide as its row                                                                                          | re-run: 358 / 736 / 1248                                                                                                                                                                                                                            | holds (the widths are the harness's, LOW-5)                                                      |
+| H1 218.63 x 48; H2 194.02 x 48; B 150.19 x 48 at x+119.91                                                                                      | re-run                                                                                                                                                                                                                                              | holds                                                                                            |
+| H1 PURE with size + width (W and W-box)                                                                                                        | `pixel-iso`: **0 px differ**, at rest and hovered, 390 / 768 / 1280                                                                                                                                                                                 | holds ("every reading equal" overstates: display is `flex` against `grid`, but no pixel differs) |
+| H2 NEVER pure                                                                                                                                  | 192.53 against 194.02 wide, weight 600 against 700, hover border rgb(136, 143, 101)                                                                                                                                                                 | holds                                                                                            |
+| B: W draws 358 at x+16; W-box identical                                                                                                        | re-run; `pixel-iso` 0 px, rest and hover, three widths                                                                                                                                                                                              | holds                                                                                            |
+| AUDIT-FIX 188.3 / 165.97 (600, hover border) / 128.42 centred                                                                                  | re-run                                                                                                                                                                                                                                              | holds                                                                                            |
+| REFUSE `size="lg"` follows                                                                                                                     | size alone is pure on no site; with the width it is pure on H1 and B (one string); H2 never                                                                                                                                                         | **follows**                                                                                      |
+| "`HeroButtons.tsx:6` says 'Same shape either way'"                                                                                             | `:4-7` is about signed-in against signed-out                                                                                                                                                                                                        | **wrong context** (LOW-3)                                                                        |
+| 11 `self-start` hits in 7 files; "four are button-shaped strings"                                                                              | count holds; `:102` / `:146` match only through `justify-self-start`                                                                                                                                                                                | **partly wrong** (LOW-4)                                                                         |
+| S1 135.02 PURE; S2 103.05 PURE (W and W-box)                                                                                                   | `pixel-iso`: 0 px, rest and hover, three widths                                                                                                                                                                                                     | holds                                                                                            |
+| S1 / S2 join rows as wide as the column                                                                                                        | 358 / 720 / 720                                                                                                                                                                                                                                     | holds (harness widths, LOW-5)                                                                    |
+| D 112.77 x 44, 12px / 400, `hover:border-accent`, no lift                                                                                      | re-run                                                                                                                                                                                                                                              | holds                                                                                            |
+| K and X full width (322 / 684)                                                                                                                 | re-run                                                                                                                                                                                                                                              | holds                                                                                            |
+| K + `self-start` 153.22 at ≥640 (768 and 1280), 322 at 390; X + `self-start` 163.52 at every width                                             | re-run                                                                                                                                                                                                                                              | holds                                                                                            |
+| `DangerZone` dead pair (`sm:justify-self-start` on a flex item; `sm:w-auto` refilled by stretch)                                               | rendered full width at three widths                                                                                                                                                                                                                 | holds                                                                                            |
+| "the one live APPENDED width in thepile"                                                                                                       | `button-classnames.mjs` over 30 files that import `Button`: `DangerZone:100` is the only `w-*`; `SignOutButton:59` `sm:max-w-xs` and `FirstGameBlock:110` `max-w-xs` are max-width                                                                  | holds for `w-*`                                                                                  |
+| `inline-grid` blockified, `self-start` the caller's                                                                                            | `geometry-b.txt` row `S1 inline-grid no self-start`: 358 / 720 / 720                                                                                                                                                                                | holds, **but cited from `geometry.txt`, where that row does not exist** (LOW-5)                  |
+| raw costs +143 / +97 / +175 / +318 B                                                                                                           | re-run                                                                                                                                                                                                                                              | holds                                                                                            |
+| gz costs +54 / +41 / +54 / +104; base 499; the string 76 B                                                                                     | measured without the file name: +54 / **+39** / **+50** / **+93**; 482; 43                                                                                                                                                                          | **wrong** (LOW-1)                                                                                |
+| BUILD W-box follows                                                                                                                            | pure on S1 and S2 at 0 px; the AUDIT-FIX needs it; the appended form measured to draw the wrong box                                                                                                                                                 | **follows** (at +50 B gz, not +54)                                                               |
+| UNVERIFIED: base content check `:460` / `:470`, head `:512`; `:251` inside `:240-253`; base `bareImports` `:94-113`, filter `:115`, end `:121` | `git show 748cecbd:`                                                                                                                                                                                                                                | holds                                                                                            |
+| 35 / 603 at the base, 35 / 604 at the head                                                                                                     | 18 to 19 `it(` in the file; full vitest at the head `35 passed`, `604 passed`                                                                                                                                                                       | holds                                                                                            |
+| DL24 bullets `:11054-11058`; CROSS `DESIGN-LIB.md:6436-6440`; head lines `:302-324`, `:314`, `:315`, `:323`, `:94-115`, `:121-128`, `:146-153` | read                                                                                                                                                                                                                                                | holds                                                                                            |
