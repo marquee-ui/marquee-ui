@@ -82,10 +82,11 @@ type Source = { path: string; text: string };
  * Read through the TypeScript scanner, as `forced-colors-state.test.tsx` reads its
  * literals, at exactly four positions: an import's specifier (`import … from "x"`
  * and the side-effect `import "x"`), a re-export's (`export … from "x"`), and a
- * dynamic `import("x")` whose argument is a string literal. So a comment or a string
- * that spells an import is never read as one. A `.ts` file is parsed as TypeScript
- * and a `.tsx` as TSX, because an angle-bracket assertion in a `.ts` is an unclosed
- * element to the TSX parser and hides every import after it.
+ * dynamic `import("x")` whose FIRST argument is a string literal. So a comment or a
+ * string that spells an import is never read as one. A `.ts` file is parsed as
+ * TypeScript and a `.tsx` as TSX, because each parser misreads the other's file and
+ * loses every import after the misread: an angle-bracket assertion in a `.ts` is an
+ * unclosed element to TSX, and a backtick in a `.tsx`'s JSX text opens a template to TS.
  * ⚠️ NOT read, and in no part source today: `import("x")` with a computed argument
  * (unknowable), `import x = require("x")`, a `require("x")` call, and a type-position
  * `typeof import("x")`.
@@ -311,6 +312,7 @@ describe("registry.json", () => {
       "const prose = 'import x from \"left-pad\"';",
       'export const lazy = () => import("tailwind-merge");',
       "export const later = () => import(`@radix-ui/react-slot`);",
+      'export const json = () => import("date-fns", { with: { type: "json" } });',
       "export const unknown = (name: string) => import(name);",
       'import { cn } from "@/lib/utils";',
       'import { Label } from "./label";',
@@ -324,6 +326,7 @@ describe("registry.json", () => {
       "@scope/pkg",
       "tailwind-merge",
       "@radix-ui/react-slot",
+      "date-fns",
     ]);
     // A `.ts` source is parsed as TypeScript, not TSX: `<number>value` is a type
     // assertion there and an unclosed JSX element in a `.tsx`, which swallows every
@@ -331,6 +334,11 @@ describe("registry.json", () => {
     const assertion =
       'const value: unknown = 1;\nconst n = <number>value;\nexport const f = () => import("clsx");';
     expect(bareImports({ path: "lib/x.ts", text: assertion }), "a .ts source").toEqual(["clsx"]);
+    // And a `.tsx` as TSX: to the TypeScript parser this JSX text's backtick opens a
+    // template that swallows the re-export after it (DL26 layer 1 r5 LOW-1, proved on
+    // a real part source).
+    const backtick = 'export const Hint = () => <kbd>press ` to open</kbd>;\nexport * from "clsx";';
+    expect(bareImports(part(backtick)), "a .tsx source").toEqual(["clsx"]);
   });
 
   it("declares exactly the npm dependencies its own sources import, per item", () => {
@@ -486,9 +494,15 @@ describe("the built registry in packages/ui/r", () => {
   it("declares as RUNTIME dependencies everything the shipped sources import", () => {
     // The package advertises `exports["."]`, so an installed copy has to resolve
     // every bare import in `src/`. A devDependency does not install for a consumer.
+    const notInstalled = (names: Iterable<string>): string[] =>
+      [...names].filter((name) => !(name in uiDeps) && !peers.has(name));
+    // The filter, on names written here: a dependency and a peer pass and anything else
+    // does not (DL26 layer 1 r5 LOW-3: a filter that let every name through was GREEN).
+    expect(notInstalled(["clsx", "react", "left-pad"]), "the filter").toEqual(["left-pad"]);
     const imported = new Set(registry.items.flatMap(sourcesOf).flatMap(bareImports));
     expect(imported.size).toBeGreaterThan(4);
-    const missing = [...imported].filter((name) => !(name in uiDeps) && !peers.has(name));
-    expect(missing, "imported at runtime but not a dependency or a peer").toEqual([]);
+    expect(notInstalled(imported), "imported at runtime but not a dependency or a peer").toEqual(
+      [],
+    );
   });
 });
