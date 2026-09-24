@@ -75,6 +75,25 @@ import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.
  * clause is the Switch's hole: its thumb moves, and paints nothing. `Toggle`'s
  * pressed square was the site this kind was written for (DL20 decision 13).
  *
+ * AND A THIRD KIND (DL28): a HOST with no state at all whose REST drawing is a
+ * background ALONE. The mode turns an author fill to `Canvas`, so it is Canvas on
+ * Canvas and VANISHES, and neither kind above could see it: `Separator` drew its
+ * rule as `bg-border` on a 2px box, and every rule it drew was gone in both forced
+ * palettes with this file green (thepile's served `/transparency`, DL27). Read from
+ * the same literals, placed by the same sheet, each value of a static axis
+ * (`[data-orientation]`) its own rest drawing (`placeAxes`); a site when it sizes a
+ * box of its own and paints a fill with nothing the mode keeps (`backgroundAlone`).
+ * ⚠️ ITS LIMITS, RECORDED (layer 1 r5, DL28). It reads a literal, and a `cn(…)`
+ * call's string arguments joined (`hostsOf`), never a `cva` base with its axis
+ * values: a size in the base and a fill in a variant is two hosts, neither a site.
+ * It cannot see CONTENT, so two proxies stand in for it: a string that sizes no box
+ * is taken to fill behind content (the avatar's `ground` values, the ribbon's band),
+ * and a string that declares an ink (`color`) is taken to draw text. An empty box
+ * with a stray `text-*` passes: the 0.1.6 rule plus `text-muted` was GREEN here and
+ * drew 0 pixels in both forced palettes. And an axis rule is ranked at its media's
+ * placement, below a `forced` bare class, where the cascade ranks it above by
+ * specificity; no shipped part has an axis rule and a bare one on one property.
+ *
  * ⚠️ BOTH KINDS COUNT A STROKE ONLY WHEN IT IS `currentcolor`, which the mode
  * forces through `color`. The revealed-element arms used to count ANY stroke,
  * which the measurement above falsified, and for one batch (DL21) the two kinds
@@ -315,6 +334,52 @@ function placeAll(css: string): Map<string, Placed[]> {
   return out;
 }
 
+/**
+ * THE STATIC AXIS (DL28), placed for the third kind alone: `.utility` followed by ONE
+ * `[data-<name>="<value>"]` that is not a held state (`Separator`'s
+ * `[data-orientation="vertical"]`), under no media query or under forced colors and
+ * nothing else, filed under the utility with the axis condition as its `state` and the
+ * placement of its media (`unconditional` or `forced`). `placeAll` files these rules
+ * `conditional`, and every reader above keeps that filing: an axis is not a state a
+ * drawing moves BETWEEN, it is WHICH drawing the element has at rest, so the rest reader
+ * reads each value of it as a rest drawing of its own.
+ */
+const STATIC_AXIS = /^\[data-[\w-]+="[^"]*"\]$/;
+function placeAxes(css: string): Map<string, Placed[]> {
+  const out = new Map<string, Placed[]>();
+  postcss.parse(css).walkRules((rule) => {
+    const selector = rule.selector.trim();
+    const lead = LEADING_CLASS.exec(selector);
+    const axis = lead === null ? "" : selector.slice(lead[0].length);
+    if (lead === null || !STATIC_AXIS.test(axis) || HELD_STATE.test(axis)) return;
+    const media: string[] = [];
+    for (
+      let node: Container | Document | undefined = rule.parent;
+      node && node.type !== "root" && node.type !== "document";
+      node = node.parent
+    ) {
+      const at = node as AtRule;
+      if (node.type !== "atrule" || (at.name !== "media" && at.name !== "layer")) return;
+      if (at.name === "media") media.push(at.params.replace(/\s+/g, " ").trim());
+    }
+    if (media.length > 1 || (media.length === 1 && media[0] !== FORCED_MEDIA)) return;
+    const name = lead[1]!.replace(/\\(.)/g, "$1");
+    for (const decl of rule.nodes) {
+      if (decl.type !== "decl") continue;
+      const placed = out.get(name) ?? [];
+      placed.push({
+        property: decl.prop,
+        value: decl.value.trim(),
+        placement: media.length === 0 ? "unconditional" : "forced",
+        state: axis,
+        important: decl.important === true,
+      });
+      out.set(name, placed);
+    }
+  });
+  return out;
+}
+
 /** Geometry, which forced colors does not touch. The Switch's whole mechanism. */
 const MOVEMENT = ["translate", "transform", "rotate", "scale"] as const;
 
@@ -513,6 +578,28 @@ const KNOWN_GAPS: Readonly<Record<string, string>> = {};
  */
 const KNOWN_STATE_GAPS: Readonly<Record<string, string>> = {};
 
+/**
+ * A HOST drawn at rest in a background alone that knowingly ships short (the third
+ * kind), keyed `"<file>: <its tokens, sorted>"` (`restKey`), with the reason. The same expiring device: an
+ * entry whose host no longer reads as a site fails, so the fix deletes it.
+ */
+const KNOWN_REST_GAPS: Readonly<Record<string, string>> = {
+  "sheet.tsx: bg-border-strong h-1 md:hidden mx-auto rounded-full shrink-0 w-10":
+    "the sheet's grab handle, found by this kind at its first run (DL28) beside Separator and outside that stream's fence: measured in headless Chromium on the compiled sheet, it draws 160 pixels in normal colours and 0 in both forced palettes, so the swipe affordance vanishes. A REQUEST for sheet.tsx's next owner",
+};
+
+/** What sizes a box of its own (the third kind): a fill on it is the drawing, not a ground behind content. */
+const SIZES =
+  /^(?:width|height|min-width|min-height|inline-size|block-size|min-inline-size|min-block-size|inset|inset-inline|inset-block|top|right|bottom|left)$/;
+
+/**
+ * A filter the mode leaves alone, which draws what is behind the host through it:
+ * measured (DL28, headless Chromium, both forced palettes), `Sheet`'s
+ * `backdrop-blur-sm` alone changes 14,860 / 14,724 pixels over text where its
+ * `bg-scrim` alone changes 1,843 (the fill's alpha kept, dimming the text).
+ */
+const KEPT_FILTERS = /^(?:backdrop-filter|filter)$/;
+
 /** A revealed element: its string, and the compiled condition its `opacity-100` reveals it under. */
 type Site = { file: string; tokens: string[]; state?: string };
 
@@ -566,12 +653,55 @@ function literalsOf(source: string): string[][] {
 const literals = (file: string): string[][] =>
   literalsOf(readFileSync(resolve(process.cwd(), "packages/ui/src", file), "utf8"));
 
+/**
+ * The third kind's hosts in a source: every literal, and each `cn(…)` call's
+ * string-literal arguments JOINED as one more, so a size in one argument and a fill
+ * in the next are read as the element that wears both (layer 1 r5 MED-1, DL28: the
+ * 0.1.6 rule with `"bg-border"` as its own argument read as two literals, neither a
+ * site, and passed while it vanished). Only this kind reads it; `literals` is the
+ * other two kinds' and does not move.
+ */
+function hostsOf(source: string): string[][] {
+  const file = ts.createSourceFile(
+    "part.tsx",
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const out = literalsOf(source);
+  const visit = (node: ts.Node): void => {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === "cn"
+    ) {
+      const parts = node.arguments
+        .filter((a) => ts.isStringLiteral(a) || ts.isNoSubstitutionTemplateLiteral(a))
+        .map((a) => (a as ts.StringLiteral | ts.NoSubstitutionTemplateLiteral).text);
+      if (parts.length > 1) out.push(parts.join(" ").split(/\s+/).filter(Boolean));
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  return out;
+}
+
+const hosts = (file: string): string[][] =>
+  hostsOf(readFileSync(resolve(process.cwd(), "packages/ui/src", file), "utf8"));
+
+/** A host's key in `KNOWN_REST_GAPS`: its file and its token SET, so a reorder or a split into `cn` arguments keeps it. */
+const restKey = (file: string, tokens: readonly string[]): string =>
+  `${file}: ${[...tokens].sort().join(" ")}`;
+
 describe("a checked state survives forced-colors: active", () => {
   let sheet: CompiledSheet;
   let placed: Map<string, Placed[]>;
+  let axes: Map<string, Placed[]>;
   beforeAll(async () => {
     sheet = await loadCompiledSheet();
     placed = placeAll(sheet.css);
+    axes = placeAxes(sheet.css);
   });
 
   /**
@@ -638,11 +768,15 @@ describe("a checked state survives forced-colors: active", () => {
     // DL21: the held state the element is IN (its `state`/`forced-state` rules
     // join the read; without one they are never read). Since DL23 the revealed-
     // element arms pass the state they reveal in, where they used to read none.
-    { state }: { state?: string } = {},
+    // DL28: `extra` joins one static-axis value's rules (`placeAxes`) for the rest reader.
+    { state, extra = [] }: { state?: string; extra?: readonly Placed[] } = {},
   ): boolean => {
-    const all = tokens
-      .flatMap((token) => placed.get(token) ?? [])
-      .filter((d) => d.state === null || d.state === state);
+    const all = [
+      ...tokens
+        .flatMap((token) => placed.get(token) ?? [])
+        .filter((d) => d.state === null || d.state === state),
+      ...extra,
+    ];
     const applies = all.filter((d) => d.placement !== "conditional");
     const mine = all.filter((d) => kinds.includes(d.placement));
 
@@ -767,11 +901,10 @@ describe("a checked state survives forced-colors: active", () => {
         `${site.file}: the revealed element's state was not read off the sheet`,
       ).toMatch(/^:is\(:where\(\.group\\\/(?:checkbox|radio)\):has\(:checked\) \*\)$/);
     }
-    // ...and the walk reads STRINGS, so it must not have picked up the docblock
-    // in `radio-group.tsx` that spells `group-has-checked/radio:ring-2` in prose.
-    for (const site of sites) {
-      expect(site.tokens, `${site.file} site`).not.toContain("on");
-    }
+    // (A comment is never a literal: the reader's own anchor, on a text written in
+    // "found the states drawn only in colour", is what proves it. The prose check
+    // that stood here could not fail, because no docblock carries a reveal token:
+    // layer 1 r5 LOW-6, DL28, proved it green with every comment read.)
     // ...and the placement walk CLASSIFIES, independent of any one fix: most of
     // the package is bare top-level utilities and a good share is behind a state
     // or a media query. (It does NOT count `forced` here - the forced-colors rules
@@ -1825,6 +1958,182 @@ describe("a checked state survives forced-colors: active", () => {
     expect(
       short,
       "a part draws a held STATE in colour or shadow alone, so under forced-colors: active the two states are ONE PICTURE. Give the element a width or an outline under a forced-colors:<state>: variant, or give a sibling that moves or is revealed under the same state a paint the mode keeps, or declare it in KNOWN_STATE_GAPS with a reason",
+    ).toEqual([]);
+  });
+
+  /**
+   * A host's REST drawings: the one with no static axis, and one per axis value its
+   * tokens are drawn under. The no-axis one is read ALWAYS: an axis rule the element
+   * never matches must not hide its rest drawing (layer 1 r5 MED-1, F20).
+   */
+  const restDrawings = (tokens: readonly string[]): { axis: string | null; extra: Placed[] }[] => {
+    const scoped = tokens.flatMap((token) => axes.get(token) ?? []);
+    const values = [...new Set(scoped.map((d) => d.state!))];
+    return [
+      { axis: null, extra: [] },
+      ...values.map((axis) => ({ axis, extra: scoped.filter((d) => d.state === axis) })),
+    ];
+  };
+
+  /**
+   * The author fill a rest drawing is drawn in ALONE, or null (the third kind, the
+   * header's third paragraph of kinds). A SITE when all of these hold:
+   *   - it is drawn at rest: no winning reveal hides it (`hiding`);
+   *   - it SIZES a box of its own (`SIZES`), so the fill IS the drawing. A string that
+   *     sizes nothing draws its fill only behind content, which a literal cannot see and
+   *     which brings its own ink, and so is every fragment of a composed string (a `cva`
+   *     axis value, a concatenation piece): DL28's first cut, without this clause, named
+   *     `avatar.tsx`'s `bg-surface`, `bg-raised` and `border-border-strong bg-surface`
+   *     pieces and `ribbon.tsx`'s band, whose text is its track's;
+   *   - its winning `background-color` is an author colour: not a bare keyword, as every
+   *     fill the parts write is a token's `var()`;
+   *   - nothing the mode keeps is on it: no ink of its own (`color`), no filter
+   *     (`KEPT_FILTERS`), and no frame, outline or `currentcolor` stroke in any
+   *     placement that applies, its own `forced-colors:` treatment included (`paintsIn`).
+   */
+  const backgroundAlone = (tokens: readonly string[], extra: readonly Placed[]): string | null => {
+    const applies = [
+      ...tokens
+        .flatMap((token) => placed.get(token) ?? [])
+        .filter((d) => d.state === null && d.placement !== "conditional"),
+      ...extra,
+    ];
+    if (hiding(applies) !== undefined) return null;
+    if (!applies.some((d) => SIZES.test(d.property))) return null;
+    const fill = winner(applies, /^background-color$/);
+    if (fill === undefined || /^[a-z-]+$/i.test(fill.value)) return null;
+    if (winner(applies, /^color$/) !== undefined) return null;
+    const filter = winner(applies, KEPT_FILTERS);
+    if (filter !== undefined && !/^none$/i.test(filter.value)) return null;
+    if (paintsIn(tokens, ["unconditional", "forced"], { extra })) return null;
+    return fill.value;
+  };
+
+  it("found the hosts drawn at rest, and tells a fill alone from a drawing the mode keeps", () => {
+    // Anchor on the part this kind was written for: the axis reader finds BOTH of
+    // `Separator`'s orientations off the sheet, each sizing its own box.
+    const rule = literals("separator.tsx").find((tokens) => tokens.includes("shrink-0"));
+    expect(rule, "separator.tsx's class string was not found among its literals").toBeDefined();
+    const drawings = restDrawings(rule!);
+    expect(
+      drawings.map((d) => d.axis),
+      "the static axis was not read off the sheet for separator.tsx, or the no-axis drawing was dropped",
+    ).toEqual([null, '[data-orientation="horizontal"]', '[data-orientation="vertical"]']);
+    for (const { axis, extra } of drawings.filter((d) => d.axis !== null)) {
+      expect(
+        extra
+          .map((d) => d.property)
+          .filter((p) => SIZES.test(p))
+          .sort(),
+        `${axis}: the rule does not size its own box`,
+      ).toEqual(["height", "width"]);
+    }
+    // ...and the HOST reader joins a `cn` call's string arguments into one more host,
+    // and nothing else: not one argument, not a comment (layer 1 r5 MED-1).
+    expect(
+      hostsOf('// cn("a", "b")\nconst x = cn("h-1 w-10", "bg-y", other);\nconst y = cn("z", c);'),
+      "a cn call's string arguments are not read as one host",
+    ).toEqual([["h-1", "w-10"], ["bg-y"], ["z"], ["h-1", "w-10", "bg-y"]]);
+    expect(restKey("f.tsx", ["b", "a"]), "a gap's key moves with token order").toBe(
+      restKey("f.tsx", ["a", "b"]),
+    );
+    // ...and a static axis is not placed as a held state, nor a held state as an axis.
+    expect(
+      placeAxes('.a[data-state="open"] { color: red }').size,
+      "a held state read as an axis",
+    ).toBe(0);
+    expect(
+      placeAxes('@media (width >= 40rem) { .b[data-orientation="vertical"] { width: 0 } }').size,
+      "an axis under another media query read as applying at rest",
+    ).toBe(0);
+
+    // The PREDICATE, on hand-written placements under names no utility can have.
+    const at = (placement: Placement, body: string): Placed[] =>
+      body.split("; ").map((decl) => {
+        const i = decl.indexOf(": ");
+        return { property: decl.slice(0, i), value: decl.slice(i + 2), placement, state: null };
+      });
+    const probes = {
+      "probe:rest-fill": at("unconditional", "background-color: var(--border)"),
+      "probe:rest-size": at("unconditional", "height: 2px; width: 100%"),
+      "probe:rest-frame": at("unconditional", "border-top-style: solid; border-top-width: 2px"),
+      "probe:rest-fc-frame": at("forced", "border-top-style: solid; border-top-width: 2px"),
+      "probe:rest-ink": at("unconditional", "color: var(--foreground)"),
+      "probe:rest-blur": at("unconditional", "backdrop-filter: blur(8px)"),
+      "probe:rest-hidden": at("unconditional", "opacity: 0"),
+      "probe:rest-inset": at("unconditional", "position: fixed; inset: 0"),
+      "probe:rest-keyword": at("unconditional", "background-color: transparent"),
+    };
+    withPlaced(probes, () => {
+      const alone = (...names: string[]) => backgroundAlone(["probe:rest-fill", ...names], []);
+      expect(alone("probe:rest-size"), "a sized fill alone does not read as a site").toBe(
+        "var(--border)",
+      );
+      expect(alone(), "an unsized fill (content's) reads as a site").toBeNull();
+      // `inset` sizes the box too: `Sheet`'s overlay is `fixed inset-0` (LOW-5).
+      expect(alone("probe:rest-inset"), "an inset fill does not read as a site").toBe(
+        "var(--border)",
+      );
+      expect(alone("probe:rest-size", "probe:rest-frame"), "a frame does not save it").toBeNull();
+      expect(
+        alone("probe:rest-size", "probe:rest-fc-frame"),
+        "its own forced-colors frame does not save it",
+      ).toBeNull();
+      expect(alone("probe:rest-size", "probe:rest-ink"), "its own ink does not save it").toBeNull();
+      expect(
+        alone("probe:rest-size", "probe:rest-blur"),
+        "a kept filter does not save it",
+      ).toBeNull();
+      expect(
+        alone("probe:rest-size", "probe:rest-hidden"),
+        "a hidden host reads as a site",
+      ).toBeNull();
+      expect(
+        backgroundAlone(["probe:rest-keyword", "probe:rest-size"], []),
+        "a keyword fill reads as an author fill",
+      ).toBeNull();
+      // ...and a static axis's own rules join the drawing they belong to.
+      const axisFrame = at("unconditional", "border-top-style: solid; border-top-width: 2px");
+      expect(alone("probe:rest-size"), "the control").not.toBeNull();
+      expect(
+        backgroundAlone(["probe:rest-fill", "probe:rest-size"], axisFrame),
+        "an axis-scoped frame does not save it",
+      ).toBeNull();
+      expect(
+        backgroundAlone(["probe:rest-fill"], at("unconditional", "height: 2px")),
+        "an axis-scoped size does not make it a host",
+      ).toBe("var(--border)");
+    });
+  });
+
+  it("gives every host drawn at rest in a background alone a paint the mode keeps", () => {
+    const short: string[] = [];
+    const found = new Set<string>();
+    for (const file of partFiles()) {
+      for (const tokens of hosts(file)) {
+        for (const { axis, extra } of restDrawings(tokens)) {
+          const fill = backgroundAlone(tokens, extra);
+          if (fill === null) continue;
+          const key = restKey(file, tokens);
+          found.add(key);
+          const gap = KNOWN_REST_GAPS[key];
+          if (gap !== undefined) {
+            expect(gap.length, `${key}'s gap needs a reason`).toBeGreaterThan(80);
+            continue;
+          }
+          short.push(
+            `${file}: "${tokens.join(" ")}" ${axis === null ? "at rest" : `under ${axis}`} is drawn in background-color: ${fill} alone`,
+          );
+        }
+      }
+    }
+    expect(
+      Object.keys(KNOWN_REST_GAPS).filter((key) => !found.has(key)),
+      "a KNOWN_REST_GAPS entry names no host that draws in a background alone: delete it ONLY if the host now draws a paint the mode keeps; a host whose classes changed and still vanishes is re-keyed, never deleted",
+    ).toEqual([]);
+    expect(
+      short,
+      "a part draws a host at rest in an author background and nothing the mode keeps, so under forced-colors: active it is Canvas on Canvas and VANISHES. Draw it as a border (it survives the mode), give it a forced-colors: frame, or declare it in KNOWN_REST_GAPS with a reason",
     ).toEqual([]);
   });
 });

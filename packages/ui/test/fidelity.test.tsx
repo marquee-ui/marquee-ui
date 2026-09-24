@@ -13,7 +13,7 @@ import {
   BreadcrumbPageItem,
   BreadcrumbSeparator,
 } from "@/breadcrumb";
-import { buttonVariants } from "@/button";
+import { Button, buttonVariants } from "@/button";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/card";
 import { cn } from "@/lib/utils";
 import { Input, inputClass } from "@/input";
@@ -209,6 +209,13 @@ function renderToast() {
   );
 }
 
+/**
+ * The six button rows pin each variant at its DEFAULT, which since 0.1.7 includes
+ * `width: "full"`: the four grid variants' `grid w-full` is the width axis's compound
+ * now, appended after the variant's string, so the SET is upstream's and the ORDER is
+ * not (order is not asserted here, the header says why; the axis's own block below
+ * pins where it lands and what `auto` draws).
+ */
 const CASES: readonly (readonly [keyof typeof UPSTREAM, () => string])[] = [
   ["button.primary", () => buttonVariants({ variant: "primary" })],
   ["button.primaryRounded", () => buttonVariants({ variant: "primaryRounded" })],
@@ -354,6 +361,77 @@ describe("the moved parts wear exactly the upstream utilities, renamed", () => {
       expect(tokens(actual())).toEqual(expected(key, upstreamValue!));
     });
   }
+});
+
+/**
+ * THE WIDTH AXIS (0.1.7), W-box: `full` is `grid w-full`, `auto` is `inline-grid`, over
+ * the four grid variants; `ghost` is `inline-flex`, sized to its text already, and
+ * untouched. An axis and not an appended `w-auto`, because both this package's sheet
+ * and a consumer's emit `.w-auto` BEFORE `.w-full`, so under a plain-join `cn` an
+ * appended `w-auto` loses to the variant's `w-full` (measured, marquee-ui's
+ * `docs/as-built.md`, "The inline width, MEASURED"). What `auto` DRAWS (the inline box
+ * in a block parent and, with the caller's `self-start`, in a flex column) is a
+ * rendered measurement in "LIB-0.1.7"; this pins the strings that drawing stands on.
+ */
+describe("the width axis", () => {
+  const GRID = ["primary", "primaryRounded", "secondary", "danger"] as const;
+  const set = (value: string): string[] => value.split(/\s+/).filter(Boolean).sort();
+
+  it("full is the default, and ends every grid variant's string with grid w-full", () => {
+    for (const variant of GRID) {
+      const byDefault = buttonVariants({ variant });
+      expect(buttonVariants({ variant, width: "full" }), variant).toBe(byDefault);
+      expect(byDefault.endsWith(" grid w-full"), `${variant}: ${byDefault}`).toBe(true);
+      expect(
+        set(byDefault).filter((t) => t === "grid" || t === "w-full"),
+        variant,
+      ).toEqual(["grid", "w-full"]);
+    }
+    expect(buttonVariants({ variant: "danger", armed: true }).endsWith(" grid w-full")).toBe(true);
+  });
+
+  it("auto swaps grid w-full for inline-grid and moves nothing else", () => {
+    for (const variant of GRID) {
+      const full = set(buttonVariants({ variant }));
+      const auto = set(buttonVariants({ variant, width: "auto" }));
+      expect(auto, variant).toEqual(
+        [...full.filter((t) => t !== "grid" && t !== "w-full"), "inline-grid"].sort(),
+      );
+    }
+  });
+
+  it("leaves ghost alone at both values", () => {
+    const ghost = buttonVariants({ variant: "ghost" });
+    expect(ghost.startsWith("inline-flex ")).toBe(true);
+    expect(buttonVariants({ variant: "ghost", width: "auto" })).toBe(ghost);
+    expect(buttonVariants({ variant: "ghost", width: "full" })).toBe(ghost);
+  });
+
+  it("reaches the element through Button, and never as an attribute", () => {
+    render(
+      <Button variant="primaryRounded" width="auto">
+        Export my data
+      </Button>,
+    );
+    const button = document.querySelector('[data-slot="button"]')!;
+    expect(set(button.getAttribute("class") ?? "")).toEqual(
+      set(buttonVariants({ variant: "primaryRounded", width: "auto" })),
+    );
+    expect(button.hasAttribute("width"), "width leaked onto the <button>").toBe(false);
+    cleanup();
+    // ...and through asChild, onto the caller's element (layer 1 r5 LOW-4).
+    render(
+      <Button asChild variant="primaryRounded" width="auto">
+        <a href="/export">Export my data</a>
+      </Button>,
+    );
+    const link = document.querySelector('[data-slot="button"]')!;
+    expect(link.tagName).toBe("A");
+    expect(set(link.getAttribute("class") ?? "")).toEqual(
+      set(buttonVariants({ variant: "primaryRounded", width: "auto" })),
+    );
+    expect(link.hasAttribute("width"), "width leaked onto the asChild element").toBe(false);
+  });
 });
 
 describe("the rename table itself", () => {
@@ -652,9 +730,12 @@ const NEW_PARTS: readonly (readonly [string, () => void, string])[] = [
     "inline-flex items-center gap-1 rounded-sm border-2 px-2 py-0.5 font-mono text-2xs font-bold uppercase tracking-label border-success bg-success-muted text-success",
   ],
   [
+    // 0.1.7: a border on a box of no height (or width), not a fill on a 2px one. It
+    // survives forced colors and is 2px at any root; byte-identical at a 16px root
+    // (measured in Chromium, marquee-ui's `docs/as-built.md`, "LIB-0.1.7").
     "separator",
     () => render(<Separator />),
-    "shrink-0 bg-border data-[orientation=horizontal]:h-0.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-0.5",
+    "shrink-0 border-border data-[orientation=horizontal]:h-0 data-[orientation=horizontal]:w-full data-[orientation=horizontal]:border-t-2 data-[orientation=vertical]:h-full data-[orientation=vertical]:w-0 data-[orientation=vertical]:border-l-2",
   ],
   ["accordion-item", () => renderAccordion(), "border-b-2 border-border"],
   [

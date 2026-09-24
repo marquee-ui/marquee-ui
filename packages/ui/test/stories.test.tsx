@@ -66,8 +66,8 @@ afterEach(cleanup);
  * against being edited to lie about itself; what closes it is review of this
  * file's diff, which is why it is said here rather than left implied.
  */
-const DECLARED_PLAYS = 77;
-const DECLARED_STORIES = 107;
+const DECLARED_PLAYS = 81;
+const DECLARED_STORIES = 111;
 
 describe("every story renders, and every play function passes", () => {
   const seen: string[] = [];
