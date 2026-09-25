@@ -13471,12 +13471,14 @@ seven rules on `<Separator decorative className="mb-2.5">`), both e2e rule arms 
 `separator.tsx` at 0.1.6's bytes and passing on the head; **T4** thepile's arbitrary-values `total` 421 → 423 with a
 `_note` naming this copy's six orientation-scoped utilities. Rendered by thepile on its built pages: `Separator` at a
 16px root 0 boxes, bands or context strips differ on `/transparency`'s thirty and `/nova`'s seven rules at three widths
-(only the paint moved), at a 24px root 2px where 0.1.6 drew 3px [V], under both forced palettes pixel-identical to the
+(only the paint moved), at a 24px root 2px where 0.1.6 drew 3px [V] (thepile's layer 2: prod at `b5096a70` draws both
+routes' rules as 2px borders, so at a raised root this bump RESTORES the shipped 2px on `/transparency` and changes
+nothing net on `/[username]`; "3px before" is DL27's unpushed part), under both forced palettes pixel-identical to the
 base with the site class; `Button` over 48 wearers on 27 page-and-width reads (1,536 cells): 0 boxes, computed styles or
 pictures differ, the class attribute differs on all 48. The axis costs thepile +35 to +89 B gz per budgeted route (the
 chunk carrying `button.tsx` +58 / +59 B), `/lists/page` from 79 to 22 B of headroom on s4's builds (s1's standalone +55
 held; the composition's "+50 wherever it rides a client chunk" was a per-chunk figure, not a per-route one). The width
-axis has NO thepile consumer yet: `HeroButtons`' AUDIT-FIX and the two settings anchors (`SettingsIslands.tsx:251`,
+axis has NO thepile consumer yet: `HeroButtons`' AUDIT-FIX and the two settings sites, an anchor and a button (`SettingsIslands.tsx:251`,
 `InstallSettings.tsx:33` on `primaryRounded` with `width="auto"`) are buildable and Ankit's [V]. `asChild` on `Card`
 has no consumer yet either (`ReviewCard`'s `<Card asChild><article>` is the next `Card` route).
 
