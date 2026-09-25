@@ -13438,3 +13438,51 @@ lifts.
 | forced-colors-state.test.tsx                 | "found a sheet and the revealed elements to measure" (`not.toContain("on")`, :847) | R1: `literalsOf` also pushes every `/* */` comment                                                                            | **GREEN for that test**; red came from a DIFFERENT arm, "found the states drawn only in colour…" (`the literal reader read a comment, or missed a literal`) | the prose check cannot see prose (LOW-6)                                                               |
 
 **The stream's 12, read from its logs:** each went red where it said. One correction to the record: **ii-3 (shape A) reddened only `fidelity > separator`**, which is the class-set pin that any string edit reddens. `forced-colors-state` stayed green, and that is correct: shape A draws 400/80 px in both forced palettes (`sep-A/result.txt`). ii-3 is therefore a control showing the third kind accepts a forced-only frame, not a red of that arm.
+
+## DL28 reconciler: 0.1.7 in and vendored, and thepile's verdicts recorded (2026-09-25)
+
+`s/lib-0.1.7` @ `5ffdd290` merged into `next` at `b7c6f96` (`--no-ff`, 03:38 IST); `pnpm verify` on the merged tree
+from the root exit 0, 36 files / 619 tests (03:38:39-03:38:55 IST); `git diff --stat c6383f04 b7c6f96 -- packages/ui/src
+packages/ui/r packages/ui/package.json packages/tokens registry.json` names exactly `button.tsx`, `card.tsx`,
+`radio-group.tsx`, `separator.tsx`, their `r/*.json`, `r/registry.json`, `registry.json`'s card item and the version
+line; `packages/tokens` untouched. What landed, one commit each: the two `radio-group.tsx` docblocks name a selected
+state the mode keeps and state the revert rule once; `asChild` on `Card` and `CardTitle` (the card item declares
+`@radix-ui/react-slot`); `Separator` drawn as a 2px BORDER and no background (shape B: byte-identical at a 16px root in
+both orientations, 400 / 80 px drawn under both forced palettes where 0.1.6 drew 0, 2px at a 24px root where 0.1.6 drew
+3px) with the forced-colours guard's third kind (a host whose rest paint is background-only; at the base it names
+`separator.tsx` and `Sheet`'s grab handle, the handle declared in `KNOWN_REST_GAPS`); the width axis on `Button`,
+W-box (`full` = `grid w-full`, the default; `auto` = `inline-grid`; the four grid variants' strings losing `grid w-full`
+and the axis emitting LAST, so every grid default now ends `… grid w-full`: the set, boxes and pixels 0.1.6's, the order
+not). The bump `3419865` is THE PACK POINT for `ui@0.1.7` (the post-freeze tag and `pnpm publish` belong there):
+`marquee-ui-ui-0.1.7.tgz`, 111,601 B, sha256 `ac50c1996adef9e1bab941d5d0ee4e0ff32f1784be8ea0cc1a145b94aaf80a79`; the
+`cmp` list against thepile's 0.1.6 tarball moves `button`, `card`, `radio-group`, `separator`, `r/registry.json` and the
+version line, the other 37 entries and LICENSE identical. Layer 1 r5 0/1/7 over 41 mutations, 8 GREEN answered.
+
+**thepile's verdicts this batch, recorded here (class J).** **0.1.7 is VENDORED** (LIB-VENDOR-0.1.7,
+`docs/slices/LIB-VENDOR-0.1.7.md`, thepile `a3e10f15`, merged at `0cc997c4`): the pack point re-packed in a detached
+worktree of this repository at `3419865` and `cmp`-identical to s1's tarball; the four copies re-added; thepile's drift
+test red on the flip alone on exactly the five arms s1 predicted (four byte arms and its "declares every dependency" arm
+on `card: []`, now `["@radix-ui/react-slot"]`). s1's REQUESTs answered in thepile: **T1 [V]** the `primaryButtonClass`
+row of `form-styles.test.ts` compares the utility SET (the byte pin against the renamed upstream at `:112` and the
+literal itself untouched: no single literal satisfies both once the axis emits `grid w-full` last); **T3** the site class
+`forced-colors:border-t-2` retired at `/transparency` (`page.tsx`, the test's reference render) and at `/[username]`'s
+`SectionHead` (batch DL28's second `Separator` route, `docs/slices/DESIGN-LIB-f-profile-separator.md` @ `c0d7f93c`,
+seven rules on `<Separator decorative className="mb-2.5">`), both e2e rule arms reading `0.0%` on a build with
+`separator.tsx` at 0.1.6's bytes and passing on the head; **T4** thepile's arbitrary-values `total` 421 → 423 with a
+`_note` naming this copy's six orientation-scoped utilities. Rendered by thepile on its built pages: `Separator` at a
+16px root 0 boxes, bands or context strips differ on `/transparency`'s thirty and `/nova`'s seven rules at three widths
+(only the paint moved), at a 24px root 2px where 0.1.6 drew 3px [V], under both forced palettes pixel-identical to the
+base with the site class; `Button` over 48 wearers on 27 page-and-width reads (1,536 cells): 0 boxes, computed styles or
+pictures differ, the class attribute differs on all 48. The axis costs thepile +35 to +89 B gz per budgeted route (the
+chunk carrying `button.tsx` +58 / +59 B), `/lists/page` from 79 to 22 B of headroom on s4's builds (s1's standalone +55
+held; the composition's "+50 wherever it rides a client chunk" was a per-chunk figure, not a per-route one). The width
+axis has NO thepile consumer yet: `HeroButtons`' AUDIT-FIX and the two settings anchors (`SettingsIslands.tsx:251`,
+`InstallSettings.tsx:33` on `primaryRounded` with `width="auto"`) are buildable and Ankit's [V]. `asChild` on `Card`
+has no consumer yet either (`ReviewCard`'s `<Card asChild><article>` is the next `Card` route).
+
+**Open REQUESTs the library holds after this batch** (s1's three and layer 1's): `sheet.tsx`'s grab handle paints a
+background alone and vanishes under forced colours (declared in `KNOWN_REST_GAPS` until fixed); `ribbon.tsx`'s band
+stripe vanishes under forced colours while its text stays (cosmetic, a call); the `radio-group` `NoDrawing` story draws
+its checked face in a colour-only border plus a ring the mode erases; the `size="lg"`, slab and `link` REFUSEs standing
+on Ankit's [V]. DL28's tag list: `ui@0.1.7` at `3419865`, added to thepile's post-freeze order after `ui@0.1.6` at
+`ed6a393`.
