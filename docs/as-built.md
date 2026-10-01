@@ -14038,3 +14038,10 @@ tree's own `loadCompiledSheet` and real parts; driver `bin/probe-mut.py`, same r
 - **M4b** (MED-1): FIXED at `ab767ff`, the join emission test: now **red** 1 / 626, and green again only with the mock
   pointed back at the merging `cn` (the control).
 - **M4c** (LOW-4): FIXED at `ab767ff`, the caller's radius wins at every value: now **red** 1 / 626.
+
+## DL40 layer 2 (2026-10-01): read-only against this tree at `06b2a936`, thepile's cross-review
+
+- **LOW-4, PROVED**: the band's forced-colours frame (`ribbon.tsx`, `forced-colors:border-y-2`) has no test that sees the drawing: `@media (forced-colors: active){[data-slot="ribbon-band"]{border-block-width:0}}` added to `ribbon.css` on a built copy left `626 passed (626)` while the probe read 0 / 0 band pixels (0.1.7's forced pictures, hashes `36f8fe76168c` / `0c09162a62cb`); the control reads 2,330 / 2,330; removing the class itself reds `fidelity > ribbon.band` alone. r5 LOW-3's pixel half, now proved; a REQUEST for `forced-colors-state.test.tsx`'s next owner, with r5 LOW-1 (a host the mode hides) and LOW-2 (the `NoDrawing` tile).
+- **s1's consumer list missed three thepile readers of the re-added copies**, all green on 0.1.8: `components/ui/ribbon.test.tsx`, `components/status/StatusScreen.test.tsx`, `app/descender-clipping.test.ts:621` (the seven guard and part test files 224 / 224, the ribbon and button tests 21 / 21).
+- **DL41's bump run ahead on a copy**: with 0.1.7's copies vendored `4 failed | 18 passed` in `marquee-drift.test.ts` (three byte arms and the dependency arm); with 0.1.8's written in `1 failed | 21 passed` (the dependency arm alone: `card` gains `class-variance-authority`); thepile's stylesheet gains exactly `.rounded-none`, `.forced-colors\:border-2` and `.forced-colors\:border-y-2` (+200 B, nothing removed); the budget rows move +1 B (Card renders on the server), `/lists` +4, `/[username]` +7.
+- Layer 2's decisions 1 to 8 on this stream, [V] each, are in thepile's `docs/slices/DESIGN-LIB.md` "Batch DL40".
