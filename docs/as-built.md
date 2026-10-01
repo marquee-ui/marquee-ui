@@ -14045,3 +14045,549 @@ tree's own `loadCompiledSheet` and real parts; driver `bin/probe-mut.py`, same r
 - **s1's consumer list missed three thepile readers of the re-added copies**, all green on 0.1.8: `components/ui/ribbon.test.tsx`, `components/status/StatusScreen.test.tsx`, `app/descender-clipping.test.ts:621` (the seven guard and part test files 224 / 224, the ribbon and button tests 21 / 21).
 - **DL41's bump run ahead on a copy**: with 0.1.7's copies vendored `4 failed | 18 passed` in `marquee-drift.test.ts` (three byte arms and the dependency arm); with 0.1.8's written in `1 failed | 21 passed` (the dependency arm alone: `card` gains `class-variance-authority`); thepile's stylesheet gains exactly `.rounded-none`, `.forced-colors\:border-2` and `.forced-colors\:border-y-2` (+200 B, nothing removed); the budget rows move +1 B (Card renders on the server), `/lists` +4, `/[username]` +7.
 - Layer 2's decisions 1 to 8 on this stream, [V] each, are in thepile's `docs/slices/DESIGN-LIB.md` "Batch DL40".
+
+## LIB-0.1.9: the field's focus ring drawn under forced colours, `description-list.tsx`'s dead docblock token gone, and `@marquee-ui/ui` 0.1.9 (2026-10-02)
+
+Batch DL42, stream s1, branch `s/lib-0.1.9` from `next` @ `ba179956`, pushed to marquee-ui's origin at every green
+checkpoint. thepile is read-only throughout, at `1d2db584` (the DL42 composition), by `git -C
+/home/ankit/Code/thepile-next show 1d2db584:<path>`. No tag, no publish, no PR. The passengers are two commits in the
+composition's order, each with `pnpm build:registry` run and `pnpm verify` green before it; layer 1 r5 reviewed their
+head; the bump is the version line on top of the reviewed bytes. Every reddening run ran in a DETACHED, BUILT worktree
+of a committed head (`../marquee-ui-s1-mut`, at `46b6b66` and then `47770f7`; `pnpm install --frozen-lockfile` + `pnpm
+build`) through a driver (`$BATCH_SCRATCH/s1/mutate.py`, mutations in `muts.json`) that asserts each edit matched once
+and LANDED, logs the mutated line, rebuilds the registry after a part edit, runs the named files or the WHOLE suite,
+restores and checks the tree clean. Candidate shapes were measured in a detached tree at the base (`../marquee-ui-s1-cand`,
+edited for the measurement alone and restored, `probe/cand.py`), and the base's pictures in another
+(`../marquee-ui-s1-base`).
+
+**The probe** is a package outside both repositories, `$BATCH_SCRATCH/s1/probe/` (`pnpm init`, `pnpm add
+playwright-core@1.61.1`, DL40's version), launching `~/.cache/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-linux64/chrome-headless-shell`
+by `executablePath`: Chromium **149.0.7827.55**, DL40's binary. `sheet.mts` is DL40's (the tree's own
+`loadCompiledSheet`); `markup.tsx` renders the tree's REAL parts through their own `cn`, from their own stories' args:
+`Input` (the `Default` story, `placeholder: "Search everything"`), `Textarea` (`Default`, `rows: 3`), the `Switch`'s
+`Off` story (`focus-outline.test.tsx`'s first host, the positive control) and DL40's open `Sheet` (the second control).
+`field.mjs` sets each on the tree's compiled sheet at **390x200** in a 358px column, in three modes (normal colours,
+dark; `forced-colors: active` under `colorScheme` dark and light; `reducedMotion: reduce`, transitions and animations
+off) and takes three pictures of one clip, the element's box and 8px a side (where an outline at offset 2 and width 2
+sits), with `scale: "css"` and `caret: "hide"`: at REST, FOCUSED by `element.focus()`, and FOCUSED by a real keyboard
+`Tab` from a fresh page. Per pair it counts the pixels that differ (any channel) and the "visible" ones (a channel moved
+by 128 or more, thepile `e2e/forced-colors-controls.spec.ts`'s `VISIBLE`), with their share of the clip; it reads
+`:focus`, `:focus-visible`, the computed outline and the border colour; each picture carries a sha256 (12 hex).
+`xcmp.mjs` compares two trees' pictures file by file, `ringband.mjs` counts only the pixels OUTSIDE the field's border
+box, `rules.mts` reads a token's rules through the tree's helper (`declaredValues`, the raw rule with its at-rule
+context), `sheetdiff.mjs` compares two compiled sheets rule by rule.
+
+**The base, re-measured**: `pnpm verify` at `ba179956` exit **0**, `Test Files 36 passed (36)`, `Tests 626 passed (626)`
+in 24.7 s (`verify-base.log`). DL40's pack point read 36 / 626: held.
+
+**The instrument, shown to move before it measured the field** (`draw-base.txt`). The Switch's ring, the positive
+control: rest against focused **1,655** pixels in normal colours, **3,093** (dark) and **3,087** (light) under the mode,
+its computed outline `solid 2px` at offset 2px in every mode. The 0.1.8 Sheet handle: **160 / 160 / 160**, the normal
+page hash `50e342c82331`, DL40's own (`draw-head-iv.txt`). So the probe sees a ring under the mode, and reproduces
+DL40's numbers on DL40's binary, before it reports the field.
+
+### (i) The field's focus ring under forced colours (`46b6b66`)
+
+**At the base the focused field is NOT identical to the rest one under the mode.** The composition's premise ("a
+focused field is indistinguishable from an unfocused one", 0 px at the base) does not hold in this Chromium, and the
+reason was isolated (`isolate-base.txt`, `isolate2-base.txt`): under `forced-colors: active` Chromium itself recolours
+a FOCUSED form control's border, an `<input>`, a `<textarea>` or a `<button>` with no class at all, to
+`rgba(0, 230, 255, 0.8)` on the dark forced palette and `rgba(5, 0, 73, 0.8)` on the light one (a focused
+`div[tabindex]` keeps its border colour, so it is the controls'), while the author's `focus:border-primary` is reverted
+like every author colour. What `focus:outline-none` removes is the OTHER half, the browser's own `outline: auto` ring,
+which a field without the opt-out draws in the same colour. So the base's focused field differs from its rest by the
+border alone:
+
+| base, rest vs focused (Tab and `focus()` alike) | normal colours (dark)        | forced dark                  | forced light                                 |
+| ----------------------------------------------- | ---------------------------- | ---------------------------- | -------------------------------------------- |
+| `Input`, clip 342x60                            | 1,489 (1,412 visible, 6.88%) | 1,512 (1,438 visible, 7.01%) | **1,508 (20 visible, 0.10%)**, max delta 255 |
+| `Textarea`, clip 342x111                        | 1,689 (1,610 visible, 4.24%) | 1,712 (1,635 visible, 4.31%) | **1,708 (20 visible, 0.05%)**                |
+| outside the border box (`ringband-base.txt`)    | 0                            | **0**                        | **0**                                        |
+
+On the light palette the cue is black to a dark navy (the 0.8-alpha recolour over the Canvas ground): 20 pixels move
+half the channel range, under thepile's 2% `FLOOR`. Outside the border box nothing moves at the base in any mode, which
+is the field's 0 px the composition asked for, measured where the ring draws.
+
+**The token** (candidate C1, `cand-C1.log`, then the committed head). `focus:outline-none` -> `focus:outline-hidden`,
+in place. Tailwind 4.3.3 compiles it, read through the tree's own helper (`rules-C1.txt`), to:
+
+```
+@layer utilities
+.focus\:outline-hidden:focus { --tw-outline-style: none; outline-style: none; @media (forced-colors: active) { outline: 2px solid transparent; outline-offset: 2px; } }
+declaredValues: outline-style ["none"], outline ["2px solid transparent"], outline-offset ["2px"], --tw-outline-style ["none"]; outline-width: none declared
+```
+
+So in normal colours it declares EXACTLY `focus:outline-none`'s two declarations (`.focus\:outline-none:focus {
+--tw-outline-style: none; outline-style: none; }`), and the transparent outline exists only inside the nested
+`@media (forced-colors: active)`. The compiled sheet gains that one rule and nothing else (`sheetdiff-base-head-i.txt`:
+352 -> 353 rules, 352 shared; the C1 sheet and the committed head's `cmp`-identical, so `input.tsx`'s new docblock
+compiles nothing).
+
+| the committed head `46b6b66` (`draw-head-i.txt`, `xcmp.mjs base head-i`) | normal colours (dark)                                                                  | forced dark                                           | forced light                                          |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
+| `Input` rest, `focus()`, Tab                                             | **byte-identical** to the base: `e085c6f718af`, `86de6b5c8bc9`, `f2601a5beb26`         | rest identical (`236c373ea46c`); focused **+1,571**   | rest identical (`67afcd8cca56`); focused **+1,571**   |
+| `Textarea` rest, `focus()`, Tab                                          | **byte-identical**: `0fe53f0f6889`, `f8797f7f2ce1`, `8d8e31d0695d`                     | rest identical (`3ba81adab0f2`); focused **+1,771**   | rest identical (`fceae8023356`); focused **+1,771**   |
+| rest vs focused, `Input`                                                 | 1,489 (as the base)                                                                    | **3,083** (2,905 visible, 14.16%)                     | **3,079** (1,487 visible, **7.25%**)                  |
+| rest vs focused, `Textarea`                                              | 1,689 (as the base)                                                                    | **3,483** (3,302 visible, 8.70%)                      | **3,479** (1,687 visible, 4.44%)                      |
+| outside the border box (`ringband-head.txt`), `Input` / `Textarea`       | 0 / 0                                                                                  | **1,541** (1,448 visible) / **1,731** (1,642 visible) | **1,541** (1,448 visible) / **1,731** (1,642 visible) |
+| computed when focused                                                    | `outline-style: none`, the border `rgb(228, 255, 58)` (the action colour, as the base) | `solid 2px` at offset 2px, `rgba(0, 230, 255, 0.8)`   | `solid 2px` at offset 2px, `rgba(5, 0, 73, 0.8)`      |
+
+"+1,571" is the head's focused picture against the base's focused picture in the same palette (1,467 of them visible;
+1,667 of the Textarea's 1,771): the ring, and nothing else moved. The Switch and the handle drew their base pictures hash
+for hash. The `focus()` and Tab pictures of a field are identical under the mode; in normal colours they differ by 2
+pixels in both trees, the same hashes before and after.
+
+**`focus:` and not `focus-visible:`, measured** (`draw-base.txt`, `click-base.txt`): both fields match `:focus-visible`
+on `element.focus()`, on a keyboard Tab and on a mouse click; the Switch's `<button>` does not on a click. So the two
+variants are one for these two elements in this browser, and the token keeps the base string's variant and its
+position (thepile's `cn` only joins, so a position is what it serves). `input.tsx`'s docblock says what the token does
+and why it is `focus:`. At `46b6b66` that prose still named two bare words Tailwind compiles, `border` and `outline`
+(every token in a source compiles, comments included: the lesson of (ii)); layer 1 found it (LOW-1) and `aa8fc76`
+reworded it, measured by compiling the file ALONE.
+
+**The fallback the composition named draws nothing** (candidate C2, `cand-C2.log`): `forced-colors:focus:outline-2`
+beside the kept `focus:outline-none` compiles to `@media (forced-colors: active) { .forced-colors\:focus\:outline-2:focus
+{ outline-style: var(--tw-outline-style); outline-width: 2px; } }`, and `focus:outline-none` sets `--tw-outline-style:
+none` on the same element, so the style resolves to `none`: every forced picture is the base's, hash for hash. That
+scoped form would have needed `outline-solid` as well; the token needs nothing.
+
+**DECISION 1 [V], the guard: G2 taken, G1 measured and not taken.** G1 was applied exactly as composed in the candidate
+tree, the token in place (`g1.py`, `g1.log`): `focus: ":focus"` in `VARIANTS`, the walk's regex widened, the `Input` as
+a sixth `HOSTS` row (`INPUT`, `Default`, `focus`), the anchor 5 -> 6, `sheet.tsx` a `KNOWN_GAPS` entry, the exact-set
+anchor gaining `input.tsx (focus)` and `sheet.tsx (focus)`: 2 files, +12 / -4, and `focus-outline.test.tsx` read
+**3 failed | 13 passed (16)** WITH the ring in place: `'Input' paints a 2px outline under its focus variant` (`no class
+under this variant declares an outline-width: expected null to be 2`), `'Input' keeps the shadow ring beside the outline`
+(`expected 0 to be greater than 0`), and the sweep's `gives every focus ring an outline beside it` (the composition's
+"the arm then reads `input.tsx (focus)` as a ring site that is NOT short" did not hold). The file's model is DL15's
+every-mode `outline-2` trio beside a shadow; the field's ring is forced-only, written as the `outline` SHORTHAND inside a
+media query, and the field has no shadow ring. Going green under G1 meant a second model inside every arm. **G2** is a
+new describe block in `focus-outline.test.tsx` (the focus-indicator file; `forced-colors-state.test.tsx` is the STATE
+file and does not move), "the field draws a ring under forced colours, and nothing new in normal colours", 2 fields x 2
+arms: each field's class list read off its OWN story (a textarea that stopped deriving reds alone); every declaration
+the compiled sheet applies to the FOCUSED field (the bare utilities and those under `:focus` / `:focus-visible`, the two
+being one for a text field, measured) collected in sheet order with the modes it applies in (no media: both;
+`(forced-colors: active)`: forced; any other media: neither); the `outline` shorthand expanded (an omitted longhand its
+initial value); `var(--tw-outline-style)` resolved against the field's OWN declarations before the registered initial
+value (C2 is why). Asserted: under the mode the winning style `solid`, width 2px, colour not `Canvas`; in normal colours
+the winning style `none`. Anchors: more than five declarations, and the field's `:focus` border colour among them.
+`VARIANTS`, `HOSTS`, `KNOWN_GAPS` and the token walk do NOT move; the docblock at `:303-330` now says G1 was measured, its
+three reds, and why the field has its own arm (the sentence "The day either ring is this slice's, both halves move
+together" replaced by what held), and the DL19 paragraph says the [V] was taken inside `inputClass`. `+4` tests. (Layer
+1's fixes at `aa8fc76` add a REST arm per field, the cascade's ranking, the `forced-color-adjust` read and a self-test of
+the instrument: "Layer 1's fixes" below.)
+
+**`fidelity.test.tsx`'s `input.field` row**: a DEPARTURE, `focus:outline-none` -> `focus:outline-hidden`, its reason
+opening "0.1.9 swapped one token: the forced-colours ring." (the form `sheet.handle` took in 0.1.8); the rename table's
+departure count 7 -> 8. The upstream fixture does not move (it is an input, regenerated only by its generator).
+
+**Red first, run** (the tests written and run at the base before the token, `red-i-worktree.log`): `Tests 3 failed |
+110 passed (113)`: `input.field` (`- "focus:outline-hidden"`, `+ "focus:outline-none"`) and both fields' forced arm,
+`Input: under forced-colors: active the focused field's winning outline-style is none, so the mode draws no ring and the
+only cue left is the browser's border recolour: expected 'none' to be 'solid'`; the normal-colours arms GREEN at the
+base, as they must be. Then the token: 113 / 113. `r/input.json` rebuilt; `r/textarea.json` does NOT move (its item
+carries `textarea.tsx` alone). `pnpm verify` at `46b6b66`: exit **0**, `Test Files 36 passed (36)`, `Tests 630 passed
+(630)`.
+
+### (ii) The dead docblock token (`47770f7`)
+
+At the base `description-list.tsx:194` read ``* `flex gap-2 break-words`; the `<dl>`s themselves open at …`` and
+`git grep -n -w -F break-words packages/ui/src packages/ui/stories` printed that line alone (READ): no class string
+wears it. The base's compiled sheet carries `@layer utilities .break-words { overflow-wrap: break-word; }`
+(`rules-base.txt`). The line now reads ``* a row with an 8px gap whose long words may break; the `<dl>`s themselves
+open at …`` (no utility token, and not `wrap-break-word`, which would compile the same way); the change is that one
+line (asserted by the edit script). Measured, first in the candidate tree (`sheetdiff-base-W1.txt`) and then on the
+committed head's build (`sheetdiff-head-i-head.txt`): **353 -> 352 rules, `.break-words { overflow-wrap: break-word; }`
+the one rule gone, every other rule byte-identical (352 shared)**; against the base (`sheetdiff-base-head.txt`) the two
+passengers are the whole difference, `.break-words` out and `.focus\:outline-hidden:focus` in, 351 shared. The test
+fixture's sheet 39,323 -> 39,271 B on this passenger alone. Every field picture at `47770f7` is `46b6b66`'s, 27 of 27
+byte-identical. `r/description-list.json` rebuilt (the comment is in the source it carries). `pnpm verify` at
+`47770f7`: exit **0**, 36 / 630.
+
+There is no guard for a utility named in a comment; the sheet compare is the measurement. And the same line's
+neighbour, `:193`, names `` `flex flex-wrap items-baseline gap-x-2 gap-y-0.5` ``: `gap-x-2` and `gap-y-0.5` are worn by
+no class string in `src` or `stories` either, and the base's sheet carries `.gap-x-2 { column-gap: calc(var(--spacing)
+
+- 2); }`and`.gap-y-0\.5 { row-gap: calc(var(--spacing) * 0.5); }` for them. Outside this fence (`:194` alone): REQUEST 2.
+
+### The reddening runs (class E)
+
+In `../marquee-ui-s1-mut`, BUILT, at `46b6b66`; every edit asserted landed and its line logged under `LANDED`
+(`mut-i-46b6b66.txt`, `mut/<name>-46b6b66.log`):
+
+| id  | mutation                                                                                  | run             | red / GREEN                     | the assertion                                                                                                                          |
+| --- | ----------------------------------------------------------------------------------------- | --------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| i-0 | the token back to `focus:outline-none` (the base's)                                       | the whole suite | 3 / 630                         | `input.field` (`+ "focus:outline-none"`), and both fields' forced arm: `winning outline-style is none … expected 'none' to be 'solid'` |
+| i-1 | `focus:outline-none forced-colors:focus:outline-2` (C2, the dead fallback)                | the file        | 2 / 18                          | both fields' forced arm, `none` (the custom property resolved on the element)                                                          |
+| i-2 | `focus:outline-2` (DL15's every-mode ring)                                                | the file        | 2 / 18                          | both fields' normal arm: `the focused field's outline-style in normal colours: expected 'solid' to be 'none'`                          |
+| i-3 | `textarea.tsx` stops deriving (the base's literal string, `py-2` kept)                    | the file        | 1 / 18                          | the `Textarea` forced arm alone                                                                                                        |
+| i-4 | `+ forced-colors:focus:outline-[color:Canvas]`                                            | the file        | 2 / 18                          | `a system colour is kept as written under the mode, and Canvas is the ground: expected 'canvas' not to be 'canvas'`                    |
+| i-5 | `print:focus:outline-hidden` (the ring under another media)                               | the file        | 4 / 18                          | the forced arms (`undefined`, not `solid`) and the normal arms (`undefined`, not `none`)                                               |
+| i-6 | C2 AND the arm's own resolution of `var(--tw-outline-style)` reduced to the initial value | the file        | **GREEN** 18 / 18, as predicted | the instrument control: without resolving the custom property on the element, the dead fallback passes; i-1's red is that step's       |
+
+### Layer 1's fixes (`aa8fc76`), before the bump
+
+r5 reviewed `47770f7` (0 HIGH, 2 MED, 6 LOW, 2 INFO; 21 mutation rows, 12 GREEN, one of them (S8) a correct control; its table is the `### Layer 1` section
+at the end of this one, verbatim) and re-derived the sheet delta, the Input's normal-colours identity and its +1,571 per
+palette, the base's recolour (1,512 / 1,508, 20 visible on the light palette) and the `:focus-visible` equivalence in
+its own probe on the same binary. Each fix was RUN against the mutation that found it, in `../marquee-ui-s1-mut` moved
+to `aa8fc76` and rebuilt (`mut-L1-aa8fc76.txt`, `mut/L1-*-aa8fc76.log`; every edit asserted landed, each red read at its
+line):
+
+| r5 row         | finding | what changed                                                                                                                                                                                                                                                                                                                                                                                        | the re-run at `aa8fc76`                                                                                                                                                                |
+| -------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S3             | MED-1   | the arms read only the FOCUSED field, so a ring drawn at rest as well passed. A REST arm per field reads the bare utilities alone and asserts no outline in either mode                                                                                                                                                                                                                             | **red** 2 / 21: `Input: the field's outline-style at rest (forced): expected 'solid' to be 'none'`, and the Textarea's                                                                 |
+| S5             | LOW-2   | the winner is ranked `!important` first, then a pseudo-class over the bare class, then sheet order (`Declaration` carries `important` and `pseudo`)                                                                                                                                                                                                                                                 | **red** 2 / 21: both forced arms, `winning outline-style is none`                                                                                                                      |
+| S4             | LOW-2   | the forced arm reads the winning `forced-color-adjust`, which `none` would leave the ring `transparent` under                                                                                                                                                                                                                                                                                       | **red** 2 / 21: `forced-color-adjust: none keeps the ring's author colour, transparent`                                                                                                |
+| (reasoned)     | LOW-3   | "specificity ties" was false ((0,1,0) against (0,2,0)): the ranking now models the pseudo-class, and the walk asserts every applying rule sits in ONE layer, `utilities`                                                                                                                                                                                                                            | T6 below                                                                                                                                                                               |
+| T1, T2, T3, T5 | LOW-4   | the selector filter (`remainder`, `REMAINDERS`), the media classifier (`modesOf`) and the ranking lifted into named functions; a self-test, `reads each branch of its own instrument`, pins each on LITERAL inputs (selectors, media lists, shorthands, ranked declarations; no class name, so nothing compiles)                                                                                    | T1 **red** through the REST arm (2 / 21); T2 **red** at `:696` (`modesOf(["print"])`); T3 **red** at `:699` (the shorthand); T5 **red** at `:746` (the custom property on the element) |
+| (new)          | LOW-3/4 | the ranking's two halves                                                                                                                                                                                                                                                                                                                                                                            | T6 (order alone) **red** at `:729`; T7 (importance ignored) **red** at `:735`                                                                                                          |
+| S9             | LOW-4   | the forced arm's message says "the mode draws no ring" only for `none` or nothing, not for a dashed ring                                                                                                                                                                                                                                                                                            | prose                                                                                                                                                                                  |
+| -              | LOW-1   | `input.tsx`'s docblock named `border` and `outline` as bare words, which Tailwind compiles (`.border`, `.outline`; the library's sheet did not move only because other comments already compile both, but a consumer's might). Reworded; compiled ALONE with the full theme (`probe/one-full.mjs`), the file yields exactly the string's twelve utilities, which it did not at `47770f7` (fourteen) | `onefull-input-head.txt` = `onefull-string-head.txt`                                                                                                                                   |
+| -              | LOW-5   | the docblock's `input.tsx:6` cite is a name now (`input.tsx`'s `inputClass`; the string moved to `:23`)                                                                                                                                                                                                                                                                                             | prose                                                                                                                                                                                  |
+| -              | LOW-6   | `input.tsx` names "marquee-ui's `docs/as-built.md`" as its siblings do; this section is what both pointers resolve to                                                                                                                                                                                                                                                                               | -                                                                                                                                                                                      |
+| i-6            | (s1)    | the dead fallback with the arm's own custom-property step reduced: GREEN at `46b6b66`, the self-test's to catch now                                                                                                                                                                                                                                                                                 | **red** at `:746`                                                                                                                                                                      |
+| -              | MED-2   | NOT fixed: `textarea.tsx:23-27` still calls the question open and spells the old token. `textarea.tsx` is outside this fence by name ("an edit there is the wrong fix"); its prose moving would also move `r/textarea.json` and thepile's textarea byte arm on the flip                                                                                                                             | REQUEST 3                                                                                                                                                                              |
+| F3             | INFO-1  | NOT changed: a departure under a key no case reads is never checked, pre-existing and outside the `input.field` row                                                                                                                                                                                                                                                                                 | REQUEST 4                                                                                                                                                                              |
+| D1             | INFO-2  | NOT pinned: no library test reads a utility named in a comment; the sheet compare is the measurement, and thepile's `PROSE_EXCEPTIONS` is the one reader                                                                                                                                                                                                                                            | REQUEST 2                                                                                                                                                                              |
+
+The token reverted reds `3 failed | 630 passed (633)` at `aa8fc76` (the whole suite: `input.field` and both forced
+arms). The suite is **36 files / 633 tests** (+3 in `focus-outline.test.tsx`: two REST arms and the self-test). The
+compiled sheet at `aa8fc76` is `cmp`-identical to `47770f7`'s and all 27 field pictures byte-identical (`head-l1`), so
+the docblock moved nothing the probe reads. `pnpm verify` at `aa8fc76`: exit **0**, 36 / 633.
+
+### The bump: THE PACK POINT (`8c8eff0`)
+
+`packages/ui/package.json:3` `0.1.8` -> `0.1.9`, nothing else in the file (no family is added: the description's
+"twenty-one" stays; the registry's 22 items stay). `git grep -l -F 0.1.8 -- packages/ui/r packages/ui/src` prints `card`,
+`ribbon` and `sheet` (their docblocks name "(0.1.8)" in prose, not a version field); `pnpm build:registry` after the edit
+left `git status --short` showing the manifest alone: **`r/` does not move by the version line**. `pnpm verify` on that
+tree: exit **0**, `All matched files use Prettier code style!`, `✔ Building registry.`, `└  Storybook build completed
+successfully`, `Test Files 36 passed (36)`, `Tests 633 passed (633)` (`verify-bump.log`). The commit is the one line
+(`git show --stat`: `packages/ui/package.json | 2 +-`).
+
+⚠️ **The pack point is `8c8eff0f8cff273442edc1a98837375ef0c1ab65`**, and the `ui@0.1.9` tag and `pnpm publish` belong
+there and nowhere else. It holds REVIEWED bytes: layer 1 ran on `47770f7`, its fixes landed at `aa8fc76` (tests and one
+docblock), and the bump is the version line on top. This section is docs-only, so a pack at the branch's head is the same
+tarball.
+
+```
+$ pnpm --filter @marquee-ui/ui pack --pack-destination ~/.thepile-scratch/DL42/s1/pack/
+$ stat -c %s marquee-ui-ui-0.1.9.tgz ; sha256sum marquee-ui-ui-0.1.9.tgz
+113430
+cb3ca59985a5f79fe8b6b00663c6115ba2b6b918f5e53389680bcd0081341f99
+```
+
+`prepack` (`pnpm -w build:registry && git diff --exit-code -- r`) ran inside the pack, exit 0 (`pack.log`); `git status
+--short` empty after. The tarball's 47 `r/` + `src/` files are each `cmp`-equal to `git show 8c8eff0:packages/ui/<path>`:
+47 compared, 0 differ.
+
+### What the tarball carries, measured against the 0.1.8 TARBALL
+
+The 0.1.8 tarball (`~/.thepile-scratch/DL40/s1/pack/marquee-ui-ui-0.1.8.tgz`), **112,584 B, sha256
+`84ab3188c8d9cf730ff6d564561f4e0ecb6d1f417560de18ddab411e98c1775f`**, both verified before the compare. Both extracted,
+every file compared by `cmp` (`pack/tar-list-0.1.{8,9}.txt`):
+
+|                                                    | `ui@0.1.8`'s tarball | this one    |
+| -------------------------------------------------- | -------------------- | ----------- |
+| bytes                                              | 112,584              | **113,430** |
+| entries (the same list)                            | 49                   | 49          |
+| `r/` json files (incl. `registry.json`)            | 23                   | 23          |
+| `tar -tzf \| grep -cE '\.(test\|spec)\.\|stories'` | 0                    | 0           |
+
+```
+differ:    r/input.json             src/input.tsx             (the token and its docblock)
+           r/description-list.json  src/description-list.tsx  (one comment line)
+           package.json                                       (version 0.1.8 -> 0.1.9 and nothing else: every other field equal as parsed JSON)
+identical: the other 44 entries, r/registry.json and r/textarea.json among them
+```
+
++846 B compressed. Uncompressed, `src/input.tsx` 505 -> 1,527 B and `r/input.json` 972 -> 2,013 B (the docblock, twice: the
+source and the item that carries it), `src/description-list.tsx` 29,431 -> 29,455 and `r/description-list.json` 30,889 ->
+30,913 (+24 each: the prose is longer than the token), `package.json` 1,503 both.
+
+### `@marquee-ui/tokens` does NOT bump with it
+
+`git diff --stat ba179956 8c8eff0f -- packages/tokens` prints nothing. `git diff --stat ba179956 8c8eff0f -- packages/ui/src
+packages/ui/r packages/ui/package.json registry.json` names exactly `input.tsx`, `description-list.tsx`, their two jsons
+and the manifest (5 files). ONE tarball is vendored downstream.
+
+### For the consumer (LIB-VENDOR-0.1.9)
+
+- **The pack point**: `8c8eff0f8cff273442edc1a98837375ef0c1ab65`, `marquee-ui-ui-0.1.9.tgz`, **113,430 B**, sha256 `cb3ca59985a5f79fe8b6b00663c6115ba2b6b918f5e53389680bcd0081341f99`, at
+  `~/.thepile-scratch/DL42/s1/pack/`. Read the library at that sha; this branch's later commit is docs-only.
+- **TWO copies LIB-VENDOR-0.1.9 re-adds**: `input` and `description-list` (both in `marquee-drift.test.ts`'s `CONSUMED`,
+  `:75` and `:86` at `1d2db584`). `textarea` does NOT move: its item carries `textarea.tsx` alone, which this release does
+  not touch, and its copy imports the string from `./input` (`components/ui/textarea.tsx:3`), so it draws the ring the
+  moment `input` is re-added. No item is added or removed; no item's `dependencies` move.
+- **The new `inputClass`, verbatim** (the registry copy `components/ui/input.tsx` exports it, and `form-styles.ts` must
+  carry it byte for byte):
+
+```
+w-full min-h-hit rounded-md border-2 border-border bg-surface px-3 text-base text-foreground placeholder:text-muted focus:border-primary focus:outline-hidden
+```
+
+One token, in place: `focus:outline-none` -> `focus:outline-hidden`. thepile's `cn` only joins, so the position is
+what it serves, and it is the old token's.
+
+- **The drift-test prediction** (a PREDICTION from the arms at `1d2db584`, not run): with 0.1.9 installed and the 0.1.8
+  copies still vendored, `scripts/marquee-drift.test.ts` reds on exactly two byte arms, `input` and `description-list`;
+  the per-item dependency arm (`:367-418`, the map at `:392-410`) stays green (`input: []`, `"description-list": ["class-variance-authority"]`,
+  both unchanged); after `shadcn add input description-list` it is green.
+- **The other reds the flip owes, predicted the same way (2 and 3 are not in the composition's list)**:
+  1. `components/ui/form-styles.test.ts:160-169` (arm 0, `inputClass is exactly what the registry copy produces`) reds
+     until `components/ui/form-styles.ts:39` (the literal; `:38` is `export const inputClass =`, the composition's `:36`
+     is two lines early) takes the one token. Green by construction after.
+  2. ⚠️ `form-styles.test.ts:110-116` (arm 1, `inputClass is the upstream string with only its tokens renamed`) then
+     REDS: it pins the live literal to `renamed(UPSTREAM.inputClass)` (`:62-63`, `fe5bb0f9`'s `… focus:outline-none`),
+     and `RENAMES` (`:75-86`) maps colour TOKENS whose aliases resolve to one literal (the arm at `:131`), which
+     `outline-none` -> `outline-hidden` is not. The two arms cannot both hold with the old upstream string: the consumer
+     owes that file a declared departure for this one token (the library's `fidelity.test.tsx` took exactly that form,
+     `input.field`, with its reason), never a `RENAMES` row (the colour arm would then compare two non-tokens).
+  3. `scripts/arbitrary-values-guard.test.ts` reds on its `PROSE_EXCEPTIONS` expiry (`:70-79`, checked at `:250-258`):
+     `apps/web/src/components/ui/description-list.tsx no longer names break-words on its \`flex gap-2 break-words\`
+     line: delete its PROSE_EXCEPTIONS entry (…)`. The entry was written to die with this release (WRAP-BREAK-WORD's
+REQUEST 1): delete it. The new line names no `NAMED_LITERALS`entry and carries no`[…]`; `input.tsx`'s new docblock
+     carries neither.
+- **What the field draws after the flip** (this release's probe, the library's own parts on its own sheet; thepile's
+  sheet is a different compile and the served page is the consumer's to read): in normal colours byte-identical, at rest
+  and focused, so no shot moves (no capture focuses a field). Under `forced-colors: active`, focused: `outline-style:
+solid`, `outline-width: 2px`, `outline-offset: 2px`, coloured by the mode (`rgba(0, 230, 255, 0.8)` dark,
+  `rgba(5, 0, 73, 0.8)` light); at 0.1.8 `outline-style: none` there.
+- **The browser half, owed to `e2e/forced-colors-controls.spec.ts`** (its own form, `:1-60`: both palettes by
+  `colorScheme`, Chromium only, soft assertions per site, `VISIBLE` 128 / `FLOOR` 0.02). ⚠️ **"Identical at the base"
+  is FALSE for a picture of the whole field**: Chromium recolours a focused control's border under the mode, so the
+  base's focused field already differs from its rest, visibly on the dark palette (7.01% of the clip moved by 128 or
+  more: above `FLOOR`, a red-first arm would be GREEN there on the base build) and not on the light one (0.10%). Two
+  forms that ARE red on the base build, measured here on the part: (a) the COMPUTED read, `e2e/focus.spec.ts:507-592`'s
+  form for the Switch (served `outline-style` `none` as the premise; forced `solid` and `2px`; base `none`); (b) the
+  PICTURE of the band OUTSIDE the border box (the ring sits 2 to 4px out): rest against focused **0** pixels at 0.1.8 in
+  both palettes, **1,541** (1,448 visible, 23% of the band) for a 326x44 field at 0.1.9 (1,731 for the 3-row textarea).
+  A served field is wider or narrower than the part's 326px, so read the share, not the count. `e2e/focus.spec.ts:483-494`
+  records this defect on `/login`'s email field as pre-existing (`FOLLOWUPS-5.md`); 0.1.9 closes it there, so that
+  comment becomes history on the flip.
+- **thepile's readers, by file and line** (at `1d2db584`, read, never edited):
+  - `components/ui/input.tsx` (the copy, re-added; byte arm `marquee-drift.test.ts`), imported by `app/login/LoginForm.tsx`,
+    `app/onboarding/OnboardingForm.tsx` and `components/ui/form-styles.test.ts:6`.
+  - `components/ui/textarea.tsx` (derives, `:3` and `:38`; its bytes move only if its own file does, and this release
+    does not move it), imported by `components/log/LogForm.tsx`, `components/play/PlayForm.tsx`,
+    `components/profile/ProfileEditForm.tsx`; `LogModal.test.tsx:1245-1260`, `PlayForm.test.tsx:235`,
+    `ProfileEditForm.test.tsx:64` read its `data-slot` only.
+  - `components/ui/description-list.tsx` (the copy, re-added; one comment line moves, no class), imported by
+    `app/settings/steam/ImportPreview.tsx`, `components/profile/MemberStats.tsx` and their two tests (slot and element
+    reads; unaffected).
+  - `components/ui/form-styles.ts:38-39` (the literal, one token), pinned by `form-styles.test.ts:160-169` (arm 0) and
+    by `:110-116` (arm 1, above).
+  - The thirteen importers of `form-styles`' `inputClass` (`git grep -l` on the import, 13: twelve product files and the
+    test): `app/pile/page.tsx`, `app/settings/DangerZone.tsx`, `app/tiers/new/PoolBuilder.tsx`,
+    `components/lists/AddGameRow.tsx`, `components/lists/ListForm.tsx`, `components/log/LogForm.tsx`,
+    `components/log/TagInput.tsx`, `components/play/PlayForm.tsx`, `components/play/QuickLog.tsx`,
+    `components/profile/AboutMeGrid.tsx`, `components/profile/FavoritesPicker.tsx`,
+    `components/profile/ProfileEditForm.tsx`, and `components/ui/form-styles.test.ts`. They move with the string;
+    `ListForm.tsx:84`'s `${inputClass} py-2` and `LogForm.tsx:102`'s `dateClass` included.
+  - NOT movers: `components/ui/checkbox.tsx:98` and `components/ui/radio-group.tsx:148` define their OWN module-local
+    `inputClass` (the `opacity-0` native input), a different string with the same name.
+- **New rule in thepile's sheet**: `.focus\:outline-hidden:focus` (thepile's source carries no `outline-hidden` at
+  `1d2db584`). **The `.break-words` rule**: the copy stops contributing it; whether it leaves thepile's served sheet is
+  the consumer's measurement, not this stream's (thepile's `globals.css` opens `@import "tailwindcss"` with automatic
+  source detection, excluding only test files, so a non-source file that still spells it would keep it; the source
+  sites went in WRAP-BREAK-WORD and `NAMED_LITERALS` keeps them out). The `[…]` count of either copy does not move (the
+  source diff adds no bracket).
+
+### Consumers
+
+**Run 1, before any code** (`scan1.txt`, at `ba179956`, an empty diff, so over the named surface by hand). `inputClass`
+is read by the barrel, `textarea.tsx` (derives), `fidelity.test.tsx` (the `input.field` case and the constant read),
+`focus-outline.test.tsx` (prose), `input-merge.test.tsx:26` and `tailwind-compile.test.tsx:543` (both read the CONSTANT,
+so they move with it), `registry.test.ts:406` (the textarea item's import text), `r/input.json`, `r/textarea.json` and
+the upstream generator; `checkbox.tsx` and `radio-group.tsx` match the NAME and are not readers (each its own
+module-local `inputClass`). `Input` is read by `form.tsx`, the input, label, form and textarea stories, `form-wiring`,
+`input-merge`, `tailwind-compile`, `textarea-drawing`, `fidelity`, `focus-outline`, `registry`; `Textarea` and
+`textareaClass` by the form and textarea stories, `input-merge`, `textarea-drawing`. `description-list.tsx` by the
+barrel, its stories, `description-list-structure.test.tsx`, `form-wiring.test.tsx`, `helpers/story-suites.ts` and
+`r/description-list.json`. Scan 3 per file (path, basename, `@/` alias, `./x"`, and the `/x.js"` story arm DL40 added):
+the same lists plus `helpers/story-suites.ts` (through which `stories.test.tsx` and `tailwind-compile.test.tsx` render
+every story). Scan 5's class literals: `focus:outline-none` in `input.tsx:6`, `sheet.tsx:67`, `textarea.tsx:26` (prose),
+`r/input.json`, `r/sheet.json`, `r/textarea.json` (prose) and `upstream-classes.json:22` / `:28`; `break-words` in
+`description-list.tsx:194` and `r/description-list.json` alone. No role or `aria-*` string is in play.
+
+**Run 2, at the passengers' head** (`scan2.txt`, `origin/next...47770f7`, over `packages/**`; the diff names
+`input.tsx`, `description-list.tsx`, their two jsons, `fidelity.test.tsx`, `focus-outline.test.tsx`):
+
+- **Scan 1, exported symbols the diff adds or changes**: none printed (finding 6: `inputClass`'s VALUE moved on its
+  continuation line). By hand: `inputClass`'s run-1 readers, every one in the 36-file suite green at both commits.
+- **Scan 2, path helpers**: none. **Scan 4, roles and `aria-*`**: none added or removed.
+- **Scan 3**: the run-1 lists; `focus-outline.test.tsx` now also imports the input and textarea stories.
+- **Scan 5, the class strings added or changed**: the new `inputClass` (`r/input.json`; `fidelity.test.tsx`'s departure
+  names `focus:outline-hidden`); `focus:outline-none` remains in `sheet.tsx:67` (the non-target), `textarea.tsx:26`
+  (prose, REQUEST 3) and the upstream fixture; `break-words` in no file of `src`, `stories`, `test` or `r/`.
+- **In thepile at `1d2db584`** (CROSS, recorded, never edited; LIB-VENDOR-0.1.9's): every reader is listed in "For the
+  consumer", by file and line, including the three the composition did not name: `form-styles.test.ts:110-116` (arm 1),
+  `scripts/arbitrary-values-guard.test.ts:70-79` (the expiring prose exception) and `e2e/focus.spec.ts:483-494` (the
+  comment recording this defect on `/login`). No thepile test or spec pins `focus:outline-none` or `outline-hidden` as a
+  literal other than `form-styles.test.ts:63` (the upstream string); none reads the field's outline under forced colours.
+- **CROSS in the library: 0. UNOWNED: 0. NEW between the runs**: none in the library; in thepile the three above, found
+  between the runs by reading the readers of the moved strings rather than the importers alone. Layer 1 added one library
+  reader neither run printed (`packages/tokens/test/helpers/source-files.ts`, finding 9) and three thepile field strings
+  that do not move (finding 8).
+
+**Run 2b, at the layer-1 head** (`scan2b.txt`, `origin/next...aa8fc76`): the same files; scan 1 none; scans 2 and 4
+empty; scan 5 adds the test's literal selector inputs (`.focus\:outline-hidden:focus`, `.disabled\:outline-2:disabled`:
+a test file is no compile source) and `input.tsx`'s string now at `:23`. The bump adds the manifest alone.
+
+### Decisions
+
+1. **The token's form: `focus:outline-hidden` in place of `focus:outline-none`, one token inside `inputClass`** [V].
+   Normal colours byte-identical by construction (the same two declarations) and by measurement (six pictures, rest,
+   `focus()` and Tab for both fields, hash for hash); under the mode a 2px solid ring 2px clear of the border, +1,571 /
+   +1,771 px per palette. The scoped fallback the composition named (`forced-colors:focus:outline-2`) draws NOTHING beside
+   the opt-out (C2); DL15's every-mode ring is not this slice's and was not built.
+2. **The guard is G2, a new arm in `focus-outline.test.tsx`, not G1** [V]. G1 as composed reds 3 of 16 WITH the ring
+   in place (the file's model is the every-mode trio beside a shadow); G2 reads the winning outline per mode off each
+   field's own story, red at the base for both fields, and reds on the dead fallback, an every-mode ring, a ring under
+   another media query, a Canvas ring and a textarea that stops deriving (i-0 to i-5). Placed in the focus-indicator
+   file rather than `forced-colors-state.test.tsx` (the STATE file, whose three kinds and code do not move).
+3. **`fidelity.test.tsx`'s `input.field` row moves by a DEPARTURE**, `focus:outline-none` -> `focus:outline-hidden` with
+   its reason (the departure count 7 -> 8), `sheet.handle`'s 0.1.8 form; the upstream fixture is an input and does not
+   move [V].
+4. **No story added** (`DECLARED_STORIES` / `DECLARED_PLAYS` unmoved): the probe focuses the `Default` stories by script
+   and by keyboard; a focused story would be a story for the probe.
+5. **`sheet.tsx:67`'s `focus:outline-none` stays outside the sweep, with no `KNOWN_GAPS` entry**: under G2 nothing
+   admits `focus:` to the sweep, so there is no site to excuse; the docblock records it as the decided non-target it was.
+6. **(ii) is prose, not a utility**: "a row with an 8px gap whose long words may break" names no utility (not
+   `wrap-break-word` either); the line `:193` beside it, which names two more dead utilities, is outside the fence
+   (REQUEST 2).
+7. **Layer 1's MED-1 and LOWs fixed in the arm itself, not by narrowing it** [V]: a REST arm per field, the cascade's
+   ranking (importance, a pseudo-class, order, one layer asserted), `forced-color-adjust` read, and a self-test of the
+   instrument's branches on literal inputs (+3 tests). MED-2 (`textarea.tsx`'s stale docblock) NOT fixed, by the fence:
+   REQUEST 3.
+
+### REQUESTs and findings (to the orchestrator)
+
+1. **Finding, class B (this section's body corrects it): the composition's premise for (i) is false in Chromium 149.**
+   "A focused field is indistinguishable from an unfocused one" under forced colours, "0 at the base": the browser
+   recolours a focused control's border under the mode, so the base's focused field differs from its rest by 1,512 /
+   1,508 px (visible on the dark palette, 7.01%; 20 visible pixels on the light one). The hole is real on the light
+   palette and in the ring the opt-out removed; the measurement that reads 0 at the base is the band OUTSIDE the border
+   box (0 in every mode at 0.1.8, 1,541 / 1,731 at 0.1.9). It changes the consumer's e2e arm (see "For the consumer"): a
+   whole-field picture is NOT red on the dark palette at the base.
+2. **REQUEST (library, the next owner of `description-list.tsx`): `:193` names two more dead utilities.** Its backticked
+   `flex flex-wrap items-baseline gap-x-2 gap-y-0.5` compiles `.gap-x-2 { column-gap: calc(var(--spacing) * 2); }` and
+   `.gap-y-0\.5 { row-gap: calc(var(--spacing) * 0.5); }`, which no class string in `src` or `stories` wears (`git grep
+-n -w -F` each: that line alone). Same fix as `:194`; outside this fence (`:194` alone). A guard would read every
+   comment token in `src` against the class strings (none exists; the sheet compare was this release's instrument).
+3. **REQUEST (library, the next owner of `textarea.tsx`; layer 1 MED-2)**: its docblock `:23-27` still calls `Input`'s
+   focus indicator under forced colours "the open question" and spells the old token; it is decided (0.1.9), and the
+   false sentence ships in `r/textarea.json` and in thepile's byte-pinned copy. `textarea.tsx` is outside this fence by
+   name. Fixing it moves `r/textarea.json`, so the consumer's flip would re-add three copies rather than two; if the
+   orchestrator wants it in 0.1.9, the pack point moves (one prose commit, `pnpm build:registry`, verify, re-pack).
+4. **Finding, class B: the composition's G1 expectation** ("the arm then reads `input.tsx (focus)` as a ring site that is
+   NOT short") did not hold, measured (3 of 16 red); recorded in Decision 2 and the file's docblock.
+5. **Finding, the consumer's arm 1 in `form-styles.test.ts` (`:110-116`)**: not in the composition's list, it reds on the
+   flip with the literal moved (it pins the literal to the renamed `fe5bb0f9` upstream); the consumer owes it a declared
+   departure. And `scripts/arbitrary-values-guard.test.ts`'s `PROSE_EXCEPTIONS` entry for the copy's `:194` expires on
+   the flip by design. Both in "For the consumer".
+6. **Finding, the scan recipe**: scan 1 reads `^+.*export const NAME` lines, so an export whose VALUE moved on its
+   continuation line (`inputClass`, `input.tsx:5-6`, the `export const` line unchanged) prints nothing; the named-surface
+   pass by hand is what listed its readers here.
+7. **REQUEST (library, `fidelity.test.tsx`'s next owner; layer 1 INFO-1, pre-existing)**: a departure filed under a key no
+   `CASES` row reads is never checked (F3: a duplicate `input.fieldx` row, 95 / 95 green), and the count pin counts
+   distinct `from` tokens, not rows. Outside the `input.field` row.
+8. **Finding, for thepile's follow-ups (layer 1, read)**: three hand-written field strings do NOT take the ring on the flip,
+   because they do not read `inputClass`: `components/search/SearchInput.tsx:384` and `app/settings/DeveloperSettings.tsx:149`
+   (`… focus:border-accent focus:outline-none`), and `components/tiers/EditableBoard.tsx:247` (a bare `outline-none`).
+   After LIB-VENDOR-0.1.9 the app has two field behaviours under forced colours. And no `<Input>` / `<Textarea>` call site
+   passes an outline class (r5, read): through thepile's joining `cn` a later `focus:outline-none` would cancel the ring,
+   since `.focus\:outline-hidden:focus` sorts before it (r5's S6, red in this arm).
+9. **Finding, a library reader the scans did not print (layer 1)**: `packages/tokens/test/helpers/source-files.ts:53,56,66`
+   lists `description-list.tsx`, `input.tsx` and `textarea.tsx` as published sources for `brand-guard`, `literal-guard`,
+   `project-coverage` and `source-coverage`; all green at every commit.
+
+### UNVERIFIED (every ⚠️ line of (a) measured)
+
+- "36 / 626 at the base": **held** (`verify-base.log`, exit 0).
+- ⚠️ "`outline-hidden` compiles to `outline: 2px solid transparent; outline-offset: 2px`, invisible in normal colours":
+  **corrected**. It compiles to `--tw-outline-style: none; outline-style: none` (the opt-out's own two declarations) and
+  ONLY inside a nested `@media (forced-colors: active)` the transparent outline and its offset. Normal colours are
+  unchanged because nothing new is declared there, not because a transparent outline paints nothing.
+- ⚠️ "the utility is in no source of this package today (0 hits)": **held** (`git grep outline-hidden packages/ui/src
+packages/ui/test`: none at the base; `has=false` in the base's sheet).
+- ⚠️ "the four normal-colours pairs byte-identical, the border's colour the only rest -> focused difference": **held**,
+  six pictures (Tab and `focus()` both) hash for hash, and the computed rest -> focused change is the border colour alone
+  (`outline-style: none` in both trees).
+- ⚠️ "under both forced palettes focused vs unfocused > 0 at the head where the base reads 0": the head half **held**
+  (3,083 / 3,079 Input, 3,483 / 3,479 Textarea); "the base reads 0" **did not** for the whole field (1,512 / 1,508 and
+  1,712 / 1,708: the browser's border recolour, finding 1); it **holds** for the band outside the border box (0 at the
+  base, 1,541 / 1,731 at the head).
+- ⚠️ "a text input matches `:focus-visible` on every focus, so `focus:` and `focus-visible:` are one variant": **held**,
+  measured on both fields for `element.focus()`, a keyboard Tab and a mouse click (the Switch's button does not match on
+  a click: the contrast).
+- ⚠️ "the `break-words` rule is in the compiled sheet; no `src` or `stories` file wears it": **held** (`.break-words {
+overflow-wrap: break-word; }`; the comment line alone, READ).
+- "if (1) or (2) fails, the fallback is a `forced-colors:focus:outline-2` pair": not needed; and **corrected** as a
+  fallback: that form beside the kept opt-out resolves its style to `none` and draws the base's pictures (C2).
+- "G1: the arm then reads `input.tsx (focus)` as a ring site that is NOT short": **did not hold** (finding 4).
+- Line cites: `input.tsx:6`, `textarea.tsx:38` and `:23-27`, `sheet.tsx:67`, `focus-outline.test.tsx` `VARIANTS :82`,
+  `HOSTS :140`, the anchor `:207`, `KNOWN_GAPS :278`, `:303-320`, `fidelity.test.tsx:238`, `upstream-classes.json:22`,
+  `extract-upstream.mjs:71`, `description-list.tsx:194`, `registry.json` `input :50`: **held**. The token walk's regex is
+  at `:342`, not `:340`. In thepile: `form-styles.test.ts:160` (the row; its assertion `:169`), `checkbox.tsx:98`,
+  `radio-group.tsx:148`, `marquee-drift.test.ts:75` and `:400`: **held**; `form-styles.ts:36` is **`:38-39`** at
+  `1d2db584` (the `export const` line and the string).
+- "thepile's drift test reds on exactly the `input` and `description-list` byte arms on the flip": a PREDICTION, stated
+  as one, not run.
+- "the thirteen importers of `form-styles`' string": **held**, 13, twelve product files and `form-styles.test.ts`.
+- "which `playwright-core`": **1.61.1** in the probe package, launching `chromium_headless_shell-1228` by
+  `executablePath`, Chromium 149.0.7827.55.
+
+### The gate
+
+`pnpm verify` exit **0** at every commit, from the root, the tree clean after: `ba179956` (the base, 36 / 626, 24.7 s),
+`46b6b66` (36 / 630), `47770f7` (36 / 630), `aa8fc76` (36 / 633), and **the pack point `8c8eff0`: `Test Files 36 passed
+(36)`, `Tests 633 passed (633)`** (logs `verify-{base,i,ii,l1,bump}.log`). This section lands in one docs-only commit
+after them, `pnpm exec prettier --write docs/as-built.md` before its own `pnpm verify`. Pushed to `s/lib-0.1.9` at every
+green checkpoint; no tag, no `pnpm publish`, no PR. The tag `ui@0.1.9` belongs at `8c8eff0`.
+
+### Layer 1 (reviewer, detached worktree of 47770f70f0f601e6848e047bd32cc5c1522e815a, slot r5, marquee-ui, no database)
+
+**0 HIGH, 2 MED, 6 LOW, 2 INFO** over 21 mutation rows in r5's own detached worktree (`../marquee-ui-r5`, removed after),
+its own driver (`$BATCH_SCRATCH/r5/mutate.py`, logs `r5/mut/*.txt`), each edit asserted landed and read back, the
+registry rebuilt after a part edit, the tree checked clean after each (`restored, clean=True`); `pnpm build` exit 0 and the
+untouched head `Test Files 36 passed (36)` / `Tests 630 passed (630)`. Its findings and re-derived numbers are in
+`$BATCH_SCRATCH/r5/report.md`; the table below is pasted verbatim, and every GREEN row is answered after it.
+
+| file                                                 | test                                            | mutation applied                                                                                               | red / GREEN                                                                                                                                          | what it asserts now                                                                                                                                                                   |
+| ---------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| test/focus-outline.test.tsx + test/fidelity.test.tsx | the field arm (4 tests); fidelity `input.field` | S1 (collapse): `input.tsx:21` `focus:outline-hidden` -> `focus:outline-none`                                   | red, 3 failed / 110 passed: Input and Textarea forced arms (`winning outline-style is none … expected 'none' to be 'solid'`), fidelity `input.field` | that the forced-colours ring exists at all                                                                                                                                            |
+| same                                                 | same                                            | S2 (collapse): the token deleted                                                                               | red, 5 failed / 108 passed: all 4 field-arm tests (`expected undefined to be 'solid'` / `… to be 'none'`), fidelity `input.field`                    | normal arm: an opt-out is present; forced arm: a ring is                                                                                                                              |
+| same                                                 | the field arm (4 tests)                         | S3: `focus:outline-hidden` -> bare `outline-hidden` (the ring at REST as well)                                 | **GREEN** for all 4 field-arm tests; the only red is fidelity `input.field` (its exact token SET), 1 failed / 112 passed                             | nothing about the REST state. Chromium: on the light forced palette, rest vs focused moves 20 px by >=128 levels, the base's number exactly (head: 1,487). See MED-1                  |
+| same                                                 | the field arm (4 tests)                         | S4: `forced-color-adjust-none` added                                                                           | **GREEN** for all 4 field-arm tests; fidelity `input.field` red, 1 failed / 112 passed                                                               | not that the ring paints. Chromium: focused `outline-color rgba(0, 0, 0, 0)`, 0 of 1,528 ring-band px drawn, both palettes. See LOW-2                                                 |
+| same                                                 | the field arm (4 tests)                         | S5: `outline-none!` added (bare, `!important`)                                                                 | **GREEN** for all 4 field-arm tests; fidelity `input.field` red, 1 failed / 112 passed                                                               | the walk ignores importance. Chromium: focused `outline-style none`, 0 of 1,528 ring-band px, the focus cue back to the base's 1,512 / 1,508 px border recolour. See LOW-2            |
+| same                                                 | Input forced arm; fidelity x3                   | S6: `Input` renders `[inputClass, "focus:outline-none", className].join(" ")` (a join-`cn` consumer's opt-out) | red, 4 failed / 109 passed: Input forced arm (`none`), fidelity `input.field`, `keeps the exported constants…`, `cn is a no-op… > input.field`       | sheet order is modelled. A later joined opt-out cancels the ring, and the arm sees that                                                                                               |
+| test/focus-outline.test.tsx                          | the field arm                                   | S7: `focus:outline-none print:focus:outline-solid print:focus:outline-2` (a ring under `@media print` only)    | red, 2 failed / 16 passed (both forced arms `none`)                                                                                                  | a ring under another media query does not count                                                                                                                                       |
+| test/focus-outline.test.tsx                          | the field arm                                   | T2: the media classifier collapsed (`media.every(FORCED.test)` -> `true`, so any media counts as forced)       | **GREEN** 18/18                                                                                                                                      | nothing on the shipping tree exercises the classifier                                                                                                                                 |
+| test/focus-outline.test.tsx                          | the field arm                                   | S7 + T2 together                                                                                               | **GREEN** 18/18 (S7 alone is red)                                                                                                                    | the classifier is load-bearing, but no fixture runs it. See LOW-4                                                                                                                     |
+| test/focus-outline.test.tsx                          | the field arm                                   | T1: the selector filter collapsed to match-all (`.filter((selector) => true \|\| …)`)                          | **GREEN** 18/18                                                                                                                                      | nothing on the shipping tree exercises the filter                                                                                                                                     |
+| test/focus-outline.test.tsx                          | the field arm                                   | S8: `disabled:outline-solid disabled:outline-2` added                                                          | GREEN 18/18 (correct: a disabled field is never focused)                                                                                             | the filter's exclusion holds                                                                                                                                                          |
+| test/focus-outline.test.tsx                          | the field arm                                   | S8 + T1 together                                                                                               | red, 2 failed / 16 passed (both normal arms `expected 'solid' to be 'none'`)                                                                         | the filter is load-bearing, but no fixture runs it. See LOW-4                                                                                                                         |
+| test/focus-outline.test.tsx                          | the field arm                                   | T3: `shorthand()` returns a constant `{ solid, 2px, currentcolor }`                                            | **GREEN** 18/18                                                                                                                                      | nothing on the shipping tree exercises the parser                                                                                                                                     |
+| test/focus-outline.test.tsx                          | the field arm                                   | S9: `focus:outline-none forced-colors:focus:[outline:1px_dashed_currentColor]`                                 | red, 2 failed / 16 passed (`winning outline-style is dashed, so the mode draws no ring … expected 'dashed' to be 'solid'`)                           | the parser reads the shorthand. The message is wrong for this case: a dashed ring does draw (LOW-4)                                                                                   |
+| test/focus-outline.test.tsx                          | the field arm                                   | S9 + T3 together                                                                                               | **GREEN** 18/18 (S9 alone is red)                                                                                                                    | the parser is load-bearing, but no fixture runs it. See LOW-4                                                                                                                         |
+| test/focus-outline.test.tsx                          | the field arm                                   | T4: declarations walked in REVERSE sheet order (`return out.reverse()`)                                        | red, 2 failed / 16 passed (both forced arms `none`)                                                                                                  | the cascade order is observed                                                                                                                                                         |
+| test/focus-outline.test.tsx                          | the field arm                                   | T5: `(won.var ?? outlineStyleDefault())` -> `outlineStyleDefault()`                                            | GREEN 18/18                                                                                                                                          | on the shipping tree the winner is the shorthand, so the var branch is dead here. s1's own i-6 proved it load-bearing against `forced-colors:focus:outline-2`, which I did not re-run |
+| test/fidelity.test.tsx                               | `input.field`                                   | F1: the `input.field` departure re-keyed to `input.field-gone`                                                 | red, 1 failed / 94 passed (`input.field` set mismatch)                                                                                               | the departure is what admits the new token                                                                                                                                            |
+| test/fidelity.test.tsx                               | `names a reason for every departure`            | F2: the reason cut to `"0.1.9 ring."`                                                                          | red, 1 failed / 94 passed (`input.field: focus:outline-none -> focus:outline-hidden: expected 11 to be greater than 40`)                             | every departure has a reason longer than 40 characters                                                                                                                                |
+| test/fidelity.test.tsx                               | whole file                                      | F3: the same row duplicated under `input.fieldx`, a key no `CASES` row reads                                   | **GREEN** 95/95                                                                                                                                      | a departure under a key nothing reads is never checked, and the count pin counts `from` tokens, not rows (pre-existing, INFO-1)                                                       |
+| (no touched test) src/description-list.tsx           | whole suite                                     | D1: the comment's `` `flex gap-2 break-words` `` restored, registry rebuilt                                    | **GREEN**, `Test Files 36 passed (36)` / `Tests 630 passed (630)`                                                                                    | nothing in the library pins the removal. thepile's `PROSE_EXCEPTIONS` is the only reader (INFO-2)                                                                                     |
+
+**Every GREEN row, answered** (the fixes in "Layer 1's fixes" above, each re-run at `aa8fc76`):
+
+- **S3** (MED-1): FIXED, the REST arm: now **red** 2 / 21 (`at rest (forced): expected 'solid' to be 'none'`).
+- **S4** (LOW-2): FIXED, `forced-color-adjust` read: now **red** 2 / 21.
+- **S5** (LOW-2): FIXED, importance ranked: now **red** 2 / 21 (`winning outline-style is none`).
+- **T1**: now **red** through the REST arm (2 / 21); the filter's literal cases are in the self-test.
+- **T2**, and **S7 + T2**: now **red** at `:696` (`modesOf(["print"])`), T2 alone.
+- **T3**, and **S9 + T3**: now **red** at `:699` (the shorthand), T3 alone.
+- **T5**: now **red** at `:746` (the custom property resolved on the element); s1's i-6 likewise.
+- **S8**: a correct control (a disabled field is never focused), green by design. Nothing to change.
+- **F3** (INFO-1): NOT changed, pre-existing and outside the `input.field` row: REQUEST 7.
+- **D1** (INFO-2): NOT pinned, no library test reads a comment's utilities; the sheet compare is the record: REQUEST 2.
+- MED-2 (no row): NOT fixed, `textarea.tsx` is outside the fence: REQUEST 3.
