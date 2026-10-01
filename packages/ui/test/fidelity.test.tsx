@@ -107,6 +107,13 @@ const DEPARTURES: Readonly<Record<string, readonly (readonly [string, string, st
       "an arbitrary shadow with a literal colour cannot live in this package (the literal guard), and it is not any step of the existing ramp, so it became the `band` depth role with exactly this value.",
     ],
   ],
+  "input.field": [
+    [
+      "focus:outline-none",
+      "focus:outline-hidden",
+      "0.1.9 swapped one token: the forced-colours ring. `outline-hidden` declares `outline-none`'s own `outline-style: none` in normal colours, so the field's pixels are the upstream ones there (measured in Chromium, rest and focused), and under `forced-colors: active` alone a 2px solid outline 2px clear of the border, which the mode draws in its focus colour. `outline-none` left a focused field nothing there but the browser's recolour of its border.",
+    ],
+  ],
   "pagination.nav": [
     [
       "mt-2",
@@ -457,7 +464,7 @@ describe("the rename table itself", () => {
       (from) => !strings.some((value) => value.split(/\s+/).some((t) => t.endsWith(from))),
     );
     expect(stale, "rename entries that no upstream string uses").toEqual([]);
-    expect([...declared].length).toBe(7);
+    expect([...declared].length).toBe(8);
   });
 
   it("names a reason for every departure", () => {

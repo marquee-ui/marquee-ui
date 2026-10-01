@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
+import postcss, { type AtRule, type Rule } from "postcss";
 import { cleanup, render } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { composeStories } from "@storybook/react-vite";
@@ -8,8 +9,10 @@ import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { loadCompiledSheet, type CompiledSheet } from "./helpers/compiled-sheet.js";
 import * as accordionStories from "../stories/accordion.stories.js";
 import * as checkboxStories from "../stories/checkbox.stories.js";
+import * as inputStories from "../stories/input.stories.js";
 import * as radioStories from "../stories/radio-group.stories.js";
 import * as switchStories from "../stories/switch.stories.js";
+import * as textareaStories from "../stories/textarea.stories.js";
 
 /**
  * THE FOCUS INDICATOR SURVIVES FORCED-COLORS MODE, ON EVERY KEYBOARD HOST.
@@ -67,6 +70,8 @@ const switches = composeStories(switchStories);
 const accordions = composeStories(accordionStories);
 const checkboxes = composeStories(checkboxStories);
 const radios = composeStories(radioStories);
+const inputs = composeStories(inputStories);
+const textareas = composeStories(textareaStories);
 
 const classesOf = (element: Element | null): string[] =>
   (element?.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
@@ -302,21 +307,28 @@ describe("the invariant, over every part rather than a hand-written table", () =
    *
    * ⚠️ `focus:` IS DELIBERATELY NOT A THIRD VARIANT, AND THE COST WAS MEASURED
    * RATHER THAN GUESSED. `input.tsx:6` and `sheet.tsx:67` are the only two
-   * `focus:` sites in the package and neither declares an outline, so admitting
-   * the variant would enter both as short sites needing a `KNOWN_GAPS` entry
-   * apiece - `input.tsx`'s ring is Ankit's open [V] from DL15 and `sheet.tsx`'s
-   * is a decided non-target, so neither is this slice's to excuse. Measured in
-   * the same worktree, and it takes TWO edits, not one: adding
-   * `focus: ":focus"` to `VARIANTS` alone changed NOTHING, because the token
-   * walk below only reads a class string that already contains a
-   * `focus-visible:` token. With the regex widened as well, the sweep gained
-   * exactly `input.tsx (focus)` and `sheet.tsx (focus)`. The day either ring is
-   * this slice's, both halves move together.
+   * `focus:` sites in the package. Admitting the variant takes TWO edits, not
+   * one: adding `focus: ":focus"` to `VARIANTS` alone changed NOTHING, because the
+   * token walk below only reads a class string that already contains a
+   * `focus-visible:` token; with the regex widened as well, the sweep gained
+   * exactly `input.tsx (focus)` and `sheet.tsx (focus)` (DL15). The field's ring
+   * became 0.1.9's and the sweep still did not move, measured rather than argued
+   * (LIB-0.1.9, DECISION 1): with the ring in `input.tsx`, the variant admitted,
+   * the regex widened, the Input as a sixth `HOSTS` row and `sheet.tsx` as a
+   * `KNOWN_GAPS` entry, this file read 3 failed / 13 passed. The field's ring is
+   * not this file's model: it is drawn under `forced-colors: active` ALONE, as
+   * the `outline` SHORTHAND inside a media query, so `declared(…,
+   * "outline-width")` reads null, and the field keeps no shadow ring beside it.
+   * Admitting it here meant a second model inside every arm above. So the field
+   * is pinned by its own arm, "the field draws a ring under forced colours" at
+   * the end of this file, and `sheet.tsx`'s `focus:outline-none` stays a decided
+   * non-target outside this sweep, as before.
    *
    * ⚠️ A THIRD PART DRAWS `input.tsx`'s RING WITHOUT WRITING IT (DL19): `textarea.tsx`
    * builds its string by interpolating `inputClass`, so a walk of LITERALS will
-   * never list it, widened or not. Input's [V], taken inside `inputClass`, reaches
-   * it for free; taken per file or as a `KNOWN_GAPS` entry, it would miss it.
+   * never list it, widened or not. Input's [V] was taken inside `inputClass`
+   * (0.1.9), which reaches it for free, and the field's arm reads the textarea off
+   * its OWN story, so a textarea that stopped deriving reddens there alone.
    */
   /**
    * What makes a class list a RING SITE, as a function rather than a condition
@@ -432,5 +444,180 @@ describe("the invariant, over every part rather than a hand-written table", () =
       short,
       "a part draws its focus ring with a box-shadow and no outline, so it has NO indicator under forced-colors: active. Add the outline trio under the same variant, or declare it in KNOWN_GAPS with a reason",
     ).toEqual([]);
+  });
+});
+
+/**
+ * THE FIELD'S RING: DRAWN UNDER FORCED COLOURS, AND NOWHERE ELSE (0.1.9).
+ *
+ * `Input` (and `Textarea`, which derives its string) shows focus as a border
+ * COLOUR, `focus:border-primary`, and opts out of the outline. Under
+ * `forced-colors: active` an author border colour is reverted, so that change is
+ * gone. What the mode leaves is the browser's own recolour of a focused
+ * control's border, measured in headless Chromium 149 (marquee-ui's
+ * `docs/as-built.md`, "LIB-0.1.9"): visible on the dark forced palette, and on the
+ * light one black to a dark navy, 20 of the field's pixels moving half the
+ * channel range or more. 0.1.9 swaps `focus:outline-none` for
+ * `focus:outline-hidden`, which Tailwind 4.3.3 compiles to `outline-none`'s own
+ * two declarations plus, inside `@media (forced-colors: active)` ALONE,
+ * `outline: 2px solid transparent; outline-offset: 2px`: a ring the mode draws in
+ * its focus colour, 2px clear of the border. Normal colours draw what they drew.
+ *
+ * So the arm reads the WINNING outline in each mode, not a class name: every
+ * declaration the compiled sheet applies to the focused field (the bare utilities
+ * and those under `:focus` or `:focus-visible`, which a text field matches on
+ * every focus, measured), in SHEET order, the `outline` shorthand expanded, and
+ * a `var(--tw-outline-style)` resolved against the field's OWN declarations
+ * before the registered initial value. That last step is not decoration: beside
+ * `focus:outline-none`, which sets `--tw-outline-style: none`, the 0.1.6 scoped
+ * form `forced-colors:focus:outline-2` resolves to `none` and draws the base's
+ * pictures hash for hash (measured), so an arm that read the initial value would
+ * pass a ring that paints nothing.
+ *
+ * ⚠️ THE CEILING: this is the sheet, not the paint. jsdom paints nothing, so what
+ * the ring DRAWS is the probe's record, and the served field is the consuming
+ * product's e2e.
+ */
+describe("the field draws a ring under forced colours, and nothing new in normal colours", () => {
+  const FIELDS = [
+    { name: "Input", story: () => <inputs.Default />, slot: "input", tag: "INPUT" },
+    // Read off its OWN story, never assumed from `inputClass`: a textarea that
+    // stopped deriving the field's string would keep the old token.
+    { name: "Textarea", story: () => <textareas.Default />, slot: "textarea", tag: "TEXTAREA" },
+  ] as const;
+
+  type Mode = "normal" | "forced";
+  type Declaration = { modes: readonly Mode[]; prop: string; value: string };
+  const FORCED = /^\(forced-colors:\s*active\)$/;
+  const LINE_STYLES = new Set([
+    "none",
+    "hidden",
+    "auto",
+    "dotted",
+    "dashed",
+    "solid",
+    "double",
+    "groove",
+    "ridge",
+    "inset",
+    "outset",
+  ]);
+
+  /** The rendered field's class list, off the story. */
+  const fieldClasses = (field: (typeof FIELDS)[number]): string[] => {
+    const { container } = render(field.story());
+    const element = container.querySelector(`[data-slot="${field.slot}"]`);
+    expect(element?.tagName, `${field.name}: the story renders no ${field.tag}`).toBe(field.tag);
+    const classes = classesOf(element);
+    cleanup();
+    return classes;
+  };
+
+  /**
+   * Every declaration the sheet applies to a FOCUSED element wearing these
+   * classes, in sheet order (every rule here is one class and at most one
+   * pseudo-class, so specificity ties and the order decides), each with the modes
+   * it applies in: no media is both, `(forced-colors: active)` is forced alone,
+   * and any other media is neither.
+   */
+  const focusedDeclarations = (classes: readonly string[]): Declaration[] => {
+    const applying = new Set(
+      classes.flatMap((token) =>
+        sheet
+          .selectorsOf(token)
+          .filter((selector) =>
+            ["", ":focus", ":focus-visible"].includes(
+              selector.replace(/^\.(?:\\.|[^\s.,:>+~(){}[\]])+/, ""),
+            ),
+          ),
+      ),
+    );
+    const out: Declaration[] = [];
+    postcss.parse(sheet.css).walkDecls((decl) => {
+      const media: string[] = [];
+      let rule: Rule | undefined;
+      for (let node = decl.parent; node && node.type !== "root"; node = node.parent) {
+        if (node.type === "rule" && rule === undefined) rule = node as Rule;
+        if (node.type === "atrule" && (node as AtRule).name !== "layer") {
+          const at = node as AtRule;
+          media.push(at.name === "media" ? at.params : `@${at.name} ${at.params}`);
+        }
+      }
+      if (rule === undefined || !applying.has(rule.selector)) return;
+      const modes: Mode[] =
+        media.length === 0
+          ? ["normal", "forced"]
+          : media.every((m) => FORCED.test(m))
+            ? ["forced"]
+            : [];
+      out.push({ modes, prop: decl.prop, value: decl.value.trim() });
+    });
+    return out;
+  };
+
+  /** The `outline` shorthand's three longhands; an omitted one is its initial value. */
+  const shorthand = (value: string): Record<"style" | "width" | "color", string> => {
+    const parts = value.match(/[^\s(]+(?:\([^)]*\))?/g) ?? [];
+    const style = parts.find((part) => LINE_STYLES.has(part));
+    const width = parts.find(
+      (part) =>
+        part !== style && (sheet.lengthPx(part) !== null || /^(thin|medium|thick)$/.test(part)),
+    );
+    const color = parts.find((part) => part !== style && part !== width);
+    return { style: style ?? "none", width: width ?? "medium", color: color ?? "currentcolor" };
+  };
+
+  /** The outline that WINS in one mode, the style's custom property resolved on the element first. */
+  const outlineIn = (declarations: readonly Declaration[], mode: Mode) => {
+    const won: Record<"style" | "width" | "color" | "var", string | undefined> = {
+      style: undefined,
+      width: undefined,
+      color: undefined,
+      var: undefined,
+    };
+    for (const { modes, prop, value } of declarations) {
+      if (!modes.includes(mode)) continue;
+      if (prop === "outline") Object.assign(won, shorthand(value));
+      else if (prop === "outline-style") won.style = value;
+      else if (prop === "outline-width") won.width = value;
+      else if (prop === "outline-color") won.color = value;
+      else if (prop === "--tw-outline-style") won.var = value;
+    }
+    const style =
+      won.style === "var(--tw-outline-style)" ? (won.var ?? outlineStyleDefault()) : won.style;
+    return { style, width: won.width, color: won.color };
+  };
+
+  it.each(FIELDS)("$name: a 2px solid ring under forced-colors: active, on focus", (field) => {
+    const declarations = focusedDeclarations(fieldClasses(field));
+    // Anchors: the walk read the field's own rules at all, and its FOCUS rules
+    // among them; an empty walk would make every read below `undefined`.
+    expect(declarations.length, `${field.name}: the walk found no rule`).toBeGreaterThan(5);
+    expect(
+      declarations.some((d) => d.prop === "border-color" && d.value === "var(--primary)"),
+      `${field.name}: the walk did not reach the field's :focus rules (its border colour)`,
+    ).toBe(true);
+
+    const forced = outlineIn(declarations, "forced");
+    expect(
+      forced.style,
+      `${field.name}: under forced-colors: active the focused field's winning outline-style is ${forced.style}, so the mode draws no ring and the only cue left is the browser's border recolour`,
+    ).toBe("solid");
+    expect(sheet.lengthPx(forced.width ?? ""), `${field.name}: the forced ring's width`).toBe(2);
+    expect(
+      (forced.color ?? "").toLowerCase(),
+      `${field.name}: a system colour is kept as written under the mode, and Canvas is the ground`,
+    ).not.toBe("canvas");
+  });
+
+  it.each(FIELDS)("$name: no outline at all in normal colours", (field) => {
+    // The other half of the claim: in normal colours the field draws focus as its
+    // border colour and nothing else, so the pixels are 0.1.8's. A ring declared
+    // outside the media query is DL15's every-mode form, which moves every field's
+    // keyboard-focused drawing and is not this package's call to make.
+    const normal = outlineIn(focusedDeclarations(fieldClasses(field)), "normal");
+    expect(normal.style, `${field.name}: the focused field's outline-style in normal colours`).toBe(
+      "none",
+    );
   });
 });
