@@ -87,6 +87,13 @@ const DEPARTURES: Readonly<Record<string, readonly (readonly [string, string, st
       "the safe-area inset is the consumer's document-level plumbing and the tokens package deliberately does not carry it; without the fallback an undefined custom property makes the whole declaration invalid and the sheet loses its bottom padding entirely. Where the consumer DOES define it, the two spellings compute the same pixel.",
     ],
   ],
+  "sheet.handle": [
+    [
+      "bg-border-strong",
+      "bg-border-strong forced-colors:border-2",
+      "ADDED, not renamed (0.1.8): forced colors turns the fill to Canvas on Canvas, so the handle vanished in both forced palettes (160 pixels in normal colours, 0 under the mode, measured in Chromium). The frame exists only under the mode and is drawn in its ink; in normal colours the handle is the upstream fill, byte-identical.",
+    ],
+  ],
   "ribbon.band": [
     [
       "bg-primary",
@@ -142,13 +149,14 @@ function expected(key: string, upstreamValue: string): string[] {
     .split(/\s+/)
     .filter(Boolean)
     .map(renameUtility)
-    .map((token) => {
+    .flatMap((token) => {
       const swap = departures.find(([from]) => from === token);
-      if (!swap) return token;
+      if (!swap) return [token];
       applied.add(swap[0]);
       // An empty target is a DROP, declared with its reason like any other
-      // departure: the utility leaves the part rather than changing name.
-      return swap[1];
+      // departure: the utility leaves the part rather than changing name. A target
+      // of several utilities KEEPS or renames the first and ADDS the rest (0.1.8).
+      return swap[1].split(/\s+/);
     })
     .filter(Boolean);
   // A departure that no longer applies is a stale excuse; say so loudly.
@@ -448,7 +456,7 @@ describe("the rename table itself", () => {
       (from) => !strings.some((value) => value.split(/\s+/).some((t) => t.endsWith(from))),
     );
     expect(stale, "rename entries that no upstream string uses").toEqual([]);
-    expect([...declared].length).toBe(6);
+    expect([...declared].length).toBe(7);
   });
 
   it("names a reason for every departure", () => {

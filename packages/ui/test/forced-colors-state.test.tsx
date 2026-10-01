@@ -581,12 +581,11 @@ const KNOWN_STATE_GAPS: Readonly<Record<string, string>> = {};
 /**
  * A HOST drawn at rest in a background alone that knowingly ships short (the third
  * kind), keyed `"<file>: <its tokens, sorted>"` (`restKey`), with the reason. The same expiring device: an
- * entry whose host no longer reads as a site fails, so the fix deletes it.
+ * entry whose host no longer reads as a site fails, so the fix deletes it. EMPTY since 0.1.8, and it fired
+ * for real once: it held the sheet's grab handle from DL28 (160 pixels in normal colours, 0 in both forced
+ * palettes) until the handle's forced-colors frame made the entry fail here and be deleted.
  */
-const KNOWN_REST_GAPS: Readonly<Record<string, string>> = {
-  "sheet.tsx: bg-border-strong h-1 md:hidden mx-auto rounded-full shrink-0 w-10":
-    "the sheet's grab handle, found by this kind at its first run (DL28) beside Separator and outside that stream's fence: measured in headless Chromium on the compiled sheet, it draws 160 pixels in normal colours and 0 in both forced palettes, so the swipe affordance vanishes. A REQUEST for sheet.tsx's next owner",
-};
+const KNOWN_REST_GAPS: Readonly<Record<string, string>> = {};
 
 /** What sizes a box of its own (the third kind): a fill on it is the drawing, not a ground behind content. */
 const SIZES =
