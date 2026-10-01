@@ -97,8 +97,8 @@ const DEPARTURES: Readonly<Record<string, readonly (readonly [string, string, st
   "ribbon.band": [
     [
       "bg-primary",
-      "bg-brand",
-      "D8 splits identity from action: a band that announces the product is `brand`, a button is `primary`. The dark preset assigns the same colour to both, so no pixel moves.",
+      "bg-brand forced-colors:border-y-2",
+      "D8 splits identity from action: a band that announces the product is `brand`, a button is `primary`. The dark preset assigns the same colour to both, so no pixel moves. And the frame is ADDED (0.1.8): forced colors turns the fill to Canvas on Canvas and drops the shadow, so the stripe drew 0 pixels in both forced palettes (measured in Chromium); the frame exists only under the mode, drawn in its ink.",
     ],
     [
       "shadow-[0_6px_18px_rgba(0,0,0,0.4)]",
