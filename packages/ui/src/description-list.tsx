@@ -191,7 +191,7 @@ function refuseRole(props: object, part: string, element: string): void {
  *
  * `inline` is the other 2 (`ScoreBlock:87`, the `RawFigure` wrapper, is
  * `flex flex-wrap items-baseline gap-x-2 gap-y-0.5`; `admin/reports:87` is
- * `flex gap-2 break-words`; the `<dl>`s themselves open at `:227` and `:85`). `items-baseline` comes from the first, where a
+ * a row with an 8px gap whose long words may break; the `<dl>`s themselves open at `:227` and `:85`). `items-baseline` comes from the first, where a
  * micro-caps label sits beside a display figure and the baselines are the whole
  * point; `flex-wrap` likewise. The gap is `gap-2`: the two sites agree on 8px
  * across, and the 2px down is off the 4px grid, so the skeleton breaks that tie
