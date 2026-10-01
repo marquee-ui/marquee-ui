@@ -161,6 +161,12 @@ export const InAForm: Story = {
  * caller's own tile, painted by the row's named group. This is the composition a
  * `variant="bare"` prop would have made a configuration question, and it is a real
  * product's avatar picker.
+ *
+ * Under forced colors the ring (a shadow) is dropped and the border's colour reverts,
+ * so the checked and unchecked tiles drew ONE picture there (DL24). The checked tile
+ * therefore also carries an outline in that mode alone, where the ring sits, drawn in
+ * the mode's ink: the part's own docblock names this as one of the three paints the
+ * mode keeps. In normal colours the outline does not exist (0.1.8).
  */
 export const NoDrawing: Story = {
   render: () => (
@@ -172,7 +178,7 @@ export const NoDrawing: Story = {
           <span
             data-testid={`tile-${face}`}
             aria-hidden="true"
-            className="size-16 rounded-full border-2 border-border-strong bg-raised group-has-checked/radio:border-primary group-has-checked/radio:ring-2 group-has-checked/radio:ring-primary"
+            className="size-16 rounded-full border-2 border-border-strong bg-raised group-has-checked/radio:border-primary group-has-checked/radio:ring-2 group-has-checked/radio:ring-primary forced-colors:group-has-checked/radio:outline-2"
           />
         </RadioGroupItem>
       ))}
