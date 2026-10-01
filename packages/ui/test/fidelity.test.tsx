@@ -817,7 +817,10 @@ describe("the radius axis on Card", () => {
   it("reaches the element through Card and asChild, and never as an attribute", () => {
     render(<Card radius="sharp" />);
     expect(slotClass("card").split(" ")).toContain("rounded-none");
-    expect(document.querySelector('[data-slot="card"]')!.hasAttribute("radius")).toBe(false);
+    expect(
+      document.querySelector('[data-slot="card"]')!.hasAttribute("radius"),
+      "radius leaked onto the <div>",
+    ).toBe(false);
     cleanup();
     render(
       <Card asChild radius="sharp">
