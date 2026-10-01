@@ -583,7 +583,10 @@ const KNOWN_STATE_GAPS: Readonly<Record<string, string>> = {};
  * kind), keyed `"<file>: <its tokens, sorted>"` (`restKey`), with the reason. The same expiring device: an
  * entry whose host no longer reads as a site fails, so the fix deletes it. EMPTY since 0.1.8, and it fired
  * for real once: it held the sheet's grab handle from DL28 (160 pixels in normal colours, 0 in both forced
- * palettes) until the handle's forced-colors frame made the entry fail here and be deleted.
+ * palettes) until the handle's forced-colors frame made the entry fail here and be deleted. EMPTY is not
+ * CLOSED: a host the mode itself HIDES reads as no site, so a fill whose only forced treatment is to hide it
+ * passes this arm while it vanishes (layer 1 r5 LOW-1, DL40: the handle with `invisible` under the mode drew
+ * 0 pixels in both forced palettes with this file green). Recorded, not closed; the predicate is not 0.1.8's.
  */
 const KNOWN_REST_GAPS: Readonly<Record<string, string>> = {};
 

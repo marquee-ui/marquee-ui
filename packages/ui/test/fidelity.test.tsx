@@ -1,5 +1,6 @@
 import { cleanup, render } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import type { ReactElement } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import upstream from "./fixtures/upstream-classes.json" with { type: "json" };
 import upstreamNav from "./fixtures/upstream-nav-classes.json" with { type: "json" };
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/accordion";
@@ -833,5 +834,43 @@ describe("the radius axis on Card", () => {
       tokens("flex flex-col gap-3 rounded-none border-2 border-border bg-surface p-4"),
     );
     expect(article.hasAttribute("radius"), "radius leaked onto the asChild element").toBe(false);
+  });
+
+  it("lets a caller's radius win over the axis, through this package's cn", () => {
+    // Layer 1 r5 LOW-4: the caller's class is merged AFTER the table, so it wins a conflict.
+    for (const radius of [undefined, "md", "sharp"] as const) {
+      const value = drawn(() => render(<Card radius={radius} className="rounded-lg" />));
+      expect(
+        value.split(" ").filter((t) => t.startsWith("rounded-")),
+        `radius=${radius}: ${value}`,
+      ).toEqual(["rounded-lg"]);
+    }
+  });
+
+  it("emits ONE radius per value under a cn that only joins, which is the consumer's", async () => {
+    // Layer 1 r5 MED-1. The registry copy imports `cn` from the CONSUMER's `@/lib/utils`, and the
+    // reference consumer's joins without merging, so the base string reaches the class attribute as
+    // written: a `rounded-md` left in the base would ride beside the axis's token there while every
+    // read through this package's merging `cn` stayed green. `Card` is called, not rendered: the
+    // element's own className is the emission, with no second React copy to render it.
+    vi.resetModules();
+    vi.doMock("@/lib/utils", () => ({
+      cn: (...parts: unknown[]) => parts.filter(Boolean).join(" "),
+    }));
+    try {
+      const { Card: Joined } = await import("@/card");
+      const emitted = (radius?: "md" | "sharp") =>
+        (Joined({ radius }) as ReactElement<{ className: string }>).props.className;
+      expect(emitted()).toBe(
+        "flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-md",
+      );
+      expect(emitted("md")).toBe(emitted());
+      expect(emitted("sharp")).toBe(
+        "flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-none",
+      );
+    } finally {
+      vi.doUnmock("@/lib/utils");
+      vi.resetModules();
+    }
   });
 });

@@ -25,7 +25,8 @@ import { cn } from "@/lib/utils";
  * `rounded-none` happens to sort after `rounded-md` and win (measured, 0.1.8); a radius
  * that sorts before it would lose, so no drawing should stand on that order. The table
  * SWAPS the token out of the base string, as `Button`'s `width` axis does, and the
- * axis's class is appended after it.
+ * axis's class is appended after it. `radius={null}`, which the type allows as it does
+ * on every cva axis, emits no radius at all: square corners, as `sharp` draws them.
  */
 const cardVariants = cva("flex flex-col gap-3 border-2 border-border bg-surface p-4", {
   variants: { radius: { md: "rounded-md", sharp: "rounded-none" } },
