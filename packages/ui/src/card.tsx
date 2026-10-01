@@ -1,4 +1,5 @@
 import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
@@ -16,23 +17,30 @@ import { cn } from "@/lib/utils";
  * title's heading level is the page's (`<CardTitle asChild><h2>`). Neither has the
  * content-model reason `RadioGroupItem` refuses it on. The other four parts do not
  * take it: nothing has asked them for another element.
+ *
+ * `radius` is a visual axis (0.1.8): `md`, the default, is the small radius every card
+ * drew before it; `sharp` draws square corners. An axis rather than an appended
+ * `rounded-none`: under a `cn` that only joins, two radius utilities on one element
+ * resolve by the STYLESHEET's order, not the order they are written. An appended
+ * `rounded-none` happens to sort after `rounded-md` and win (measured, 0.1.8); a radius
+ * that sorts before it would lose, so no drawing should stand on that order. The table
+ * SWAPS the token out of the base string, as `Button`'s `width` axis does, and the
+ * axis's class is appended after it. `radius={null}`, which the type allows as it does
+ * on every cva axis, emits no radius at all: square corners, as `sharp` draws them.
  */
+const cardVariants = cva("flex flex-col gap-3 border-2 border-border bg-surface p-4", {
+  variants: { radius: { md: "rounded-md", sharp: "rounded-none" } },
+  defaultVariants: { radius: "md" },
+});
+
 export function Card({
   className,
+  radius,
   asChild = false,
   ...props
-}: ComponentProps<"div"> & { asChild?: boolean }) {
+}: ComponentProps<"div"> & VariantProps<typeof cardVariants> & { asChild?: boolean }) {
   const Host = asChild ? Slot : "div";
-  return (
-    <Host
-      data-slot="card"
-      className={cn(
-        "flex flex-col gap-3 rounded-md border-2 border-border bg-surface p-4",
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <Host data-slot="card" className={cn(cardVariants({ radius }), className)} {...props} />;
 }
 
 export function CardHeader({ className, ...props }: ComponentProps<"div">) {

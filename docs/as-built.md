@@ -13488,3 +13488,553 @@ stripe vanishes under forced colours while its text stays (cosmetic, a call); th
 its checked face in a colour-only border plus a ring the mode erases; the `size="lg"`, slab and `link` REFUSEs standing
 on Ankit's [V]. DL28's tag list: `ui@0.1.7` at `3419865`, added to thepile's post-freeze order after `ui@0.1.6` at
 `ed6a393`.
+
+## LIB-0.1.8: the Sheet's grab handle and the Ribbon's band framed under forced colours, `NoDrawing`'s checked tile likewise, a radius axis on `Card`, and `@marquee-ui/ui` 0.1.8 (2026-10-01)
+
+Batch DL40, stream s1, branch `s/lib-0.1.8` from `next` @ `cdacf851`, PUSHED to marquee-ui's origin at every green
+checkpoint (the push freeze is over). thepile is read-only throughout, at `d560518c` (the DL40 composition), by `git -C
+/home/ankit/Code/thepile-next show d560518c:<path>`. No tag, no publish, no PR. The passengers are four commits in the
+composition's order (i) to (iv), each with `pnpm build:registry` run and `pnpm verify` green before it; layer 1 r5
+reviewed their head; the bump is the version line on top of the reviewed bytes. Every reddening run ran in a DETACHED,
+BUILT worktree of a committed head (`../marquee-ui-s1-mut`, at `50bd422` and then `a216c2d`; `pnpm install
+--frozen-lockfile` + `pnpm build`) through a driver (`$BATCH_SCRATCH/s1/mutate.py`, mutations in `muts.json`) that asserts
+each edit matched once and LANDED, logs its diff, rebuilds the registry after a part or `registry.json` edit, runs the
+named files or the WHOLE suite, restores and checks the tree clean; the head's test files were also run ALONE on the built
+base (`../marquee-ui-s1-base` at `cdacf851`, `on-base.sh`). Candidate shapes were measured in one more detached tree
+(`../marquee-ui-s1-cand` at `cdacf851`, edited for the measurement alone and restored, `probe/cand.py`).
+
+**The probe** is a package outside the repository, `$BATCH_SCRATCH/s1/probe/` (`pnpm init`, `pnpm add
+playwright-core@1.61.1`, DL28's version; it launches the `chromium_headless_shell-1228` already under
+`~/.cache/ms-playwright`, Chromium **149.0.7827.55**, with no `executablePath`). `sheet.mts` is DL28's: the tree's own
+`loadCompiledSheet`. `markup.tsx` renders the tree's REAL parts through their own `cn` (run by `mk.sh` under the tree's
+`tsx` with the tree's `tsconfig`, a `.css` import stubbed by `css-stub.mjs`): `<Sheet open><SheetContent>` through jsdom
+and `react-dom/client` (Radix's portal mounts after a layout effect, so static markup is empty), and `Ribbon`, the
+`NoDrawing` story's own `render()`, `Card` (default, `radius="md"`, `radius="sharp"`) and `Separator` through
+`renderToStaticMarkup`. `draw.mjs` sets the markup on the tree's compiled sheet in three modes, normal colours (dark) and
+`forced-colors: active` under `colorScheme` dark and light (`reducedMotion: reduce`, transitions and animations off), and
+reads per case:
+
+- **handle**: the pixels the grab handle paints, the page against the same page with the handle `visibility: hidden`
+  (its box kept); the real open sheet at **390x300**.
+- **band**: the pixels the band's OWN paint draws, the page against the band `visibility: hidden` with its track kept
+  `visible` (the text stays drawn, the geometry stays); the real `Ribbon` in a `relative`, x-clipped 200px shell at
+  **390x200**.
+- **tiles**: the pixels that differ between the checked tile (`fox`) and an unchecked one (`bear`), each a 76x76 clip
+  (the 64px tile and 6px around it, where a ring or an outline sits); the story at **390x120** in a 358px column.
+- **card**: the computed corner radii and the picture of each `Card` at **390x120** in a 358px column (the box 326x60),
+  and the pixels that differ between the default and `radius="sharp"`.
+- **sep**: `Separator`, horizontal and vertical, at 240x80: the known POSITIVE case (a rule drawn under the mode since
+  0.1.7).
+
+Each picture also carries a sha256 (12 hex), so "unchanged" is a hash and not a count. `pair.mjs` compares one element
+between two trees pixel for pixel; `join.mjs` reads which of two joined utilities wins on a tree's sheet.
+
+**The base, re-measured**: `pnpm verify` at `cdacf851` exit **0**, `Test Files 36 passed (36)`, `Tests 619 passed (619)`
+(`verify-base.log`). DL28's pack point read 36 / 619: held.
+
+**The instrument, shown to move before it measured anything.** DL28's own `others.mjs`, re-run at the base on this
+probe, prints `others-base.txt` IDENTICAL line for line to DL28's (`diff` empty): the overlay over text 47,999 / 12,850 /
+13,235, the handle **160 / 0 / 0**, the band around its text **11,632 / 0 / 0** (normal / forced dark / forced light).
+On the real parts (`draw-base.txt`): `Separator` 336 (horizontal, 168x2) and 16 (vertical, 2x8) pixels in all three
+modes, the handle 160 / **0** / **0**, the band 27,918 / **0** / **0**, the tiles 1,015 / **0** / **0** (the checked and
+unchecked tiles hash `2846b64416f0` and `2846b64416f0` in the dark forced palette, `d89b3e82b728` twice in the light one:
+DL24's IDENTICAL, reproduced). So the instrument reads both a drawing (`Separator`) and a vanished one under the mode
+before any edit.
+
+### (i) The grab handle (`757327e`)
+
+**Red first.** On `../marquee-ui-s1-mut` at `cdacf851`, built, the `KNOWN_REST_GAPS` entry deleted (`muts.json`
+`i-0-gap-deleted-at-base`, landed) and `forced-colors-state.test.tsx` run alone: `Tests 1 failed | 7 passed (8)`
+(`mut/i-0-gap-deleted-at-base-cdacf85.log`), the third kind naming the handle and nothing else:
+
+```
+AssertionError: a part draws a host at rest in an author background and nothing the mode keeps, so under forced-colors: active it is Canvas on Canvas and VANISHES. Draw it as a border (it survives the mode), give it a forced-colors: frame, or declare it in KNOWN_REST_GAPS with a reason: expected [ Array(1) ] to deeply equal []
++   "sheet.tsx: \"mx-auto h-1 w-10 shrink-0 rounded-full bg-border-strong md:hidden\" at rest is drawn in background-color: var(--border-strong) alone",
+```
+
+So the entry is what guards the handle. **Two shapes, measured** in the candidate tree (`draw-H1.txt`, `draw-H2.txt`,
+`pair.mjs` for the normal-colours compare against the base's handle clip):
+
+| shape                                                                               | normal colours, against the base's 160                                      | forced dark                               | forced light            |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ----------------------------------------- | ----------------------- |
+| H1: the fill replaced by a border, `… rounded-full border-2 border-border-strong …` | 160 pixels, but **5 differ** from the base's by one channel level (corners) | 160, `6f56572fa043`                       | 160, `5fea95b917c4`     |
+| **H2: the fill kept, `forced-colors:border-2` added** (taken)                       | **byte-identical**: clip `518cf62a8496`, page `50e342c82331`, 0 differ      | **160**, the same picture, `6f56572fa043` | **160**, `5fea95b917c4` |
+
+- The composition's ⚠️ UNVERIFIED line ("a 4px box drawn as a 2px border on four sides is a filled box in normal colours
+  (the same 160 pixels)"): the COUNT holds (160), the picture does not: 5 of the 160 differ by one channel level (max delta
+  1), the border's corner antialiasing against the fill's. H2 draws the SAME forced pictures as H1 (hash for hash) and
+  leaves normal colours untouched, so **H2 is taken** (decision 1, [V]).
+- The handle now reads `mx-auto h-1 w-10 shrink-0 rounded-full bg-border-strong forced-colors:border-2 md:hidden`. The
+  compiled rule: `@media (forced-colors: active) { .forced-colors\:border-2 { border-style: var(--tw-border-style);
+border-width: 2px; } }`, absent from the base's sheet. Under the mode the frame's colour is the reverted
+  `currentcolor`: rgb(255, 255, 255) on the dark palette, rgb(0, 0, 0) on the light one, the 2px frame on a 40x4 box
+  filling it. A JSX comment beside the handle says why.
+- **The guard**: with the fix and the entry still present the expiring device fired, `a KNOWN_REST_GAPS entry names no host
+that draws in a background alone: delete it ONLY if the host now draws a paint the mode keeps …` naming the entry's key;
+  the entry deleted, `forced-colors-state.test.tsx` GREEN (8 / 8). The map is EMPTY now and its docblock says so in
+  `KNOWN_STATE_GAPS`' form. The guard's code is unchanged.
+- **`fidelity.test.tsx`'s `sheet.handle` row** (an upstream CASES row, a SET) reddened on the fix (`+ "forced-colors:border-2"`)
+  and moved by a new DEPARTURE, `bg-border-strong` -> `bg-border-strong forced-colors:border-2` with its reason. A departure
+  could only swap one token for one token, so `expected()` now splits a target on whitespace (`flatMap`): an empty target
+  is still a drop, one token still a rename, several KEEP or rename the first and ADD the rest. The rename table's departure
+  count moves 6 -> 7.
+- Measured on the head's own build (`draw-head-i.txt`, `757327e`): the handle 160 in normal colours, clip and page hash
+  the base's; **160 / 160** in the forced palettes. `r/sheet.json` rebuilt. `pnpm verify` at `757327e`: exit **0**, 36 / 619.
+
+### (ii) The ribbon band (`d455000`)
+
+Not a site of the third kind (the band sizes no box: its track does), so no guard reds at the base and none is owed; the
+probe is the proof. **At the base**: the band's own paint 27,918 pixels in normal colours, **0 / 0** under the mode (its
+fill turns Canvas, its shadow is dropped; the track's text stays). **Two frames, measured** in the candidate tree
+(`draw-B1.txt`, `draw-B2.txt`):
+
+| shape                                      | normal colours                              | forced dark                             | forced light |
+| ------------------------------------------ | ------------------------------------------- | --------------------------------------- | ------------ |
+| **B1: `forced-colors:border-y-2`** (taken) | byte-identical: 27,918, page `5177fc939709` | **2,330**, the band 32 -> **36px** tall | **2,330**    |
+| B2: `forced-colors:outline-2`              | byte-identical                              | 2,329, the band 32px                    | 2,329        |
+
+- **B1 is taken** (decision 2, [V]): a border is the stripe's own top and bottom edge, rotated with it, which is what the
+  mode keeps best of a band whose fill it erases; an outline on a decorative band reads as a focus ring in the one mode
+  that draws focus as an outline. Its cost: the band is 4px taller under the mode alone (the band is absolutely placed, so
+  nothing below it moves). B2 draws the same two lines without the growth and is the alternative.
+- Tailwind 4.3.3 emits `border-y-2` as the LOGICAL pair: `.forced-colors\:border-y-2 { border-block-style:
+var(--tw-border-style); border-block-width: 2px; }`, inside `@media (forced-colors: active)`.
+- **Normal colours byte-identical**, MEASURED not assumed: the page hash `5177fc939709` at the base and at `d455000`, and
+  DL28's form re-run at the head reads the band around its text **11,632** in normal colours (`others-head-ii.txt`),
+  unchanged. (DL28's form reads 3,016 under the mode at the head, but its control band carries no frame, so that number
+  includes the track text's 2px shift and is not quoted as the band's.)
+- **`fidelity.test.tsx`'s `ribbon.band` SET** reddened on the fix (`+ "forced-colors:border-y-2"`) and moved: the existing
+  departure `bg-primary` -> `bg-brand forced-colors:border-y-2`, its reason sentence now saying the frame is ADDED and why.
+- **The ceiling, stated**: no permanent test reads the band under the mode. The fidelity SET pins the class, which cannot
+  say what it draws; the probe table above is the drawing. A band whose frame is removed reds `ribbon.band` alone (ii-1
+  below).
+- Measured on the head's build (`draw-head-ii.txt`): 27,918 normal (page hash the base's), **2,330 / 2,330** forced.
+  `r/ribbon.json` rebuilt. `pnpm verify` at `d455000`: exit **0**, 36 / 619.
+
+### (iii) The `NoDrawing` story's checked tile (`50bd422`)
+
+**At the base**: the checked tile and an unchecked one differ by 1,015 pixels in normal colours and by **0** in both
+forced palettes (the two tiles hash identical: `2846b64416f0` dark, `d89b3e82b728` light): the ring is a shadow the mode
+drops, and `border-primary` reverts to the same ink as the rest border. **Three paints, measured** (`draw-T1.txt` to
+`-T3.txt`, `pair.mjs` for the checked tile against the base's in normal colours):
+
+| shape                                                                                  | normal colours, the checked tile against the base's | checked vs unchecked, forced dark | forced light |
+| -------------------------------------------------------------------------------------- | --------------------------------------------------- | --------------------------------- | ------------ |
+| **T1: the ring kept, `forced-colors:group-has-checked/radio:outline-2` added** (taken) | **byte-identical**, `c8093411316b`, 0 differ        | **603**                           | **633**      |
+| T2: the ring kept, `forced-colors:group-has-checked/radio:border-4` added              | byte-identical                                      | 589                               | 589          |
+| T3: an outline in place of the ring, both modes                                        | **472 differ** (max channel delta 64)               | 603                               | 633          |
+
+- **T1 is taken** (decision 3, [V]): the outline at offset 0 sits exactly where the ring sits, so the mode draws the
+  selected state in the place normal colours draw it; normal colours do not move, so `choice-drawing.test.tsx:346-370`
+  (it reads `--tw-ring-color`) is untouched, and the part's docblock (`radio-group.tsx:40-49`) names an outline as one of
+  the three paints the mode keeps. The compiled rule: `.forced-colors\:group-has-checked\/radio\:outline-2:is(:where(.group\/radio):has(:checked)
+*) { outline-style: var(--tw-outline-style); outline-width: 2px; }` inside the media query.
+- The story's docblock says so; its `play` (roles, names, `defaultChecked`, the click) is unchanged; no story is added, so
+  `DECLARED_STORIES` 111 and `DECLARED_PLAYS` 81 hold here. The story is not in the registry: `pnpm build:registry` left
+  `r/` unchanged (`git status`), and `r/radio-group.json` does not move in this release.
+- **The ceiling, stated**: the forced-colors guard reads no story, and no permanent test reads the tile under the mode; the
+  outline removed is GREEN (iii-1 below). The probe is the proof.
+- Measured on the head's build (`draw-head-iii.txt`): 1,015 normal, the fox and bear hashes the base's; **603 / 633**
+  forced. `pnpm verify` at `50bd422`: exit **0**, 36 / 619.
+
+### (iv) A radius axis on `Card` (`6b35809`, the docblock `a216c2d`, a message `fa9a517`)
+
+`card.tsx`: `cardVariants = cva("flex flex-col gap-3 border-2 border-border bg-surface p-4", { variants: { radius: { md:
+"rounded-md", sharp: "rounded-none" } }, defaultVariants: { radius: "md" } })`, `Card` destructures `radius` and renders
+`cn(cardVariants({ radius }), className)`; `data-slot`, `asChild` and the other five parts untouched. `cardVariants` is
+module-local: an `export const` there must be in the barrel (`entry-point.test.ts`), and `src/index.ts` is outside this
+fence; nothing has asked for it (decision 5). `client-boundary.test.ts:162` stays green (`cva` is no React runtime import,
+RUN).
+
+**Red first, twice.**
+
+- The fidelity block "the radius axis on Card" (3 tests) was written first and run against the unchanged `card.tsx` in the
+  working tree: `Tests 3 failed | 90 passed (93)` (`iv-fidelity-red-wt.log`): the default's `endsWith(" rounded-md")`
+  false on `flex flex-col gap-3 rounded-md border-2 border-border bg-surface p-4`, the sharp SET (`rounded-md` where
+  `rounded-none` is due), and `to include 'rounded-none'` through the element. The committed file ALONE on the built base:
+  `Tests 5 failed | 617 passed (622)` (`onbase-fidelity-a216c2d.log`): those three, plus `sheet.handle` and `ribbon.band`.
+- The derived-dependencies arm: on `../marquee-ui-s1-mut` at `50bd422` (its `card.tsx` and `registry.json` byte-identical
+  to `cdacf851`'s), the new `card.tsx` in and `registry.json` not, the registry rebuilt, `registry.test.ts` alone: `Tests
+1 failed | 18 passed (19)` (`mut/iv-0-cva-import-undeclared-50bd422.log`):
+
+```
+AssertionError: a registry item's dependencies differ from its own sources' bare imports: declare what it imports, drop what it does not: expected [ Array(1) ] to deeply equal []
++   "card: imports class-variance-authority and does not declare it",
+```
+
+The card item now declares `["@radix-ui/react-slot@^1.3.3", "class-variance-authority@^0.7.1"]` (the package's range);
+no counter in `registry.test.ts` moves.
+
+**The emissions**, quoted from the head's own render (`markup-head-iv.json`):
+
+```
+<Card>                 flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-md
+<Card radius="md">     flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-md
+<Card radius="sharp">  flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-none
+0.1.7's <Card>         flex flex-col gap-3 rounded-md border-2 border-border bg-surface p-4
+```
+
+The composition's ⚠️ UNVERIFIED line ("`cva` emits the base string first and the variant's class after it, so the
+DEFAULT emission's SET is today's and its ORDER is not (`rounded-md` moves to the end)"): **held**, byte for byte.
+
+**Rendered** (`draw-head-iv.txt` against `draw-base.txt`):
+
+| `Card`           | base `cdacf851`                                         | head `6b35809`                                                               |
+| ---------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| default          | 10px, `4a684bc8dc4b` / `10919dc0a433` / `121765e550f2`  | **10px, the same three hashes** (normal / forced dark / forced light)        |
+| `radius="md"`    | 10px (the prop leaks onto the `div` as `radius="md"`)   | 10px, the default's hashes                                                   |
+| `radius="sharp"` | **10px** (leaks as `radius="sharp"`, draws the default) | **0px** on all four corners, 198 pixels differ from the default in each mode |
+
+**The join, measured, and a brief claim corrected** (class B). The composition gave the axis `Button`'s `width` reason,
+"an appended `rounded-none` would lose to `rounded-md` by sheet order under a `cn` that only joins". On the compiled sheet
+the order is `.rounded-full` (`:602`), `.rounded-md` (`:605`), `.rounded-none` (`:608`), `.rounded-sm` (`:611`), and
+`join.mjs` reads `rounded-md rounded-none` -> **0px** and `rounded-none rounded-md` -> 0px, `rounded-md rounded-full`
+-> 10px in either order. So an appended `rounded-none` would happen to WIN; a radius sorting before `rounded-md` loses.
+The swap is still taken (the drawing stands on no sheet order, and the emission carries one radius), and `card.tsx`'s
+docblock says exactly this (`a216c2d`, its first wording repeated the claim).
+
+- Two stories with plays, `RadiusMd` and `RadiusSharp` (the class and no `radius` attribute); `DECLARED_STORIES` 111 ->
+  **113**, `DECLARED_PLAYS` 81 -> **83** (the counters' red at the base: `onbase-stories-a216c2d.log`, `to have a length of
+113 but got 111`, `of 83 but got 81`).
+- `fidelity.test.tsx`'s NEW_PARTS `card` row (`:700` at the base, `:708` at the head) pins the default SET and did NOT move (the set is 0.1.7's); the new
+  block pins `md` = the default = that set with `rounded-md` LAST, `sharp` = the set with `rounded-none` swapped in, and the
+  axis reaching the element through `Card` and `asChild` with no `radius` attribute.
+- Minified (esbuild 0.28.2, gzip -9, `bytes.txt`): `card.tsx` 998 -> 1,157 B, **365 -> 457 B gz (+92)** standalone, the
+  `cva` import counted as an import and not its runtime (already imported by `alert`, `avatar`, `badge`, `button`,
+  `description-list` and `label`).
+- `r/card.json` and `r/registry.json` rebuilt. `pnpm verify` at `6b35809`, `a216c2d` and `fa9a517`: exit **0**, `Test Files
+36 passed (36)`, `Tests 624 passed (624)`.
+
+### The reddening runs (class E)
+
+In `../marquee-ui-s1-mut`, BUILT, at the committed head named; every edit asserted landed and its diff logged under
+`LANDED:` before the run was read; the WHOLE suite each time unless a file is named (`mut/<name>-<sha>.log`):
+
+| id    | at        | mutation                                                                         | red (the whole suite) | the assertion                                                                                                                                                                                            |
+| ----- | --------- | -------------------------------------------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| i-0   | `cdacf85` | `KNOWN_REST_GAPS` emptied (the base, the guard's file alone)                     | 1 / 8                 | the third kind naming `sheet.tsx: "mx-auto h-1 w-10 shrink-0 rounded-full bg-border-strong md:hidden" at rest is drawn in background-color: var(--border-strong) alone`                                  |
+| iv-0  | `50bd422` | the new `card.tsx` in, `registry.json` not (registry rebuilt; the file alone)    | 1 / 19                | `registry.test.ts`'s per-item arm: `card: imports class-variance-authority and does not declare it`                                                                                                      |
+| i-1   | `a216c2d` | the handle's `forced-colors:border-2` removed                                    | 2 / 624               | the third kind naming the handle again (the map is empty), and fidelity's `sheet.handle` (`- "forced-colors:border-2"`)                                                                                  |
+| ii-1  | `a216c2d` | the band's `forced-colors:border-y-2` removed                                    | 1 / 624               | fidelity's `ribbon.band` alone (`- "forced-colors:border-y-2"`): the stated ceiling, no test reads the band under the mode                                                                               |
+| iii-1 | `a216c2d` | `NoDrawing`'s `forced-colors:…:outline-2` removed                                | **GREEN** 624 / 624   | none, as stated: no test reads the story's tile under the mode; the probe is the proof (the tile pair reads 0 / 0 at the base without it)                                                                |
+| iv-1  | `a216c2d` | `cardVariants({ radius })` -> `cardVariants()`                                   | 4 / 624               | the sharp SET (`- "rounded-none"`, `+ "rounded-md"`), `to include 'rounded-none'`, `card/RadiusSharp`'s play, the play counter                                                                           |
+| iv-2  | `a216c2d` | `sharp: "rounded-none"` -> `sharp: ""`                                           | 4 / 624               | the sharp SET (`- "rounded-none"`), the element read, `card/RadiusSharp`'s play, the counter                                                                                                             |
+| iv-3  | `a216c2d` | `rounded-md` kept in the `cva` BASE (the swap undone, the axis appended over it) | **GREEN** 624 / 624   | none: this package's `cn` merges the earlier `rounded-md` away, so every read through `Card` is the head's; under a join the drawing is the same too (`rounded-none` sorts after `rounded-md`, measured) |
+| iv-4  | `a216c2d` | the card item's `class-variance-authority` dropped                               | 1 / 624               | `registry.test.ts`'s per-item arm, `card: imports class-variance-authority and does not declare it`                                                                                                      |
+| iv-5  | `a216c2d` | `radius` also spread onto the element                                            | 4 / 624               | `expected true to be false` (the plain element's attribute read; `fa9a517` names it `radius leaked onto the <div>`), `card/RadiusMd` and `card/RadiusSharp`'s plays, the counter                         |
+
+And the head's test files ALONE on the built base (`on-base.sh`, the head `a216c2d`): `fidelity.test.tsx` 5 / 622
+(`sheet.handle`, `ribbon.band`, the three axis tests), `forced-colors-state.test.tsx` 1 / 619 (the handle, quoted in
+"(i)"), `stories.test.tsx` 2 / 619 (the two counters, 113 and 83 against 111 and 81).
+
+### Layer 1's fixes (`ab767ff`), before the bump
+
+r5 reviewed `fa9a517` (0 HIGH, 1 MED, 6 LOW; 25 mutations, 7 GREEN rows, one of them a control; its table is the `### Layer
+1` section at the end of this one, verbatim) and re-derived the probe on its own built tree: its compiled sheet and markup
+`cmp`-identical to the head's, `draw-head.txt` byte-identical to `draw-head-iv.txt`, and, with the three forced frames
+removed from its tree, every forced number back to 0 with the base's forced hashes and every normal-colours hash
+unchanged. Each fix was RUN against the mutation that found it, in `../marquee-ui-s1-mut` moved to `ab767ff` and rebuilt
+(`mut/L1-*-ab767ff.log`):
+
+| r5 row   | finding | what changed                                                                                                                                                                                                                                                                                                                                                                                                                                     | the re-run                                                                                                                                                                                                                                      |
+| -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M4b      | MED-1   | every radius test read `Card` through this package's MERGING `cn`, so a `rounded-md` left in the `cva` base beside the axis's token was invisible; the consumer's `cn` only joins. A test now calls `Card` with `@/lib/utils` mocked to a join (`vi.doMock` after `vi.resetModules`, the registry copy's real seam; `Card` called, not rendered, so no second React copy renders it) and pins the EXACT default and `sharp` emissions DL41 reads | **red** 1 / 626: `expected 'flex flex-col gap-3 rounded-md border…' to be 'flex flex-col gap-3 border-2 border-b…'`. Control: the same mutation with the mock pointed back at the merging `cn` is **GREEN** 626 / 626, so the red is the join's |
+| M4c      | LOW-4   | a caller's radius class beats the axis at every value (`undefined`, `md`, `sharp`), pinned                                                                                                                                                                                                                                                                                                                                                       | **red** 1 / 626: `radius=undefined: … p-4 rounded-md: expected [ 'rounded-md' ] to deeply equal [ 'rounded-lg' ]`                                                                                                                               |
+| -        | LOW-6   | `card.tsx`'s docblock: `radius={null}` (the type allows it, as on every `cva` axis) emits no radius, square corners                                                                                                                                                                                                                                                                                                                              | prose; `r/card.json` rebuilt                                                                                                                                                                                                                    |
+| M1c      | LOW-1   | NOT closed: the third kind reads a host the mode itself HIDES as no site, so `forced-colors:invisible` on the handle passes while it draws 0 pixels (r5's probe). The predicate is the guard's code, outside this fence; `KNOWN_REST_GAPS`' docblock now says EMPTY is not CLOSED, with the measurement                                                                                                                                          | REQUEST 2                                                                                                                                                                                                                                       |
+| M3a, M3b | LOW-2   | NOT closed: the story's forced outline has no guard; r5 showed the second kind's classifier names the tile once pointed at the story module (X2, X3), with two false positives (`Rules`, `AsAList`, whose rows compose the part's circle). Closing it is that file's code                                                                                                                                                                        | REQUEST 3                                                                                                                                                                                                                                       |
+| M2a      | LOW-3   | NOT closed: the band's frame is pinned as a string (a `print:` frame with the departure moved is green); the third kind exempts the band by design. The stated ceiling of "(ii)"                                                                                                                                                                                                                                                                 | REQUEST 3                                                                                                                                                                                                                                       |
+| -        | LOW-5   | `fidelity.test.tsx`'s cite of "LIB-0.1.8" resolves with this section                                                                                                                                                                                                                                                                                                                                                                             | -                                                                                                                                                                                                                                               |
+
+The suite is **36 files / 626 tests** (+2 in `fidelity.test.tsx`). `ab767ff`'s `fidelity.test.tsx` ALONE on the built base: `Tests 6 failed | 618 passed (624)` (`onbase-fidelity-ab767ff.log`): the five of "(iv)" plus the join test; the caller-wins test is green there, because the base's line already merged the caller's class last (it guards the line this diff rewrote). `pnpm verify` at `ab767ff`: exit **0**, 36 / 626.
+
+### The bump: THE PACK POINT (`24cb107`)
+
+`packages/ui/package.json:3` `0.1.7` -> `0.1.8`, nothing else in the file (no family is added: the description's
+"twenty-one" stays; the registry's 22 items stay). `command grep -l '0\.1\.7' packages/ui/r/*.json` printed
+`r/button.json` and `r/separator.json`, whose docblocks name "(0.1.7)" in prose, not a version field; `pnpm build:registry`
+after the edit left `git status --short` showing the manifest alone: **`r/` does not move by the version line**. `pnpm
+verify` on that tree: exit **0**, `All matched files use Prettier code style!`, `✔ Building registry.`, `└  Storybook build
+completed successfully`, `Test Files 36 passed (36)`, `Tests 626 passed (626)` (`verify-bump.log`, started 18:22:32 IST).
+
+⚠️ **The pack point is `24cb107c108da50d261f4b704eb961cdd3fae161`**, and the `ui@0.1.8` tag and `pnpm publish` belong there
+and nowhere else. It holds REVIEWED bytes: layer 1 ran on `fa9a517`, its fixes landed at `ab767ff` (tests and one docblock),
+and the bump is the version line on top. This section is docs-only, so a pack at the branch's head is the same tarball.
+
+```
+$ pnpm --filter @marquee-ui/ui pack --pack-destination ~/.thepile-scratch/DL40/s1/pack/
+$ stat -c %s marquee-ui-ui-0.1.8.tgz ; sha256sum marquee-ui-ui-0.1.8.tgz
+112584
+84ab3188c8d9cf730ff6d564561f4e0ecb6d1f417560de18ddab411e98c1775f
+```
+
+`prepack` (`pnpm -w build:registry && git diff --exit-code -- r`) ran inside the pack, exit 0; `git status --short` empty
+after. The tarball's 47 `r/` + `src/` files are each `cmp`-equal to `git show 24cb107:packages/ui/<path>`: 47 compared, 0
+differ.
+
+### What the tarball carries, measured against the 0.1.7 TARBALL
+
+The 0.1.7 tarball (`~/.thepile-scratch/DL28/s1/pack/marquee-ui-ui-0.1.7.tgz`), **111,601 B, sha256
+`ac50c1996adef9e1bab941d5d0ee4e0ff32f1784be8ea0cc1a145b94aaf80a79`**, both verified before the compare. Both extracted,
+every file compared by `cmp` (`pack/tar-list-0.1.{7,8}.txt`):
+
+|                                                    | `ui@0.1.7`'s tarball | this one    |
+| -------------------------------------------------- | -------------------- | ----------- |
+| bytes                                              | 111,601              | **112,584** |
+| entries (the same list)                            | 49                   | 49          |
+| `r/` json files (incl. `registry.json`)            | 23                   | 23          |
+| `tar -tzf \| grep -cE '\.(test\|spec)\.\|stories'` | 0                    | 0           |
+
+```
+differ:    r/sheet.json   src/sheet.tsx    (the handle's forced frame)
+           r/ribbon.json  src/ribbon.tsx   (the band's forced frame)
+           r/card.json    src/card.tsx     (the radius axis; the item's dependencies)
+           r/registry.json                 (the card item's dependencies)
+           package.json                    (version 0.1.7 -> 0.1.8 and nothing else: every other field equal as parsed JSON)
+identical: the other 41 entries: LICENSE; r/ and src/ of accordion, alert, avatar, badge, breadcrumb, button, checkbox,
+           description-list, form, input, label, pagination, radio-group, separator, switch, textarea, toast, toggle,
+           utils (lib/utils.ts); ribbon.css; src/index.ts
+```
+
+Against the brief's list ("the `sheet`/`ribbon`/`radio-group`/`card` items rebuilt"): `radio-group` does NOT move (the story
+is not shipped; `radio-group.tsx` is untouched); the other three do, with `r/registry.json` and the manifest.
+
+### `@marquee-ui/tokens` does NOT bump with it (re-measured)
+
+`git diff --stat tokens@0.1.0 24cb107 -- packages/tokens/src` and `git diff --stat cdacf851 24cb107 -- packages/tokens` print
+nothing. `git diff --stat cdacf851 24cb107 -- packages/ui/src packages/ui/r packages/ui/package.json packages/tokens
+registry.json` names exactly `card.tsx`, `ribbon.tsx`, `sheet.tsx`, their three jsons, `r/registry.json`, `registry.json`
+and the manifest (9 files). ONE tarball is vendored downstream.
+
+### For the consumer (LIB-VENDOR-0.1.8)
+
+- **The pack point**: `24cb107c108da50d261f4b704eb961cdd3fae161`, `marquee-ui-ui-0.1.8.tgz`, **112,584 B**, sha256
+  `84ab3188c8d9cf730ff6d564561f4e0ecb6d1f417560de18ddab411e98c1775f`, at `~/.thepile-scratch/DL40/s1/pack/`. Read the
+  library at that sha; this branch's later commit is docs-only.
+- **THREE copies DL41 re-adds**: `card`, `ribbon`, `sheet` (all three in `marquee-drift.test.ts`'s `CONSUMED` at
+  `d560518c`). `radio-group` does not move. No item is added or removed.
+- **The drift-test prediction** (REASONED from the arms at `d560518c`, not run): the three byte arms red, AND the per-item
+  runtime-dependency arm (`scripts/marquee-drift.test.ts:366-414`) on `card` (`:396` pins `card: ["@radix-ui/react-slot"]`;
+  the item now declares `class-variance-authority` too), which becomes `card: ["@radix-ui/react-slot",
+"class-variance-authority"]`. Its second half stays green: `class-variance-authority` is `apps/web/package.json:29`.
+- **`Card`'s emissions**, exact (the default is what `ReviewCard` serves after the bump):
+
+```
+default, radius="md"  flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-md
+radius="sharp"        flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-none
+0.1.7                 flex flex-col gap-3 rounded-md border-2 border-border bg-surface p-4
+```
+
+The SET is 0.1.7's, the ORDER is not (`rounded-md` last); under a join `cn` each value carries ONE radius (pinned,
+`ab767ff`). Drawn: the default's picture is 0.1.7's in normal colours and both forced palettes (hash for hash, "(iv)");
+`sharp` 0px. thepile pins no `Card` literal: `ReviewCard.test.tsx:105-140` compares class SETS off the bare part (and its
+`classList` de-duplicates, so it could not see a doubled radius either), `e2e/home.spec.ts:93` reads the tag and the
+slot. The served class attribute of the four `/` and `/home` review cards changes order.
+
+- **The three `Card` radius routes (DL41)**: `<Card radius="sharp">` (or `<Card asChild radius="sharp"><Link>`) is the census
+  rows 12 and 13's "radius alone"; a caller's own `rounded-*` class still wins over the axis through a MERGING `cn`; through
+  thepile's join, the sheet's order decides (`.rounded-none` after `.rounded-md` wins; a radius that sorts before `md`
+  loses), so pass the axis, never a class.
+- **`Sheet`**: the handle's string gains `forced-colors:border-2`; in normal colours byte-identical, under both forced
+  palettes the 40x4 handle drawn in the forced ink. `components/ui/sheet.test.tsx:37` (the handle exists) and
+  `e2e/tablet.spec.ts:113-115` (hidden at 768) are unaffected.
+- **`Ribbon`**: the band gains `forced-colors:border-y-2`; normal colours byte-identical; under the mode a 2px frame top and
+  bottom, the band 4px taller (absolutely placed: nothing moves under it). No thepile test reads the band.
+- **New rules in thepile's sheet** from the three copies (its source carries none of them at `d560518c`): `rounded-none`,
+  `forced-colors:border-2`, `forced-colors:border-y-2`, each one rule. The `[…]` count of each moved copy does not move:
+  the source diff adds no bracket (`git diff … -- packages/ui/src | grep -c '\['` on changed lines: 0).
+- **Bytes** (standalone, esbuild 0.28.2 minified, gzip -9, `bytes.txt`; the route number is DL41's `exact.mjs`):
+  `card.tsx` 365 -> 457 B gz (+92), `sheet.tsx` 722 -> 732 (+10), `ribbon.tsx` 524 -> 543 (+19). `card.tsx` now IMPORTS
+  `class-variance-authority`, and `ReviewCard.tsx` is its one importer (r5, read): its route gains `cva` unless something
+  else on it already ships it (REASONED; thepile's `perf:budget` measures it). thepile's comments that a copy pulls `cva`
+  (`PoolBuilder.tsx:266`, `form-styles.ts:19`) are now true of `Card` as well.
+
+### Consumers
+
+**Run 1, before any code** (`scan1.txt`, at `cdacf851`, an empty diff, so by hand over the named surface): `Card` is read
+by the barrel, its stories, `card-structure.test.tsx`, `fidelity.test.tsx`, `r/card.json`, `r/registry.json` and
+`registry.json`; `SheetContent` by the barrel, its stories, `fidelity.test.tsx` and `forced-colors-state.test.tsx`;
+`Ribbon` by the barrel, its stories, `fidelity.test.tsx`, `tuned-constants.test.tsx` and the upstream fixture and its
+generator; `NoDrawing` by `choice-drawing.test.tsx` alone; `KNOWN_REST_GAPS` by its own file. Scan 3 per file (path,
+basename, `@/` alias, and the `.js`-extension import the tree uses for stories, `../stories/<x>.stories.js`, which the
+first pass missed and a second pass with that arm caught): `source-files.ts`, `client-boundary`, `card-structure`,
+`fidelity`, `focus-outline`, `forced-colors-state`, `registry`, `tuned-constants`, `choice-drawing`, `choice-structure`
+and `helpers/story-suites.ts` (through which `stories.test.tsx` and `tailwind-compile.test.tsx` render every story). The
+class strings: the handle's in `r/sheet.json` and the upstream fixture; the band's in `r/ribbon.json`; the tile's in its
+story alone; the card's in `r/card.json` and `fidelity.test.tsx`. No role or `aria-*` string moves.
+
+**Run 2, at the passengers' head** (`scan2.txt`, `origin/next...fa9a517`, over `packages/**`):
+
+- **Scan 1, exported symbols the diff adds or changes**: `RadiusMd`, `RadiusSharp` (read by `card.stories.tsx` alone; the
+  story suites map reads the module). `Card`'s props gain `radius`: read by the barrel, its stories, `card-structure`,
+  `fidelity`, the registry. `cardVariants` is not exported (read by `card.tsx` and its registry copy alone).
+- **Scan 2, path helpers**: none. **Scan 4, roles and `aria-*`**: none added or removed.
+- **Scan 3**: the run-1 list, every file in the 36-file suite that ran green at each commit; `forced-colors-state` no
+  longer NAMES `sheet.tsx` (its one key went) and still walks every part.
+- **Scan 5, the class strings added or changed**: `forced-colors:border-2` and `bg-border-strong forced-colors:border-2`
+  (`r/sheet.json`, `fidelity.test.tsx`), `forced-colors:border-y-2` (`r/ribbon.json`, `fidelity.test.tsx`), the tile's
+  outline (no reader), `rounded-none` (`r/card.json`, `fidelity.test.tsx`, and `merge-theme.test.ts:44`, which READ: it
+  proves this package's `cn` merges `rounded-md` into `rounded-none`, the reason iv-3 is green through `Card`), the card's
+  new base string (`r/card.json` alone).
+- **In thepile at `d560518c`** (CROSS, recorded, never edited; all DL41's): the three vendored copies
+  `components/ui/{sheet,ribbon,card}.tsx` and `scripts/marquee-drift.test.ts`'s byte arms over them; that test's
+  per-item dependency pin `card: ["@radix-ui/react-slot"]` (`:396`); `components/ui/sheet.test.tsx:37` (the handle EXISTS:
+  unaffected), `e2e/tablet.spec.ts:113-115` (the handle hidden at 768, `md:hidden`: unaffected, the frame is a border
+  under a media query), `ReviewCard.test.tsx:61-140` (selects `[data-slot="card"]` and compares class SETS read off the
+  bare part, no literal: confirmed, unaffected by the order). No thepile e2e reads the band or the tile. thepile's source
+  carries no `rounded-none`, `forced-colors:border-2`, `forced-colors:border-y-2` or `forced-colors:group-has-checked`
+  today, so the three copies add those rules to its sheet. `class-variance-authority` is already
+  `apps/web/package.json:29`.
+- **CROSS: 0 in the library. UNOWNED: 0. NEW between the runs**: the `.js` import arm's three readers
+  (`choice-drawing`, `focus-outline`, `story-suites`), found by the second pass of run 1, before code.
+
+**Run 2b, at the pack point** (`scan2b.txt`, `origin/next...24cb107`): the same files plus the manifest; scan 1 `RadiusMd`,
+`RadiusSharp`; scans 2 and 4 empty; the layer-1 commit adds no class string to a source (its one source line is
+`card.tsx`'s docblock). r5's own consumer pass found no reader the runs missed in the library, and in thepile two more,
+both read and unaffected: `e2e/home.spec.ts:93` (the tag and the slot) and the `cva` comments named in "For the consumer".
+
+### Decisions
+
+1. **The handle keeps its fill and gains a 2px frame under forced colours alone (H2)** [V]. Byte-identical in normal
+   colours; 160 pixels in each forced palette, the same pictures as the brief's shape (H1, the fill replaced by a border),
+   which moves 5 pixels by one channel level in normal colours. H1 is `Separator`'s 0.1.7 precedent (one paint in both
+   modes); H2 is the guard message's own second option.
+2. **The band's frame is `forced-colors:border-y-2` (B1), not an outline (B2)** [V]. 2,330 pixels per forced palette
+   against B2's 2,329; the band 4px taller under the mode; an outline on a decorative band reads as focus in the mode that
+   draws focus as an outline.
+3. **`NoDrawing` keeps its ring for normal colours and ADDS an outline under the mode (T1)** [V]. Normal colours
+   byte-identical, so `choice-drawing.test.tsx` and the play do not move; the outline sits where the ring does. T3 (an
+   outline in both modes, the ring gone) moves 472 pixels in normal colours; T2 (a 4px border under the mode) differs by
+   589 / 589 and draws the selected state INSIDE the tile, not where normal colours draw it.
+4. **The axis value is named `sharp`, not `none`** [V]: the control language's own word ("sharp corners", `button.tsx`'s
+   docblock), and the census's ("the radius alone"); `none` is Tailwind's token, which the value carries.
+5. **`cardVariants` stays module-local** [V]: exporting it needs `src/index.ts` (the barrel arm), outside this fence, and
+   no consumer has asked for the string without the part (`<Card asChild radius="sharp">` covers a link card).
+6. **Two radius stories, `RadiusMd` and `RadiusSharp`**, in `Button`'s `WidthFull` / `WidthAuto` form: +2 / +2.
+7. **Fidelity rows moved** [V]: `sheet.handle` by a new departure (6 -> 7), `ribbon.band` by its existing `bg-primary`
+   departure's target and reason, `expected()` taught a multi-utility target; NEW_PARTS `card` NOT moved (its SET held);
+   a new "the radius axis on Card" block, which pins the default's ORDER only where the axis lands (`endsWith(" rounded-md")`),
+   as the width block pins `grid w-full`.
+8. **No new test file**: every drawing under the mode is the probe's; the guard covers the handle; the band's and the
+   tile's ceilings are stated (ii, iii) rather than closed, because closing them is a story-reading or band-reading arm in
+   a test file outside this fence.
+9. **The join emission is pinned by mocking `@/lib/utils` to a join in ONE test** (layer 1 MED-1) [V]: the registry copy's
+   `cn` IS the consumer's, so the mock stands in for a real boundary, the one the registry rewrites; it is scoped with
+   `vi.doMock` after `vi.resetModules` and undone in a `finally`, and `Card` is called rather than rendered. r5's other
+   option, a source read asserting the `cva` base carries no `rounded-` token, pins the cause and not the emission DL41
+   reads.
+
+### REQUESTs and findings (to the orchestrator)
+
+1. **Finding, class B (corrected here, in this section's body)**: the composition's reason for the swap, "an appended
+   `rounded-none` would lose to `rounded-md` by sheet order under a `cn` that only joins", is false on this sheet:
+   `.rounded-none` is emitted after `.rounded-md` and wins joined in either written order (`join.mjs`). The swap stands on
+   a different reason (no drawing on sheet order; one radius in the emission); `card.tsx`'s docblock says the measured one.
+2. **REQUEST, for `forced-colors-state.test.tsx`'s next owner (library, test-only; layer 1 LOW-1)**: the third kind reads a host the mode itself HIDES as no
+   site (`if (hiding(applies) !== undefined) return null`, `:2000` at `fa9a517`, `applies` including the `forced`
+   placement), so a fill whose only forced treatment is to hide it passes while it vanishes (r5: the handle with
+   `forced-colors:invisible`, 624 / 624 green, 0 pixels in both forced palettes). Only an UNCONDITIONAL hide should exempt
+   a host. Recorded in `KNOWN_REST_GAPS`' docblock (`ab767ff`); the handle itself stays pinned by fidelity's literal.
+3. **REQUEST, for the same file's next owner (layer 1 LOW-2, LOW-3): two stated
+   ceilings, not closed** (outside this fence: the guard's code). No permanent test reads the Ribbon band or the
+   `NoDrawing` tile under forced colours: the band's frame removed reds its fidelity SET alone and a `print:` frame with
+   the departure moved is green; the tile's outline removed or its group mistyped is green. r5 measured the cheap close for
+   the tile: the second kind's classifier, pointed at `stories/radio-group.stories.tsx`, reads the head tile as SAVED and
+   names it once the outline goes (X2, X3), with two false positives to declare (`Rules`, `AsAList`, whose rows compose the
+   part's circle). The probe tables are the record until then.
+4. No REQUEST is open on the four DL28 items this release carried: the handle's gap entry is deleted, the band and the
+   tile draw under the mode, the radius axis exists.
+5. **Finding, the scan recipe in this repository**: scan 3's arms (path, basename, `@/` alias, an extension-less `./x"`)
+   do not match `../stories/<x>.stories.js`, the form every test here imports a story module by; the first pass missed
+   `choice-drawing`, `focus-outline` and `story-suites` for the radio story. A `/<stem>.js"` arm caught them.
+
+### UNVERIFIED (every claim of (b) measured)
+
+- 36 / 619 at the base: **held**.
+- "the handle: 160 pixels in normal colours and 0 in both forced palettes": **held**, twice (DL28's form and the real
+  part).
+- "deleting the `KNOWN_REST_GAPS` entry reds the third kind naming `sheet.tsx`": **held**, quoted in "(i)".
+- ⚠️ "a 4px box drawn as a 2px border on four sides is a filled box in normal colours (the same 160 pixels) and a
+  `CanvasText` frame under the mode": the count and the forced frame **held** (160; rgb(255, 255, 255) on the dark
+  palette, rgb(0, 0, 0) on the light); "the same pixels" **did not**: 5 of 160 differ by one channel level. Not taken.
+- "the band: 11,632 pixels in normal colours and 0 under both palettes, the track's text kept": **held** (DL28's form,
+  reproduced; the real part reads 27,918 with its shadow and its whole width at 390).
+- "`forced-colors:` utilities emit inside the media query only, so normal colours are byte-identical": **held**, measured
+  by page hash for the handle, the band and the tile, not assumed.
+- "the band sizes no box, so the third kind cannot see it and nothing reds at the base": **held** (the band's frame removed
+  at the head reds only fidelity's SET, ii-1).
+- "`NoDrawing`'s checked and unchecked tiles IDENTICAL under the mode (DL24)": **held**, hash for hash in both palettes.
+- "`choice-drawing.test.tsx:346-370` moves only if the ring goes": the ring stays, the file does not move (green at every
+  commit).
+- "the `NoDrawing` tile at `:173`": it is at `:175` at the base (`:181` at the head, the docblock grew); `:159-187` held.
+- "`cva` emits the base string first and the variant's class after it; the default's SET is 0.1.7's, its ORDER is not":
+  **held** byte for byte (quoted in "(iv)").
+- "an appended `rounded-none` would lose to `rounded-md` by sheet order": **corrected** (finding 1).
+- "thepile pins no `Card` class LITERAL (`ReviewCard.test.tsx:61-107` selects `[data-slot="card"]` and reads no class
+  string)": **held**, and its `:105-140` compares class SETS read off the bare part, which the order cannot move.
+- "`registry.test.ts`'s derived-deps arm reds without the declaration": **held**, quoted; no counter moves.
+- "`client-boundary.test.ts` stays green": **held** (RUN at every commit).
+- "`DECLARED_STORIES` 111 / `DECLARED_PLAYS` 81 at `stories.test.tsx:69-70`": **held** at the base; 113 / 83 now.
+- "which `playwright-core`": **1.61.1** installed in the probe package, launching Chromium 149.0.7827.55
+  (`chromium_headless_shell-1228`).
+- "`r/radio-group.json` rebuilt" (the brief's list of items rebuilt): **does not move**: the story is not in the registry
+  and `radio-group.tsx` is untouched; three items move (`sheet`, `ribbon`, `card`) plus `r/registry.json`.
+
+### The gate
+
+`pnpm verify` exit **0** at every commit, from the root, the tree clean after: `cdacf851` (the base, 36 / 619), `757327e`
+(36 / 619), `d455000` (36 / 619), `50bd422` (36 / 619), `6b35809` (36 / 624), `a216c2d` (36 / 624), `fa9a517` (36 / 624),
+`ab767ff` (36 / 626), and **the pack point `24cb107`: `Test Files 36 passed (36)`, `Tests 626 passed (626)`** (logs
+`verify-{base,i,ii,iii,iv,iv-doc,iv-msg,l1,bump}.log`). This section lands in one docs-only commit after them. Pushed to
+`s/lib-0.1.8` at every green checkpoint; no tag, no `pnpm publish`, no PR. The tag `ui@0.1.8` belongs at `24cb107`.
+
+### Layer 1 (reviewer, detached worktree of fa9a5173ff09664f965a590a3707a95967251c25, slot r5, marquee-ui, no database)
+
+**0 HIGH, 1 MED, 6 LOW** over 25 mutations in r5's own detached worktree (`../marquee-ui-r5`, removed after), its own driver (`$BATCH_SCRATCH/r5/bin/mut.py`, logs `r5/mut/<name>.log` + `.json`), each edit asserted landed, the registry rebuilt after a part edit, the WHOLE suite run and the tree checked clean; `pnpm build` exit 0 and the untouched head's suite `Test Files 36 passed (36)` / `Tests 624 passed (624)`. Its findings and re-derived numbers are in `$BATCH_SCRATCH/r5/report.md`; the table below is pasted verbatim, and every GREEN row is answered after it.
+
+| file                                          | test                                                                                             | mutation applied                                                                                                   | red / GREEN                                                                                                                                  | what it asserts now                                                                                                                                        |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| src/sheet.tsx + fidelity.test.tsx (lockstep)  | forced-colors-state: gives every host drawn at rest in a background alone a paint the mode keeps | M1a: handle `forced-colors:border-2` -> `print:border-2`, departure moved to match                                 | red (1 failed / 623), names `sheet.tsx: "...print:border-2 md:hidden" at rest is drawn in background-color: var(--border-strong) alone`      | the third kind reads WHERE the frame applies: a frame under another media query does not save the host                                                     |
+| same                                          | same                                                                                             | M1b: -> `md:forced-colors:border-2` (frame only where the handle is hidden)                                        | red, same message naming the handle                                                                                                          | a frame under the mode AND another query is `conditional`, not a save                                                                                      |
+| same                                          | same                                                                                             | M1d: + `forced-colors:border-[color:Canvas]` beside the frame                                                      | red, same message                                                                                                                            | a frame drawn in the ground colour is not a paint                                                                                                          |
+| same                                          | same                                                                                             | M1e: -> `forced-colors:border-0`                                                                                   | red, same message                                                                                                                            | a zero-width frame is not a paint                                                                                                                          |
+| forced-colors-state.test.tsx                  | same                                                                                             | M1f: `KNOWN_REST_GAPS` re-declared for the handle keyed on the HEAD's token set (frame present)                    | red: `a KNOWN_REST_GAPS entry names no host that draws in a background alone`                                                                | the expiry fires because the FRAME makes the handle not-a-site, not because of a re-key                                                                    |
+| sheet.tsx + fidelity + forced-colors-state    | same                                                                                             | M1h (control for M1f): handle `print:border-2`, departure moved, gap keyed on the print token set                  | GREEN (624/624), expected                                                                                                                    | a correctly keyed gap for a frame that does not save is accepted: M1f's red is the frame's                                                                 |
+| sheet.tsx + fidelity.test.tsx (lockstep)      | same                                                                                             | M1c: handle `forced-colors:border-2` -> `forced-colors:invisible`                                                  | **GREEN** (624/624)                                                                                                                          | nothing: the third kind calls a host HIDDEN by the mode "not a site", while it draws 0 pixels in both forced palettes (probe below). LOW-1                 |
+| src/ribbon.tsx + fidelity.test.tsx (lockstep) | fidelity ribbon.band; every forced-colors arm                                                    | M2a: band `forced-colors:border-y-2` -> `print:border-y-2`, departure moved                                        | **GREEN** (624/624)                                                                                                                          | nothing reads where the band's frame applies: the third kind's SIZES clause exempts the band, fidelity pins the literal only. LOW-3                        |
+| stories/radio-group.stories.tsx               | every test (stories.test, tailwind-compile, forced-colors-state)                                 | M3a: tile `forced-colors:group-has-checked/radio:outline-2` -> `.../radioo:outline-2` (a group that never matches) | **GREEN** (624/624)                                                                                                                          | nothing reads the tile's forced treatment (the stream's known ceiling, also for a typo, not only a removal). LOW-2                                         |
+| stories/radio-group.stories.tsx               | same                                                                                             | M3b: tile outline removed (the stream's iii-1, re-run on my tree)                                                  | **GREEN** (624/624)                                                                                                                          | as M3a                                                                                                                                                     |
+| forced-colors-state.test.tsx (exploratory)    | second kind: gives every state drawn only in colour a forced-colors treatment...                 | X1: `partFiles()` also returns `../stories/radio-group.stories.tsx`, head tile untouched                           | red, but NOT on the tile: names `has-checked` rows at radio-group.stories.tsx:47 (`Rules`) and :222 (`AsAList`)                              | the classifier reads the head tile as SAVED; the two names are false positives (both rows compose `{drawing}`, the part's circle, which carries the state) |
+| same + stories                                | same                                                                                             | X2: X1 + tile outline removed                                                                                      | red, and now names `the group-has-checked/radio state ... drawn in ["border-color","--tw-ring-shadow","box-shadow","--tw-ring-color"] alone` | the existing classifier CAN guard the tile: the gap is only that it is never pointed at it                                                                 |
+| same + stories                                | same                                                                                             | X3: X1 + tile group typo `/radioo`                                                                                 | red, names the tile's group-has-checked/radio site                                                                                           | as X2, for the typo too                                                                                                                                    |
+| src/card.tsx                                  | fidelity: md is the default: 0.1.7's set, with the axis's class last                             | M4a: appended shape, base keeps `rounded-md`, `md: ""`                                                             | red (1 failed): `flex flex-col gap-3 rounded-md border-2 border-border bg-surface p-4: expected false to be true`                            | the `endsWith(" rounded-md")` arm is the ONLY thing that sees the appended shape; plays and sets stay green                                                |
+| src/card.tsx                                  | all three radius tests, NEW_PARTS card, RadiusMd/RadiusSharp plays                               | M4b: base keeps `rounded-md` AND `md: "rounded-md"` (the stream's iv-3, re-run)                                    | **GREEN** (624/624)                                                                                                                          | nothing: the library's merging `cn` deletes the base's `rounded-md`, so the swap the test names is unobservable. MED-1                                     |
+| src/card.tsx                                  | every Card test                                                                                  | M4c: `cn(cardVariants({ radius }), className)` -> `cn(className, cardVariants({ radius }))`                        | **GREEN** (624/624)                                                                                                                          | nothing pins that a caller's className beats the axis; under this cn a caller's `p-0 rounded-lg` is dropped (proved below). LOW-4                          |
+| src/card.tsx                                  | fidelity: NEW_PARTS card; md is the default                                                      | M4d: `defaultVariants` removed                                                                                     | red (2 failed): NEW_PARTS `card` set and `expected 'flex flex-col gap-3 border-2 border-b…' to be …`                                         | the default is pinned twice                                                                                                                                |
+| src/card.tsx                                  | fidelity: reaches the element through Card and asChild                                           | M4e: asChild path ignores radius (`radius: asChild ? undefined : radius`)                                          | red (1 failed): asChild arm's token set                                                                                                      | the asChild arm is not vacuous for the CLASS                                                                                                               |
+| src/card.tsx                                  | same                                                                                             | M4f: radius spread onto the element on the asChild path only                                                       | red: `radius leaked onto the asChild element: expected true to be false`                                                                     | the asChild arm is not vacuous for the ATTRIBUTE                                                                                                           |
+| src/card.tsx                                  | fidelity NEW_PARTS card, md default; stories card/RadiusMd; stories play count                   | M4h: `md: "rounded-sm"`                                                                                            | red (4 failed): incl. `card/RadiusMd :: expect(element).toHaveClass("rounded-md")`                                                           | RadiusMd's play reads the md class itself                                                                                                                  |
+| registry.json (rebuilt r/)                    | registry.test: declares npm dependencies at the versions the package itself builds against       | M5a: card item `class-variance-authority@^0.7.1` -> `@^0.7.0`                                                      | red: `card: class-variance-authority is not a dependency of @marquee-ui/ui: expected '^0.7.1' to be '^0.7.0'`                                | the per-item range arm reads the new dependency                                                                                                            |
+| fidelity.test.tsx (instrument)                | fidelity sheet.handle, ribbon.band                                                               | M6a: `expected()` keeps only a target's FIRST token                                                                | red (2 failed): sheet.handle and ribbon.band                                                                                                 | the multi-token expansion is load-bearing: both added frames are in `expected`                                                                             |
+| fidelity.test.tsx (instrument)                | fidelity pagination.nav                                                                          | M6b: the `.filter(Boolean)` after the flatMap removed                                                              | red: `expected [] to deeply equal [ '' ]`                                                                                                    | the DROP path still goes through the trailing filter after the flatMap change                                                                              |
+| stories/card.stories.tsx                      | stories: runs all 83 play functions                                                              | M7a: RadiusSharp's `play` renamed `playX`                                                                          | red: `expected [...] to have a length of 83 but got 82`                                                                                      | DECLARED_PLAYS 83 is live                                                                                                                                  |
+
+Probe rows (drawn in headless Chromium 149.0.7827.55 through MY copy of the stream's probe, `r5/probe/`, against MY
+tree's own `loadCompiledSheet` and real parts; driver `bin/probe-mut.py`, same restore discipline):
+
+| file             | test                         | mutation applied                                      | red / GREEN                   | what it asserts now                                                                                                                                                                                                      |
+| ---------------- | ---------------------------- | ----------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| (probe) draw.mjs | handle / band / tiles pixels | none (head)                                           | n/a                           | `draw-head.txt` BYTE-IDENTICAL to s1's `draw-head-iv.txt`; my compiled sheet (39,323 B) and markup `cmp`-identical to s1's head-iv ones                                                                                  |
+| (probe) draw.mjs | same                         | P1: all three forced frames removed from MY head tree | instrument FAILS as it should | forced handle 0 / 0, band 0 / 0, tiles 0 / 0; forced hashes = s1's base hashes (`7aa4282bd779`, `36f8fe76168c`, `2846b64416f0`); normal hashes unchanged (`50e342c82331`, `5177fc939709`, `c8093411316b`/`0baf0bcce5e6`) |
+| (probe) draw.mjs | handle                       | P2: handle `forced-colors:invisible` (M1c's shape)    | instrument reads 0            | handle 160 normal, 0 / 0 forced, while the suite is 624/624 green                                                                                                                                                        |
+
+**Every GREEN row, answered** (the fixes in "Layer 1's fixes" above):
+
+- **M1h**: a control, green by design: it proves M1f's red is the frame's effect and not a re-key. Nothing to change.
+- **M1c** (LOW-1): not closed, the predicate is the guard's code (REQUEST 2); `KNOWN_REST_GAPS`' docblock records it
+  (`ab767ff`). The handle stays pinned by fidelity's literal.
+- **M2a** (LOW-3): not closed, the stated ceiling of "(ii)" (REQUEST 3).
+- **M3a, M3b** (LOW-2): not closed, the stated ceiling of "(iii)"; r5's X1-X3 are the measured close (REQUEST 3).
+- **M4b** (MED-1): FIXED at `ab767ff`, the join emission test: now **red** 1 / 626, and green again only with the mock
+  pointed back at the merging `cn` (the control).
+- **M4c** (LOW-4): FIXED at `ab767ff`, the caller's radius wins at every value: now **red** 1 / 626.

@@ -1,5 +1,6 @@
 import { cleanup, render } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import type { ReactElement } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import upstream from "./fixtures/upstream-classes.json" with { type: "json" };
 import upstreamNav from "./fixtures/upstream-nav-classes.json" with { type: "json" };
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/accordion";
@@ -87,11 +88,18 @@ const DEPARTURES: Readonly<Record<string, readonly (readonly [string, string, st
       "the safe-area inset is the consumer's document-level plumbing and the tokens package deliberately does not carry it; without the fallback an undefined custom property makes the whole declaration invalid and the sheet loses its bottom padding entirely. Where the consumer DOES define it, the two spellings compute the same pixel.",
     ],
   ],
+  "sheet.handle": [
+    [
+      "bg-border-strong",
+      "bg-border-strong forced-colors:border-2",
+      "ADDED, not renamed (0.1.8): forced colors turns the fill to Canvas on Canvas, so the handle vanished in both forced palettes (160 pixels in normal colours, 0 under the mode, measured in Chromium). The frame exists only under the mode and is drawn in its ink; in normal colours the handle is the upstream fill, byte-identical.",
+    ],
+  ],
   "ribbon.band": [
     [
       "bg-primary",
-      "bg-brand",
-      "D8 splits identity from action: a band that announces the product is `brand`, a button is `primary`. The dark preset assigns the same colour to both, so no pixel moves.",
+      "bg-brand forced-colors:border-y-2",
+      "D8 splits identity from action: a band that announces the product is `brand`, a button is `primary`. The dark preset assigns the same colour to both, so no pixel moves. And the frame is ADDED (0.1.8): forced colors turns the fill to Canvas on Canvas and drops the shadow, so the stripe drew 0 pixels in both forced palettes (measured in Chromium); the frame exists only under the mode, drawn in its ink.",
     ],
     [
       "shadow-[0_6px_18px_rgba(0,0,0,0.4)]",
@@ -142,13 +150,14 @@ function expected(key: string, upstreamValue: string): string[] {
     .split(/\s+/)
     .filter(Boolean)
     .map(renameUtility)
-    .map((token) => {
+    .flatMap((token) => {
       const swap = departures.find(([from]) => from === token);
-      if (!swap) return token;
+      if (!swap) return [token];
       applied.add(swap[0]);
       // An empty target is a DROP, declared with its reason like any other
-      // departure: the utility leaves the part rather than changing name.
-      return swap[1];
+      // departure: the utility leaves the part rather than changing name. A target
+      // of several utilities KEEPS or renames the first and ADDS the rest (0.1.8).
+      return swap[1].split(/\s+/);
     })
     .filter(Boolean);
   // A departure that no longer applies is a stale excuse; say so loudly.
@@ -448,7 +457,7 @@ describe("the rename table itself", () => {
       (from) => !strings.some((value) => value.split(/\s+/).some((t) => t.endsWith(from))),
     );
     expect(stale, "rename entries that no upstream string uses").toEqual([]);
-    expect([...declared].length).toBe(6);
+    expect([...declared].length).toBe(7);
   });
 
   it("names a reason for every departure", () => {
@@ -773,4 +782,95 @@ describe("the new parts wear the utilities they declare", () => {
       expect(tokens(slotClass(name))).toEqual(tokens(classes));
     });
   }
+});
+
+/**
+ * THE RADIUS AXIS (0.1.8), on `Card`: `md`, the default, is the small radius every card
+ * drew through 0.1.7; `sharp` is square. An axis that SWAPS the token out of the base
+ * string, in `Button`'s `width` shape, and not an appended `rounded-none`: under a `cn`
+ * that only joins (a consumer's), two radius utilities on one element resolve by
+ * stylesheet order. What each value DRAWS (10px and 0px on the compiled sheet, the
+ * default's pixels 0.1.7's) is a rendered measurement in marquee-ui's
+ * `docs/as-built.md`, "LIB-0.1.8"; this pins the strings that drawing stands on.
+ */
+describe("the radius axis on Card", () => {
+  const drawn = (mount: () => void): string => {
+    mount();
+    const value = slotClass("card");
+    cleanup();
+    return value;
+  };
+  const CARD = NEW_PARTS.find(([slot]) => slot === "card")![2];
+
+  it("md is the default: 0.1.7's set, with the axis's class last", () => {
+    const byDefault = drawn(() => render(<Card />));
+    expect(drawn(() => render(<Card radius="md" />))).toBe(byDefault);
+    expect(tokens(byDefault)).toEqual(tokens(CARD));
+    expect(byDefault.endsWith(" rounded-md"), byDefault).toBe(true);
+  });
+
+  it("sharp swaps rounded-md for rounded-none and moves nothing else", () => {
+    expect(tokens(drawn(() => render(<Card radius="sharp" />)))).toEqual(
+      tokens("flex flex-col gap-3 rounded-none border-2 border-border bg-surface p-4"),
+    );
+  });
+
+  it("reaches the element through Card and asChild, and never as an attribute", () => {
+    render(<Card radius="sharp" />);
+    expect(slotClass("card").split(" ")).toContain("rounded-none");
+    expect(
+      document.querySelector('[data-slot="card"]')!.hasAttribute("radius"),
+      "radius leaked onto the <div>",
+    ).toBe(false);
+    cleanup();
+    render(
+      <Card asChild radius="sharp">
+        <article>body</article>
+      </Card>,
+    );
+    const article = document.querySelector('[data-slot="card"]')!;
+    expect(article.tagName).toBe("ARTICLE");
+    expect(tokens(article.getAttribute("class") ?? "")).toEqual(
+      tokens("flex flex-col gap-3 rounded-none border-2 border-border bg-surface p-4"),
+    );
+    expect(article.hasAttribute("radius"), "radius leaked onto the asChild element").toBe(false);
+  });
+
+  it("lets a caller's radius win over the axis, through this package's cn", () => {
+    // Layer 1 r5 LOW-4: the caller's class is merged AFTER the table, so it wins a conflict.
+    for (const radius of [undefined, "md", "sharp"] as const) {
+      const value = drawn(() => render(<Card radius={radius} className="rounded-lg" />));
+      expect(
+        value.split(" ").filter((t) => t.startsWith("rounded-")),
+        `radius=${radius}: ${value}`,
+      ).toEqual(["rounded-lg"]);
+    }
+  });
+
+  it("emits ONE radius per value under a cn that only joins, which is the consumer's", async () => {
+    // Layer 1 r5 MED-1. The registry copy imports `cn` from the CONSUMER's `@/lib/utils`, and the
+    // reference consumer's joins without merging, so the base string reaches the class attribute as
+    // written: a `rounded-md` left in the base would ride beside the axis's token there while every
+    // read through this package's merging `cn` stayed green. `Card` is called, not rendered: the
+    // element's own className is the emission, with no second React copy to render it.
+    vi.resetModules();
+    vi.doMock("@/lib/utils", () => ({
+      cn: (...parts: unknown[]) => parts.filter(Boolean).join(" "),
+    }));
+    try {
+      const { Card: Joined } = await import("@/card");
+      const emitted = (radius?: "md" | "sharp") =>
+        (Joined({ radius }) as ReactElement<{ className: string }>).props.className;
+      expect(emitted()).toBe(
+        "flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-md",
+      );
+      expect(emitted("md")).toBe(emitted());
+      expect(emitted("sharp")).toBe(
+        "flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-none",
+      );
+    } finally {
+      vi.doUnmock("@/lib/utils");
+      vi.resetModules();
+    }
+  });
 });

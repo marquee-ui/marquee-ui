@@ -69,10 +69,13 @@ export function SheetContent({
         )}
         {...props}
       >
+        {/* Forced colors turns the fill to Canvas on Canvas, so the handle also carries a
+            2px frame in that mode alone, drawn in the forced ink; in normal colours the
+            frame does not exist and the handle is the fill, byte-identical (0.1.8). */}
         <div
           aria-hidden="true"
           data-slot="sheet-handle"
-          className="mx-auto h-1 w-10 shrink-0 rounded-full bg-border-strong md:hidden"
+          className="mx-auto h-1 w-10 shrink-0 rounded-full bg-border-strong forced-colors:border-2 md:hidden"
         />
         {children}
       </Dialog.Content>

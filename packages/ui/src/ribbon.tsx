@@ -66,7 +66,13 @@ export function Ribbon({ items, separator = DEFAULT_SEPARATOR, className, ...pro
       )}
       {...props}
     >
-      <div data-slot="ribbon-band" className="-rotate-3 overflow-hidden bg-brand shadow-band">
+      {/* Forced colors turns the stripe's fill to Canvas on Canvas and drops its shadow, so
+          the band also carries a 2px frame top and bottom in that mode alone, drawn in the
+          forced ink; in normal colours the frame does not exist (0.1.8). */}
+      <div
+        data-slot="ribbon-band"
+        className="-rotate-3 overflow-hidden bg-brand shadow-band forced-colors:border-y-2"
+      >
         <div
           aria-hidden="true"
           data-slot="ribbon-track"
