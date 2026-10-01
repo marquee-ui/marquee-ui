@@ -72,3 +72,25 @@ export const TitleAtAnotherLevel: Story = {
     await expect(title).toHaveAttribute("data-slot", "card-title");
   },
 };
+
+/** The radius axis at its default, `md`, named: the small radius every card drew before it. */
+export const RadiusMd: Story = {
+  args: { radius: "md", children: <CardContent>The small radius, the default.</CardContent> },
+  play: async ({ canvasElement }) => {
+    const card = canvasElement.querySelector('[data-slot="card"]')!;
+    await expect(card).toHaveClass("rounded-md");
+    await expect(card).not.toHaveClass("rounded-none");
+    await expect(card).not.toHaveAttribute("radius");
+  },
+};
+
+/** Square corners: the axis SWAPS the radius token rather than appending one over it. */
+export const RadiusSharp: Story = {
+  args: { radius: "sharp", children: <CardContent>Square corners.</CardContent> },
+  play: async ({ canvasElement }) => {
+    const card = canvasElement.querySelector('[data-slot="card"]')!;
+    await expect(card).toHaveClass("rounded-none");
+    await expect(card).not.toHaveClass("rounded-md");
+    await expect(card).not.toHaveAttribute("radius");
+  },
+};

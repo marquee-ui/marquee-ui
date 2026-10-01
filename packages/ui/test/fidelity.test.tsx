@@ -782,3 +782,53 @@ describe("the new parts wear the utilities they declare", () => {
     });
   }
 });
+
+/**
+ * THE RADIUS AXIS (0.1.8), on `Card`: `md`, the default, is the small radius every card
+ * drew through 0.1.7; `sharp` is square. An axis that SWAPS the token out of the base
+ * string, in `Button`'s `width` shape, and not an appended `rounded-none`: under a `cn`
+ * that only joins (a consumer's), two radius utilities on one element resolve by
+ * stylesheet order. What each value DRAWS (10px and 0px on the compiled sheet, the
+ * default's pixels 0.1.7's) is a rendered measurement in marquee-ui's
+ * `docs/as-built.md`, "LIB-0.1.8"; this pins the strings that drawing stands on.
+ */
+describe("the radius axis on Card", () => {
+  const drawn = (mount: () => void): string => {
+    mount();
+    const value = slotClass("card");
+    cleanup();
+    return value;
+  };
+  const CARD = NEW_PARTS.find(([slot]) => slot === "card")![2];
+
+  it("md is the default: 0.1.7's set, with the axis's class last", () => {
+    const byDefault = drawn(() => render(<Card />));
+    expect(drawn(() => render(<Card radius="md" />))).toBe(byDefault);
+    expect(tokens(byDefault)).toEqual(tokens(CARD));
+    expect(byDefault.endsWith(" rounded-md"), byDefault).toBe(true);
+  });
+
+  it("sharp swaps rounded-md for rounded-none and moves nothing else", () => {
+    expect(tokens(drawn(() => render(<Card radius="sharp" />)))).toEqual(
+      tokens("flex flex-col gap-3 rounded-none border-2 border-border bg-surface p-4"),
+    );
+  });
+
+  it("reaches the element through Card and asChild, and never as an attribute", () => {
+    render(<Card radius="sharp" />);
+    expect(slotClass("card").split(" ")).toContain("rounded-none");
+    expect(document.querySelector('[data-slot="card"]')!.hasAttribute("radius")).toBe(false);
+    cleanup();
+    render(
+      <Card asChild radius="sharp">
+        <article>body</article>
+      </Card>,
+    );
+    const article = document.querySelector('[data-slot="card"]')!;
+    expect(article.tagName).toBe("ARTICLE");
+    expect(tokens(article.getAttribute("class") ?? "")).toEqual(
+      tokens("flex flex-col gap-3 rounded-none border-2 border-border bg-surface p-4"),
+    );
+    expect(article.hasAttribute("radius"), "radius leaked onto the asChild element").toBe(false);
+  });
+});
