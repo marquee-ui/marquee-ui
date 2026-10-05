@@ -14917,6 +14917,8 @@ transition-colors hover:border-line-strong md:w-75 xl:w-85`), `components/lists/
   `cut-20` `:511-513`, a clip path) and `components/tiers/TemplateCard.tsx:44` (`radius="sharp"`, no class): **none
   passes a rest edge colour or a padding**, so the axes' defaults emit what each drew before and none of the nine moves.
 
+**Correction (2026-10-05, thepile's DL47 layer 2, LOW-4).** At thepile's DL47 reconciled head (`15d7638b`) there are ELEVEN other `Card` importers, not nine: DL47's s3 added `Fact` (`app/[username]/reckoning/[year]/page.tsx`, `<Card radius="sharp" className="gap-y-1">`) and `Evidence` (`app/admin/reports/page.tsx`, the default radius, the lines inside `CardContent`), both on unfilmed routes and both guarded by an e2e arm of their own (`e2e/reckoning.spec.ts`, `e2e/admin.spec.ts`); neither passes a rest edge colour or a padding, so the axes' defaults emit what each drew (the flip moves neither: REASONED from the 27-combination proof above, not run). And `TierListCard.test.tsx:305` is the EMISSION read; the bare render it describes is `:302`.
+
 ### Consumers
 
 **Run 1, at the passengers' head** (`scan-run1.txt`, `scan-run1b.txt`, `origin/next...9845b0a` over `packages/**`). ⚠️
