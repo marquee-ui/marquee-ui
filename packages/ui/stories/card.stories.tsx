@@ -94,3 +94,33 @@ export const RadiusSharp: Story = {
     await expect(card).not.toHaveAttribute("radius");
   },
 };
+
+/**
+ * The edge in the action role: `border-primary` on the card and `border-border` not, as this
+ * package's merging `cn` renders it. That the axis SWAPS the colour rather than appending one
+ * over the default is the join-only arm's read (`test/fidelity.test.tsx`, "the edge axis on Card").
+ */
+export const EdgePrimary: Story = {
+  args: { edge: "primary", children: <CardContent>The edge in the action role.</CardContent> },
+  play: async ({ canvasElement }) => {
+    const card = canvasElement.querySelector('[data-slot="card"]')!;
+    await expect(card).toHaveClass("border-primary");
+    await expect(card).not.toHaveClass("border-border");
+    await expect(card).not.toHaveAttribute("edge");
+  },
+};
+
+/**
+ * The small gutter, half the default: `p-2` on the card and `p-4` not, as this package's merging
+ * `cn` renders it. That the axis SWAPS the padding rather than appending one over the default is
+ * the join-only arm's read (`test/fidelity.test.tsx`, "the gutter axis on Card").
+ */
+export const GutterSm: Story = {
+  args: { gutter: "sm", children: <CardContent>The small gutter.</CardContent> },
+  play: async ({ canvasElement }) => {
+    const card = canvasElement.querySelector('[data-slot="card"]')!;
+    await expect(card).toHaveClass("p-2");
+    await expect(card).not.toHaveClass("p-4");
+    await expect(card).not.toHaveAttribute("gutter");
+  },
+};

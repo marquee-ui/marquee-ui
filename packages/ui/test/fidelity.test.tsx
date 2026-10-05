@@ -869,11 +869,187 @@ describe("the radius axis on Card", () => {
       const emitted = (radius?: "md" | "sharp") =>
         (Joined({ radius }) as ReactElement<{ className: string }>).props.className;
       expect(emitted()).toBe(
-        "flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-md",
+        "flex flex-col gap-3 border-2 bg-surface p-4 border-border rounded-md",
       );
       expect(emitted("md")).toBe(emitted());
       expect(emitted("sharp")).toBe(
-        "flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-none",
+        "flex flex-col gap-3 border-2 bg-surface p-4 border-border rounded-none",
+      );
+    } finally {
+      vi.doUnmock("@/lib/utils");
+      vi.resetModules();
+    }
+  });
+});
+
+/**
+ * THE EDGE AXIS (0.1.10), on `Card`: `default` is the line every card drew through 0.1.9
+ * (`border-border`); `primary` draws the edge in the action role (`border-primary`). An axis
+ * that SWAPS the token out of the base string, in `radius`'s shape, and not an appended
+ * `border-primary`: under a `cn` that only joins (a consumer's), two border colours on one
+ * element resolve by stylesheet order. What each value DRAWS is the consumer's measurement;
+ * what each compiles to is quoted in marquee-ui's `docs/as-built.md`, "LIB-0.1.10"; this pins
+ * the strings that drawing stands on.
+ */
+describe("the edge axis on Card", () => {
+  const drawn = (mount: () => void): string => {
+    mount();
+    const value = slotClass("card");
+    cleanup();
+    return value;
+  };
+  const CARD = NEW_PARTS.find(([slot]) => slot === "card")![2];
+  const PRIMARY = "flex flex-col gap-3 rounded-md border-2 border-primary bg-surface p-4";
+  const edgeColours = (value: string) =>
+    value.split(" ").filter((t) => t.startsWith("border-") && t !== "border-2");
+
+  it("default is the default: 0.1.9's set, its one edge colour border-border", () => {
+    const byDefault = drawn(() => render(<Card />));
+    expect(drawn(() => render(<Card edge="default" />))).toBe(byDefault);
+    expect(tokens(byDefault)).toEqual(tokens(CARD));
+    expect(edgeColours(byDefault), byDefault).toEqual(["border-border"]);
+  });
+
+  it("primary wears border-primary in border-border's place, nothing else moved, through this package's cn", () => {
+    // The merging `cn` erases a default left beside the value, so an APPEND reads here exactly
+    // as a swap does; the join-only arm below is the one that tells them apart.
+    expect(tokens(drawn(() => render(<Card edge="primary" />)))).toEqual(tokens(PRIMARY));
+  });
+
+  it("reaches the element through Card and asChild, and never as an attribute", () => {
+    render(<Card edge="primary" />);
+    expect(slotClass("card").split(" ")).toContain("border-primary");
+    expect(
+      document.querySelector('[data-slot="card"]')!.hasAttribute("edge"),
+      "edge leaked onto the <div>",
+    ).toBe(false);
+    cleanup();
+    render(
+      <Card asChild edge="primary">
+        <article>body</article>
+      </Card>,
+    );
+    const article = document.querySelector('[data-slot="card"]')!;
+    expect(article.tagName).toBe("ARTICLE");
+    expect(tokens(article.getAttribute("class") ?? "")).toEqual(tokens(PRIMARY));
+    expect(article.hasAttribute("edge"), "edge leaked onto the asChild element").toBe(false);
+  });
+
+  it("lets a caller's edge win over the axis, through this package's cn", () => {
+    for (const edge of [undefined, "default", "primary"] as const) {
+      const value = drawn(() => render(<Card edge={edge} className="border-destructive" />));
+      expect(edgeColours(value), `edge=${edge}: ${value}`).toEqual(["border-destructive"]);
+    }
+  });
+
+  it("emits ONE edge colour per value, and none for null, under a cn that only joins, which is the consumer's", async () => {
+    // The registry copy imports `cn` from the CONSUMER's `@/lib/utils`, and the reference
+    // consumer's joins without merging, so the base string reaches the class attribute as
+    // written: a `border-border` left in the base would ride beside `border-primary` there,
+    // and the drawn edge would be whichever the consumer's sheet emits last.
+    vi.resetModules();
+    vi.doMock("@/lib/utils", () => ({
+      cn: (...parts: unknown[]) => parts.filter(Boolean).join(" "),
+    }));
+    try {
+      const { Card: Joined } = await import("@/card");
+      const emitted = (edge?: "default" | "primary" | null) =>
+        (Joined({ edge }) as ReactElement<{ className: string }>).props.className;
+      expect(emitted()).toBe(
+        "flex flex-col gap-3 border-2 bg-surface p-4 border-border rounded-md",
+      );
+      expect(emitted("default")).toBe(emitted());
+      expect(emitted("primary")).toBe(
+        "flex flex-col gap-3 border-2 bg-surface p-4 border-primary rounded-md",
+      );
+      // Layer 1 r5 LOW-1: the docblock's `edge={null}`, which a `?? "default"` would quietly undo.
+      expect(emitted(null)).toBe("flex flex-col gap-3 border-2 bg-surface p-4 rounded-md");
+    } finally {
+      vi.doUnmock("@/lib/utils");
+      vi.resetModules();
+    }
+  });
+});
+
+/**
+ * THE GUTTER AXIS (0.1.10), on `Card`: `md` is the 16px-at-a-16px-root gutter every card drew
+ * through 0.1.9 (`p-4`); `sm` is half of it (`p-2`), for a card whose content is fixed-pixel art
+ * beside a line of text. An axis that SWAPS the token out of the base string, in `radius`'s
+ * shape, and not an appended `p-2`: under a `cn` that only joins (a consumer's), two paddings on
+ * one element resolve by stylesheet order. Both values are the skeleton's rem grid, so both
+ * grow with the root font; what each DRAWS is the consumer's measurement (marquee-ui's
+ * `docs/as-built.md`, "LIB-0.1.10", carries the arithmetic); this pins the strings.
+ */
+describe("the gutter axis on Card", () => {
+  const drawn = (mount: () => void): string => {
+    mount();
+    const value = slotClass("card");
+    cleanup();
+    return value;
+  };
+  const CARD = NEW_PARTS.find(([slot]) => slot === "card")![2];
+  const SM = "flex flex-col gap-3 rounded-md border-2 border-border bg-surface p-2";
+  const paddings = (value: string) => value.split(" ").filter((t) => /^p[xytrblse]?-/.test(t));
+
+  it("md is the default: 0.1.9's set, its one padding p-4", () => {
+    const byDefault = drawn(() => render(<Card />));
+    expect(drawn(() => render(<Card gutter="md" />))).toBe(byDefault);
+    expect(tokens(byDefault)).toEqual(tokens(CARD));
+    expect(paddings(byDefault), byDefault).toEqual(["p-4"]);
+  });
+
+  it("sm wears p-2 in p-4's place, nothing else moved, through this package's cn", () => {
+    // As the edge's: an APPEND reads here as a swap does; the join-only arm tells them apart.
+    expect(tokens(drawn(() => render(<Card gutter="sm" />)))).toEqual(tokens(SM));
+  });
+
+  it("reaches the element through Card and asChild, and never as an attribute", () => {
+    render(<Card gutter="sm" />);
+    expect(slotClass("card").split(" ")).toContain("p-2");
+    expect(
+      document.querySelector('[data-slot="card"]')!.hasAttribute("gutter"),
+      "gutter leaked onto the <div>",
+    ).toBe(false);
+    cleanup();
+    render(
+      <Card asChild gutter="sm">
+        <article>body</article>
+      </Card>,
+    );
+    const article = document.querySelector('[data-slot="card"]')!;
+    expect(article.tagName).toBe("ARTICLE");
+    expect(tokens(article.getAttribute("class") ?? "")).toEqual(tokens(SM));
+    expect(article.hasAttribute("gutter"), "gutter leaked onto the asChild element").toBe(false);
+  });
+
+  it("lets a caller's padding win over the axis, through this package's cn", () => {
+    for (const gutter of [undefined, "md", "sm"] as const) {
+      const value = drawn(() => render(<Card gutter={gutter} className="p-6" />));
+      expect(paddings(value), `gutter=${gutter}: ${value}`).toEqual(["p-6"]);
+    }
+  });
+
+  it("emits ONE padding per value, and none for null, under a cn that only joins, which is the consumer's", async () => {
+    // As the edge's: a `p-4` left in the base would ride beside `p-2` in the consumer's class
+    // attribute, and the drawn gutter would be whichever the consumer's sheet emits last.
+    vi.resetModules();
+    vi.doMock("@/lib/utils", () => ({
+      cn: (...parts: unknown[]) => parts.filter(Boolean).join(" "),
+    }));
+    try {
+      const { Card: Joined } = await import("@/card");
+      const emitted = (gutter?: "md" | "sm" | null) =>
+        (Joined({ gutter }) as ReactElement<{ className: string }>).props.className;
+      expect(emitted()).toBe(
+        "flex flex-col gap-3 border-2 bg-surface p-4 border-border rounded-md",
+      );
+      expect(emitted("md")).toBe(emitted());
+      expect(emitted("sm")).toBe(
+        "flex flex-col gap-3 border-2 bg-surface p-2 border-border rounded-md",
+      );
+      // Layer 1 r5 LOW-1: the docblock's `gutter={null}`, which a `?? "md"` would quietly undo.
+      expect(emitted(null)).toBe(
+        "flex flex-col gap-3 border-2 bg-surface border-border rounded-md",
       );
     } finally {
       vi.doUnmock("@/lib/utils");
