@@ -14739,6 +14739,8 @@ on `../marquee-ui-s1-mut` at `9845b0a`, `gutter` given a third value `"p-[9px]"`
 to `padding: 9px` (`has: true`); restored, clean. The refusal is the house rule's, which is a comment and not a check,
 and Ankit's to overrule (DECISION 2 [V]).
 
+**Correction (2026-10-06, thepile's LIB-VENDOR-0.1.10, its REQUEST 2, class B).** The table above holds the row's width `W` at 278px at every root font; served, the profile's board row is 358 / 342 / 326 / 278 wide at 16 / 24 / 32 / 56px, so the `sm` title column is 198 / 168 / 138 / 48 (not the table's narrower reads at 16 to 32px) and the rows GROW past 16px (88 → 86 at 16px, 94 at 24px, 188.48 at 56px) because `sm` scales where thepile's 9px did not; nothing spills. The rest of "For the consumer" held as thepile measured it: the ONE drift arm, the flip redding nothing, the hover by specificity, `.border-primary` and `.p-2` new on its sheet, 86px, the 48px column at 56px, 0 B on the 18 rows, `total` 411, eleven importers.
+
 ### The reddening runs (class E)
 
 The TDD reds above ran in the working tree, test-first. The runs below are on `../marquee-ui-s1-mut`, a detached worktree
