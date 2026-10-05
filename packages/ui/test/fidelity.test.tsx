@@ -910,7 +910,9 @@ describe("the edge axis on Card", () => {
     expect(edgeColours(byDefault), byDefault).toEqual(["border-border"]);
   });
 
-  it("primary swaps border-border for border-primary and moves nothing else", () => {
+  it("primary wears border-primary in border-border's place, nothing else moved, through this package's cn", () => {
+    // The merging `cn` erases a default left beside the value, so an APPEND reads here exactly
+    // as a swap does; the join-only arm below is the one that tells them apart.
     expect(tokens(drawn(() => render(<Card edge="primary" />)))).toEqual(tokens(PRIMARY));
   });
 
@@ -940,7 +942,7 @@ describe("the edge axis on Card", () => {
     }
   });
 
-  it("emits ONE edge colour per value under a cn that only joins, which is the consumer's", async () => {
+  it("emits ONE edge colour per value, and none for null, under a cn that only joins, which is the consumer's", async () => {
     // The registry copy imports `cn` from the CONSUMER's `@/lib/utils`, and the reference
     // consumer's joins without merging, so the base string reaches the class attribute as
     // written: a `border-border` left in the base would ride beside `border-primary` there,
@@ -951,7 +953,7 @@ describe("the edge axis on Card", () => {
     }));
     try {
       const { Card: Joined } = await import("@/card");
-      const emitted = (edge?: "default" | "primary") =>
+      const emitted = (edge?: "default" | "primary" | null) =>
         (Joined({ edge }) as ReactElement<{ className: string }>).props.className;
       expect(emitted()).toBe(
         "flex flex-col gap-3 border-2 bg-surface p-4 border-border rounded-md",
@@ -960,6 +962,8 @@ describe("the edge axis on Card", () => {
       expect(emitted("primary")).toBe(
         "flex flex-col gap-3 border-2 bg-surface p-4 border-primary rounded-md",
       );
+      // Layer 1 r5 LOW-1: the docblock's `edge={null}`, which a `?? "default"` would quietly undo.
+      expect(emitted(null)).toBe("flex flex-col gap-3 border-2 bg-surface p-4 rounded-md");
     } finally {
       vi.doUnmock("@/lib/utils");
       vi.resetModules();
@@ -994,7 +998,8 @@ describe("the gutter axis on Card", () => {
     expect(paddings(byDefault), byDefault).toEqual(["p-4"]);
   });
 
-  it("sm swaps p-4 for p-2 and moves nothing else", () => {
+  it("sm wears p-2 in p-4's place, nothing else moved, through this package's cn", () => {
+    // As the edge's: an APPEND reads here as a swap does; the join-only arm tells them apart.
     expect(tokens(drawn(() => render(<Card gutter="sm" />)))).toEqual(tokens(SM));
   });
 
@@ -1024,7 +1029,7 @@ describe("the gutter axis on Card", () => {
     }
   });
 
-  it("emits ONE padding per value under a cn that only joins, which is the consumer's", async () => {
+  it("emits ONE padding per value, and none for null, under a cn that only joins, which is the consumer's", async () => {
     // As the edge's: a `p-4` left in the base would ride beside `p-2` in the consumer's class
     // attribute, and the drawn gutter would be whichever the consumer's sheet emits last.
     vi.resetModules();
@@ -1033,7 +1038,7 @@ describe("the gutter axis on Card", () => {
     }));
     try {
       const { Card: Joined } = await import("@/card");
-      const emitted = (gutter?: "md" | "sm") =>
+      const emitted = (gutter?: "md" | "sm" | null) =>
         (Joined({ gutter }) as ReactElement<{ className: string }>).props.className;
       expect(emitted()).toBe(
         "flex flex-col gap-3 border-2 bg-surface p-4 border-border rounded-md",
@@ -1041,6 +1046,10 @@ describe("the gutter axis on Card", () => {
       expect(emitted("md")).toBe(emitted());
       expect(emitted("sm")).toBe(
         "flex flex-col gap-3 border-2 bg-surface p-2 border-border rounded-md",
+      );
+      // Layer 1 r5 LOW-1: the docblock's `gutter={null}`, which a `?? "md"` would quietly undo.
+      expect(emitted(null)).toBe(
+        "flex flex-col gap-3 border-2 bg-surface border-border rounded-md",
       );
     } finally {
       vi.doUnmock("@/lib/utils");

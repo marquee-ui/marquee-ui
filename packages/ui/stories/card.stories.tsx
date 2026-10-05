@@ -95,7 +95,11 @@ export const RadiusSharp: Story = {
   },
 };
 
-/** The edge in the action role: the axis SWAPS the edge colour rather than appending one over it. */
+/**
+ * The edge in the action role: `border-primary` on the card and `border-border` not, as this
+ * package's merging `cn` renders it. That the axis SWAPS the colour rather than appending one
+ * over the default is the join-only arm's read (`test/fidelity.test.tsx`, "the edge axis on Card").
+ */
 export const EdgePrimary: Story = {
   args: { edge: "primary", children: <CardContent>The edge in the action role.</CardContent> },
   play: async ({ canvasElement }) => {
@@ -106,7 +110,11 @@ export const EdgePrimary: Story = {
   },
 };
 
-/** The small gutter, half the default: the axis SWAPS the padding rather than appending one over it. */
+/**
+ * The small gutter, half the default: `p-2` on the card and `p-4` not, as this package's merging
+ * `cn` renders it. That the axis SWAPS the padding rather than appending one over the default is
+ * the join-only arm's read (`test/fidelity.test.tsx`, "the gutter axis on Card").
+ */
 export const GutterSm: Story = {
   args: { gutter: "sm", children: <CardContent>The small gutter.</CardContent> },
   play: async ({ canvasElement }) => {

@@ -31,14 +31,16 @@ import { cn } from "@/lib/utils";
  * `edge` is a visual axis (0.1.10), in the same shape for the same reason: `default` is
  * the line every card drew before it (`border-border`); `primary` draws the edge in the
  * action role (`border-primary`), for the one card that has to stand out from the cards
- * beside it. Two border colours on one element resolve by the stylesheet's order under a
+ * beside it. Two edge colours on one element resolve by the stylesheet's order under a
  * join, so the table SWAPS `border-border` out of the base string rather than leaving a
- * caller to append over it. `edge={null}` emits no edge colour at all.
+ * caller to append over it. `edge={null}` emits no edge colour, and that does not hide
+ * the edge: the 2px line then draws in the element's own ink, `currentcolor` (measured,
+ * 0.1.10), louder than either value.
  *
  * `gutter` is a visual axis (0.1.10), the same shape again: `md` is the gutter every card
  * drew before it (`p-4`); `sm` is half of it (`p-2`), for a card whose content is
  * fixed-pixel art beside a line of text, where the full gutter takes the text's room at
- * a large root font. Both values are the skeleton's 4px rem grid, so both grow with the
+ * a large root font. Both values are the skeleton's 4px rem grid, so both scale with the
  * root font; a pixel gutter is not offered. `gutter={null}` emits no padding at all.
  *
  * The axes' classes follow the base string in the order the axes are declared: the
