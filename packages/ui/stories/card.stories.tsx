@@ -94,3 +94,14 @@ export const RadiusSharp: Story = {
     await expect(card).not.toHaveAttribute("radius");
   },
 };
+
+/** The edge in the action role: the axis SWAPS the edge colour rather than appending one over it. */
+export const EdgePrimary: Story = {
+  args: { edge: "primary", children: <CardContent>The edge in the action role.</CardContent> },
+  play: async ({ canvasElement }) => {
+    const card = canvasElement.querySelector('[data-slot="card"]')!;
+    await expect(card).toHaveClass("border-primary");
+    await expect(card).not.toHaveClass("border-border");
+    await expect(card).not.toHaveAttribute("edge");
+  },
+};

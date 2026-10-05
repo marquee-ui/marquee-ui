@@ -27,20 +27,36 @@ import { cn } from "@/lib/utils";
  * SWAPS the token out of the base string, as `Button`'s `width` axis does, and the
  * axis's class is appended after it. `radius={null}`, which the type allows as it does
  * on every cva axis, emits no radius at all: square corners, as `sharp` draws them.
+ *
+ * `edge` is a visual axis (0.1.10), in the same shape for the same reason: `default` is
+ * the line every card drew before it (`border-border`); `primary` draws the edge in the
+ * action role (`border-primary`), for the one card that has to stand out from the cards
+ * beside it. Two border colours on one element resolve by the stylesheet's order under a
+ * join, so the table SWAPS `border-border` out of the base string rather than leaving a
+ * caller to append over it. `edge={null}` emits no edge colour at all.
+ *
+ * The axes' classes follow the base string in the order the axes are declared, so
+ * `radius` stays last: the emission is the base, then the edge colour, then the radius.
  */
-const cardVariants = cva("flex flex-col gap-3 border-2 border-border bg-surface p-4", {
-  variants: { radius: { md: "rounded-md", sharp: "rounded-none" } },
-  defaultVariants: { radius: "md" },
+const cardVariants = cva("flex flex-col gap-3 border-2 bg-surface p-4", {
+  variants: {
+    edge: { default: "border-border", primary: "border-primary" },
+    radius: { md: "rounded-md", sharp: "rounded-none" },
+  },
+  defaultVariants: { edge: "default", radius: "md" },
 });
 
 export function Card({
   className,
+  edge,
   radius,
   asChild = false,
   ...props
 }: ComponentProps<"div"> & VariantProps<typeof cardVariants> & { asChild?: boolean }) {
   const Host = asChild ? Slot : "div";
-  return <Host data-slot="card" className={cn(cardVariants({ radius }), className)} {...props} />;
+  return (
+    <Host data-slot="card" className={cn(cardVariants({ edge, radius }), className)} {...props} />
+  );
 }
 
 export function CardHeader({ className, ...props }: ComponentProps<"div">) {

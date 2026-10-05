@@ -869,11 +869,96 @@ describe("the radius axis on Card", () => {
       const emitted = (radius?: "md" | "sharp") =>
         (Joined({ radius }) as ReactElement<{ className: string }>).props.className;
       expect(emitted()).toBe(
-        "flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-md",
+        "flex flex-col gap-3 border-2 bg-surface p-4 border-border rounded-md",
       );
       expect(emitted("md")).toBe(emitted());
       expect(emitted("sharp")).toBe(
-        "flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-none",
+        "flex flex-col gap-3 border-2 bg-surface p-4 border-border rounded-none",
+      );
+    } finally {
+      vi.doUnmock("@/lib/utils");
+      vi.resetModules();
+    }
+  });
+});
+
+/**
+ * THE EDGE AXIS (0.1.10), on `Card`: `default` is the line every card drew through 0.1.9
+ * (`border-border`); `primary` draws the edge in the action role (`border-primary`). An axis
+ * that SWAPS the token out of the base string, in `radius`'s shape, and not an appended
+ * `border-primary`: under a `cn` that only joins (a consumer's), two border colours on one
+ * element resolve by stylesheet order. What each value DRAWS is the consumer's measurement;
+ * what each compiles to is quoted in marquee-ui's `docs/as-built.md`, "LIB-0.1.10"; this pins
+ * the strings that drawing stands on.
+ */
+describe("the edge axis on Card", () => {
+  const drawn = (mount: () => void): string => {
+    mount();
+    const value = slotClass("card");
+    cleanup();
+    return value;
+  };
+  const CARD = NEW_PARTS.find(([slot]) => slot === "card")![2];
+  const PRIMARY = "flex flex-col gap-3 rounded-md border-2 border-primary bg-surface p-4";
+  const edgeColours = (value: string) =>
+    value.split(" ").filter((t) => t.startsWith("border-") && t !== "border-2");
+
+  it("default is the default: 0.1.9's set, its one edge colour border-border", () => {
+    const byDefault = drawn(() => render(<Card />));
+    expect(drawn(() => render(<Card edge="default" />))).toBe(byDefault);
+    expect(tokens(byDefault)).toEqual(tokens(CARD));
+    expect(edgeColours(byDefault), byDefault).toEqual(["border-border"]);
+  });
+
+  it("primary swaps border-border for border-primary and moves nothing else", () => {
+    expect(tokens(drawn(() => render(<Card edge="primary" />)))).toEqual(tokens(PRIMARY));
+  });
+
+  it("reaches the element through Card and asChild, and never as an attribute", () => {
+    render(<Card edge="primary" />);
+    expect(slotClass("card").split(" ")).toContain("border-primary");
+    expect(
+      document.querySelector('[data-slot="card"]')!.hasAttribute("edge"),
+      "edge leaked onto the <div>",
+    ).toBe(false);
+    cleanup();
+    render(
+      <Card asChild edge="primary">
+        <article>body</article>
+      </Card>,
+    );
+    const article = document.querySelector('[data-slot="card"]')!;
+    expect(article.tagName).toBe("ARTICLE");
+    expect(tokens(article.getAttribute("class") ?? "")).toEqual(tokens(PRIMARY));
+    expect(article.hasAttribute("edge"), "edge leaked onto the asChild element").toBe(false);
+  });
+
+  it("lets a caller's edge win over the axis, through this package's cn", () => {
+    for (const edge of [undefined, "default", "primary"] as const) {
+      const value = drawn(() => render(<Card edge={edge} className="border-destructive" />));
+      expect(edgeColours(value), `edge=${edge}: ${value}`).toEqual(["border-destructive"]);
+    }
+  });
+
+  it("emits ONE edge colour per value under a cn that only joins, which is the consumer's", async () => {
+    // The registry copy imports `cn` from the CONSUMER's `@/lib/utils`, and the reference
+    // consumer's joins without merging, so the base string reaches the class attribute as
+    // written: a `border-border` left in the base would ride beside `border-primary` there,
+    // and the drawn edge would be whichever the consumer's sheet emits last.
+    vi.resetModules();
+    vi.doMock("@/lib/utils", () => ({
+      cn: (...parts: unknown[]) => parts.filter(Boolean).join(" "),
+    }));
+    try {
+      const { Card: Joined } = await import("@/card");
+      const emitted = (edge?: "default" | "primary") =>
+        (Joined({ edge }) as ReactElement<{ className: string }>).props.className;
+      expect(emitted()).toBe(
+        "flex flex-col gap-3 border-2 bg-surface p-4 border-border rounded-md",
+      );
+      expect(emitted("default")).toBe(emitted());
+      expect(emitted("primary")).toBe(
+        "flex flex-col gap-3 border-2 bg-surface p-4 border-primary rounded-md",
       );
     } finally {
       vi.doUnmock("@/lib/utils");
