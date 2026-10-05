@@ -35,19 +35,29 @@ import { cn } from "@/lib/utils";
  * join, so the table SWAPS `border-border` out of the base string rather than leaving a
  * caller to append over it. `edge={null}` emits no edge colour at all.
  *
- * The axes' classes follow the base string in the order the axes are declared, so
- * `radius` stays last: the emission is the base, then the edge colour, then the radius.
+ * `gutter` is a visual axis (0.1.10), the same shape again: `md` is the gutter every card
+ * drew before it (`p-4`); `sm` is half of it (`p-2`), for a card whose content is
+ * fixed-pixel art beside a line of text, where the full gutter takes the text's room at
+ * a large root font. Both values are the skeleton's 4px rem grid, so both grow with the
+ * root font; a pixel gutter is not offered. `gutter={null}` emits no padding at all.
+ *
+ * The axes' classes follow the base string in the order the axes are declared: the
+ * gutter, then the edge colour, then the radius, LAST as 0.1.8 shipped it. So the
+ * default emission is 0.1.9's string with `border-border` alone moved, to before the
+ * radius. What each value DRAWS is the consumer's measurement, as the radius's is.
  */
-const cardVariants = cva("flex flex-col gap-3 border-2 bg-surface p-4", {
+const cardVariants = cva("flex flex-col gap-3 border-2 bg-surface", {
   variants: {
+    gutter: { md: "p-4", sm: "p-2" },
     edge: { default: "border-border", primary: "border-primary" },
     radius: { md: "rounded-md", sharp: "rounded-none" },
   },
-  defaultVariants: { edge: "default", radius: "md" },
+  defaultVariants: { gutter: "md", edge: "default", radius: "md" },
 });
 
 export function Card({
   className,
+  gutter,
   edge,
   radius,
   asChild = false,
@@ -55,7 +65,11 @@ export function Card({
 }: ComponentProps<"div"> & VariantProps<typeof cardVariants> & { asChild?: boolean }) {
   const Host = asChild ? Slot : "div";
   return (
-    <Host data-slot="card" className={cn(cardVariants({ edge, radius }), className)} {...props} />
+    <Host
+      data-slot="card"
+      className={cn(cardVariants({ gutter, edge, radius }), className)}
+      {...props}
+    />
   );
 }
 

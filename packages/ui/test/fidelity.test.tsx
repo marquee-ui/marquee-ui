@@ -966,3 +966,85 @@ describe("the edge axis on Card", () => {
     }
   });
 });
+
+/**
+ * THE GUTTER AXIS (0.1.10), on `Card`: `md` is the 16px-at-a-16px-root gutter every card drew
+ * through 0.1.9 (`p-4`); `sm` is half of it (`p-2`), for a card whose content is fixed-pixel art
+ * beside a line of text. An axis that SWAPS the token out of the base string, in `radius`'s
+ * shape, and not an appended `p-2`: under a `cn` that only joins (a consumer's), two paddings on
+ * one element resolve by stylesheet order. Both values are the skeleton's rem grid, so both
+ * grow with the root font; what each DRAWS is the consumer's measurement (marquee-ui's
+ * `docs/as-built.md`, "LIB-0.1.10", carries the arithmetic); this pins the strings.
+ */
+describe("the gutter axis on Card", () => {
+  const drawn = (mount: () => void): string => {
+    mount();
+    const value = slotClass("card");
+    cleanup();
+    return value;
+  };
+  const CARD = NEW_PARTS.find(([slot]) => slot === "card")![2];
+  const SM = "flex flex-col gap-3 rounded-md border-2 border-border bg-surface p-2";
+  const paddings = (value: string) => value.split(" ").filter((t) => /^p[xytrblse]?-/.test(t));
+
+  it("md is the default: 0.1.9's set, its one padding p-4", () => {
+    const byDefault = drawn(() => render(<Card />));
+    expect(drawn(() => render(<Card gutter="md" />))).toBe(byDefault);
+    expect(tokens(byDefault)).toEqual(tokens(CARD));
+    expect(paddings(byDefault), byDefault).toEqual(["p-4"]);
+  });
+
+  it("sm swaps p-4 for p-2 and moves nothing else", () => {
+    expect(tokens(drawn(() => render(<Card gutter="sm" />)))).toEqual(tokens(SM));
+  });
+
+  it("reaches the element through Card and asChild, and never as an attribute", () => {
+    render(<Card gutter="sm" />);
+    expect(slotClass("card").split(" ")).toContain("p-2");
+    expect(
+      document.querySelector('[data-slot="card"]')!.hasAttribute("gutter"),
+      "gutter leaked onto the <div>",
+    ).toBe(false);
+    cleanup();
+    render(
+      <Card asChild gutter="sm">
+        <article>body</article>
+      </Card>,
+    );
+    const article = document.querySelector('[data-slot="card"]')!;
+    expect(article.tagName).toBe("ARTICLE");
+    expect(tokens(article.getAttribute("class") ?? "")).toEqual(tokens(SM));
+    expect(article.hasAttribute("gutter"), "gutter leaked onto the asChild element").toBe(false);
+  });
+
+  it("lets a caller's padding win over the axis, through this package's cn", () => {
+    for (const gutter of [undefined, "md", "sm"] as const) {
+      const value = drawn(() => render(<Card gutter={gutter} className="p-6" />));
+      expect(paddings(value), `gutter=${gutter}: ${value}`).toEqual(["p-6"]);
+    }
+  });
+
+  it("emits ONE padding per value under a cn that only joins, which is the consumer's", async () => {
+    // As the edge's: a `p-4` left in the base would ride beside `p-2` in the consumer's class
+    // attribute, and the drawn gutter would be whichever the consumer's sheet emits last.
+    vi.resetModules();
+    vi.doMock("@/lib/utils", () => ({
+      cn: (...parts: unknown[]) => parts.filter(Boolean).join(" "),
+    }));
+    try {
+      const { Card: Joined } = await import("@/card");
+      const emitted = (gutter?: "md" | "sm") =>
+        (Joined({ gutter }) as ReactElement<{ className: string }>).props.className;
+      expect(emitted()).toBe(
+        "flex flex-col gap-3 border-2 bg-surface p-4 border-border rounded-md",
+      );
+      expect(emitted("md")).toBe(emitted());
+      expect(emitted("sm")).toBe(
+        "flex flex-col gap-3 border-2 bg-surface p-2 border-border rounded-md",
+      );
+    } finally {
+      vi.doUnmock("@/lib/utils");
+      vi.resetModules();
+    }
+  });
+});

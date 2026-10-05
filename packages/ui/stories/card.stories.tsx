@@ -105,3 +105,14 @@ export const EdgePrimary: Story = {
     await expect(card).not.toHaveAttribute("edge");
   },
 };
+
+/** The small gutter, half the default: the axis SWAPS the padding rather than appending one over it. */
+export const GutterSm: Story = {
+  args: { gutter: "sm", children: <CardContent>The small gutter.</CardContent> },
+  play: async ({ canvasElement }) => {
+    const card = canvasElement.querySelector('[data-slot="card"]')!;
+    await expect(card).toHaveClass("p-2");
+    await expect(card).not.toHaveClass("p-4");
+    await expect(card).not.toHaveAttribute("gutter");
+  },
+};
