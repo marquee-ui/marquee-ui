@@ -14591,3 +14591,534 @@ untouched head `Test Files 36 passed (36)` / `Tests 630 passed (630)`. Its findi
 - **F3** (INFO-1): NOT changed, pre-existing and outside the `input.field` row: REQUEST 7.
 - **D1** (INFO-2): NOT pinned, no library test reads a comment's utilities; the sheet compare is the record: REQUEST 2.
 - MED-2 (no row): NOT fixed, `textarea.tsx` is outside the fence: REQUEST 3.
+
+## LIB-0.1.10: an edge axis and a gutter axis on `Card`, and `@marquee-ui/ui` 0.1.10 (2026-10-05)
+
+Batch DL47, stream s1, branch `s/lib-0.1.10` from `next` @ `2fce19a5` (= `main` = both remotes at the spawn), pushed to
+marquee-ui's origin at every green checkpoint. thepile is read-only throughout, at `be78a8c3` (the commit carrying the
+DL47 composition, `$BATCH_SCRATCH/orch/base.sha`), by `git -C /home/ankit/Code/thepile-next show be78a8c3:<path>`. No
+tag, no publish, no PR. The two passengers are Ankit's DL46 DECISION 12, approved as "exactly three items" (the third,
+the sticky bars' ring padding, is thepile's): two commits in the composition's order, each with `pnpm build:registry`
+run and `pnpm verify` green before it; layer 1 r5 reviewed their head `9845b0a`; its fixes landed before the bump; the
+bump is the version line on top of the reviewed bytes. Every reddening run ran in a DETACHED, BUILT worktree of a
+committed head (`../marquee-ui-s1-mut`, `pnpm install --frozen-lockfile` + `pnpm build`), each edit `grep`-read after it
+landed and the tree checked clean after (`git status --short` empty).
+
+**The probes** live outside both repositories, in `$BATCH_SCRATCH/s1/`: `probe-sheet.mts` reads a class through the
+tree's own `loadCompiledSheet` (`has`, `rule`, `declaredValues`, `declared`, and the rule's byte offset in the emitted
+sheet); `probe/dump-css.mts` writes the whole compiled fixture sheet; `probe/one-full.mjs` (DL42's) compiles ONE file alone
+with the library's full theme and prints the utilities it produces; `probe/emit.mts` calls the tree's REAL `Card` for
+every value of the three axes (27 calls) through the package's merging `cn` and, by a tsconfig `paths` entry, through a
+join-only `cn` (`probe/join/lib/utils.ts`, the reference consumer's shape).
+
+**The base, re-measured**: `pnpm verify` at `2fce19a5` exit **0**, `Test Files 36 passed (36)`, `Tests 633 passed (633)`
+in 18.1 s (`verify-base.log`). DL42's pack point read 36 / 633: held.
+
+### (i) The edge axis (`c3f7f8c`)
+
+`card.tsx`: `border-border` leaves the base string, and `edge: { default: "border-border", primary: "border-primary" }`
+is declared with `defaultVariants.edge = "default"`; `Card` destructures `edge` so it never reaches the element. The
+value names follow the package's own precedents: `Badge`'s `tone` (`default`, `primary`, whose `primary` wears
+`border-primary`) and `Avatar`'s `edge` (`default`, `thin`, `none`): a value is named by the role it wears, the default
+is named `default` (DECISION 1).
+
+**Red first, by construction.** The describe "the edge axis on Card" (five arms in the radius describe's shape and
+words: the default's set; the value's SWAP with nothing else moved; the axis through `Card` and `asChild` and never as an
+attribute; the caller's class winning through this package's `cn`; the JOIN-only emission with `Card` called, not
+rendered) was written beside the gutter's before either axis existed and run against the unchanged `card.tsx` in the
+working tree: `Tests 6 failed | 99 passed (105)` for the two describes (`arms-red-wt.log`). The edge's three (the
+titles as they read at the red; the value arms were retitled at `771695f`, layer 1's LOW-3):
+
+```
+primary swaps border-border for border-primary …   -   "border-primary",  +   "border-border",
+reaches the element through Card and asChild …     expected [ 'flex', 'flex-col', 'gap-3', …(5) ] to include 'border-primary'
+emits ONE edge colour per value …                  Expected: "flex flex-col gap-3 border-2 bg-surface p-4 border-border rounded-md"
+                                                   Received: "flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-md"
+```
+
+The default arm and the caller arm are green before the axis by construction (an ignored `edge` leaves 0.1.9's set, and
+`border-destructive` merges over `border-border` with or without it); they hold the default and the merge, which the
+mutations below read.
+
+**What the value compiles to** (`probe-sheet-base.txt`, `probe-sheet-9845b0a.txt`): `.border-primary { border-color:
+var(--primary) }`. It compiled at the base already: `badge.tsx:29` (`tone.primary`) and `pagination.tsx:46`
+(`linkCurrentClass`) wear it (`git grep` over `src` and `stories`, both hits read; no `Card` story wore it). In this
+package's sheet it sorts AFTER `.border-border` (bytes 13,415 and 13,171 at the head), so under a join an appended
+`border-primary` would happen to win here, as an appended `rounded-none` does (LIB-0.1.8); the swap is taken for the
+radius's reason, that no drawing should stand on a consumer's sheet order.
+
+- One story with a play, `EdgePrimary` (the class, not `border-border`, and no `edge` attribute); `DECLARED_STORIES` 113
+  -> 114, `DECLARED_PLAYS` 83 -> 84.
+- The radius describe's JOIN arm: its two literals move, `"flex flex-col gap-3 border-2 border-border bg-surface p-4
+rounded-md"` -> `"flex flex-col gap-3 border-2 bg-surface p-4 border-border rounded-md"` and the `sharp` one likewise,
+  because `border-border` left the base string. Its other four arms, `endsWith(" rounded-md")` among them, unchanged.
+- `r/card.json` rebuilt; `r/registry.json` does not move (no item metadata moves). `pnpm verify` at `c3f7f8c`: exit
+  **0**, `Test Files 36 passed (36)`, `Tests 639 passed (639)`.
+
+### (ii) The gutter axis (`9845b0a`)
+
+`p-4` leaves the base string, and `gutter: { md: "p-4", sm: "p-2" }` is declared FIRST, with `defaultVariants.gutter =
+"md"`; `Card` destructures `gutter`. The base string is now `"flex flex-col gap-3 border-2 bg-surface"`. No pixel value
+ships (DECISION 2).
+
+**Red first, against the committed edge head.** The gutter describe (the same five arms), re-added on `c3f7f8c`'s
+`card.tsx`: `Tests 3 failed | 102 passed (105)` (`gutter-red-wt.log`):
+
+```
+sm swaps p-4 for p-2 and moves nothing else      -   "p-2",  +   "p-4",
+reaches the element through Card and asChild …   expected [ 'flex', 'flex-col', 'gap-3', …(5) ] to include 'p-2'
+emits ONE padding per value …                    Expected: "flex flex-col gap-3 border-2 bg-surface p-2 border-border rounded-md"
+                                                 Received: "flex flex-col gap-3 border-2 bg-surface p-4 border-border rounded-md"
+```
+
+**What the value compiles to**: at the base `p-2` is in no source and no story (`git grep` over `src` and `stories`: none)
+and the sheet has no rule for it (`has: false`); at the head `.p-2 { padding: calc(var(--spacing) * 2) }`, **8px** at a
+16px root (`--spacing: 0.25rem`), against `.p-4`'s `calc(var(--spacing) * 4)`, 16px. In this sheet `.p-2` sorts BEFORE
+`.p-4` (bytes 14,619 and 14,723), so here, unlike the radius and the edge, the swap is LOAD-BEARING on the package's own
+sheet: an appended `p-2` beside a `p-4` left in the base would LOSE under a join and draw 16px. The whole compiled sheet,
+base against head (`probe/sheet-base.css`, `probe/sheet-head-wt.css`, `diff`): **one rule added, `.p-2`** (39,471 ->
+39,523 B), nothing removed, every other rule byte-identical.
+
+- One story with a play, `GutterSm`; `DECLARED_STORIES` 114 -> **115**, `DECLARED_PLAYS` 84 -> **85**.
+- No existing arm's words move in this commit: with the gutter declared first, `p-4` keeps its place in the emission.
+- `r/card.json` rebuilt. `pnpm verify` at `9845b0a`: exit **0**, `Test Files 36 passed (36)`, `Tests 645 passed (645)`.
+
+### The three axes' order, MEASURED
+
+`cva` appends the variants' classes after the base string in the order the `variants` object DECLARES them, not the
+order the props are passed: `probe/emit.mts` calls `Card({ gutter, edge, radius })` for all 27 combinations and every
+emission is base + gutter + edge colour + radius (`probe/emit-join-head.txt`). Declared gutter, edge, radius, so:
+
+```
+<Card>                                    flex flex-col gap-3 border-2 bg-surface p-4 border-border rounded-md
+<Card edge="primary">                     flex flex-col gap-3 border-2 bg-surface p-4 border-primary rounded-md
+<Card gutter="sm">                        flex flex-col gap-3 border-2 bg-surface p-2 border-border rounded-md
+<Card radius="sharp">                     flex flex-col gap-3 border-2 bg-surface p-4 border-border rounded-none
+<Card gutter="sm" edge="primary" radius="sharp">  flex flex-col gap-3 border-2 bg-surface p-2 border-primary rounded-none
+0.1.9's <Card>                            flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-md
+```
+
+The default emission is 0.1.9's string with `border-border` ALONE moved, to before the radius; the radius stays LAST, as
+0.1.8 pinned it. All 27 emissions: the join and the merge `cmp`-identical, eight tokens each, exactly one padding, one
+edge colour and one radius, no token twice (`probe/emit-merge-head.txt`). The order is stated in `card.tsx`'s docblock;
+the radius describe's `endsWith(" rounded-md")` pins the radius last, and the three join arms pin the whole string.
+
+### DECISION 2's arithmetic: a rem `sm`, no pixel value
+
+s2's DL46 spec (`DESIGN-LIB-f-profile-rows.md` § "(R)", `:83-89` at `be78a8c3`, read): "`p-2` gives 8 + 66 + 8 + 4 =
+**86px** rows at 16px and **28px** a side at 56px, the board's column 278 - 4 - 56 - 128 - 42 = **48** (the base's
+86); `p-2.5` gives 90px rows and a 34px column. Open, the library's and Ankit's [V]: whether a part that holds
+fixed-pixel art wants a PX gutter (the 9px these rows keep at every root font) rather than a rem one." Extended here to
+the four roots for both values and for the 9px re-spell the two rows carry today. The terms: the gutter `g` a side (`sm`
+0.5R, `md` R, the re-spell 9px), the part's `gap-3` 0.75R, the 2px line each side (4), thepile's FIXED 128px shelf, and
+the item's width `W` = **278px**, s2's read at a 56px root (the board row 278 x 482.28): held constant below, which is an
+assumption at 16 / 24 / 32px (s5 reads the served `W`). The board's title column is `W - 4 - 2g - 128 - 0.75R`:
+
+| root R | `sm` (`p-2`) a side | `md` (`p-4`) a side | the 9px re-spell | column, `sm` | column, `md` | column, 9px |
+| ------ | ------------------- | ------------------- | ---------------- | ------------ | ------------ | ----------- |
+| 16px   | 8                   | 16                  | 9                | 118          | 102          | 116         |
+| 24px   | 12                  | 24                  | 9                | 104          | 80           | 110         |
+| 32px   | 16                  | 32                  | 9                | 90           | 58           | 104         |
+| 56px   | 28                  | 56                  | 9                | **48**       | **-8**       | **86**      |
+
+At a 16px root, where the 66px art box is the tallest content, the row is `2g + 66 + 4`: **86px** under `sm`, 102 under
+`md`, 88 under the re-spell. Past that the text column sets the row's height (482.28 at 56px on the base). With `W` held,
+the board's column reaches 0 at R = 146 / 1.75 = **83.4px** under `sm`, 146 / 2.75 = 53.1px under `md` (the spill the
+re-spell exists for) and 128 / 0.75 = 170.7px under 9px. `ListPileRow`'s track is 72px, not 128, so its column is 56px
+wider than the board's at every root and never binds first.
+
+**So no consumer the rem `sm` fails outright**: it repairs exactly what `md` broke (the board's column is positive at
+every root through 83px, where `md`'s goes negative past 53px), and it moves each row by 2px at 16px (88 -> 86) and the
+board's column at 56px from the re-spell's 86 to 48. Those two moves are Ankit's to read on LIB-VENDOR-0.1.10's capture
+(its DECISION 1 [V]). A pixel value would keep both (9px at every root) and is not shipped: the skeleton's spacing is
+the 4px rem grid (`packages/tokens/src/skeleton.ts:79`, "Strict 4px grid"), YAGNI says no value without a consumer it
+fixes, and the review row, the other fixed-pixel-art card, keeps `md` as shipped (DL46 layer 2's LOW-3, 0 / 22px of text
+column at a 52px root head / base, stays recorded and is not this release's). **The guards do NOT decide it**, measured:
+on `../marquee-ui-s1-mut` at `9845b0a`, `gutter` given a third value `"p-[9px]"`, `literal-guard` and `brand-guard` pass
+(`Tests 7 passed (7)`, `mut/px9-guards.log`; a single px length is no shadow pair and no colour) and the class compiles
+to `padding: 9px` (`has: true`); restored, clean. The refusal is the house rule's, which is a comment and not a check,
+and Ankit's to overrule (DECISION 2 [V]).
+
+### The reddening runs (class E)
+
+The TDD reds above ran in the working tree, test-first. The runs below are on `../marquee-ui-s1-mut`, a detached worktree
+BUILT at the named commit (`pnpm install --frozen-lockfile` + `pnpm build`); every edit `grep`-read after it landed (the
+line logged under `LANDED`), the tree `git status --short` empty after (`mut/*.log`):
+
+| id      | at                    | mutation                                                                                        | run                                       | red / GREEN                   | the assertion                                                                                                                                                                                                                                                                                                                                                    |
+| ------- | --------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| a-2     | `2fce19a5` (the base) | the committed `fidelity.test.tsx`, `stories.test.tsx` and `card.stories.tsx` of `9845b0a` ALONE | fidelity, stories, tailwind-compile       | 10 / 283                      | the radius JOIN arm (`Received: "flex flex-col gap-3 border-2 border-border bg-surface p-4 rounded-md"`), the edge's three and the gutter's three as above, `card/EdgePrimary` (`toHaveClass("border-primary")`), `card/GutterSm` (`toHaveClass("p-2")`), and `runs all 85 play functions` (`- "card/EdgePrimary", - "card/GutterSm"`); `tailwind-compile` green |
+| px-9    | `9845b0a`             | `gutter` given a third value, `"p-[9px]"` (DECISION 2's form not taken)                         | `literal-guard`, `brand-guard`; the probe | **GREEN** 7 / 7, as predicted | the guards admit a px gutter; the class compiles to `padding: 9px`                                                                                                                                                                                                                                                                                               |
+| L1-M18  | `771695f`             | r5's M18, `null` coerced to the default (`gutter ?? undefined`, `edge ?? undefined`)            | fidelity                                  | 2 / 105                       | E5 `Expected: "flex flex-col gap-3 border-2 bg-surface p-4 rounded-md"`, `Received: "… p-4 border-border rounded-md"`; G5 likewise for `p-4`                                                                                                                                                                                                                     |
+| L1-M18b | `771695f`             | r5's M18b, `edge === null ? "border-border" : undefined` appended inside `cn`                   | fidelity                                  | 1 / 105                       | E5, `Received: "flex flex-col gap-3 border-2 bg-surface p-4 rounded-md border-border"`                                                                                                                                                                                                                                                                           |
+
+### Layer 1's fixes (`771695f`), before the bump
+
+r5 reviewed `9845b0a` (0 HIGH, 0 MED, 4 LOW, 2 INFO; 49 mutation rows; its table is the `### Layer 1` section at the end of
+this one, verbatim). Each fix was RUN against the mutation that found it where it has one:
+
+| r5 row                   | finding | what changed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | the re-run at `771695f`                                                    |
+| ------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| M18, M18b                | LOW-1   | E5 and G5 pin the `null` emission of their axis (`edge={null}`: `… bg-surface p-4 rounded-md`; `gutter={null}`: `… bg-surface border-border rounded-md`), which a `?? default` refactor would quietly undo. `radius={null}` (0.1.8's) stays unpinned: the radius describe is consumed word for word (REQUEST 2)                                                                                                                                                                                                    | **red** 2 / 105 and 1 / 105 (L1-M18, L1-M18b above)                        |
+| (probe)                  | LOW-2   | `card.tsx` says what `edge={null}` DRAWS, MEASURED (`probe/null-edge.mjs`, Chromium 149.0.7827.55, `chromium_headless_shell-1228` through DL42's `playwright-core` 1.61.1, on the package's compiled sheet under a `bg-background text-foreground` body): `border-top-color` `rgb(242, 245, 232)`, equal to the card's own `color` (the foreground), 2px solid; `default` `rgb(38, 42, 23)` (`--border`), `primary` `rgb(228, 255, 58)` (`--primary`). So null draws the edge in the ink, louder than either value | prose (`probe/null-edge.txt`)                                              |
+| M1, M2, M14, M15, N1, N2 | LOW-3   | E2's and G2's titles and comments, and the two stories' docblocks, say what they read (the value on the element and the default not, through this package's merging `cn`) and point at the join-only arm for the swap. The assertions are unchanged: E5 and G5 stay the sole readers of an append, by design                                                                                                                                                                                                       | prose                                                                      |
+| -                        | LOW-4   | this section                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | -                                                                          |
+| -                        | (s1)    | two words of `card.tsx`'s prose that Tailwind compiled as utilities, found before r5's report by compiling the file alone (`probe/one-full.mjs`): "Two border colours" (`.border`) and "both grow with" (`.grow`), reworded. The file alone now yields the base's utilities plus exactly `.border-primary` and `.p-2`; at `9845b0a` the package's sheet would also have gained `.grow`                                                                                                                             | `probe/onefull-card-l1.txt` against `onefull-card-base.txt`: +2, as stated |
+| -                        | INFO-1  | NOT changed: `Card`'s `edge` is the line's COLOUR, `Avatar`'s `edge` (`default`, `thin`, `none`) its width and colour, and `Card`'s `null` still draws 2px. The axis's NAME is DL46 DECISION 12's, Ankit's; the types keep the two apart                                                                                                                                                                                                                                                                           | REQUEST 3                                                                  |
+| -                        | INFO-2  | NOT changed: E1/G1, E2/G2, E4/G4 and the plays are covered by siblings (r5's N and P rows). They are the radius describe's five-arm shape, which the composition asked for, and the cost is a few lines; E5/G5 and E3/G3's `asChild` half carry the unique catches                                                                                                                                                                                                                                                 | -                                                                          |
+
+`pnpm verify` at `771695f`: exit **0**, `Test Files 36 passed (36)`, `Tests 645 passed (645)` (the count does not move: the
+null pins are assertions inside existing arms).
+
+### The bump: THE PACK POINT (`3776e0f`)
+
+`packages/ui/package.json:3` `0.1.9` -> `0.1.10`, nothing else in the file (no family is added: the description's
+"twenty-one" stays; the registry's 22 items stay). `git grep -F 0.1.9 -- packages/ui/r packages/ui/src` names only prose
+(`card.tsx`'s docblock and its item, `input.tsx`'s docblock and its item), no version field; `pnpm build:registry` after
+the edit left `git status --short` showing the manifest alone: **`r/` does not move by the version line**. `pnpm verify`
+on that tree: exit **0**, `All matched files use Prettier code style!`, `✔ Building registry.`, `└  Storybook build
+completed successfully`, `Test Files 36 passed (36)`, `Tests 645 passed (645)` (`verify-bump.log`). The commit is the one
+line (`git show --stat`: `packages/ui/package.json | 2 +-`).
+
+⚠️ **The pack point is `3776e0f231317a183169592e569ef7187341eb12`**, and the `ui@0.1.10` tag and `pnpm publish` belong
+there and nowhere else. It holds REVIEWED bytes: layer 1 ran on `9845b0a`, its fixes landed at `771695f` (two test arms,
+two stories' docblocks, `card.tsx`'s docblock), and the bump is the version line on top. This section is docs-only, so a
+pack at the branch's head is the same tarball.
+
+```
+$ pnpm --filter @marquee-ui/ui pack --pack-destination ~/.thepile-scratch/DL47/s1/pack/
+$ stat -c %s marquee-ui-ui-0.1.10.tgz ; sha256sum marquee-ui-ui-0.1.10.tgz
+114493
+2cc3a99dddc9e0372d700e8dfeea1a17d7503b26aaf10358029f605aa4d60cbb
+```
+
+`prepack` (`pnpm -w build:registry && git diff --exit-code -- r`) ran inside the pack, exit 0 (`pack/pack.log`); `git
+status --short` empty after. The tarball's 47 `r/` + `src/` files are each `cmp`-equal to `git show 3776e0f:packages/ui/<path>`:
+47 compared, 0 differ; its `r/card.json` `content` is `src/card.tsx`'s bytes. Its `package.json` is pnpm's rewrite of the
+source (`workspace:*` -> `0.1.0` for `@marquee-ui/tokens`, the `prepack` script dropped), the same rewrite 0.1.9's
+tarball carries line for line. Its sha512 integrity, which a lockfile records, is
+`sha512-ORMTjpjItu21ex6mpwHkSYKPO8cE0+/tqsCrgRR66S5/t1ZNb/aTeQpYWHHcgpjIcb6y6NTcx79NMjNSi5Kp9A==`.
+
+### What the tarball carries, measured against the 0.1.9 TARBALL
+
+The 0.1.9 tarball (`~/.thepile-scratch/DL42/s1/pack/marquee-ui-ui-0.1.9.tgz`, copied to `pack/`), **113,430 B, sha256
+`cb3ca59985a5f79fe8b6b00663c6115ba2b6b918f5e53389680bcd0081341f99`**, both verified before the compare, and its sha512
+equal to the registry's published `dist.integrity` for 0.1.9 (`npm view @marquee-ui/ui@0.1.9 dist.integrity`, read 13:24
+IST, `dist-tags.latest` 0.1.9 then): the pack is the bytes that get published. Both extracted, every file compared by
+`cmp` (`pack/tar-list-0.1.{9,10}.txt`, `pack/cmp-0.1.9-0.1.10.txt`):
+
+|                                                    | `ui@0.1.9`'s tarball | this one    |
+| -------------------------------------------------- | -------------------- | ----------- |
+| bytes                                              | 113,430              | **114,493** |
+| entries (the same list)                            | 49                   | 49          |
+| `r/` json files (incl. `registry.json`)            | 23                   | 23          |
+| `tar -tzf \| grep -cE '\.(test\|spec)\.\|stories'` | 0                    | 0           |
+
+```
+differ:    r/card.json   src/card.tsx   (the two axes and the docblock)
+           package.json                 (version 0.1.9 -> 0.1.10 and nothing else: every other field equal as parsed JSON)
+identical: the other 46 entries, r/registry.json among them
+```
+
++1,063 B compressed. Uncompressed, `src/card.tsx` 3,473 -> 5,106 B (gzip -9 1,426 -> 2,006) and `r/card.json` 4,150 ->
+5,827 B (1,673 -> 2,261): the docblock, twice, the source and the item that carries it; `package.json` 1,503 -> 1,504.
+
+### `@marquee-ui/tokens` does NOT bump with it
+
+`git diff --stat 2fce19a5 3776e0f2 -- packages/tokens` prints nothing. `git diff --stat 2fce19a5 3776e0f2 --
+packages/ui/src packages/ui/r packages/ui/package.json registry.json` names exactly `card.tsx`, `r/card.json` and the
+manifest (3 files). ONE tarball is vendored downstream.
+
+### For the consumer (LIB-VENDOR-0.1.10)
+
+- **The pack point**: `3776e0f231317a183169592e569ef7187341eb12`, `marquee-ui-ui-0.1.10.tgz`, **114,493 B**, sha256
+  `2cc3a99dddc9e0372d700e8dfeea1a17d7503b26aaf10358029f605aa4d60cbb`, at `~/.thepile-scratch/DL47/s1/pack/`. Read the
+  library at that sha; this branch's later commit is docs-only. 0.1.9 packed the same way matched its published
+  integrity byte for byte, so `npm pack @marquee-ui/ui@0.1.10` after Ankit's publish is expected to match this sha256
+  (LIB-VENDOR-0.1.10's spawn condition).
+- **ONE copy LIB-VENDOR-0.1.10 re-adds: `card`** (`scripts/marquee-drift.test.ts`'s `CONSUMED`, `:105` at `be78a8c3`).
+  No item is added or removed; `card`'s `dependencies` (`@radix-ui/react-slot@^1.3.3`, `class-variance-authority@^0.7.1`),
+  `registryDependencies` (`@marquee/utils`) and its one file (`packages/ui/src/card.tsx` -> `components/ui/card.tsx`) do
+  not move, and `r/registry.json` is byte-identical to 0.1.9's. thepile's copy at `be78a8c3` is `cmp`-equal to 0.1.9's
+  item `content`, read.
+- **The new `cardVariants` call, verbatim** (module-local, as 0.1.8 left it; `Card` destructures all three axes):
+
+```tsx
+const cardVariants = cva("flex flex-col gap-3 border-2 bg-surface", {
+  variants: {
+    gutter: { md: "p-4", sm: "p-2" },
+    edge: { default: "border-border", primary: "border-primary" },
+    radius: { md: "rounded-md", sharp: "rounded-none" },
+  },
+  defaultVariants: { gutter: "md", edge: "default", radius: "md" },
+});
+```
+
+The props: `gutter?: "md" | "sm" | null`, `edge?: "default" | "primary" | null`, `radius?: "md" | "sharp" | null`.
+`null` on an axis emits no class for it. The emissions are the table in "The three axes' order" above, through
+thepile's join exactly as written (the join and the merge are identical for all 27).
+
+- **The drift-test prediction** (a PREDICTION from the item's bytes and the test at `be78a8c3`, `:294-314`, not run): with
+  `^0.1.10` installed and 0.1.9's copy still vendored, `scripts/marquee-drift.test.ts` reds on exactly ONE byte arm, `card
+is byte-identical to the registry`, with `card: apps/web/src/components/ui/card.tsx has drifted from @marquee-ui/ui's
+packages/ui/src/card.tsx. …`; the per-item dependency arm stays green (nothing moved); after `shadcn add card` it is
+  green.
+- **The flip ALONE moves no drawing and, predicted, reds no other thepile test**: the default emission's SET is 0.1.9's
+  (only `border-border`'s place in the string moved), and every reader of the part's classes reads a SET or reads the
+  part off a bare render of the vendored copy, read at `be78a8c3`: `components/feed/NotificationRow.test.tsx:103-146`
+  (the bare `<Card />`'s set), `components/profile/ListPileRow.test.tsx:91-125` and
+  `components/tiers/TierListCard.test.tsx:271-284` and `:305-335` (a bare `<Card radius="sharp" />` as the class
+  attribute's PREFIX, which moves with the copy), `components/lists/ListCard.test.tsx:80-81`, `:89` (the paddings are
+  exactly `["p-4"]`: the default gutter is `p-4`) and `:292-293`, `components/feed/FeedItem.test.tsx:311`,
+  `components/tiers/TemplateCard.test.tsx:82`; `e2e/mobile-390.spec.ts:2003` selects `div.rounded-md`, which the
+  default still carries. No thepile test, spec or script pins 0.1.9's emission as a literal string (`git grep` over
+  `apps/web/src/**/*.test.ts*`, `e2e` and `scripts` for the string's fragments: none).
+- **The retirements (LIB-VENDOR-0.1.10's second commit) owe these arms, all in its fence, predicted the same way**:
+  1. `NotificationRow.tsx:48` -> `edge={item.unread ? "primary" : undefined}` with the `data-unread:` pair and the
+     variant restore gone. `NotificationRow.test.tsx:114-117` then reds on the UNREAD row (`unread: a part token is
+missing`: `border-border`, which the bare `<Card />` emits and the unread row does not) and `:125-133` (the site's
+     own tokens list the two `data-unread:` tokens), and `:151-178` (the variant's own test) retires; the bare part must
+     be read per state (`<Card edge="primary" />` for the unread row). The `data-unread` ATTRIBUTE at `:50` is a reader's
+     hook and is not the class (`e2e/notifications.spec.ts:304-307`'s comment describes the variant and becomes history).
+  2. `ListPileRow.tsx:64` and `TierListCard.tsx:133` `p-[9px]` -> `gutter="sm"`, the `grid` re-spell kept (no display
+     axis). `ListPileRow.test.tsx:91` and `TierListCard.test.tsx:305` (the `row`) render the bare part as `<Card
+radius="sharp" />`, which emits `p-4` where the row now emits `p-2`, so `ListPileRow.test.tsx:105` and
+     `TierListCard.test.tsx:316` ("the part's own emission, first") red until the bare render takes `gutter="sm"`;
+     `p-[9px]` leaves the site's list at `ListPileRow.test.tsx:122` and `TierListCard.test.tsx:334`.
+     `TierListCard.test.tsx:262-284` (the tile and the rail, which take no gutter) does not move.
+  3. `scripts/arbitrary-values-guard.test.ts`: the count 413 -> 411 by the two class-string spellings (the ceiling `:159`
+     is the reconciler's). The copy carries no `[` before or after.
+- **The unread row's hover edge** (the (R)'s "no restore": a base-string edge sorts before every `hover:` rule): in THIS
+  package's compiled sheet a hover edge is `.hover\:border-border-strong:hover` inside `@media (hover: hover)` (line 1,010
+  of the head's sheet, the block opening at 997), a (0,2,0) selector against the bare edge's (0,1,0) and emitted after it
+  (`.border-primary` at line 654). So the hover edge should win by specificity before order is consulted; thepile's
+  `hover:border-line-strong` is the same compiler's form, and its served sheet is LIB-VENDOR-0.1.10's read, by byte offset.
+- **New bare rules in thepile's sheet, predicted**: `.border-primary` and `.p-2`. At `be78a8c3` `apps/web/src` spells
+  `border-primary` only under variants (`focus:` at `components/ui/input.tsx:23` and `form-styles.ts:39`;
+  `group-has-checked/…:` at `checkbox.tsx:120`, `radio-group.tsx:153`, `switch.tsx:71`; `aria-pressed:` at
+  `toggle.tsx:39`) and `p-2` nowhere (`git grep`, read). Whether either already compiles from a non-source file is the
+  consumer's served-sheet read; the library's own sheet gained exactly `.p-2`.
+- **What the gutter does to thepile's two rows**: DECISION 2's table above. Under `gutter="sm"` each 88px row is 86px at
+  a 16px root (8 + 66 + 8 + 4), 28px a side at 56px, the board's column 48 against today's 86 (`W` = 278 held). That is
+  LIB-VENDOR-0.1.10's DECISION 1 [V], Ankit's on the capture; the review row (`ReviewRow.tsx:53-63`, `p-4` from the
+  part's default) does not take `sm` and does not move.
+- **thepile's readers, by file and line** (at `be78a8c3`, read, never edited): the copy `components/ui/card.tsx`;
+  `scripts/marquee-drift.test.ts:105` (`CONSUMED`) and `:294-314` (the byte arm). The four consumers with a re-spelled
+  axis: `components/feed/NotificationRow.tsx:32-49` (the `Card` call; the class `:48`), `components/profile/ListPileRow.tsx:56-65`
+  (the class `:64`), `components/tiers/TierListCard.tsx:130-134` (the class `:133`; the composition's `:129-132` is one line
+  early) and `components/profile/ReviewRow.tsx:53-63` (`flex-row items-start transition-colors hover:border-line-strong`,
+  no padding: kept). The nine other importers (`git grep -l 'components/ui/card"'`, 13 sources and 8 tests), each `Card`
+  call READ for a rest edge colour or a padding that would now sit beside an axis: `app/browse/page.tsx:175`,
+  `app/platforms/page.tsx:118`, `app/series/page.tsx:109`, `app/studios/[letter]/page.tsx:134`, `app/studios/page.tsx:138`
+  (each `transition-colors hover:border-accent`), `components/feed/FeedItem.tsx:65-81` (`relative flex-row transition-colors
+hover:border-line-strong`, `items-center` when compact), `components/home/ReviewCard.tsx:28-31` (`relative w-71 min-w-0
+transition-colors hover:border-line-strong md:w-75 xl:w-85`), `components/lists/ListCard.tsx:174-178` (`radius="sharp"`,
+  `group card-lift`, `w-full`, `cut-20`; `card-lift` is `globals.css:396-408`, a HOVER border colour and no rest one;
+  `cut-20` `:511-513`, a clip path) and `components/tiers/TemplateCard.tsx:44` (`radius="sharp"`, no class): **none
+  passes a rest edge colour or a padding**, so the axes' defaults emit what each drew before and none of the nine moves.
+
+### Consumers
+
+**Run 1, at the passengers' head** (`scan-run1.txt`, `scan-run1b.txt`, `origin/next...9845b0a` over `packages/**`). ⚠️
+Not before any code, as the form asks: the stream ran it after the two axes, before layer 1 (a process miss, recorded;
+the surface is one file and its readers, and run 2 found nothing run 1 did not).
+
+- **Scan 1, exported symbols the diff adds or changes**: `EdgePrimary` and `GutterSm` (the stories; read by the story
+  suites alone). `Card`'s export line is unchanged and its props grew two axes: read by `src/index.ts` (the barrel),
+  `stories/card.stories.tsx`, `test/card-structure.test.tsx`, `test/fidelity.test.tsx` and `registry.json` (the title).
+  `cardVariants` stays module-local.
+- **Scan 2, path helpers**: none. **Scan 4, roles and `aria-*`**: none added or removed.
+- **Scan 3, files naming a touched file**: `test/card-structure.test.tsx`, `test/client-boundary.test.ts` (reads
+  `card.tsx`'s imports: still no React runtime import), `test/fidelity.test.tsx`, `test/registry.test.ts`,
+  `test/helpers/story-suites.ts` (through which `stories.test.tsx` and `tailwind-compile.test.tsx` render every story),
+  `registry.json`, `r/registry.json`, and `packages/tokens/test/helpers/source-files.ts` (the published-source list for
+  `brand-guard`, `literal-guard`, `project-coverage` and `source-coverage`). Every one green at every commit.
+- **Scan 5, the class strings added or changed**: the new base string in `card.tsx`, `r/card.json` and
+  `fidelity.test.tsx` alone; 0.1.9's emission (`border-2 border-border bg-surface p-4`) in `fidelity.test.tsx` alone (the
+  `NEW_PARTS` row, read as a SET, and the new arms' sorted reads).
+
+**Run 2, at the layer-1 head** (`scan-run2.txt`, `origin/next...771695f`): the same lists; scan 5 widened to the two
+value tokens, which hit only as substrings of other parts' strings (`focus:border-primary`, `group-has-checked/…:border-primary`,
+`aria-pressed:border-primary`, `gap-2`, `px-2`) and the upstream fixtures, none of which names `Card`'s string. The bump
+adds the manifest alone.
+
+- **CROSS in the library: 0. UNOWNED: 0. NEW between the runs: 0.** r5 re-ran the scans at `9845b0a` and found the same
+  set.
+- **In thepile at `be78a8c3`** (CROSS, recorded, never edited; LIB-VENDOR-0.1.10's): every reader is listed in "For the
+  consumer", by file and line, including the test arms the retirements owe (`NotificationRow.test.tsx:114-117`,
+  `:125-133`, `:151-178`; `ListPileRow.test.tsx:105`, `:122`; `TierListCard.test.tsx:316`, `:334`), which the
+  composition did not list.
+
+### Decisions
+
+1. **The edge value is named `primary`, by the role it wears; the default is named `default`** [V]. The package's own
+   precedents name a value by its role and the default `default` (`Badge`'s `tone`, whose `primary` wears
+   `border-primary`; `Avatar`'s `edge`; `Alert`'s and `Label`'s `tone`). Not taken: `accent`, the (R)'s spelling, which
+   is no role in the contract and thepile's own noun for it (AGENTS.md "No product vocabulary"); a meaning name the
+   library would own (`attention`, `highlight`), a vocabulary it has nowhere else, whose meaning is the consumer's; a
+   `brand` value, which no consumer named (YAGNI; "exactly three items").
+2. **No pixel gutter value ships in 0.1.10; `sm` is `p-2`, rem** [V]. The arithmetic is above: `sm` fails no consumer
+   outright (the board's column positive at every root through 83px, where `md`'s goes negative past 53px), and moves the
+   two rows 2px at 16px (88 -> 86) and the board's column at 56px from 86 to 48. The guards would have admitted `p-[9px]`
+   (`px-9`, GREEN); the refusal is the skeleton's 4px rem grid, a house rule, and YAGNI. `p-2.5` (90px rows, a 34px
+   column) was not built either: 2px off 88 the other way, and a half step the package uses nowhere else. Ankit may
+   overrule on LIB-VENDOR-0.1.10's capture; a px value would then be a 0.1.11 item, with the review row's LOW-3.
+3. **The axes are declared gutter, edge, radius** [V]: the radius stays LAST, so 0.1.8's class-last arm holds word for
+   word, and the default emission is 0.1.9's string with `border-border` alone moved. Not taken: radius, edge, gutter
+   (the order the axes arrived in), which rewrites that arm to name the gutter last and moves two tokens of the default
+   string. The radius describe's JOIN arm moves under either order (finding 1).
+4. **One story per new value**, `EdgePrimary` and `GutterSm`, each with a play; no `EdgeDefault` / `GutterMd`: the
+   `Default` story draws both defaults, and `RadiusMd`'s precedent is not repeated (YAGNI). `DECLARED_STORIES` 113 ->
+   115, `DECLARED_PLAYS` 83 -> 85.
+5. **No compiled-sheet arm in `fidelity.test.tsx`**: what each value compiles to is quoted here through the tree's own
+   helper, and `tailwind-compile.test.tsx`'s "compiles every one of them" (consumed, unchanged) reads the two stories'
+   classes, red when a value compiles to nothing (r5's M16, M17).
+6. **Layer 1's LOW-1 to LOW-3 fixed in the arms and the prose; LOW-4 is this section; the INFOs recorded** (`771695f`).
+
+### REQUESTs and findings (to the orchestrator)
+
+1. **Finding, class B: the brief's "its five arms stay green word for word unless the 'class last' arm must now name
+   THREE classes" did not hold.** The class-last arm held unchanged; the radius describe's JOIN arm pins the whole
+   emission by `toBe`, and `border-border` and `p-4` both left the base string, so its two literals move under ANY
+   declaration order. Rewritten in `c3f7f8c`, said in its message.
+2. **REQUEST, a later library release: `radius={null}` is pinned by nothing** (0.1.8's; r5's LOW-1 precedent). The
+   radius describe is consumed word for word here, so 0.1.10 pins only the two new axes' `null`.
+3. **REQUEST, recorded for whoever names the next axis: two `edge` axes in the package mean two things** (r5's INFO-1):
+   `Avatar`'s is the line's width and colour, with a `none`; `Card`'s is its colour, and `null` draws the line in the ink.
+4. **Finding, pre-existing: `card.tsx`'s 0.1.8 prose "The table SWAPS" compiles `.table`** (in the base's one-file
+   compile already). Not changed: the package's sheet also takes it from `button.tsx`'s prose, so the rule does not
+   leave this sheet; whether thepile's sheet carries `.table` from elsewhere is the consumer's read. A wording change
+   for a later release if wanted.
+5. **Finding, class B, line cites**: `card.tsx` is 86 lines at the base, not 82 (the radius paragraph `:21-29`,
+   `cardVariants` `:31-34`); `TierListCard.tsx`'s `Card` call is `:130-134` at `be78a8c3`, not `:129-132`.
+6. **Finding, the arithmetic's one assumption**: the item's width `W` = 278px is s2's read at a 56px root; the 16 / 24 /
+   32px columns in DECISION 2's table hold it constant. LIB-VENDOR-0.1.10 reads the served `W`.
+7. **Process**: consumer scan run 1 ran at the passengers' head, not before code (above).
+
+### UNVERIFIED (every ⚠️ line of (a) measured)
+
+- "`pnpm verify` at `2fce19a5`, 36 / 633": **held** (exit 0, 18.1 s, `verify-base.log`).
+- ⚠️ "`accent` is NO ROLE in the contract": **held**. `packages/tokens/src/roles.ts` declares the line roles `border`,
+  `border-strong`, identity `brand`, `brand-foreground`, `brand-ink` and action `primary`, `primary-foreground`,
+  `primary-ink`, `primary-hover`, `primary-muted`; `accent` appears once, in prose (`:60`, "an accent that passes as a
+  fill"). thepile's `--accent: var(--primary)` (`globals.css:119`) and `--line: var(--border)` (`:110`): **held**, read.
+- ⚠️ "`border-primary` compiles; today it is in no `Card` story": **held**, and it compiled at the base already through
+  `badge.tsx:29` and `pagination.tsx:46`: `border-color: var(--primary)`.
+- ⚠️ "`p-2` compiles" (and what it declares): **held at the head** (`padding: calc(var(--spacing) * 2)`, 8px at 16px); at
+  the base it did NOT compile (no source wore it), so the axis is what puts it in the sheet, the one rule the sheet gained.
+- ⚠️ "the arms red first by construction": **held**, quoted above: 6 / 105 against the base's `card.tsx` in the working
+  tree, 3 / 105 for the gutter against the committed edge head, and the committed files ALONE on the built base 10 / 283.
+- ⚠️ "the 'class last' order": **measured**, base + gutter + edge colour + radius (the declaration order), the radius
+  LAST; the radius describe's `endsWith` arm held word for word.
+- ⚠️ "its five arms stay green word for word unless the 'class last' arm must now name THREE classes": **did not hold as
+  written**. The class-last arm held unchanged, but the radius describe's JOIN arm pins the whole emission by `toBe`, and
+  both `border-border` and `p-4` left the base string, so its two literals move under ANY declaration order (class B; the
+  body above says so, and `c3f7f8c`'s message).
+- ⚠️ "the 86px arithmetic": **held** as arithmetic (8 + 66 + 8 + 4 = 86 at 16px; 278 - 4 - 56 - 128 - 42 = 48 at 56px);
+  extended in DECISION 2's table, with `W` = 278 an assumption at the other roots. No row was rendered here: thepile's
+  served rows are LIB-VENDOR-0.1.10's measurement.
+- "`card.tsx` (82 lines; the docblock `:22-32`; `cardVariants` `:33-36`)": **86 lines at the base**; the radius paragraph
+  is `:21-29` and `cardVariants` `:31-34`. `fidelity.test.tsx` `NEW_PARTS` `:714`, its `card` row `:716`, the radius
+  describe's docblock `:795` and the describe `:803`: **held**. `stories.test.tsx:69-70`, `registry.json:123`,
+  `skeleton.ts:79`: **held**.
+- In thepile at `be78a8c3`: `NotificationRow.tsx:48`, `ListPileRow.tsx:56-64`, `ReviewRow.tsx:53-63`,
+  `marquee-drift.test.ts:105`, `arbitrary-values-guard.test.ts:159` (`total: 413`): **held**; `TierListCard.tsx:129-132`
+  is **`:130-134`** (the `Card` call; the class `:133`). The thirteen `Card` importers: **held**, 13 sources (and 8 tests).
+- "thepile's drift test reds on exactly the `card` byte arm on the flip": a PREDICTION, stated as one, not run.
+
+### The gate
+
+`pnpm verify` exit **0** at every commit, from the root, the tree clean after: `2fce19a5` (the base, 36 / 633, 18.1 s),
+`c3f7f8c` (36 / 639), `9845b0a` (36 / 645), `771695f` (36 / 645), and **the pack point `3776e0f`: `Test Files 36 passed
+(36)`, `Tests 645 passed (645)`** (logs `verify-{base,edge,gutter,l1,bump}.log`). This section lands in one docs-only
+commit after them, `pnpm exec prettier --write docs/as-built.md` before its own `pnpm verify`. Pushed to `s/lib-0.1.10`
+at every green checkpoint; no tag, no `pnpm publish`, no PR. The tag `ui@0.1.10` belongs at `3776e0f`.
+
+### Layer 1 (reviewer, detached worktree of 9845b0a93b2387c747f93443c361d4861f7bbb50, slot r5, marquee-ui, no database)
+
+**0 HIGH, 0 MED, 4 LOW, 2 INFO** over 49 mutation rows and 4 probes in r5's own detached worktree
+(`../marquee-ui-r5`, removed after), its own scripts (`$BATCH_SCRATCH/r5/run.sh`, `mut.sh`, logs and JSON in `r5/runs/`),
+each edit checked landed before its run, reverted by `git checkout --`, the tree clean after every row; `pnpm build` exit
+0 and the untouched head `Test Files 6 passed (6)` / `Tests 320 passed (320)` over the six named files, the whole ui
+project 24 / 543. Its findings are in `$BATCH_SCRATCH/r5/report.md`; the legend and the table below are pasted verbatim,
+and every GREEN row is answered after it.
+
+Legend for the `test` column. All arms are in `fidelity.test.tsx` unless the row says otherwise.
+
+- Edge arms: E1 "default is the default", E2 "primary swaps…", E3 "reaches the element … never as an attribute", E4 "lets a caller's edge win", E5 "emits ONE edge colour … only joins".
+- Gutter arms: G1 to G5, the same five arms in the gutter describe.
+- Radius arms: R1 "md is the default … axis's class last", R2 "sharp swaps", R3 "reaches", R4 "caller's radius win", R5 "ONE radius … only joins".
+- NP = "the new parts wear the utilities they declare > card".
+- EP / GS = the `stories.test.tsx` rows `card/EdgePrimary` and `card/GutterSm`, which run the plays. PC = "runs all 85 play functions". SC = "covers all twenty-one part families, with every story counted".
+- TC = `tailwind-compile.test.tsx` "compiles every one of them". CS = `card-structure.test.tsx` "joins the caller's class on the part with the child's own".
+- ⚠️ Every `src/card.tsx` mutation also reddens `registry.test.ts` "carries the CURRENT bytes" (`card: packages/ui/src/card.tsx is stale`). That red comes from the unrebuilt `r/card.json`, not from behaviour, so the rows below leave it out. M18 was re-run with `pnpm build:registry` to show it all-green without that red.
+
+| file                     | test                                                                    | mutation applied                                                                                                   | red / GREEN                                                                                          | what it asserts now                                                                                                                                               |
+| ------------------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| src/card.tsx             | R5, E5, G5 red; E1-E4, G1-G4, EP, GS GREEN                              | M1: base keeps `border-border` beside the edge axis (`"… border-2 border-border bg-surface"`)                      | red (E5 at :956, "expected 'flex flex-col gap-3 border-2 border-b…' to be '…bg-surfa…'")             | Only the three join-only arms see a token left in the base. The merging `cn` erases it from every other reader, including EP's `not.toHaveClass("border-border")` |
+| src/card.tsx             | R5, E5, G5 red; G1-G4, GS GREEN                                         | M2: base keeps `p-4` beside the gutter axis                                                                        | red (G5 at :1038)                                                                                    | Same as M1, for padding: GS's `not.toHaveClass("p-4")` stays GREEN                                                                                                |
+| src/card.tsx             | E2, E3, E5, EP, PC red                                                  | M3: `primary: "border-border"`                                                                                     | red (E3 "expected [...] to include 'border-primary'"; EP "toHaveClass(\"border-primary\")")          | The primary value is read on the merge path, the join path and the story                                                                                          |
+| src/card.tsx             | E2, E3, E5, EP, PC red; TC GREEN                                        | M3b: `primary: "border-destructive"` (compiles)                                                                    | red                                                                                                  | A wrong but compiling colour is caught by the value pins, not by the compile                                                                                      |
+| src/card.tsx             | G2, G3, G5, GS, PC red                                                  | M4: `sm: "p-4"`                                                                                                    | red (G3 "to include 'p-2'"; GS "toHaveClass(\"p-2\")")                                               | The sm value is pinned three ways                                                                                                                                 |
+| src/card.tsx             | G2, G3, G5, GS, PC red                                                  | M4b: `sm: "p-3"`                                                                                                   | red                                                                                                  | Same as M4                                                                                                                                                        |
+| src/card.tsx             | E2, E3, E5, EP, PC red                                                  | M5: `edge` not destructured (passes to `...props`) and dropped from the cva call                                   | red (E3 at the `toContain` before its attribute read)                                                | The value never reaches the class                                                                                                                                 |
+| src/card.tsx             | E3, EP, PC red                                                          | M5b: `edge={edge}` rendered on the host                                                                            | red (E3 "edge leaked onto the <div>: expected true to be false"; EP "not.toHaveAttribute(\"edge\")") | The div-path attribute leak is caught twice                                                                                                                       |
+| src/card.tsx             | E3 red only                                                             | M5c: `edge={asChild ? edge : undefined}` (leaks only under asChild)                                                | red (E3 "edge leaked onto the asChild element")                                                      | E3's asChild half is the ONLY reader of the asChild path (see N4)                                                                                                 |
+| src/card.tsx             | G2, G3, G5, GS, PC red                                                  | M6: `gutter` not destructured, dropped from the cva call                                                           | red                                                                                                  | Same as M5                                                                                                                                                        |
+| src/card.tsx             | G3, GS, PC red                                                          | M6b: `gutter={gutter}` rendered on the host                                                                        | red (G3 "gutter leaked onto the <div>")                                                              | Same as M5b                                                                                                                                                       |
+| src/card.tsx             | G3 red only                                                             | M6c: `gutter={asChild ? gutter : undefined}`                                                                       | red (G3 asChild half)                                                                                | Unique reader, same as M5c                                                                                                                                        |
+| src/card.tsx             | NP, R1, R2, R3, R5, E1, E5, G1, G2, G3, G5 red; E2-E4, G4, EP, GS GREEN | M7: `defaultVariants.edge: "primary"`                                                                              | red (E1 at :908, `edge="default"` ≠ default)                                                         | The default is pinned many times over                                                                                                                             |
+| src/card.tsx             | same 11 red                                                             | M7b: `edge` dropped from `defaultVariants`                                                                         | red                                                                                                  | Same as M7                                                                                                                                                        |
+| src/card.tsx             | NP, R1-R3, R5, E1, E2, E3, E5, G1, G5 red; G2-G4, GS GREEN              | M8: `defaultVariants.gutter: "sm"`                                                                                 | red                                                                                                  | Same as M7, for the gutter                                                                                                                                        |
+| src/card.tsx             | same 11 red                                                             | M8b: `gutter` dropped from `defaultVariants`                                                                       | red                                                                                                  | Same as M8                                                                                                                                                        |
+| src/card.tsx             | R1, R5, E5, G5 red                                                      | M9a: variants declared radius, gutter, edge (radius no longer last)                                                | red (R1 `endsWith(" rounded-md")`)                                                                   | "radius LAST" is pinned by R1 and the join arms                                                                                                                   |
+| src/card.tsx             | R5, E5, G5 red; everything else GREEN                                   | M9b: edge declared before gutter                                                                                   | red                                                                                                  | The gutter→edge ORDER is pinned ONLY by the three join-only literals (sorted-token arms cannot see order)                                                         |
+| src/card.tsx             | R5, E2, E3, E5, G5, EP, PC red                                          | M10: edge axis dropped, `border-border` restored to the base                                                       | red                                                                                                  | Dropping the axis is caught                                                                                                                                       |
+| src/card.tsx             | G2, G3, G5, GS, PC red; R5, E5 GREEN                                    | M11: gutter axis dropped, `p-4` restored to the end of the base                                                    | red                                                                                                  | The default emission comes out byte-identical (`… bg-surface p-4 border-border rounded-md`), so only the sm readers redden. Correct                               |
+| src/card.tsx             | R4, E4, G4 red                                                          | M12: `cn(className, cardVariants(…))` (caller first)                                                               | red                                                                                                  | Caller-wins is pinned per axis                                                                                                                                    |
+| src/card.tsx             | CS, R4, E4, G4 red                                                      | M13: `className` dropped from `cn`                                                                                 | red                                                                                                  | Same as M12, plus card-structure                                                                                                                                  |
+| src/card.tsx             | E5 red only; E2, E3, EP GREEN                                           | M14: `primary: "border-border border-primary"` (APPEND over the default, not a swap)                               | red (E5 only)                                                                                        | **E2 "primary swaps…" and the EdgePrimary story ("the axis SWAPS … rather than appending") cannot see an append** (LOW-3)                                         |
+| src/card.tsx             | G5 red only; G2, G3, GS GREEN                                           | M15: `sm: "p-4 p-2"` (append)                                                                                      | red (G5 only)                                                                                        | Same as M14, for G2 and GutterSm (LOW-3)                                                                                                                          |
+| src/card.tsx             | G2-G5, GS, PC, TC red                                                   | M16: `sm: "p-gutter-sm"` (compiles to nothing)                                                                     | red (TC lists the token)                                                                             | A value that does not compile is caught by the compile reader                                                                                                     |
+| src/card.tsx             | E2, E3, E5, EP, PC, TC red                                              | M17: `primary: "border-action"` (no such role)                                                                     | red                                                                                                  | Same as M16                                                                                                                                                       |
+| src/card.tsx             | **ALL GREEN, 320/320 with `pnpm build:registry` re-run**                | M18: `cardVariants({ gutter: gutter ?? undefined, edge: edge ?? undefined, radius })`, so null becomes the default | **GREEN**                                                                                            | **The docblock's `edge={null}` / `gutter={null}` claims are pinned by nothing** (LOW-1)                                                                           |
+| src/card.tsx             | ALL GREEN (registry stale aside)                                        | M18b: `edge === null ? "border-border" : undefined` appended                                                       | **GREEN**                                                                                            | Same as M18                                                                                                                                                       |
+| fidelity + src           | GREEN (registry stale only)                                             | N1: E5 `it.skip` + M14                                                                                             | **GREEN**                                                                                            | E5 is the only reader of a primary-value append                                                                                                                   |
+| fidelity + src           | GREEN                                                                   | N2: G5 skip + M15                                                                                                  | **GREEN**                                                                                            | G5 is the only reader of an sm-value append                                                                                                                       |
+| fidelity + src           | R5, G5 red                                                              | N3: E5 skip + M1                                                                                                   | red                                                                                                  | A base leftover is still caught by the sibling join arms                                                                                                          |
+| fidelity + src           | GREEN                                                                   | N4: E3 skip + M5c                                                                                                  | **GREEN**                                                                                            | E3 is the only asChild attribute reader for edge                                                                                                                  |
+| fidelity + src           | GREEN                                                                   | N5: G3 skip + M6c                                                                                                  | **GREEN**                                                                                            | G3 is the only asChild attribute reader for gutter                                                                                                                |
+| fidelity + src           | EP, PC red                                                              | N6: E3 skip + M5b                                                                                                  | red                                                                                                  | The play covers the div-path leak                                                                                                                                 |
+| fidelity + src           | 10 still red                                                            | N7: E1 skip + M7                                                                                                   | red                                                                                                  | E1 is redundant with NP and the radius arms for a default change                                                                                                  |
+| fidelity + src           | 10 still red                                                            | N8: G1 skip + M8                                                                                                   | red                                                                                                  | G1 likewise                                                                                                                                                       |
+| fidelity + src           | E3, E5, EP, PC red                                                      | N9: E2 skip + M3                                                                                                   | red                                                                                                  | E2 is redundant for a value swap                                                                                                                                  |
+| fidelity + src           | G3, G5, GS, PC red                                                      | N10: G2 skip + M4                                                                                                  | red                                                                                                  | G2 likewise                                                                                                                                                       |
+| fidelity + src           | R4 red                                                                  | N11: E4 and G4 skip + M12                                                                                          | red                                                                                                  | E4/G4 only redden on whole-`cn` order, which R4 already reads (INFO-2)                                                                                            |
+| stories + src            | E2, E3, E5 red                                                          | P1: EdgePrimary's three `expect`s gutted + M3                                                                      | red                                                                                                  | The fidelity arms cover the play                                                                                                                                  |
+| stories + src            | G2, G3, G5 red                                                          | P2: GutterSm's three `expect`s gutted + M4                                                                         | red                                                                                                  | Same as P1                                                                                                                                                        |
+| stories/card.stories.tsx | **320/320 GREEN**                                                       | P3: EdgePrimary's three `expect`s gutted, no source change                                                         | **GREEN**                                                                                            | The play counter counts that a play RAN, not that it asserted (pre-existing, documented in stories.test.tsx)                                                      |
+| stories/card.stories.tsx | **320/320 GREEN**                                                       | P4: GutterSm's three `expect`s gutted                                                                              | **GREEN**                                                                                            | Same as P3                                                                                                                                                        |
+| test/stories.test.tsx    | PC red                                                                  | S1: `DECLARED_PLAYS = 84`                                                                                          | red                                                                                                  | The 85 is exact                                                                                                                                                   |
+| test/stories.test.tsx    | SC red                                                                  | S2: `DECLARED_STORIES = 114`                                                                                       | red                                                                                                  | The 115 is exact                                                                                                                                                  |
+| stories/card.stories.tsx | SC, PC red; TC GREEN                                                    | S3: the GutterSm story deleted                                                                                     | red                                                                                                  | Both counters see a story vanish                                                                                                                                  |
+| stories/card.stories.tsx | PC red                                                                  | S4: EdgePrimary `play:` renamed `xplay:`                                                                           | red                                                                                                  | The counter sees a play that is no longer composed                                                                                                                |
+| stories/card.stories.tsx | EP, PC red                                                              | S5: EdgePrimary args lose `edge: "primary"`                                                                        | red                                                                                                  | The play reads its own args                                                                                                                                       |
+| stories/card.stories.tsx | GS, PC red                                                              | S6: GutterSm args lose `gutter: "sm"`                                                                              | red                                                                                                  | Same as S5                                                                                                                                                        |
+
+**Every GREEN row, answered:**
+
+- **M1, M2** (E1 to E4, G1 to G4 and both plays green beside the join arms' red): by design, the merge path erases a
+  token left in the base, and R5 / E5 / G5 are its readers. LOW-3's rewording says so in E2, G2 and both stories.
+- **M3b** (`tailwind-compile` green): a wrong colour that compiles is the value pins' to catch, and they do (E2, E3, E5,
+  EP).
+- **M7, M8, M9b, M11** (the arms not named red): each mutation is red where it should be; M9b shows the gutter -> edge
+  order is pinned by the three join literals alone (sorted reads cannot see order), which is what the join arms are for;
+  M11's default emission is byte-identical, so only the `sm` readers redden, correctly.
+- **M14, M15** (E2, E3, G2, G3 and the plays green under an APPEND): LOW-3, fixed in the prose: those arms read through
+  the merging `cn`; E5 and G5 are the readers of a swap and red here.
+- **M18, M18b**: LOW-1, FIXED: E5 and G5 pin the `null` emissions; re-run at `771695f`, **red** 2 / 105 and 1 / 105.
+- **N1, N2**: by design: E5 and G5 are the sole readers of an append, now said in E2's and G2's comments.
+- **N4, N5**: by design: E3's and G3's `asChild` half is the only reader of an attribute leaked under `asChild`, kept.
+- **P3, P4**: the play counter's documented limit (`stories.test.tsx`'s "WHAT THAT BUYS"): it counts a play that RAN,
+  not one that asserted. P1 and P2 show the fidelity arms cover each play's assertions.
+- **S3** (`tailwind-compile` green): deleting the story removes no candidate `card.tsx` does not already carry.
