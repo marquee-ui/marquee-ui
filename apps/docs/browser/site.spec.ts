@@ -112,14 +112,55 @@ test("renders every family and sends each workbench link to a real story", async
   const storyIndex = (await index.json()) as { entries: Record<string, unknown> };
   const families = page.getByRole("button", { name: /^Preview / });
   await expect(families).toHaveCount(21);
-  for (const family of await families.all()) {
-    await family.click();
+  // Independent of the production catalog: a nonempty placeholder is not a preview.
+  const expectedParts = [
+    ["Button", "button[data-slot=button]"],
+    ["Accordion", "[data-slot=accordion-item]"],
+    ["Alert", "[data-slot=alert]"],
+    ["Avatar", "[data-slot=avatar] [data-slot=avatar-image]"],
+    ["Badge", "[data-slot=badge]"],
+    ["Breadcrumb", "nav[data-slot=breadcrumb]"],
+    ["Card", "[data-slot=card] [data-slot=card-title]"],
+    ["Checkbox", "input[data-slot=checkbox-input]"],
+    ["Description list", "dl[data-slot=description-list] dt"],
+    ["Form", "[data-slot=form-item] input"],
+    ["Input", "input[data-slot=input]"],
+    ["Label", "label[data-slot=label]"],
+    ["Pagination", "nav[data-slot=pagination] [data-slot=pagination-link]"],
+    ["Radio group", "[role=radiogroup] input[type=radio]"],
+    ["Ribbon", "[data-slot=ribbon] [data-slot=ribbon-track]"],
+    ["Separator", "[data-slot=separator]"],
+    ["Sheet", "button[data-slot=sheet-trigger]"],
+    ["Switch", "button[role=switch] [data-slot=switch-track]"],
+    ["Textarea", "textarea[data-slot=textarea]"],
+    ["Toast", "button[data-slot=button]"],
+    ["Toggle", "button[data-slot=toggle][aria-pressed]"],
+  ] as const;
+  for (const [name, selector] of expectedParts) {
+    await page.getByRole("button", { name: `Preview ${name}`, exact: true }).click();
+    await expect(page.getByRole("heading", { name, exact: true, level: 3 })).toBeFocused();
+    const canvas = page.locator(".family-canvas");
+    await expect(
+      canvas.locator(selector).first(),
+      `${name} must render its actual parts`,
+    ).toBeVisible();
+    if (name === "Sheet") {
+      await canvas.getByRole("button", { name: "Open project sheet" }).click();
+      await expect(page.getByRole("dialog", { name: "Project details" })).toBeVisible();
+      await page.getByRole("button", { name: "Done", exact: true }).click();
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+    }
+    if (name === "Toast") {
+      await canvas.getByRole("button", { name: "Show notification" }).click();
+      await expect(page.locator("[data-slot=toast-message]")).toHaveText("Project saved.");
+      await page.getByRole("button", { name: "Dismiss", exact: true }).click();
+      await expect(page.locator("[data-slot=toast]")).toHaveCount(0);
+    }
     const link = page.locator(".family-heading a");
     const href = await link.getAttribute("href");
     expect(href).toMatch(/^\/marquee-ui\/storybook\/\?path=\/story\//);
     const id = new URL(href!, "http://localhost").searchParams.get("path")!.replace("/story/", "");
     expect(storyIndex.entries[id], `missing Storybook story ${id}`).toBeDefined();
-    await expect(page.locator(".family-canvas")).not.toBeEmpty();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
       page.viewportSize()!.width,
     );
