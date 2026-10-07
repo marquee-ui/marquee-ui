@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, rm, symlink } from "node:fs/promises";
+import { mkdtemp, mkdir, rm, symlink, writeFile } from "node:fs/promises";
+import { once } from "node:events";
+import { request } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { assertExternalTarget, verifyLock } from "./verify-consumer.mjs";
-import { registryItemPath } from "../examples/consumer/registry.mjs";
+import { createRegistryServer, registryItemPath } from "../examples/consumer/registry.mjs";
 
-test("installed registry serves named JSON items and rejects traversal or unrelated files", () => {
+test("registry item paths reject traversal and unrelated files", () => {
   assert.equal(registryItemPath("/button.json"), "button.json");
   assert.equal(registryItemPath("/radio-group.json"), "radio-group.json");
   for (const pathname of [
@@ -17,6 +19,62 @@ test("installed registry serves named JSON items and rejects traversal or unrela
     "/button.json?path=../secret",
   ]) {
     assert.equal(registryItemPath(pathname), null);
+  }
+});
+
+function registryResponse(port, path, method = "GET") {
+  return new Promise((resolve, reject) => {
+    const outgoing = request({ hostname: "127.0.0.1", port, path, method }, (incoming) => {
+      let body = "";
+      incoming.setEncoding("utf8");
+      incoming.on("data", (chunk) => {
+        body += chunk;
+      });
+      incoming.on("error", reject);
+      incoming.on("end", () =>
+        resolve({
+          status: incoming.statusCode,
+          contentType: incoming.headers["content-type"],
+          body,
+        }),
+      );
+    });
+    outgoing.on("error", reject);
+    outgoing.end();
+  });
+}
+
+test("installed registry serves exact JSON over HTTP and rejects missing, traversal and POST requests", async () => {
+  const root = await mkdtemp(join(tmpdir(), "marquee-registry-unit-"));
+  const contents = JSON.stringify({
+    name: "button",
+    files: [{ content: "export const Button = 1;" }],
+  });
+  await writeFile(join(root, "button.json"), contents);
+  const server = createRegistryServer(root);
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  try {
+    const address = server.address();
+    assert.ok(address && typeof address !== "string");
+    assert.deepEqual(await registryResponse(address.port, "/button.json"), {
+      status: 200,
+      contentType: "application/json",
+      body: contents,
+    });
+    for (const [path, method] of [
+      ["/missing.json", "GET"],
+      ["/../button.json", "GET"],
+      ["/%2e%2e/button.json", "GET"],
+      ["/button.json", "POST"],
+    ]) {
+      assert.equal((await registryResponse(address.port, path, method)).status, 404);
+    }
+  } finally {
+    await new Promise((resolve, reject) =>
+      server.close((error) => (error ? reject(error) : resolve())),
+    );
+    await rm(root, { recursive: true, force: true });
   }
 });
 
