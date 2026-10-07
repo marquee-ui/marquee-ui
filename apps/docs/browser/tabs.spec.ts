@@ -211,10 +211,16 @@ test("Tabs paints readable state and focus from dark, light and accent roles", a
     ).toBeGreaterThanOrEqual(2);
   }
   for (const name of ["Activity", "Settings"])
-    await expect(canvas.getByRole("tab", { name })).toHaveCSS("outline-width", "0px");
+    await expect(canvas.getByRole("tab", { name })).toHaveCSS("outline-style", "none");
+  const restingOffset = await profile.evaluate((el) =>
+    parseFloat(getComputedStyle(el).outlineOffset),
+  );
   await profile.focus();
   await expect(profile).toHaveCSS("outline-style", "solid");
-  await expect(profile).toHaveCSS("outline-offset", "2px");
+  expect(
+    await profile.evaluate((el) => parseFloat(getComputedStyle(el).outlineOffset)),
+    "focus draws outside the selected-state marker",
+  ).toBeGreaterThan(restingOffset);
   expect(
     await profile.evaluate((el) => parseFloat(getComputedStyle(el).outlineWidth)),
   ).toBeGreaterThanOrEqual(2);
