@@ -37,6 +37,7 @@ export const PUBLISHED_SOURCE_FILES = [
   "packages/tokens/src/font-metrics.ts",
   "packages/tokens/src/index.ts",
   "packages/tokens/src/presets/arcade.ts",
+  "packages/tokens/src/presets/docs-themes.ts",
   "packages/tokens/src/presets/light.ts",
   "packages/tokens/src/resolve.ts",
   "packages/tokens/src/roles.ts",

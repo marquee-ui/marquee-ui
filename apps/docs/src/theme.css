@@ -1,0 +1,102 @@
+.theme-studio {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--background);
+  border-bottom: var(--border-width) solid var(--border);
+  padding: 0.5rem 1.25rem;
+}
+.theme-toolbar {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 0.625rem;
+  align-items: center;
+}
+.theme-toolbar h2 {
+  font: var(--text-2xs) / 1.4 var(--font-mono);
+  color: var(--foreground-2);
+}
+.theme-mode {
+  display: flex;
+}
+.theme-mode button {
+  min-width: var(--hit-min);
+  padding-inline: 0.5rem;
+}
+.theme-mode button[aria-pressed="true"] {
+  background: var(--primary-muted);
+  color: var(--primary-ink);
+  border-color: var(--primary-ink);
+}
+.theme-palette {
+  display: grid;
+  min-width: 0;
+  gap: 0.125rem;
+}
+.theme-palette > span {
+  font: var(--text-3xs) var(--font-mono);
+  color: var(--muted);
+}
+.theme-palette select {
+  width: 100%;
+  min-width: var(--hit-min);
+  min-height: var(--hit-min);
+  background: var(--surface);
+  color: var(--foreground);
+  border: var(--border-width) solid var(--border-strong);
+  font: var(--text-xs) var(--font-body);
+  padding: 0.375rem;
+}
+.theme-recipe-link {
+  display: none;
+}
+.theme-jump {
+  display: inline-flex;
+  min-height: var(--hit-min);
+  align-items: center;
+  color: var(--primary-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  margin-top: 0.5rem;
+}
+.theme-recipe {
+  margin-top: 2rem;
+  scroll-margin-top: 7rem;
+}
+.theme-recipe > h3 {
+  font-size: var(--text-md);
+  margin-bottom: 0.75rem;
+}
+.theme-recipe > p {
+  color: var(--foreground-2);
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+}
+@media (min-width: 768px) {
+  .theme-studio {
+    padding-inline: 2rem;
+  }
+  .theme-toolbar {
+    grid-template-columns: auto auto minmax(10rem, 13rem) 1fr;
+    gap: 1.25rem;
+  }
+  .theme-toolbar h2 br {
+    display: none;
+  }
+  .theme-recipe-link {
+    display: inline-flex;
+    min-height: var(--hit-min);
+    align-items: center;
+    gap: 0.5rem;
+    justify-self: end;
+    color: var(--primary-ink);
+    font-size: var(--text-sm);
+  }
+}
+@media (min-width: 1100px) {
+  .theme-studio {
+    padding-inline: max(3rem, calc((100vw - var(--page-max)) / 2 + 3rem));
+  }
+}

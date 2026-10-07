@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import {
   Badge,
   Button,
@@ -19,14 +19,24 @@ import { ComponentExplorer } from "./explorer";
 import { MarkdownGuide } from "./markdown-guide";
 import gettingStarted from "../../../docs/getting-started.md?raw";
 import supportedStack from "../../../docs/supported-stack.md?raw";
+import { ThemeStudio } from "./theme-studio";
+import { applyTheme, customizationRecipe, readTheme, saveTheme, type ThemeSettings } from "./theme";
 
 const REPOSITORY = "https://github.com/marquee-ui/marquee-ui";
 const STORYBOOK = `${import.meta.env.BASE_URL}storybook/`;
 
-function StudioCard() {
-  const [enabled, setEnabled] = useState(true);
+function StudioCard({
+  expressive,
+  onExpressiveChange,
+}: {
+  expressive: boolean;
+  onExpressiveChange: (expressive: boolean) => void;
+}) {
   return (
-    <Card className="studio-card" radius="sharp">
+    <Card
+      className={expressive ? "studio-card is-expressive" : "studio-card is-restrained"}
+      radius="sharp"
+    >
       <CardHeader>
         <div className="card-eyebrow">
           <Badge tone="primary">LIVE PREVIEW</Badge>
@@ -47,11 +57,18 @@ function StudioCard() {
       </CardHeader>
       <CardContent>
         <div className="preview-setting">
-          <span>Make it expressive</span>
+          <div>
+            <span>Make it expressive</span>
+            <p className="expressive-description">
+              {expressive
+                ? "Display type, accent frame, hard shadow."
+                : "Body type, quiet frame, soft shadow."}
+            </p>
+          </div>
           <Switch
             aria-label="Make it expressive"
-            aria-checked={enabled}
-            onClick={() => setEnabled(!enabled)}
+            aria-checked={expressive}
+            onClick={() => onExpressiveChange(!expressive)}
           >
             <SwitchTrack>
               <SwitchThumb />
@@ -70,8 +87,13 @@ function StudioCard() {
   );
 }
 
-export function App() {
+export function App({ initialTheme = readTheme() }: { initialTheme?: ThemeSettings }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [settings, setSettings] = useState(initialTheme);
+  useLayoutEffect(() => {
+    applyTheme(settings);
+    saveTheme(settings);
+  }, [settings]);
   return (
     <>
       <a className="skip-link" href="#main">
@@ -113,6 +135,7 @@ export function App() {
           </a>
         </nav>
       </header>
+      <ThemeStudio settings={settings} onChange={setSettings} />
       <main id="main">
         <section className="hero section-shell" aria-labelledby="hero-title">
           <div className="hero-copy">
@@ -150,8 +173,13 @@ export function App() {
               <span>THE SYSTEM, IN ACTION</span>
               <span aria-hidden="true">↙</span>
             </div>
-            <StudioCard />
-            <p className="preview-note">Real components. Go ahead, try the switch.</p>
+            <StudioCard
+              expressive={settings.expressive}
+              onExpressiveChange={(expressive) => setSettings({ ...settings, expressive })}
+            />
+            <p className="preview-note">
+              Real parts. The switch changes this composition’s type, frame and depth.
+            </p>
           </div>
         </section>
         <div className="principle-band">
@@ -210,6 +238,9 @@ export function App() {
               to your first composition.
             </h2>
             <p>Start with the ready-to-run starter, or add Marquee to an existing React app.</p>
+            <a className="theme-jump" href="#theme-studio">
+              Try the theme studio <span aria-hidden="true">↗</span>
+            </a>
           </div>
           <MarkdownGuide source={gettingStarted} />
         </section>
@@ -261,8 +292,9 @@ export function App() {
             <p className="eyebrow">05 / THE DESIGN LANGUAGE</p>
             <h2 id="tokens-title">A role for every detail.</h2>
             <p>
-              Arcade is the default: dark surfaces, expressive display type and a bright action
-              color. The Light preset shares the same role contract.
+              Choose a mode and palette in the theme studio. Colors change here, across the page and
+              in every live preview. Arcade is the default; the additional palettes are local demo
+              customizations.
             </p>
           </div>
           <div className="token-swatches">
@@ -277,6 +309,19 @@ export function App() {
             Use <code>bg-surface</code>, <code>text-foreground</code> and <code>shadow-lift</code>.
             The preset owns the palette, the font families and the shadows.
           </p>
+          <div id="theme-recipe" className="theme-recipe">
+            <h3>Your palette, as CSS.</h3>
+            <p>
+              This recipe matches your selected palette and mode. Electric, Clementine and Tide are
+              local customizations, not preset exports in npm 0.1.0. The expressive switch changes
+              this demo card’s composition; it does not change the library’s API.
+            </p>
+            <CopyCode
+              label="Selected theme recipe"
+              language="css"
+              code={customizationRecipe(settings)}
+            />
+          </div>
         </section>
         <section
           id="supported-stack"
