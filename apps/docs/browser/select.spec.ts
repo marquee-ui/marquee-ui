@@ -115,6 +115,24 @@ test("Select popup fits, exposes 44px choices and stays readable through dark, l
     await page.screenshot({ path: test.info().outputPath(`select-${mode.toLowerCase()}.png`) });
     await page.keyboard.press("Escape");
   }
+  await page.emulateMedia({ forcedColors: "active" });
+  await page.getByRole("combobox", { name: "Project priority" }).click();
+  const list = page.getByRole("listbox");
+  const separator = page.locator('[data-slot="select-separator"]');
+  await expect(separator).toBeVisible();
+  expect(
+    await separator.evaluate((el) => getComputedStyle(el).borderTopStyle),
+    "forced-colors separator keeps its line",
+  ).toBe("solid");
+  expect(
+    await separator.evaluate((el) => parseFloat(getComputedStyle(el).borderTopWidth)),
+    "forced-colors separator width",
+  ).toBeGreaterThanOrEqual(1);
+  expect(
+    await separator.evaluate((el) => getComputedStyle(el).borderTopColor),
+    "forced-colors separator ink differs from its ground",
+  ).not.toBe(await list.evaluate((el) => getComputedStyle(el).backgroundColor));
+  await page.keyboard.press("Escape");
 });
 
 test("Select source is highlighted, copies exact bytes and contains its scrolling at every width", async ({
