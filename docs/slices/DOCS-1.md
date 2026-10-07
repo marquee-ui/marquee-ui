@@ -153,3 +153,21 @@ the worktree's ignored `.docs-browser-results/` directory. The original local
 development preview remains on 4176. Publication remains held; the orchestrator
 owns the final integrated production preview on 4174 and any eventual hosting
 activation after the user's review.
+
+## Layer 2 follow-up — focused skip-link contrast
+
+The merged production review found that the inherited anchor reset had greater
+specificity than the skip-link role color. First Tab exposed a label with contrast
+1.018:1 on the primary fill at all three widths. The new browser assertion was run
+against that original production build first: exit 1, three failures, each naming
+`focused skip-link label contrast` with measured 1.0180968413064144 against 4.5.
+
+The reset now uses `:where(a:not([data-slot]))`, retaining its inherited-color
+default with zero specificity so explicitly colored links win. The existing
+browser journey presses the first Tab, requires focused and visible skip-link
+geometry, measures its actual computed ink/fill contrast, checks the focus outline,
+and activates the main-content anchor. No library source, copy, route, or role
+contract changed. Consumer rescan: no exported names or route/ARIA/class changes;
+only the site's own stylesheet and browser test consume this rule; no new CROSS or
+UNOWNED paths. A focused independent regression review and full gate follow this
+committed fix. Public deployment remains held and dev preview 4176 stays alive.
