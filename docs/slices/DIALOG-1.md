@@ -42,4 +42,65 @@ The orchestrator proves fresh packed-registry installation/build/browser behavio
 
 ## As built
 
-Pending implementation. No publication is authorized.
+Ten named parts preserve Radix props, refs and asChild. Content stays centered at
+all widths, owns a viewport-bounded scroll region and injects no Portal, Overlay or
+Close. Header/Footer are optional layout slots. Trigger, Close and Content own
+solid two-pixel focus outlines using primary-ink; Trigger/Close own 44px minimum
+height and width. There are no visual variants to configure.
+
+Nine stories each carry a meaningful play. The live controlled form composes the
+existing Select, keeps Cancel form-safe and leaves saving/validation to the caller.
+The docs name the unreleased status and the explicit Portal/Overlay/Close contract.
+The current shadcn Content wrapper injects those structural parts; Marquee exposes
+them separately to follow its composition rule. Header/Footer are not sticky.
+
+Test-first evidence: `dialog.test.tsx` was run before source existed and failed on
+its missing import (2026-10-08; scratch `test-first.log`). After implementation,
+14 focused contract/style tests passed. The stories, compiled targets and focused
+files passed 220 tests across four files. Eight browser tests run at the three
+configured widths and check behavior, real focus paint, nesting, scroll/hit tests
+and exact copied source. The final focused browser run passed 24/24 in 21.3s on 2026-10-08,
+using `DOCS_PORT=4191 pnpm --filter @marquee-ui/docs exec playwright test dialog.spec.ts`
+against the built docs/Storybook. A five-file focused UI run passed 239 tests.
+Dark/light/accent focus and tall mobile screenshots were opened and inspected.
+
+Initial Light focus contrast failures sampled a transition; waiting for the host's
+actual animations to finish made the same source meet the outline thresholds.
+The nested Sheet test now waits for the parent layer's actual inert pointer state,
+then confirms the child overlay is the pointer target before asserting separate
+Escape/outside dismissal. This closes an effect-registration timing race without
+adding a time delay or weakening the behavior assertions. The nested three-width
+focused run and the full 24-test run passed with those state assertions.
+
+No publication is authorized.
+
+## Consumers
+
+Before implementation, `rg -n` over Dialog part names found only the existing
+Sheet's private Radix namespace and its fixture extraction, the shared source
+inventory, and catalog/parity prose. No Marquee Dialog exports existed; no routes
+or role contracts changed. Scan output: `consumers-before.txt` in stream scratch.
+
+At source completion the ten exported names resolve to the following consumers:
+
+```text
+Dialog: apps/docs/browser/site.spec.ts, apps/docs/src/catalog.ts, apps/docs/browser/dialog.spec.ts, apps/docs/src/examples/dialog.tsx, packages/ui/stories/dialog.stories.tsx, packages/ui/src/dialog.tsx, packages/ui/test/dialog.test.tsx, packages/ui/test/dialog-focus.test.tsx, packages/ui/src/index.ts, packages/ui/src/sheet.tsx
+DialogClose: apps/docs/src/examples/dialog.tsx, packages/ui/src/dialog.tsx, packages/ui/test/dialog-focus.test.tsx, packages/ui/src/index.ts, packages/ui/test/dialog.test.tsx, packages/ui/stories/dialog.stories.tsx
+DialogContent: apps/docs/src/examples/dialog.tsx, packages/ui/test/dialog.test.tsx, packages/ui/test/dialog-focus.test.tsx, packages/ui/stories/dialog.stories.tsx, packages/ui/src/index.ts, packages/ui/src/dialog.tsx
+DialogDescription: apps/docs/src/examples/dialog.tsx, packages/ui/stories/dialog.stories.tsx, packages/ui/test/dialog.test.tsx, packages/ui/src/dialog.tsx, packages/ui/src/index.ts
+DialogFooter: apps/docs/src/examples/dialog.tsx, packages/ui/test/dialog.test.tsx, packages/ui/stories/dialog.stories.tsx, packages/ui/src/dialog.tsx, packages/ui/src/index.ts
+DialogHeader: apps/docs/src/examples/dialog.tsx, packages/ui/src/dialog.tsx, packages/ui/src/index.ts, packages/ui/test/dialog.test.tsx, packages/ui/stories/dialog.stories.tsx
+DialogOverlay: apps/docs/src/examples/dialog.tsx, packages/ui/stories/dialog.stories.tsx, packages/ui/src/dialog.tsx, packages/ui/src/index.ts, packages/ui/test/dialog.test.tsx
+DialogPortal: apps/docs/src/examples/dialog.tsx, packages/ui/stories/dialog.stories.tsx, packages/ui/src/index.ts, packages/ui/test/dialog.test.tsx, packages/ui/src/dialog.tsx
+DialogTitle: apps/docs/src/examples/dialog.tsx, packages/ui/src/index.ts, packages/ui/src/dialog.tsx, packages/ui/stories/dialog.stories.tsx, packages/ui/test/dialog.test.tsx, packages/ui/test/dialog-focus.test.tsx
+DialogTrigger: packages/ui/src/index.ts, packages/ui/src/dialog.tsx, apps/docs/src/examples/dialog.tsx, packages/ui/test/dialog.test.tsx, packages/ui/test/dialog-focus.test.tsx, packages/ui/stories/dialog.stories.tsx
+```
+
+Touched-source tests: `dialog.test.tsx`, `dialog-focus.test.tsx`, the global story
+runner, compiled Tailwind/target runner, registry consistency test, source inventory,
+client-boundary, token/literal/brand guards and the Dialog browser spec. Existing
+Sheet/Select exports are consumed without edits. Shared registration surfaces were
+wired by the orchestrator at 9c10cbc. No sibling-owned consumer, changed route,
+CROSS or unowned behavior. New part-role selectors are confined to these tests.
+Literal-class consumers: generated `r/dialog.json` mirrors source; generic compile
+and focus guards read rendered classes rather than pinning this family's strings.
