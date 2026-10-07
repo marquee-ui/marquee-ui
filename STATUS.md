@@ -1,6 +1,6 @@
 # Marquee release status
 
-CURSOR: RELEASE-1-CONTROLS — requested visual controls and independent accents; public release held
+CURSOR: RELEASE-1-CONTROLS — revised controls ready for localhost review; public release held
 
 The user authorized a bounded release-readiness batch, then requested localhost review
 before publication and a focused theme/code revision. Do not activate Pages, merge the
@@ -13,32 +13,32 @@ release PR, deploy publicly, purchase a domain or publish npm packages until dir
       persistent preferences, visible expressive styling and selected CSS recipes.
 - [x] [CODE-1](docs/slices/CODE-1.md): safe language-aware highlighting, exact source
       copying and richer code/prose presentation.
-- [x] Independent stream reviews and merged verification: 652 library tests, 35 docs
-      unit tests, 5 consumer checks and 51 browser cases across 390/768/1280.
+- [x] Independent stream reviews and merged verification: 708 library tests, 39 docs
+      unit tests, 5 consumer checks and 63 browser cases across 390/768/1280.
 - [ ] User direction after reviewing localhost, then approved public release operations.
 
 Built preview: **http://localhost:4174/marquee-ui/**. The immutable source is
-`5df4a7980b2b25d9d06f7f954844eb3b032f78eb`; later commits record review evidence only.
-The server runs from `/home/ankit/Code/marquee-integration-ux/apps/docs/dist`.
+`f020c59b31e7c7d5691ee7c772e2ac4a314ce53a`; later commits record review evidence only.
+The server runs from `/home/ankit/Code/marquee-integration-controls/apps/docs/dist`.
 The combined studio and source are easy to inspect at `#components`; selected CSS is
-at `#theme-recipe`. [Screenshots and batch record](docs/batches/RELEASE-1-UX.md).
+at `#theme-recipe`. [Screenshots and batch record](docs/batches/RELEASE-1-CONTROLS.md).
 
-Current revision: [RELEASE-1-CONTROLS](docs/batches/RELEASE-1-CONTROLS.md) replaces touching
-mode buttons and the native picker, and adds independent curated action accents. Preserve
-the current 4174 candidate until its verified replacement is ready.
+[RELEASE-1-CONTROLS](docs/batches/RELEASE-1-CONTROLS.md) now provides spaced sun/moon
+mode controls, a visual settings Sheet, and Automatic plus seven curated action accents
+independent of the four base palettes. Valid older preferences are preserved.
 
-- [ ] CONTROLS-1 implementation, independent review and full gate.
-- [ ] Focused integration review, merged gate, refreshed localhost and final-head CI.
+- [x] CONTROLS-1 implementation, independent review and full gate.
+- [x] Focused integration review, merged gate and refreshed localhost. Final-head CI is recorded in the handoff below.
 
-Next: show the revised controls on localhost. Draft
+Next: review the revised localhost candidate and direct whether to publish. Draft
 [PR #2](https://github.com/marquee-ui/marquee-ui/pull/2) remains open and unmerged.
 `marquee-ui.dev` is not owned; the prepared default Pages destination needs no domain.
-Electric, Clementine and Tide are local demo customizations, not npm 0.1.0 preset exports.
+Additional base palettes and action accents are local demo customizations, not npm 0.1.0 preset exports.
 
 ## Cold resume
 
 Inspect Git status/worktrees, this file, the two current slice records and the batch review.
-Final local evidence is `/home/ankit/.marquee-scratch/RELEASE-1-UX/integration/`:
+Final local evidence is `/home/ankit/.marquee-scratch/RELEASE-1-CONTROLS/integration/`:
 `verify.exit` is 0; `source-sha` identifies the exact built source; `final-handoff.md`
 records the serving process and final pushed-head CI conclusions. Earlier clean npm proof
 remains under `/home/ankit/.marquee-scratch/RELEASE-1/`. No library version changed.
@@ -46,7 +46,8 @@ The main-only Pages workflow stays held by leaving the PR unmerged. No product b
 
 ## Session log
 
-| Date       | Batch        | Result                                                                   |
-| ---------- | ------------ | ------------------------------------------------------------------------ |
-| 2026-10-08 | RELEASE-1    | Local release candidate verified; publication held for user review.      |
-| 2026-10-08 | RELEASE-1-UX | Requested live themes and highlighted source verified; publication held. |
+| Date       | Batch              | Result                                                                   |
+| ---------- | ------------------ | ------------------------------------------------------------------------ |
+| 2026-10-08 | RELEASE-1          | Local release candidate verified; publication held for user review.      |
+| 2026-10-08 | RELEASE-1-UX       | Requested live themes and highlighted source verified; publication held. |
+| 2026-10-08 | RELEASE-1-CONTROLS | Visual picker and independent accents verified; publication held.        |

@@ -37,3 +37,44 @@ Evidence: `/home/ankit/.marquee-scratch/RELEASE-1-CONTROLS/{s1,r5,integration,la
 
 No new package exports/version, merge, deployment, Pages activation, domain or npm operation.
 Finish with stable localhost, concise records, updated draft PR and final-head hosted CI.
+
+## Result — 2026-10-08
+
+The baseline browser measured a 0px mode-button gap and one native select. The replacement
+has a 74px mobile toolbar, inset sun/moon controls and a composed Sheet with visual base
+palettes and Automatic/Lime/Mint/Cyan/Blue/Violet/Pink/Amber action choices. All 64
+base × mode × accent combinations pass the data-driven role checks. Old preferences upgrade
+to Automatic without losing palette, mode or expressive state; CSS copying stays exact.
+
+Independent review closed two concrete defects before the single stream gate: a Light-mode
+row focus outline measured 1.125:1 and now uses readable action ink (7.626:1); a selector
+regression briefly painted unselected ticks and is now proved selected-only. No findings
+remain. [Stream evidence and negative controls](../slices/CONTROLS-1.md).
+
+Stream gate: exit 0 in 81s at `1debecb3a16cf6fe0808a8128af2c58f1ebf4307`.
+Merged `DOCS_PORT=4182 pnpm verify`: exit 0 in 80s at
+`f020c59b31e7c7d5691ee7c772e2ac4a314ce53a`: **708 library tests, 39 docs unit tests,
+5 consumer checks and 63 browser cases** across 390/768/1280. Registry unchanged.
+Later commits contain records only. [Focused integration review](RELEASE-1-CONTROLS-review.md)
+found zero HIGH/MEDIUM/LOW issues across eight representative combinations covering every
+base, mode and accent setting; actual syntax, action roles, recipe/root/clipboard agreement,
+storage and short-phone keyboard behavior passed.
+
+The gated build serves **http://localhost:4174/marquee-ui/** from
+`/home/ankit/Code/marquee-integration-controls/apps/docs/dist`, detached node PID 902665.
+Served index SHA256 matches the built file:
+`91b535599ad2cb94cdb2adf0edfbffd40f757ddf9e3c706426f1d0b4113976af`.
+
+- [Light visual picker](RELEASE-1-CONTROLS-evidence/desktop-light-picker.png)
+- [Independent accent, live component and highlighted source](RELEASE-1-CONTROLS-evidence/desktop-light-accent-code.png)
+- [Mobile controls](RELEASE-1-CONTROLS-evidence/mobile-controls.png) and [highlighted source](RELEASE-1-CONTROLS-evidence/mobile-accent-code.png)
+- [Final option selected and focused through Tab/ArrowRight](RELEASE-1-CONTROLS-evidence/mobile-last-accent-focus.png), fully above Done at 390×664
+
+Final-head hosted CI and process details are recorded in
+`/home/ankit/.marquee-scratch/RELEASE-1-CONTROLS/integration/final-handoff.md`.
+Draft PR #2 stays unmerged. No package release, Pages activation, deployment or domain action.
+The root's shadcn comparison was read-only; this revision adds no parity components.
+
+Retro: narrow selector changes need actual selected/unselected rendering checks, and keyboard
+focus evidence must use keyboard modality. Those assertions now run in the normal browser gate.
+Next is localhost review and user direction, with publication held and preview trees retained.
