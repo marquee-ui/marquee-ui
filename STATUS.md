@@ -1,9 +1,9 @@
 # Marquee release status
 
-CURSOR: RELEASE-1 — ready for localhost review; public release held
+CURSOR: RELEASE-1-UX — requested theme and code-presentation revision; public release held
 
 The user authorized a bounded release-readiness batch and then asked to see localhost
-before publication. The code and local verification are complete. Do not activate Pages,
+before publication. The first candidate is verified; the user requested the focused revision below. Do not activate Pages,
 merge the release PR, deploy publicly, or purchase a domain until the user directs onward.
 
 - [x] [CONSUMER-1](docs/slices/CONSUMER-1.md): clean published-package consumer, canonical
@@ -19,8 +19,19 @@ Local production preview: **http://localhost:4174/marquee-ui/**. It was built fr
 The server runs from this checkout's `apps/docs/dist`. Development preview 4176 remains
 available in the DOCS-1 worktree. [Screenshots and batch record](docs/batches/RELEASE-1.md).
 
-Next: the user reviews localhost and decides whether to publish to the free default Pages
-URL. `marquee-ui.dev` is not owned; no custom domain is configured or required for that URL.
+## Requested revision
+
+The user found that “Make it expressive” only moves its own switch, expected palette and
+light/dark choices, and requested theme-aware syntax highlighting and richer code/prose.
+[RELEASE-1-UX](docs/batches/RELEASE-1-UX.md) is a bounded continuation on the same draft
+PR #2. Preserve the existing 4174 preview until its verified replacement is ready.
+
+- [ ] THEME-1: persistent, accessible mode/palette controls and real expressive styling.
+- [ ] CODE-1: language-aware highlighted code and stronger prose/code presentation.
+- [ ] Independent reviews, merged behavioral checks, final CI and refreshed localhost.
+
+Next: show an early interactive theme preview, finish these two slices and update draft
+[PR #2](https://github.com/marquee-ui/marquee-ui/pull/2). Publication remains held. `marquee-ui.dev` is not owned; no custom domain is configured or required for that URL.
 
 ## Cold resume
 
