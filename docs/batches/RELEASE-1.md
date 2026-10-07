@@ -12,11 +12,11 @@ Streams are depth 2, their reviewers depth 3; maximum helper depth is 4.
 All agents share the filesystem and must preserve other agents' work. Source and mutation
 work use separate worktrees. No database or external product stack is involved.
 
-| Slice       | Branch / worktree                       | Owns                                                                                                                               | Consumes                                                         |
-| ----------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| CONSUMER-1  | `s/consumer-1`, `../marquee-consumer-1` | README, `docs/getting-started.md`, `docs/supported-stack.md`, `examples/consumer/**`, `scripts/verify-consumer.mjs`, own slice doc | published UI 0.1.10 and tokens 0.1.0, registry, documented stack |
-| DOCS-1      | `s/docs-1`, `../marquee-docs-1`         | `apps/docs/**`, root package/workspace/lock/config wiring, `.github/workflows/**`, own slice doc                                   | current Marquee source/tokens; consumer quickstart contract      |
-| Integration | `next`                                  | STATUS, batch record, cross-stream repairs by agreement, hosting settings and PR                                                   | both reviewed streams                                            |
+| Slice       | Branch / worktree                       | Owns                                                                                                                                                            | Consumes                                                         |
+| ----------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| CONSUMER-1  | `s/consumer-1`, `../marquee-consumer-1` | README, `docs/getting-started.md`, `docs/supported-stack.md`, `examples/consumer/**`, `scripts/verify-consumer.mjs`, own slice doc                              | published UI 0.1.10 and tokens 0.1.0, registry, documented stack |
+| DOCS-1      | `s/docs-1`, `../marquee-docs-1`         | `apps/docs/**`, root package/workspace/lock/config wiring, `.github/workflows/**`, `.storybook/**`, `packages/ui/test/storybook-preview.test.ts`, own slice doc | current Marquee source/tokens; consumer quickstart contract      |
+| Integration | `next`                                  | STATUS, batch record, cross-stream repairs by agreement, hosting settings and PR                                                                                | both reviewed streams                                            |
 
 Use `PATH=/home/ankit/.nvm/versions/node/v22.18.0/bin:$PATH` for Node 22.18.0
 and pnpm 10.24.0. Durable scratch: `/home/ankit/.marquee-scratch/RELEASE-1/`,
@@ -51,6 +51,19 @@ reviewable site and PR independently; do not buy or register a domain.
 Read STATUS and these two small slice docs, inspect worktrees/branches, then the run
 sentinels and logs in durable scratch. Never infer a gate result from filtered output.
 Baseline source: `e6533179dffb34827d0cf0967935c4da38b9a31b`.
+
+## Contracts and measured baseline
+
+- The site renders the consumer-owned getting-started and supported-stack Markdown via
+  Vite raw imports. Installation prose has one canonical owner.
+- Consumer script tests use Node's test runner (`scripts/verify-consumer.test.mjs`) and
+  join the root test chain. Cold npm/browser proof stays an explicit command because it
+  installs public dependencies and should not be implicit in every package gate.
+- Storybook currently hardcodes root `/tokens/` URLs in its fonts and light-preset link.
+  DOCS-1 owns their subpath correction and the one existing test asserting the old URL;
+  actual browser font/preset requests must confirm the prepared hosted bundle.
+- Baseline `pnpm verify` at `e6533179dffb34827d0cf0967935c4da38b9a31b` exited 0:
+  36 test files and 645 tests passed. Runner log and exit sentinel are in `baseline/`.
 
 ## Reviews, verification, decisions and retro
 
