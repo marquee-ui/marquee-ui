@@ -1,3 +1,8 @@
+# RELEASE-1-UX independent cross-review
+
+The report below is preserved from the read-only review. Its scratch evidence directory is
+`/home/ankit/.marquee-scratch/RELEASE-1-UX/layer2/`; references to “this directory” refer there.
+
 DECISIONS
 
 1. Offer Arcade acid, Electric, Clementine and Tide independently of Dark / Light. [V]
