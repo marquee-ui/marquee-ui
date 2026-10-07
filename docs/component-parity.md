@@ -7,16 +7,16 @@ The catalog mixes primitives and recipes, so a percentage based on its entry cou
 
 ## Ordered batches
 
-| Batch          | Independent streams                              | Dependencies                                   | State   |
-| -------------- | ------------------------------------------------ | ---------------------------------------------- | ------- |
-| BATCH-PARITY-1 | Select; Tabs                                     | Existing tokens/composition                    | Active  |
-| BATCH-PARITY-2 | Dialog; AlertDialog                              | Existing Radix approach                        | Planned |
-| BATCH-PARITY-3 | Popover; Tooltip                                 | Overlay conventions from batch 2               | Planned |
-| BATCH-PARITY-4 | DropdownMenu; Slider                             | Overlay conventions from batches 2–3           | Planned |
-| BATCH-PARITY-5 | Combobox; Calendar                               | Popover; choose maintained calendar primitive  | Planned |
-| BATCH-PARITY-6 | DatePicker; Table                                | Calendar + Popover; semantic table foundation  | Planned |
-| BATCH-PARITY-7 | DataTable; Chart                                 | Table; choose maintained data/chart primitives | Planned |
-| BATCH-PARITY-8 | Existing common-name API audit and documentation | New families complete                          | Planned |
+| Batch          | Independent streams                              | Dependencies                                   | State    |
+| -------------- | ------------------------------------------------ | ---------------------------------------------- | -------- |
+| BATCH-PARITY-1 | Select; Tabs                                     | Existing tokens/composition                    | Complete |
+| BATCH-PARITY-2 | Dialog; AlertDialog                              | Existing Radix approach                        | Planned  |
+| BATCH-PARITY-3 | Popover; Tooltip                                 | Overlay conventions from batch 2               | Planned  |
+| BATCH-PARITY-4 | DropdownMenu; Slider                             | Overlay conventions from batches 2–3           | Planned  |
+| BATCH-PARITY-5 | Combobox; Calendar                               | Popover; choose maintained calendar primitive  | Planned  |
+| BATCH-PARITY-6 | DatePicker; Table                                | Calendar + Popover; semantic table foundation  | Planned  |
+| BATCH-PARITY-7 | DataTable; Chart                                 | Table; choose maintained data/chart primitives | Planned  |
+| BATCH-PARITY-8 | Existing common-name API audit and documentation | New families complete                          | Planned  |
 
 Each stream owns a bounded family and its tests, live example, copyable source and install
 contract. Expand slice records only for the active batch. DataTable/Chart are bounded
@@ -29,11 +29,11 @@ implementation as deferred work rather than silently changing existing APIs.
 Existing source/registry families: Accordion, Alert, Avatar, Badge, Breadcrumb, Button,
 Card, Checkbox, DescriptionList, Form, Input, Label, Pagination, RadioGroup, Ribbon,
 Separator, Sheet, Switch, Textarea, Toast and Toggle. The shared `utils` item is a library
-helper rather than a component family. Newly completed families are recorded by the batch rows.
+helper rather than a component family. Newly completed families are recorded by the batch rows and their evidence below.
 
 | Area                           | Current contract or planned proof                                                                                                                                                                                 |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Select, Tabs                   | Batch 1: maintained Radix behavior, composition, keyboard/state tests, docs and fresh packed-consumer install.                                                                                                    |
+| Select, Tabs                   | [Batch 1 complete](batches/BATCH-PARITY-1.md): maintained Radix behavior, composition, keyboard/state tests, docs and fresh packed-consumer install.                                                              |
 | Overlays and everyday controls | Batches 2–5: Dialog, AlertDialog, Popover, Tooltip, DropdownMenu, Slider and Combobox.                                                                                                                            |
 | Dates and data                 | Batches 5–7: Calendar, DatePicker, Table, DataTable and Chart.                                                                                                                                                    |
 | Form                           | Accessibility wiring; caller owns controller, validation and submission.                                                                                                                                          |

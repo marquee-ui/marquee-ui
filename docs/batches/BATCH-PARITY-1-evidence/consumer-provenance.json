@@ -1,0 +1,23 @@
+{
+  "source": "0ae5662c8d06372a24ffad6ce5d740fa346690e4",
+  "measuredAt": "2026-10-07T23:28:57.862708+00:00",
+  "node": "v22.18.0",
+  "artifacts": [
+    {
+      "name": "@marquee-ui/tokens",
+      "file": "marquee-ui-tokens-0.1.0.tgz",
+      "sha256": "75b30268238e44074a54d923e596d1f6a1a931f2ae85f8a5da3271a7dadf55cd"
+    },
+    {
+      "name": "@marquee-ui/ui",
+      "file": "marquee-ui-ui-0.1.10.tgz",
+      "sha256": "870b1dc3d9a14269c42685677a7ca5d1daf61afc71d3de4630ff56ba8b8aa32f"
+    }
+  ],
+  "compared": 10,
+  "consumer": "/home/ankit/.marquee-scratch/BATCH-PARITY-1/consumer-final",
+  "browserPassed": 12,
+  "browserCommand": "npm run proof",
+  "initialBrowserPassed": 11,
+  "harnessCorrection": "Wait for Select Escape focus return and each asynchronous Tabs roving-focus transition before measuring paint."
+}
