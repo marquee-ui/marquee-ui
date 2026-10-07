@@ -1,6 +1,6 @@
 # SELECT-1 — composed Select
 
-Batch: BATCH-PARITY-1. Status: active. Publication remains held in STATUS.md.
+Batch: BATCH-PARITY-1. Status: complete. Publication remains held in STATUS.md.
 
 ## Scope and ownership
 
@@ -181,4 +181,19 @@ The full verify command performs assembly in its normal build chain.
 
 ## Gate
 
-Pending.
+One full stream gate on 2026-10-08 at
+8de07a6abaf042269db647be8637e12e1ba52ace:
+
+```sh
+PATH=/home/ankit/.nvm/versions/node/v22.18.0/bin:$PATH DOCS_PORT=4191 pnpm verify
+```
+
+Sentinel exit 0, wall 91 seconds. Runner summaries: library 38 files / 722 passed;
+docs 4 files / 39 passed; consumer 5 passed / 0 failed; browser 75 passed across
+390/768/1280 (1.2m). Lint, formatting, all workspace typechecks, token build,
+registry build, docs build, Storybook build and site assembly passed in the same
+chain. No product/DB/Steam command, merge, release, publication, deploy or version
+bump ran. Subsequent slice-record commit contains only this completed evidence.
+Logs and sentinel: /home/ankit/.marquee-scratch/BATCH-PARITY-1/s1/verify.log,
+verify.exit, verify.start and verify.end. Packed new-family consumer proof is
+orchestrator-owned and runs on the reconciled batch candidate.
