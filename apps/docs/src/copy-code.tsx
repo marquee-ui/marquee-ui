@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { Button } from "@marquee-ui/ui";
 
-export function CopyCode({ code, label }: { code: string; label: string }) {
+export function CopyCode({
+  code,
+  label,
+  language = "tsx",
+}: {
+  code: string;
+  label: string;
+  language?: string;
+}) {
   const [message, setMessage] = useState("");
   async function copy() {
     try {
@@ -15,6 +23,7 @@ export function CopyCode({ code, label }: { code: string; label: string }) {
     <div className="code-block">
       <div className="code-heading">
         <span>{label}</span>
+        <span className="code-language">{language.toUpperCase() || "TEXT"}</span>
         <Button variant="ghost" width="auto" onClick={copy} aria-label={`Copy ${label}`}>
           Copy <span aria-hidden="true">↗</span>
         </Button>
