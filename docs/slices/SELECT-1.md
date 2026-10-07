@@ -197,3 +197,22 @@ bump ran. Subsequent slice-record commit contains only this completed evidence.
 Logs and sentinel: /home/ankit/.marquee-scratch/BATCH-PARITY-1/s1/verify.log,
 verify.exit, verify.start and verify.end. Packed new-family consumer proof is
 orchestrator-owned and runs on the reconciled batch candidate.
+
+## Packed-consumer outline closure
+
+On 2026-10-08, the fresh packed consumer exposed a highlighted item's outline
+style as none although its color had sufficient contrast. From reconciled
+85967ec285dd160b0a1025528ac9b58408b3ec22, the isolated iframe reproduced that
+failure at `isolated Light item outline style` (expected solid, received none).
+Added `data-[highlighted]:outline-solid` to override the base outline-none style,
+rebuilt the registry, and added isolated trigger/item style and width assertions
+beside the existing contrast assertions. Focused tests: 5 files / 228 passed;
+Select browser: 12 passed across all three widths (15.1s).
+
+After committing 67162107f40d1117a889bee3265b49203e297d7b, removed only that new
+style class, confirmed the source mutation landed, rebuilt Storybook and assembled
+the site. The mobile popup test failed at the predicted item-style assertion:
+expected solid, received none (1 failed, exit 1). Source restored from git.
+Evidence: scratch s1/consumer-fix/{baseline-browser,fixed-browser,mutation-browser}.log
+and corresponding exit sentinels. Merged gate and fresh packed proof are
+orchestrator-owned; this closure used focused checks only.
