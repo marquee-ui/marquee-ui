@@ -171,3 +171,22 @@ contract changed. Consumer rescan: no exported names or route/ARIA/class changes
 only the site's own stylesheet and browser test consume this rule; no new CROSS or
 UNOWNED paths. A focused independent regression review and full gate follow this
 committed fix. Public deployment remains held and dev preview 4176 stays alive.
+
+## Layer 1 (reviewer, detached worktree of bc09be41ba8461beb62f8f448f8989269b257f9b, slot r6)
+
+<!-- prettier-ignore -->
+| file | test | mutation applied | red / GREEN | what it asserts now |
+| --- | --- | --- | --- | --- |
+| apps/docs/browser/site.spec.ts | loads real fonts, readable primary actions and a page that fits the viewport [mobile 390px] | Restore reset from :where(a:not([data-slot])) to a:not([data-slot]); confirm line 21, rebuild docs | red | First Tab must focus a visible skip link whose actual label contrast is >=4.5; received 1.0180968413064144 at focused skip-link label contrast assertion, line 36. |
+| apps/docs/browser/site.spec.ts | loads real fonts, readable primary actions and a page that fits the viewport [tablet 768px] | Same exact reset regression and rebuilt docs | red | Same focused skip-link contrast assertion fails with 1.0180968413064144, expected >=4.5. |
+| apps/docs/browser/site.spec.ts | loads real fonts, readable primary actions and a page that fits the viewport [desktop 1280px] | Same exact reset regression and rebuilt docs | red | Same focused skip-link contrast assertion fails with 1.0180968413064144, expected >=4.5. |
+
+Focused independent review PASS, 2026-10-08. Baseline runner exit 0, three
+passed (2.8 s); the exact old-selector mutation was confirmed at line 21 and the
+docs rebuilt. Mutation runner exit 1, three predicted contrast failures, no GREEN
+survivors. The reviewer restored the committed source and removed the clean
+worktree. Its independent measurement at 390, 768 and 1280px found first-Tab focus,
+solid outline, height 56px and contrast 17.54384444519957:1 using the actual primary
+foreground and fill. Ordinary anchor inheritance and slotted primary ink remain
+correct. No outstanding finding. Evidence is in slot r6 `skip-link-review.md` and
+`skip-measure.json`; this record precedes the requested follow-up full gate.
