@@ -183,6 +183,19 @@ detached reviewer worktree was removed; evidence remains in `r5`.
 
 ## Full gate
 
-Pending the single root `pnpm verify` after independent review. Root gate wiring
-for fast consumer tests is owned by DOCS-1; this isolated stream separately ran
-`node --test scripts/verify-consumer.test.mjs` with five passed and no skips.
+The single root `pnpm verify` after independent review exited 0 at
+`426c7ef3c0b490d9833d0285ed806cf07171a62a`, measured 2026-10-08 IST. The runner
+reports **Test Files 36 passed (36)** and **Tests 645 passed (645)**, unit duration
+4.17s. Lint, typecheck, token/registry/Storybook builds and the full root suite
+completed. Gate log creation to exit-sentinel creation was 17 seconds, measured
+with `stat -c '%W'` over `s1/verify.log` and `s1/verify.exit`.
+
+Root gate wiring for fast consumer tests is owned by DOCS-1; this isolated stream
+separately ran `node --test scripts/verify-consumer.test.mjs` with five passed and
+no skips. The final fresh-cache consumer command at `326029d` exited 0 and its
+browser runner reports two passed (2.9s), no retries or skips. That production
+consumer is at `s1/cold-reviewed`; root `pnpm verify` does not run this network
+browser proof. No gate was skipped or substituted with a filtered test result.
+
+After this measured gate, only this result paragraph was added and formatted.
+No library, generated registry or consumer implementation changed.
