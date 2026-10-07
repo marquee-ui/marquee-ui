@@ -119,3 +119,5 @@ export {
   SelectScrollDownButton,
   SelectArrow,
 } from "./select.js";
+
+export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs.js";

@@ -44,6 +44,9 @@ import code20 from "./examples/toggle?raw";
 import PreviewSelect from "./examples/select";
 import codeSelect from "./examples/select?raw";
 
+import PreviewTabs from "./examples/tabs";
+import codeTabs from "./examples/tabs?raw";
+
 export const catalog = [
   {
     id: "button",
@@ -218,9 +221,18 @@ export const catalog = [
     id: "select",
     name: "Select",
     description:
-      "A single-value choice with explicit portal, viewport, item text and indicator slots. Radix owns focus and native form behavior.",
+      "Unreleased candidate. A single-value choice with explicit portal, viewport, item text and indicator slots. Radix owns focus and native form behavior.",
     story: "default",
     Preview: PreviewSelect,
     code: codeSelect,
+  },
+  {
+    id: "tabs",
+    name: "Tabs",
+    description:
+      "Unreleased candidate. Linked tabs and panels with automatic or manual activation, horizontal or vertical orientation, and default or line styling.",
+    story: "default",
+    Preview: PreviewTabs,
+    code: codeTabs,
   },
 ] as const;

@@ -67,6 +67,7 @@ export const PUBLISHED_SOURCE_FILES = [
   "packages/ui/src/textarea.tsx",
   "packages/ui/src/toast.tsx",
   "packages/ui/src/select.tsx",
+  "packages/ui/src/tabs.tsx",
   "packages/ui/src/toggle.tsx",
 ] as const;
 
@@ -100,6 +101,7 @@ export const STORY_FILES = [
   "packages/ui/stories/textarea.stories.tsx",
   "packages/ui/stories/toast.stories.tsx",
   "packages/ui/stories/select.stories.tsx",
+  "packages/ui/stories/tabs.stories.tsx",
   "packages/ui/stories/toggle.stories.tsx",
 ] as const;
 
