@@ -91,6 +91,33 @@ test("live Tabs selects by keyboard, contains 44px controls and copies highlight
   const second = (await settings.boundingBox())!;
   expect(second.y, "vertical list stacks triggers").toBeGreaterThan(first.y + first.height);
   expect(second.x, "vertical triggers share a column").toBe(first.x);
+  const verticalPaint = await profile.evaluate((el) => {
+    const style = getComputedStyle(el);
+    const list = el.closest('[role="tablist"]')!;
+    const listStyle = getComputedStyle(list);
+    const listBox = list.getBoundingClientRect();
+    return {
+      width: el.getBoundingClientRect().width,
+      listContentWidth:
+        listBox.width -
+        parseFloat(listStyle.borderLeftWidth) -
+        parseFloat(listStyle.borderRightWidth) -
+        parseFloat(listStyle.paddingLeft) -
+        parseFloat(listStyle.paddingRight),
+      right: parseFloat(style.borderRightWidth),
+      bottom: parseFloat(style.borderBottomWidth),
+      rightInk: style.borderRightColor,
+      ink: style.color,
+    };
+  });
+  expect(verticalPaint.width, "vertical triggers fill the list content width").toBe(
+    verticalPaint.listContentWidth,
+  );
+  expect(verticalPaint.right, "vertical selected line has a right-edge marker").toBe(2);
+  expect(verticalPaint.bottom, "vertical selected line has no bottom marker").toBe(0);
+  expect(verticalPaint.rightInk, "selected line marker follows its readable action ink").toBe(
+    verticalPaint.ink,
+  );
   const start = (await overview.boundingBox())!;
   const end = (await activity.boundingBox())!;
   expect(end.x, "horizontal list advances across columns").toBeGreaterThan(start.x + start.width);
@@ -124,6 +151,8 @@ test("Tabs paints readable state and focus from dark, light and accent roles", a
       await page.getByRole("button", { name: /^Customize theme:/ }).click();
       await page.getByRole("radio", { name: new RegExp(`^${accent}\\b`) }).check();
       await page.getByRole("button", { name: "Done", exact: true }).click();
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      await expect(page.getByRole("button", { name: /^Customize theme:/ })).toBeFocused();
       await page.keyboard.press("Tab");
       await profile.focus();
       await expect(profile).toBeFocused();
@@ -170,8 +199,22 @@ test("Tabs paints readable state and focus from dark, light and accent roles", a
   expect(paints[0], "dark selected line follows accent").not.toBe(paints[1]);
   expect(paints[2], "light selected line follows accent").not.toBe(paints[3]);
   await page.emulateMedia({ forcedColors: "active" });
+  await page.getByRole("heading", { name: "Tabs", exact: true }).focus();
+  for (const name of ["Overview", "Profile"]) {
+    const active = canvas.getByRole("tab", { name });
+    await expect(active).toHaveAttribute("aria-selected", "true");
+    await expect(active).not.toBeFocused();
+    await expect(active).toHaveCSS("outline-style", "solid");
+    expect(
+      await active.evaluate((el) => parseFloat(getComputedStyle(el).outlineWidth)),
+      `${name} selected state remains drawn without focus under forced colors`,
+    ).toBeGreaterThanOrEqual(2);
+  }
+  for (const name of ["Activity", "Settings"])
+    await expect(canvas.getByRole("tab", { name })).toHaveCSS("outline-width", "0px");
   await profile.focus();
   await expect(profile).toHaveCSS("outline-style", "solid");
+  await expect(profile).toHaveCSS("outline-offset", "2px");
   expect(
     await profile.evaluate((el) => parseFloat(getComputedStyle(el).outlineWidth)),
   ).toBeGreaterThanOrEqual(2);

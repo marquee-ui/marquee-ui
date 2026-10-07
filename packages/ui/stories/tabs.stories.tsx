@@ -226,6 +226,11 @@ export const Composition: Story = {
     await expect(canvas.getByRole("region", { name: "Composed tabs" }).tagName).toBe("SECTION");
     await expect(canvas.getByRole("tabpanel", { name: "Overview" }).tagName).toBe("ARTICLE");
     await userEvent.click(canvas.getByRole("tab", { name: "Activity" }));
+    await selected(canvasElement, "Activity", "Activity content");
+    await expect(canvas.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+      "aria-selected",
+      "false",
+    );
     const before = composedClick.mock.calls.length;
     await userEvent.click(canvas.getByRole("tab", { name: "Overview" }));
     await expect(composedClick.mock.calls.length).toBe(before + 1);
