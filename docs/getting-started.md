@@ -67,6 +67,7 @@ React entrypoint:
 @import "@marquee-ui/tokens/fonts.css";
 @import "@marquee-ui/tokens/tokens.css";
 @source "./";
+@source "../index.html";
 ```
 
 Tailwind comes first so Marquee's role definitions take precedence. `fonts.css`
@@ -74,6 +75,9 @@ loads the three bundled, self-hosted woff2 faces; the token stylesheet assigns
 them to display, body and mono roles. `@source "./"` scans `src`, including your
 copied components. Paths in `@source` are relative to the stylesheet. Explicit
 scanning keeps tests and unrelated repository files out of the generated CSS.
+The second source includes Vite's root HTML. Give the page its roles, for example
+`<body class="bg-background text-foreground">` in `index.html`; importing tokens
+defines the roles without applying an application background.
 See [Tailwind's source detection documentation](https://tailwindcss.com/docs/detecting-classes-in-source-files).
 
 For the light preset, replace the `tokens.css` import with
