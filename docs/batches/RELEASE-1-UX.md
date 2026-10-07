@@ -47,3 +47,20 @@ Scratch: `/home/ankit/.marquee-scratch/RELEASE-1-UX/`, with separate s1/s2/r5/r6
 Show an early useful theme preview, integrate reviewed source, run the changed-tree gate,
 then replace 4174 with the verified build. Capture dark/light/palette/code views and update
 PR #2; read hosted CI at its final head. Retain the publication hold and stop this revision.
+
+## Design and regression evidence
+
+The studio separates dark/light mode from four combinations: Arcade acid, Electric
+(violet/cyan), Clementine (coral/peach), and Tide (mint/blue). The expressive control
+changes the live composition's brand emphasis and depth. The customization recipe
+describes the active local choice, without changing the published preset exports.
+
+At the composition base, the theme stream's browser regression fails specifically
+because the card shadow is identical before and after the expressive switch, and the
+theme studio is missing. The code stream measured all code in one computed color;
+its new language-label test fails before implementation. Evidence lives under
+`/home/ankit/.marquee-scratch/RELEASE-1-UX/{s1,s2}/`.
+
+The final gate will run in a detached integration worktree on port 4182. The existing
+4174 server and its dist directory remain untouched until the replacement build is
+verified. This avoids changing the user's review surface during compilation.
