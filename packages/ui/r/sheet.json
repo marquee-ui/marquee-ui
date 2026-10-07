@@ -4,7 +4,7 @@
   "title": "Sheet",
   "description": "A bottom sheet on mobile and a centred dialog from 768 up, with a real scroll region.",
   "dependencies": [
-    "@radix-ui/react-dialog@^1.1.23"
+    "@radix-ui/react-dialog@^1.2.0"
   ],
   "registryDependencies": [
     "@marquee/utils"

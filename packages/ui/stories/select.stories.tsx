@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { Button } from "@/button";
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/sheet";
 import {
   Select,
   SelectArrow,
@@ -322,5 +323,70 @@ export const Scrollable: Story = {
     await waitFor(async () => {
       await expect(trigger).toHaveTextContent("Section 24");
     });
+  },
+};
+
+function NestedSheetExample() {
+  const [outsideClicks, setOutsideClicks] = useState(0);
+  return (
+    <div className="flex flex-col items-start gap-3">
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button>Open selection sheet</Button>
+        </SheetTrigger>
+        <SheetContent>
+          <SheetTitle>Choose produce</SheetTitle>
+          <SheetDescription>A Select composes inside a modal sheet.</SheetDescription>
+          <Select defaultValue="apple">
+            <Parts />
+          </Select>
+        </SheetContent>
+      </Sheet>
+      <Button onClick={() => setOutsideClicks((count) => count + 1)}>Outside action</Button>
+      <output aria-label="Outside clicks">{outsideClicks}</output>
+    </div>
+  );
+}
+
+/** Nested modal parts share focus and dismiss layers, including portal content. */
+export const NestedSheet: Story = {
+  render: () => <NestedSheetExample />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(document.body);
+    const outsideTrigger = canvas.getByRole("button", { name: "Open selection sheet" });
+    await userEvent.click(outsideTrigger);
+    const sheet = await body.findByRole("dialog", { name: "Choose produce" });
+    const trigger = within(sheet).getByRole("combobox", { name: "Produce" });
+    trigger.focus();
+    await userEvent.keyboard("{Enter}");
+    const apple = await body.findByRole("option", { name: "Apple" });
+    await waitFor(async () => {
+      await expect(apple).toHaveFocus();
+    });
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(body.getByRole("option", { name: "Cherry" })).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await waitFor(async () => {
+      await expect(trigger).toHaveTextContent("Cherry");
+    });
+    await expect(trigger).toHaveFocus();
+    await expect(body.queryByRole("listbox")).toBeNull();
+    await expect(sheet).toBeInTheDocument();
+    await userEvent.keyboard("{Enter}");
+    await body.findByRole("listbox");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(async () => {
+      await expect(body.queryByRole("listbox")).toBeNull();
+    });
+    await expect(sheet).toBeInTheDocument();
+    await expect(trigger).toHaveFocus();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(async () => {
+      await expect(body.queryByRole("dialog")).toBeNull();
+    });
+    await expect(outsideTrigger).toHaveFocus();
+    await userEvent.click(canvas.getByRole("button", { name: "Outside action" }));
+    await expect(canvas.getByLabelText("Outside clicks")).toHaveTextContent("1");
   },
 };

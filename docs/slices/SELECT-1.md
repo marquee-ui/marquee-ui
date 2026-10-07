@@ -216,3 +216,24 @@ expected solid, received none (1 failed, exit 1). Source restored from git.
 Evidence: scratch s1/consumer-fix/{baseline-browser,fixed-browser,mutation-browser}.log
 and corresponding exit sentinels. Merged gate and fresh packed proof are
 orchestrator-owned; this closure used focused checks only.
+
+## Nested Sheet closure
+
+On 2026-10-08, added a NestedSheet story/play and real-browser contract using
+default modal Sheet and Select primitives. Before the dependency change, the
+mobile browser case failed at `nested Select receives option focus`: Apple was
+visible but inactive (1 failed, exit 1). Dialog 1.1.23 and Select 2.3.8 used
+different focus-scope/dismissable-layer generations. The orchestrator raised the
+Dialog floor to 1.2.0 in the package and Sheet registry and installed the lock.
+
+After alignment, the contract proves option focus and keyboard selection,
+first Escape closes only Select and restores its trigger, second Escape closes
+Sheet and restores the outside trigger, and an outside button responds after
+pointer cleanup. Focused Vitest command covered select, stories, tailwind-compile,
+focus-outline, forced-colors-state and registry: 6 files / 248 passed. After
+build:storybook and build:site, `DOCS_PORT=4191 pnpm --filter @marquee-ui/docs exec
+playwright test browser/select.spec.ts` passed 15 cases across 390/768/1280
+(16.4s, exit 0), including the isolated outline style/width/contrast assertions.
+Evidence: scratch s1/consumer-fix/nested-{baseline-browser,fixed-unit,fixed-browser}.log
+and corresponding exit sentinels. No second stream gate ran; the orchestrator
+owns the merged gate, independent integration review and fresh packed proof.

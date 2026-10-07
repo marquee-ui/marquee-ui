@@ -251,3 +251,41 @@ test("Select's optional scroll parts reveal distant items in a constrained popup
   await expect(trigger).toHaveText("Section 24⌄");
   await expect(trigger).toBeFocused();
 });
+
+test("Select inside Sheet manages option focus, separate Escape layers and outside pointer cleanup", async ({
+  page,
+}) => {
+  await page.goto("storybook/iframe.html?id=parts-select--nested-sheet&viewMode=story&embed=true");
+  const outsideTrigger = page.getByRole("button", { name: "Open selection sheet" });
+  await outsideTrigger.focus();
+  await outsideTrigger.press("Enter");
+  const sheet = page.getByRole("dialog", { name: "Choose produce" });
+  await expect(sheet).toBeVisible();
+  const trigger = sheet.getByRole("combobox", { name: "Produce" });
+  await trigger.focus();
+  await trigger.press("Enter");
+  await expect(page.getByRole("listbox")).toBeVisible();
+  await expect(
+    page.getByRole("option", { name: "Apple", exact: true }),
+    "nested Select receives option focus",
+  ).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("option", { name: "Cherry", exact: true })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(trigger).toHaveText("Cherry⌄");
+  await expect(trigger).toBeFocused();
+  await expect(page.getByRole("listbox")).toHaveCount(0);
+  await expect(sheet).toBeVisible();
+  await trigger.press("Enter");
+  await expect(page.getByRole("listbox")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("listbox")).toHaveCount(0);
+  await expect(sheet, "first Escape keeps the parent Sheet open").toBeVisible();
+  await expect(trigger).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(sheet).toHaveCount(0);
+  await expect(outsideTrigger).toBeFocused();
+  await expect(page.locator("body")).not.toHaveCSS("pointer-events", "none");
+  await page.getByRole("button", { name: "Outside action" }).click();
+  await expect(page.getByLabel("Outside clicks")).toHaveText("1");
+});
