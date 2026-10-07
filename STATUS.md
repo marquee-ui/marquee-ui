@@ -1,6 +1,6 @@
 # Marquee release status
 
-CURSOR: RELEASE-1-UX — requested theme and code revision ready for localhost review; public release held
+CURSOR: RELEASE-1-CONTROLS — requested visual controls and independent accents; public release held
 
 The user authorized a bounded release-readiness batch, then requested localhost review
 before publication and a focused theme/code revision. Do not activate Pages, merge the
@@ -23,7 +23,14 @@ The server runs from `/home/ankit/Code/marquee-integration-ux/apps/docs/dist`.
 The combined studio and source are easy to inspect at `#components`; selected CSS is
 at `#theme-recipe`. [Screenshots and batch record](docs/batches/RELEASE-1-UX.md).
 
-Next: review this localhost candidate and direct whether to publish. Draft
+Current revision: [RELEASE-1-CONTROLS](docs/batches/RELEASE-1-CONTROLS.md) replaces touching
+mode buttons and the native picker, and adds independent curated action accents. Preserve
+the current 4174 candidate until its verified replacement is ready.
+
+- [ ] CONTROLS-1 implementation, independent review and full gate.
+- [ ] Focused integration review, merged gate, refreshed localhost and final-head CI.
+
+Next: show the revised controls on localhost. Draft
 [PR #2](https://github.com/marquee-ui/marquee-ui/pull/2) remains open and unmerged.
 `marquee-ui.dev` is not owned; the prepared default Pages destination needs no domain.
 Electric, Clementine and Tide are local demo customizations, not npm 0.1.0 preset exports.
