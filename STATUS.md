@@ -1,48 +1,42 @@
-# Marquee release status
+# Marquee implementation status
 
-CURSOR: RELEASE-1-CONTROLS — revised controls ready for localhost review; public release held
+CURSOR: BATCH-PARITY-1 — Select and Tabs
 
-The user authorized a bounded release-readiness batch, then requested localhost review
-before publication and a focused theme/code revision. Do not activate Pages, merge the
-release PR, deploy publicly, purchase a domain or publish npm packages until directed onward.
+The user authorized a finite component-parity program on 2026-10-08. Implement the
+[batch roadmap and parity matrix](docs/component-parity.md) in order; expand each next
+batch just in time. The public-release hold is a separate lane and does not block
+local implementation or subsequent green batches.
 
-- [x] [CONSUMER-1](docs/slices/CONSUMER-1.md): clean published-package consumer, canonical
-      installation guide, supported stack, independent review and full gate.
-- [x] [DOCS-1](docs/slices/DOCS-1.md): live documentation and all 21 component families.
-- [x] [THEME-1](docs/slices/THEME-1.md): four palettes, separate dark/light controls,
-      persistent preferences, visible expressive styling and selected CSS recipes.
-- [x] [CODE-1](docs/slices/CODE-1.md): safe language-aware highlighting, exact source
-      copying and richer code/prose presentation.
-- [x] Independent stream reviews and merged verification: 708 library tests, 39 docs
-      unit tests, 5 consumer checks and 63 browser cases across 390/768/1280.
-- [ ] User direction after reviewing localhost, then approved public release operations.
+## Active batch
 
-Built preview: **http://localhost:4174/marquee-ui/**. The immutable source is
-`f020c59b31e7c7d5691ee7c772e2ac4a314ce53a`; later commits record review evidence only.
-The server runs from `/home/ankit/Code/marquee-integration-controls/apps/docs/dist`.
-The combined studio and source are easy to inspect at `#components`; selected CSS is
-at `#theme-recipe`. [Screenshots and batch record](docs/batches/RELEASE-1-CONTROLS.md).
+- [ ] [SELECT-1](docs/slices/SELECT-1.md): composed Select, stories, docs and registry.
+- [ ] [TABS-1](docs/slices/TABS-1.md): composed Tabs, stories, docs and registry.
+- [ ] Independent stream reviews, merged review/gate, packed-consumer proof,
+      responsive visual inspection and refreshed localhost.
 
-[RELEASE-1-CONTROLS](docs/batches/RELEASE-1-CONTROLS.md) now provides spaced sun/moon
-mode controls, a visual settings Sheet, and Automatic plus seven curated action accents
-independent of the four base palettes. Valid older preferences are preserved.
+Next: BATCH-PARITY-2 — Dialog and AlertDialog after this batch is green.
 
-- [x] CONTROLS-1 implementation, independent review and full gate.
-- [x] Focused integration review, merged gate and refreshed localhost. Final-head CI is recorded in the handoff below.
+## Release hold and current preview
 
-Next: review the revised localhost candidate and direct whether to publish. Draft
-[PR #2](https://github.com/marquee-ui/marquee-ui/pull/2) remains open and unmerged.
-`marquee-ui.dev` is not owned; the prepared default Pages destination needs no domain.
-Additional base palettes and action accents are local demo customizations, not npm 0.1.0 preset exports.
+Do not merge the release PR, activate Pages, deploy publicly, purchase a domain or
+publish npm until the user directs publication. Continue accumulating reviewed changes
+in draft [PR #2](https://github.com/marquee-ui/marquee-ui/pull/2), unmerged.
 
-## Cold resume
+Current verified preview: **http://localhost:4174/marquee-ui/**, source
+`f020c59b31e7c7d5691ee7c772e2ac4a314ce53a`, served from
+`/home/ankit/Code/marquee-integration-controls/apps/docs/dist`.
+Preserve it until the new batch's build is verified. New components are unreleased;
+no version bump is implied. Supported consumer evidence and parity limits live in the matrix.
 
-Inspect Git status/worktrees, this file, the two current slice records and the batch review.
-Final local evidence is `/home/ankit/.marquee-scratch/RELEASE-1-CONTROLS/integration/`:
-`verify.exit` is 0; `source-sha` identifies the exact built source; `final-handoff.md`
-records the serving process and final pushed-head CI conclusions. Earlier clean npm proof
-remains under `/home/ankit/.marquee-scratch/RELEASE-1/`. No library version changed.
-The main-only Pages workflow stays held by leaving the PR unmerged. No product backlog advanced.
+## Previous evidence and cold resume
+
+[Release](docs/batches/RELEASE-1.md), [theme/code revision](docs/batches/RELEASE-1-UX.md),
+and [visual controls](docs/batches/RELEASE-1-CONTROLS.md) retain their evidence.
+The last controls handoff is
+`/home/ankit/.marquee-scratch/RELEASE-1-CONTROLS/integration/final-handoff.md`.
+Current batch scratch: `/home/ankit/.marquee-scratch/BATCH-PARITY-1/`.
+Inspect status/worktrees, this cursor, the matrix and current slice/batch records.
+This is library work; no Pile product backlog advances.
 
 ## Session log
 
