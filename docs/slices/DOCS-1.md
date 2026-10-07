@@ -190,3 +190,12 @@ solid outline, height 56px and contrast 17.54384444519957:1 using the actual pri
 foreground and fill. Ordinary anchor inheritance and slotted primary ink remain
 correct. No outstanding finding. Evidence is in slot r6 `skip-link-review.md` and
 `skip-measure.json`; this record precedes the requested follow-up full gate.
+
+Follow-up `pnpm verify`, 2026-10-08, against committed d8e1187: sentinel exit
+**0**, 02:01:46–02:02:19 IST (33 s). Runner summaries: library **36 files / 643
+tests passed**; docs **3 files / 6 tests passed**; consumer **5 passed / 0 failed**;
+browser **12 passed (9.4 s)**, including first-Tab contrast/focus at all three
+widths. Lint, workspace typechecks and the rebuilt docs/Storybook assembly all
+passed. `git diff --exit-code -- packages/ui/r` remained clean. Logs and sentinels
+are slot s2 `skip-verify.{log,exit,sha,start,end}`. The only changes following the
+reviewed style/test fix are this closure record; public deployment remains held.
