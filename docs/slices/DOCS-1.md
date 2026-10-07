@@ -125,3 +125,31 @@ Review measurement, 2026-10-08: docs unit 3 files / 6 tests, Storybook guard
 20 red mutated cases and the original 3 GREEN cases are recorded above.
 Canonical consumer final 11f4330 was merged without editing its owned files.
 The full stream gate follows this committed review record.
+
+## Final verification
+
+`pnpm verify`, 2026-10-08, against committed d081277 on the reviewed source with
+consumer 11f4330 integrated: sentinel exit **0**, 01:45:27–01:45:58 IST (31 s).
+Runner summaries: library **36 files / 643 tests passed**; docs **3 files / 6
+tests passed**; consumer harness **5 passed / 0 failed**; docs browser **12
+passed (9.6 s)** across 390×844, 768×1024 and 1280×900. No tests skipped.
+Lint, every workspace typecheck, tokens/registry/docs/Storybook build and site
+assembly passed in the same chain. `git diff --exit-code -- packages/ui/r`
+is clean after the build.
+
+The library count changes by two because the former four Storybook
+font-declaration-copy checks become two URL-contract checks: the preview links
+the generator's font sheet instead of owning copied declarations. Actual font
+loading and applied preset values are additionally proved in the browser.
+
+The build reports one docs entry chunk, approximately 530 kB raw / 162 kB gzip,
+and retains Vite's standard large-chunk warning. It includes React, the live
+21-family explorer and the Markdown renderer; Storybook is a separate subtree.
+No warning threshold was changed. The bundle references local font assets only.
+
+Evidence: `/home/ankit/.marquee-scratch/RELEASE-1/s2/verify.{log,exit,start,end}`,
+the preserved reviewer report in `r6/report.md`, and browser hero screenshots in
+the worktree's ignored `.docs-browser-results/` directory. The original local
+development preview remains on 4176. Publication remains held; the orchestrator
+owns the final integrated production preview on 4174 and any eventual hosting
+activation after the user's review.
