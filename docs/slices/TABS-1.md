@@ -1,6 +1,6 @@
 # TABS-1 — composed Tabs
 
-Batch: BATCH-PARITY-1. Status: active. Publication remains held in STATUS.md.
+Batch: BATCH-PARITY-1. Status: complete; awaiting batch reconciliation. Publication remains held in STATUS.md.
 
 ## Scope and ownership
 
@@ -250,6 +250,39 @@ Author mutation logs: stream scratch `composition-collapse.log`,
 `focus-host-collapse.log`, `B1-browser.log` through `B6-browser.log`, with each
 `.landed` proof and build log. Detached reviewer worktree was restored and removed.
 
+Independent final per-host mutation table, verbatim:
+
+```text
+| file | test | mutation applied | red / GREEN | what it asserts now |
+| --- | --- | --- | --- | --- |
+| packages/ui/test/tabs-focus.test.tsx | `Default gives every tab and panel host its own compiled focus outline` | M11: delete ONLY TabsTrigger focus-visible:outline-2; retain Content outline2; uniquely matched Trigger hover/focus clause and confirmed landed line | red | `Default/tab/Overview owns its focus outline width: expected null to be 2`. Content cannot lend Trigger a declaration. |
+| packages/ui/test/tabs-focus.test.tsx | `Composition gives every tab and panel host its own compiled focus outline` | Same M11 | red | `Composition/tab/Overview owns its focus outline width: expected null to be 2`. The composed host is covered independently. |
+```
+
 ## Gate
 
-Pending.
+One full stream gate, 2026-10-08 IST, committed head
+`abcb30decd0205e3141cf9e570cb8c79e7a3bdb8`:
+
+```sh
+PATH=/home/ankit/.nvm/versions/node/v22.18.0/bin:$PATH DOCS_PORT=4192 pnpm verify
+```
+
+Sentinel exit **0**. Start `2026-10-07T23:03:00Z`, end
+`2026-10-07T23:04:24Z`: **84 seconds** wall. The runner's own summaries:
+
+```text
+library: Test Files 39 passed (39); Tests 718 passed (718)
+docs: Test Files 4 passed (4); Tests 39 passed (39)
+consumer: tests 5; pass 5; fail 0; skipped 0
+browser: Running 69 tests using 1 worker; 69 passed (1.0m)
+```
+
+The full gate rebuilt tokens, docs, registry, Storybook and assembled site from
+that committed tree, then exercised all Chromium projects at 390/768/1280.
+Fresh final composition screenshots are in stream scratch
+`gate-browser/tabs-live-Tabs-selects-by-*/tabs-composition.png`.
+Durable log, exit, SHA and timestamps are under
+`/home/ankit/.marquee-scratch/BATCH-PARITY-1/s2/verify.*`. The subsequent commit
+only records this evidence; no source/test/build input changes follow the gate.
+Publication remains held. No merge, release, publish, deploy or version bump ran.
