@@ -38,7 +38,27 @@ eb2378a and 2ef29bd were cherry-picked without editing their prose.
 Root `test:consumer` wiring is requested by that sibling and will use its exact
 test script after integration. No library source or registry contract changes.
 
-Final committed consumer scan pending the implementation commit.
+Final scan, 2026-10-08, `git diff f0f5f6e...HEAD -- apps packages` followed by
+scoped `rg` across docs sources/tests:
+
+```text
+export names: App, catalog, CopyCode, ComponentExplorer, MarkdownGuide
+symbol consumers: apps/docs/src/{main,app,explorer,markdown-guide}.tsx
+tests: apps/docs/test/{copy-code,explorer,markdown}.test.tsx
+Path/Href names: fileURLToPath, lightHref, outputPath
+deployment routes: /marquee-ui/, /marquee-ui/storybook/
+guide anchors: #getting-started, #supported-stack
+role consumers: docs tests/browser only (status, switch, dialog, button)
+changed shared test: packages/ui/test/storybook-preview.test.ts
+library source/registry changes: none
+CROSS: canonical Markdown guides and scripts/verify-consumer.test.mjs (CONSUMER-1)
+UNOWNED: none
+```
+
+No external consumer reads the five new docs exports. The only existing
+source-byte consumer changed is the explicitly assigned Storybook guard.
+The role/style scan found no raw palette, font-family or shadow assignment;
+the site's font-family declarations use `var(--font-*)`.
 
 ## As built
 
@@ -49,6 +69,8 @@ Final committed consumer scan pending the implementation commit.
   Playwright for browser verification; React/testing/types use workspace ranges.
   Direct workspace source consumption preserves both registry component import
   aliases and the library's own `@/lib/utils` alias.
+- Root Node engine now requires `>=22.12.0 <23`, matching the consumer's inspected
+  Vite 8 engine. The `.nvmrc` selects Node 22 for CI; this run uses 22.18.0.
 - Local development URL `http://localhost:4176/marquee-ui/`; production browser
   checks reserve 4177, reviewer 4180. Public deployment remains on HOLD after the
   user requested localhost review. No Pages setting, public deploy or merge done.
