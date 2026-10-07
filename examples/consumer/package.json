@@ -1,0 +1,35 @@
+{
+  "name": "marquee-published-consumer",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0 <23"
+  },
+  "scripts": {
+    "registry": "node registry.mjs",
+    "add:components": "shadcn add @marquee/button @marquee/accordion @marquee/sheet @marquee/switch @marquee/input @marquee/label @marquee/card --yes",
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "proof": "playwright test"
+  },
+  "dependencies": {
+    "@marquee-ui/tokens": "0.1.0",
+    "@marquee-ui/ui": "0.1.10",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/vite": "4.3.3",
+    "@types/node": "22.20.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "shadcn": "4.21.4",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "vite": "8.3.3"
+  }
+}

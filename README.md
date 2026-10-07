@@ -16,7 +16,11 @@ parts and props instead of inventing one.
 
 ## Status
 
-Tokens and the first twenty-one parts. No docs site yet, and nothing published.
+Twenty-one component families and two token presets are published on npm.
+The [quickstart](docs/getting-started.md) includes a standalone React 19 + Tailwind 4
+starter; [supported stack](docs/supported-stack.md) records its scope and limitations.
+The documentation site's canonical publication URL is
+[marquee-ui.github.io/marquee-ui](https://marquee-ui.github.io/marquee-ui/).
 
 - **`packages/tokens`**: the typed role contract, two presets (`arcade`, the dark
   default, and `light`), the generated stylesheet and W3C DTCG JSON, the three
@@ -28,30 +32,25 @@ Tokens and the first twenty-one parts. No docs site yet, and nothing published.
   moved out of a real product through the role rename table, and
   `packages/ui/test/fidelity.test.tsx` is what says the move changed no pixel.
 - **The registry**: `registry.json`, built into `packages/ui/r/`. Committed, so it
-  has a raw URL, and inside the package's `files`, so a consumer can install from
-  `node_modules` with no network at all.
+  has a raw GitHub URL, and included in the published UI package, so consumers
+  can serve a version-pinned registry from their installed npm copy. The CLI and
+  component dependencies may still need network access.
 - **Storybook**: the workbench, and the test suite. Every story runs under vitest
   through `composeStories`, so a story that stops working reddens `pnpm test`.
 
 ## Installing a component
 
+Follow [getting started](docs/getting-started.md) to configure fonts, token CSS,
+Tailwind source scanning, TypeScript/Vite aliases and `components.json`. Then:
+
 ```sh
-# over the network
-npx shadcn@latest add https://raw.githubusercontent.com/marquee-ui/marquee-ui/main/packages/ui/r/button.json
-
-# or with no network at all, from an installed copy of the package
-npx shadcn@latest add ./node_modules/@marquee-ui/ui/r/button.json
+npx shadcn@4.21.4 add @marquee/button
 ```
 
-Every item depends on `@marquee/utils` (the `cn` helper), so point your
-`components.json` at the same registry to let that resolve:
-
-```json
-{ "registries": { "@marquee": "./node_modules/@marquee-ui/ui/r/{name}.json" } }
-```
-
-The components speak only in role utilities, so the consuming app has to import
-`@marquee-ui/tokens/tokens.css` for any of them to paint.
+The `@marquee` registry mapping resolves each component's `@marquee/utils`
+dependency into your own app. Components import local copies; the token package
+supplies the shared visual roles. The quickstart distinguishes the moving GitHub
+registry from the pinned npm registry and includes a cold consumer proof.
 
 ## Licence
 
