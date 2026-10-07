@@ -121,3 +121,16 @@ export {
 } from "./select.js";
 
 export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs.js";
+
+export {
+  Dialog,
+  DialogTrigger,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+  DialogHeader,
+  DialogFooter,
+} from "./dialog.js";
