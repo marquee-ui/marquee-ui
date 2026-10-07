@@ -1,6 +1,40 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const storageKey = "marquee-demo-theme-v1";
+async function choosePalette(page: Page, value: string) {
+  const labels: Record<string, string> = {
+    arcade: "Arcade acid",
+    electric: "Electric",
+    clementine: "Clementine",
+    tide: "Tide",
+  };
+  await page.getByRole("button", { name: /^Customize theme:/ }).click();
+  await page.getByRole("radio", { name: labels[value], exact: true }).check();
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /^Customize theme:/ })).toBeFocused();
+}
+async function chooseAccent(page: Page, label: string) {
+  await page.getByRole("button", { name: /^Customize theme:/ }).click();
+  const radio = page.getByRole("radio", { name: new RegExp(`^${label}\\b`) });
+  await radio.check();
+  await page.keyboard.press("Tab");
+  await radio.focus();
+  const row = radio.locator("..");
+  await expect(row).toHaveCSS("outline-style", "solid");
+  const focus = await row.evaluate((el) => ({
+    ink: getComputedStyle(el).outlineColor,
+    ground: getComputedStyle(el.closest('[role="dialog"]')!).backgroundColor,
+  }));
+  expect(
+    contrast(focus.ink, focus.ground),
+    `${label} panel focus outline is readable on its overlay`,
+  ).toBeGreaterThanOrEqual(3);
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /^Customize theme:/ })).toBeFocused();
+}
+
 const palettes = ["arcade", "electric", "clementine", "tide"];
 
 function contrast(ink: string, ground: string) {
@@ -65,12 +99,25 @@ test("theme studio offers separate mode and palette choices", async ({ page }) =
   await expect(page.getByRole("region", { name: "Theme studio", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Light", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Dark", exact: true })).toBeVisible();
-  await expect(page.getByRole("combobox", { name: "Palette", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Customize theme:/ })).toBeVisible();
+  await expect(page.locator(".theme-studio select")).toHaveCount(0);
+  const modeBoxes = await page.locator(".theme-mode button").evaluateAll((els) =>
+    els.map((el) => {
+      const rect = el.getBoundingClientRect();
+      return { x: rect.x, width: rect.width };
+    }),
+  );
+  expect(
+    modeBoxes[1]!.x - modeBoxes[0]!.x - modeBoxes[0]!.width,
+    "mode controls have visible breathing room",
+  ).toBeGreaterThanOrEqual(4);
+  for (const button of await page.locator(".theme-mode button").all())
+    await expect(button.locator("svg")).toBeVisible();
   const studio = page.getByRole("region", { name: "Theme studio", exact: true });
   const box = await studio.boundingBox();
   expect(box!.y).toBeGreaterThanOrEqual(0);
   expect(box!.y + box!.height).toBeLessThanOrEqual(100);
-  for (const control of await studio.locator("button, select").all()) {
+  for (const control of await studio.locator("button").all()) {
     const bounds = await control.boundingBox();
     expect(bounds!.width).toBeGreaterThanOrEqual(44);
     expect(bounds!.height).toBeGreaterThanOrEqual(44);
@@ -97,7 +144,7 @@ test("every mode/palette repaints the page and actual previews with readable rol
   page.on("framenavigated", () => navigationCount++);
   const states: Awaited<ReturnType<typeof pageAppearance>>[] = [];
   for (const palette of palettes) {
-    await page.getByRole("combobox", { name: "Palette", exact: true }).selectOption(palette);
+    await choosePalette(page, palette);
     for (const mode of ["light", "dark"]) {
       await page
         .getByRole("button", { name: mode === "dark" ? "Dark" : "Light", exact: true })
@@ -207,7 +254,8 @@ test("persists palette, mode and composition across refresh and copies the selec
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("./");
   await page.getByRole("button", { name: "Light", exact: true }).click();
-  await page.getByRole("combobox", { name: "Palette", exact: true }).selectOption("electric");
+  await choosePalette(page, "electric");
+  await chooseAccent(page, "Violet");
   await page.getByRole("switch", { name: "Make it expressive" }).click();
   const chosen = await pageAppearance(page);
   await page.reload();
@@ -215,8 +263,8 @@ test("persists palette, mode and composition across refresh and copies the selec
     "aria-pressed",
     "true",
   );
-  await expect(page.getByRole("combobox", { name: "Palette", exact: true })).toHaveValue(
-    "electric",
+  await expect(page.getByRole("button", { name: /^Customize theme:/ })).toHaveAccessibleName(
+    "Customize theme: Electric, Violet accent",
   );
   await expect(page.getByRole("switch", { name: "Make it expressive" })).toHaveAttribute(
     "aria-checked",
@@ -235,6 +283,7 @@ test("persists palette, mode and composition across refresh and copies the selec
     mode: "light",
     palette: "electric",
     expressive: false,
+    accent: "violet",
   });
 });
 
@@ -242,6 +291,7 @@ for (const raw of [
   "{",
   JSON.stringify({ mode: "light", palette: "unknown", expressive: true }),
   JSON.stringify({ mode: "light", palette: "tide" }),
+  JSON.stringify({ mode: "light", palette: "tide", expressive: true, accent: "missing" }),
 ]) {
   test(`invalid preference safely restores the default and remains interactive: ${raw}`, async ({
     page,
@@ -255,8 +305,8 @@ for (const raw of [
       "aria-pressed",
       "true",
     );
-    await expect(page.getByRole("combobox", { name: "Palette", exact: true })).toHaveValue(
-      "arcade",
+    await expect(page.getByRole("button", { name: /^Customize theme:/ })).toHaveAccessibleName(
+      "Customize theme: Arcade acid, Automatic accent",
     );
     await expect(page.getByRole("switch", { name: "Make it expressive" })).toHaveAttribute(
       "aria-checked",
@@ -289,12 +339,21 @@ test("blocked storage still allows live themes and keyboard controls under reduc
   await expect(light).toHaveCSS("outline-style", "solid");
   await page.keyboard.press("Enter");
   await expect(page.locator("html")).toHaveCSS("color-scheme", "light");
-  const palette = page.getByRole("combobox", { name: "Palette", exact: true });
+  const palette = page.getByRole("button", { name: /^Customize theme:/ });
   await palette.focus();
   await expect(palette).toHaveCSS("outline-style", "solid");
-  await page.keyboard.press("End");
   await page.keyboard.press("Enter");
-  await expect(palette).toHaveValue("tide");
+  const tide = page.getByRole("radio", { name: "Tide", exact: true });
+  await tide.focus();
+  await page.keyboard.press("Space");
+  await expect(tide).toBeChecked();
+  const pink = page.getByRole("radio", { name: /^Pink\b/ });
+  await pink.focus();
+  await page.keyboard.press("Space");
+  await expect(pink).toBeChecked();
+  await page.keyboard.press("Escape");
+  await expect(palette).toBeFocused();
+  await expect(palette).toHaveAccessibleName("Customize theme: Tide, Pink accent");
   const switchControl = page.getByRole("switch", { name: "Make it expressive" });
   await switchControl.focus();
   await page.keyboard.press("Space");
@@ -326,7 +385,9 @@ test("boots with a valid saved choice and remains interactive when writes fail",
     "aria-pressed",
     "true",
   );
-  await expect(page.getByRole("combobox", { name: "Palette", exact: true })).toHaveValue("tide");
+  await expect(page.getByRole("button", { name: /^Customize theme:/ })).toHaveAccessibleName(
+    "Customize theme: Tide, Automatic accent",
+  );
   await expect(page.getByRole("switch", { name: "Make it expressive" })).toHaveAttribute(
     "aria-checked",
     "false",
@@ -337,3 +398,141 @@ test("boots with a valid saved choice and remains interactive when writes fail",
   await expect(page.locator("html")).toHaveCSS("color-scheme", "dark");
   expect(errors).toEqual([]);
 });
+
+test("visual theme panel supports keyboard choices, scroll reachability and focus return", async ({
+  page,
+}) => {
+  if (page.viewportSize()!.width === 390) await page.setViewportSize({ width: 390, height: 664 });
+  await page.goto("./");
+  const trigger = page.getByRole("button", { name: /^Customize theme:/ });
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  const panel = page.getByRole("dialog", { name: "Make it yours." });
+  await expect(panel).toBeVisible();
+  await expect(page.getByRole("radiogroup", { name: "Base palette", exact: true })).toBeVisible();
+  await expect(page.getByRole("radiogroup", { name: "Action accent", exact: true })).toBeVisible();
+  const choices = page.getByRole("radio");
+  await expect(choices).toHaveCount(12);
+  for (const choice of await choices.all()) {
+    const checked = await choice.isChecked();
+    await expect(
+      choice.locator("..").locator(".theme-choice-check"),
+      "only selected theme choices paint a checkmark",
+    ).toHaveCSS("opacity", checked ? "1" : "0");
+  }
+  for (const control of await panel.locator("button, input").all()) {
+    const bounds = await control.boundingBox();
+    expect(bounds!.width, "theme panel target width").toBeGreaterThanOrEqual(44);
+    expect(bounds!.height, "theme panel target height").toBeGreaterThanOrEqual(44);
+  }
+  const tide = page.getByRole("radio", { name: "Tide", exact: true });
+  await tide.focus();
+  await page.keyboard.press("Space");
+  await expect(tide).toBeChecked();
+  await expect(page.getByRole("radio", { name: "Arcade acid", exact: true })).not.toBeChecked();
+  const last = page.getByRole("radio", { name: /^Amber\b/ });
+  await page.keyboard.press("Tab");
+  await last.focus();
+  await expect(last.locator("..")).toHaveCSS("outline-style", "solid");
+  const lastBox = await last.boundingBox();
+  const doneBox = await page.getByRole("button", { name: "Done", exact: true }).boundingBox();
+  expect(
+    lastBox!.y + lastBox!.height,
+    "last accent has breathing room above Done",
+  ).toBeLessThanOrEqual(doneBox!.y - 8);
+  expect(
+    await last.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return el === document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+    }),
+    "last accent receives pointer hits after focus scrolls it into view",
+  ).toBe(true);
+  await page.keyboard.press("Space");
+  await expect(last).toBeChecked();
+  await page.getByRole("button", { name: "Done", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(panel).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(trigger).toHaveAccessibleName("Customize theme: Tide, Amber accent");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
+});
+
+for (const mode of ["dark", "light"] as const) {
+  test(`${mode} curated accents repaint actions, links, focus and syntax independently of the base`, async ({
+    page,
+  }) => {
+    await page.goto("./");
+    if (mode === "light") await page.getByRole("button", { name: "Light", exact: true }).click();
+    const styles = async () => {
+      const primary = page.getByRole("link", { name: "Start building", exact: true });
+      await page.keyboard.press("Tab");
+      await primary.focus();
+      await expect(primary).toHaveCSS("outline-style", "solid");
+      return page.evaluate(() => {
+        const css = (selector: string) => getComputedStyle(document.querySelector(selector)!);
+        return {
+          action: css(".hero-actions a").backgroundColor,
+          actionInk: css(".hero-actions a").color,
+          link: css(".theme-jump").color,
+          focus: css(".hero-actions a").outlineColor,
+          syntax: css("#theme-recipe .token.selector").color,
+          codeGround: css("#theme-recipe pre").backgroundColor,
+          ground: css("html").backgroundColor,
+          heading: css("h1 span").color,
+          surface: css(".studio-card").backgroundColor,
+        };
+      });
+    };
+    const base = await styles();
+    const actions: string[] = [];
+    for (const accent of ["Lime", "Mint", "Cyan", "Blue", "Violet", "Pink", "Amber"]) {
+      await chooseAccent(page, accent);
+      const custom = await styles();
+      expect(custom.ground, `${accent} preserves base ground`).toBe(base.ground);
+      expect(custom.surface, `${accent} preserves base surface`).toBe(base.surface);
+      expect(custom.heading, `${accent} preserves identity`).toBe(base.heading);
+      expect(custom.link, `${accent} syntax follows action ink`).toBe(custom.syntax);
+      expect(custom.focus, `${accent} focus follows action ink`).toBe(custom.link);
+      expect(
+        contrast(custom.link, custom.ground),
+        `${accent} readable links`,
+      ).toBeGreaterThanOrEqual(4.5);
+      expect(
+        contrast(custom.syntax, custom.codeGround),
+        `${accent} readable syntax`,
+      ).toBeGreaterThanOrEqual(4.5);
+      expect(
+        contrast(custom.actionInk, custom.action),
+        `${accent} readable fill`,
+      ).toBeGreaterThanOrEqual(4.5);
+      actions.push(custom.action);
+    }
+    expect(new Set(actions).size, "seven visibly distinct action families").toBe(7);
+    const chosen = await styles();
+    await choosePalette(page, "electric");
+    const changedBase = await styles();
+    expect(changedBase.action, "base change preserves the chosen action accent").toBe(
+      chosen.action,
+    );
+    expect(changedBase.link, "base change preserves chosen action ink").toBe(chosen.link);
+    expect(changedBase.ground, "base change updates surfaces").not.toBe(chosen.ground);
+    expect(changedBase.heading, "base change updates identity").not.toBe(chosen.heading);
+    await expect(page.locator("html")).toHaveCSS("color-scheme", mode);
+    const recipe = await page.locator("#theme-recipe pre code").innerText();
+    expect(recipe).toContain(`electric / ${mode} / amber accent`);
+    const declarations = recipe.matchAll(/^ {2}(--[\w-]+): (.+);$/gm);
+    for (const [, role, value] of declarations)
+      expect(
+        await page
+          .locator("html")
+          .evaluate((el, key) => (el as HTMLElement).style.getPropertyValue(key!), role),
+        role,
+      ).toBe(value);
+    await chooseAccent(page, "Automatic");
+    expect((await styles()).action, "Automatic returns to the base action color").not.toBe(
+      chosen.action,
+    );
+  });
+}

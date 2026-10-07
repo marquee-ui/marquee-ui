@@ -292,9 +292,9 @@ export function App({ initialTheme = readTheme() }: { initialTheme?: ThemeSettin
             <p className="eyebrow">05 / THE DESIGN LANGUAGE</p>
             <h2 id="tokens-title">A role for every detail.</h2>
             <p>
-              Choose a mode and palette in the theme studio. Colors change here, across the page and
-              in every live preview. Arcade is the default; the additional palettes are local demo
-              customizations.
+              Choose a base palette for surfaces and identity, then an action accent for buttons,
+              links and focus. Dark and Light work with every combination. Your choices repaint the
+              page and every live preview.
             </p>
           </div>
           <div className="token-swatches">
@@ -312,7 +312,7 @@ export function App({ initialTheme = readTheme() }: { initialTheme?: ThemeSettin
           <div id="theme-recipe" className="theme-recipe">
             <h3>Your palette, as CSS.</h3>
             <p>
-              This recipe matches your selected palette and mode. Electric, Clementine and Tide are
+              This recipe matches your selected base palette, mode and action accent. These are
               local customizations, not preset exports in npm 0.1.0. The expressive switch changes
               this demo card’s composition; it does not change the library’s API.
             </p>
