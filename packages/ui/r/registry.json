@@ -330,6 +330,21 @@
           "target": "components/ui/pagination.tsx"
         }
       ]
+    },
+    {
+      "name": "select",
+      "type": "registry:ui",
+      "title": "Select",
+      "description": "Composable Select parts with Radix keyboard and state behavior.",
+      "dependencies": ["@radix-ui/react-select@^2.3.8"],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/select.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/select.tsx"
+        }
+      ]
     }
   ]
 }

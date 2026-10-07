@@ -390,6 +390,7 @@ describe("the invariant, over every part rather than a hand-written table", () =
       "accordion.tsx (focus-visible)",
       "checkbox.tsx (has-focus-visible)",
       "radio-group.tsx (has-focus-visible)",
+      "select.tsx (focus-visible)",
       "switch.tsx (focus-visible)",
       "switch.tsx (has-focus-visible)",
     ]);

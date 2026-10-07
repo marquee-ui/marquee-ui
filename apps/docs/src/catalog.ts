@@ -41,6 +41,9 @@ import code19 from "./examples/toast?raw";
 import Preview20 from "./examples/toggle";
 import code20 from "./examples/toggle?raw";
 
+import PreviewSelect from "./examples/select";
+import codeSelect from "./examples/select?raw";
+
 export const catalog = [
   {
     id: "button",
@@ -210,5 +213,14 @@ export const catalog = [
     story: "default",
     Preview: Preview20,
     code: code20,
+  },
+  {
+    id: "select",
+    name: "Select",
+    description:
+      "A single-value choice with explicit portal, viewport, item text and indicator slots. Radix owns focus and native form behavior.",
+    story: "default",
+    Preview: PreviewSelect,
+    code: codeSelect,
   },
 ] as const;
