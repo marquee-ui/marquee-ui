@@ -92,7 +92,24 @@ The emitted dark/light fixtures are scoped to code blocks to exercise this strea
 role contract independently. Actual studio controls × all four palettes × both
 modes are an integration seam, verified by the reconciler on the merged tree.
 
-Full gate and independent review are recorded below after completion.
+Targeted syntax browser result: **12 passed (8.9s), exit 0**. The only full
+`DOCS_PORT=4205 pnpm verify` ran on committed
+`1e498e562b00f7d037f712dd70d22e590652c4b7`, source-identical to the independently
+reviewed implementation. Runner sentinel **exit 0**, **39s wall**:
+
+```text
+Library: Test Files 36 passed (36); Tests 643 passed (643).
+Docs: Test Files 3 passed (3); Tests 21 passed (21).
+Consumer harness units: tests 5; pass 5; fail 0.
+Docs browser: 24 passed (17.1s), mobile/tablet/desktop.
+```
+
+Gate includes lint, all workspace typechecks, token/docs/registry/Storybook/site
+builds and all suites, in repository order. Evidence: `verify.sha`, `verify.log`,
+`verify.exit`, `verify.start`, `verify.end`, `full-gate-browser/` under the scratch
+directory above. Registry build leaves no tracked diff; library/package versions
+unchanged. Final recording edit changes only this document, checked by format lint.
+Production preview 4204 remains available for integration; no public action occurred.
 
 ## Layer 1 (reviewer, detached worktree of 11ea72a1669b31d0f7d49b49bd42893575cf9b1b, slot 6)
 
