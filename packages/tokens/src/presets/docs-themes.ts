@@ -47,7 +47,7 @@ function localPreset(palette: keyof typeof combinations, mode: DemoMode): Preset
   const skin = combinations[palette];
   const [background, surface, raised, overlay, sunken] = skin[mode];
   const dark = mode === "dark";
-  return definePreset({
+  return definePreset<Record<string, string>>({
     ...base,
     name: `docs-${palette}-${mode}`,
     primitives: {
