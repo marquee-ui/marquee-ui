@@ -95,10 +95,16 @@ test("published registry components paint, load fonts and respond to pointer and
   await expect.poll(async () => (await thumb.boundingBox())?.x).toBe((before?.x ?? 0) + 20);
   expect((await toggle.boundingBox())?.height).toBeGreaterThanOrEqual(44);
 
-  await page.getByRole("button", { name: "Who owns these components?" }).click();
-  await expect(
-    page.getByText("You do. The registry copies source", { exact: false }),
-  ).toBeVisible();
+  const disclosure = page.getByRole("button", { name: "Who owns these components?" });
+  const answer = page.getByText("You do. The registry copies source", { exact: false });
+  await expect(disclosure).toHaveAttribute("aria-expanded", "false");
+  await expect(answer).toBeHidden();
+  await disclosure.click();
+  await expect(disclosure).toHaveAttribute("aria-expanded", "true");
+  await expect(answer).toBeVisible();
+  await disclosure.click();
+  await expect(disclosure).toHaveAttribute("aria-expanded", "false");
+  await expect(answer).toBeHidden();
   const trigger = page.getByRole("button", { name: "Open details" });
   await trigger.click();
   await expect(page.getByRole("dialog", { name: "A composed sheet" })).toBeVisible();

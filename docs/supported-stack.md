@@ -4,16 +4,16 @@ Marquee's components target React 19 and Tailwind CSS 4. The published packages
 are `@marquee-ui/ui@0.1.10` and `@marquee-ui/tokens@0.1.0`; the standalone
 consumer in `examples/consumer` pins its dependencies with an npm lockfile.
 
-| Layer             | Consumer configuration                                        |
-| ----------------- | ------------------------------------------------------------- |
-| Runtime           | Node 22; npm for the standalone starter                       |
-| UI                | React and React DOM 19.3.0; UI package peers are `^19`        |
-| Styling           | Tailwind CSS and `@tailwindcss/vite` 4.3.3                    |
-| Build             | Vite 8.3.3, `@vitejs/plugin-react` 6.1.1, TypeScript 5.9.3    |
-| Component install | shadcn CLI 4.21.4; namespaced `@marquee` registry             |
-| Consumer shape    | Vite client app, strict TypeScript, `@/*` mapped to `src/*`   |
-| Fonts             | Three bundled woff2 faces, served by the app; SIL OFL 1.1     |
-| Presets           | `arcade` through `tokens.css`, or `light` through `light.css` |
+| Layer             | Consumer configuration                                          |
+| ----------------- | --------------------------------------------------------------- |
+| Runtime           | Node 22.12+ within Node 22; verified on 22.18.0 with npm 11.6.4 |
+| UI                | React and React DOM 19.3.0; UI package peers are `^19`          |
+| Styling           | Tailwind CSS and `@tailwindcss/vite` 4.3.3                      |
+| Build             | Vite 8.3.3, `@vitejs/plugin-react` 6.1.1, TypeScript 5.9.3      |
+| Component install | shadcn CLI 4.21.4; namespaced `@marquee` registry               |
+| Consumer shape    | Vite client app, strict TypeScript, `@/*` mapped to `src/*`     |
+| Fonts             | Three bundled woff2 faces, served by the app; SIL OFL 1.1       |
+| Presets           | `arcade` through `tokens.css`, or `light` through `light.css`   |
 
 The npm packages distribute a token stylesheet and registry source. Import your
 copied components from the app, such as `@/components/ui/button`; the registry
