@@ -159,7 +159,7 @@ test("Select source is highlighted, copies exact bytes and contains its scrollin
 test("Select's optional scroll parts reveal distant items in a constrained popup", async ({
   page,
 }) => {
-  await page.goto("storybook/iframe.html?id=parts-select--scrollable&viewMode=story");
+  await page.goto("storybook/iframe.html?id=parts-select--scrollable&viewMode=story&embed=true");
   const trigger = page.getByRole("combobox", { name: "Section" });
   await trigger.focus();
   await trigger.press("Enter");
@@ -171,8 +171,13 @@ test("Select's optional scroll parts reveal distant items in a constrained popup
   ).toBe(true);
   const down = page.locator('[data-slot="select-scroll-down-button"]');
   await visibleTarget(down);
+  const beforeHover = await viewport.evaluate((el) => el.scrollTop);
   await down.hover();
-  await expect.poll(async () => viewport.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+  await expect
+    .poll(async () => viewport.evaluate((el) => el.scrollTop), {
+      message: "the scroll control must move the viewport beyond its pre-hover position",
+    })
+    .toBeGreaterThan(beforeHover);
   await page.keyboard.press("End");
   const last = page.getByRole("option", { name: "Section 24", exact: true });
   await expect(last).toBeFocused();
