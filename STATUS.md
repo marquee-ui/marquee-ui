@@ -1,47 +1,45 @@
 # Marquee release status
 
-CURSOR: RELEASE-1-UX — requested theme and code-presentation revision; public release held
+CURSOR: RELEASE-1-UX — requested theme and code revision ready for localhost review; public release held
 
-The user authorized a bounded release-readiness batch and then asked to see localhost
-before publication. The first candidate is verified; the user requested the focused revision below. Do not activate Pages,
-merge the release PR, deploy publicly, or purchase a domain until the user directs onward.
+The user authorized a bounded release-readiness batch, then requested localhost review
+before publication and a focused theme/code revision. Do not activate Pages, merge the
+release PR, deploy publicly, purchase a domain or publish npm packages until directed onward.
 
 - [x] [CONSUMER-1](docs/slices/CONSUMER-1.md): clean published-package consumer, canonical
       installation guide, supported stack, independent review and full gate.
-- [x] [DOCS-1](docs/slices/DOCS-1.md): live documentation, all 21 component families, exact
-      copyable examples, nested Storybook, independent review and full gate.
-- [x] Merged verification: 643 library tests, 6 docs unit tests, 5 consumer-script tests,
-      and 12 responsive browser journeys; fresh published consumer adds 2 browser cases.
+- [x] [DOCS-1](docs/slices/DOCS-1.md): live documentation and all 21 component families.
+- [x] [THEME-1](docs/slices/THEME-1.md): four palettes, separate dark/light controls,
+      persistent preferences, visible expressive styling and selected CSS recipes.
+- [x] [CODE-1](docs/slices/CODE-1.md): safe language-aware highlighting, exact source
+      copying and richer code/prose presentation.
+- [x] Independent stream reviews and merged verification: 652 library tests, 35 docs
+      unit tests, 5 consumer checks and 51 browser cases across 390/768/1280.
 - [ ] User direction after reviewing localhost, then approved public release operations.
 
-Local production preview: **http://localhost:4174/marquee-ui/**. It was built from
-`3d8d7b2b1423f93e6834af224b850010f7907001`; later integration commits record evidence only.
-The server runs from this checkout's `apps/docs/dist`. Development preview 4176 remains
-available in the DOCS-1 worktree. [Screenshots and batch record](docs/batches/RELEASE-1.md).
+Built preview: **http://localhost:4174/marquee-ui/**. The immutable source is
+`5df4a7980b2b25d9d06f7f954844eb3b032f78eb`; later commits record review evidence only.
+The server runs from `/home/ankit/Code/marquee-integration-ux/apps/docs/dist`.
+The combined studio and source are easy to inspect at `#components`; selected CSS is
+at `#theme-recipe`. [Screenshots and batch record](docs/batches/RELEASE-1-UX.md).
 
-## Requested revision
-
-The user found that “Make it expressive” only moves its own switch, expected palette and
-light/dark choices, and requested theme-aware syntax highlighting and richer code/prose.
-[RELEASE-1-UX](docs/batches/RELEASE-1-UX.md) is a bounded continuation on the same draft
-PR #2. Preserve the existing 4174 preview until its verified replacement is ready.
-
-- [ ] THEME-1: persistent, accessible mode/palette controls and real expressive styling.
-- [ ] CODE-1: language-aware highlighted code and stronger prose/code presentation.
-- [ ] Independent reviews, merged behavioral checks, final CI and refreshed localhost.
-
-Next: show an early interactive theme preview, finish these two slices and update draft
-[PR #2](https://github.com/marquee-ui/marquee-ui/pull/2). Publication remains held. `marquee-ui.dev` is not owned; no custom domain is configured or required for that URL.
+Next: review this localhost candidate and direct whether to publish. Draft
+[PR #2](https://github.com/marquee-ui/marquee-ui/pull/2) remains open and unmerged.
+`marquee-ui.dev` is not owned; the prepared default Pages destination needs no domain.
+Electric, Clementine and Tide are local demo customizations, not npm 0.1.0 preset exports.
 
 ## Cold resume
 
-Inspect Git status/worktrees, this file and the two slice records. The durable run evidence
-is `/home/ankit/.marquee-scratch/RELEASE-1/`; `integration/final-verify.exit` is 0 and the
-captured source SHA is `integration/final-source-sha`. The prepared Pages workflow runs only
-on main, so keep this release unmerged until the hold is lifted. No product backlog advanced.
+Inspect Git status/worktrees, this file, the two current slice records and the batch review.
+Final local evidence is `/home/ankit/.marquee-scratch/RELEASE-1-UX/integration/`:
+`verify.exit` is 0; `source-sha` identifies the exact built source; `final-handoff.md`
+records the serving process and final pushed-head CI conclusions. Earlier clean npm proof
+remains under `/home/ankit/.marquee-scratch/RELEASE-1/`. No library version changed.
+The main-only Pages workflow stays held by leaving the PR unmerged. No product backlog advanced.
 
 ## Session log
 
-| Date       | Batch     | Result                                                                     |
-| ---------- | --------- | -------------------------------------------------------------------------- |
-| 2026-10-08 | RELEASE-1 | Local release candidate verified; public publication held for user review. |
+| Date       | Batch        | Result                                                                   |
+| ---------- | ------------ | ------------------------------------------------------------------------ |
+| 2026-10-08 | RELEASE-1    | Local release candidate verified; publication held for user review.      |
+| 2026-10-08 | RELEASE-1-UX | Requested live themes and highlighted source verified; publication held. |

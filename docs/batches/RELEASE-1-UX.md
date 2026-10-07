@@ -64,3 +64,48 @@ its new language-label test fails before implementation. Evidence lives under
 The final gate will run in a detached integration worktree on port 4182. The existing
 4174 server and its dist directory remain untouched until the replacement build is
 verified. This avoids changing the user's review surface during compilation.
+
+## As built and verified
+
+Both streams completed independent reviews, meaningful negative controls and one full
+gate each. CODE-1 passed in 39 seconds; THEME-1 passed in 42 seconds. The early shared
+CopyCode interface was copied into THEME-1, causing two integration conflicts; both were
+resolved to CODE-1's final reviewed component and tests. All 35 merged docs unit tests
+passed before the merge commit. The later theme report merge changes its slice record only.
+
+On 2026-10-08, `DOCS_PORT=4182 pnpm verify` at
+`5df4a7980b2b25d9d06f7f954844eb3b032f78eb` exited **0** in **51 seconds**:
+37 library files / 652 tests, 4 docs files / 35 tests, 5 consumer checks and 51 browser
+cases at 390/768/1280. The generated registry is unchanged. The earlier cold npm consumer
+proof remains valid; this revision changes no published version or registry component.
+
+[One merged cross-review](RELEASE-1-UX-review.md) found **0 HIGH / 0 MEDIUM / 0 LOW**.
+Its 24 actual palette/mode/viewport states passed; minimum painted syntax contrast was
+5.07:1. Selected recipe declarations match the root, exact source copying is preserved,
+and preferences, real fonts, focus and local scrolling remain sound.
+
+The verified immutable build now serves **http://localhost:4174/marquee-ui/** from
+`/home/ankit/Code/marquee-integration-ux/apps/docs/dist`, node PID 810813. The served index
+matches the gated file byte-for-byte. Ordinary viewport captures were refreshed against
+that URL, avoiding the sticky-toolbar artifact in the early element screenshot:
+
+- [Arcade / dark](RELEASE-1-UX-evidence/desktop-arcade-dark.png)
+- [Electric / light](RELEASE-1-UX-evidence/desktop-electric-light.png)
+- [Studio, live button and highlighted source](RELEASE-1-UX-evidence/desktop-electric-code.png)
+- [Mobile Clementine controls and source](RELEASE-1-UX-evidence/mobile-clementine-code.png)
+
+The draft PR remains the review surface. Final pushed-head CI and serving details are
+recorded in `/home/ankit/.marquee-scratch/RELEASE-1-UX/integration/final-handoff.md`.
+No merge, public deployment, Pages activation, domain operation or npm publication ran.
+
+## Bounded retro
+
+The first candidate verified switch state without demanding a visible composition change.
+This revision requires computed page/card/code effects and proves those checks fail when
+painting, persistence, syntax or expressive behavior is disabled. Review distinguishes
+complementary assertions from missing behavior: contrast-only units need not reject an
+otherwise accessible duplicate palette when the browser distinctly rejects that collapse.
+An unchanged legacy guard-loop survivor is documented in THEME-1 without expanding scope.
+
+Retain the integration preview worktree and existing review previews while localhost review
+continues. Next is user direction on this candidate; publication remains held.
