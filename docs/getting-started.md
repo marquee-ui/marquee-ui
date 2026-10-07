@@ -6,7 +6,7 @@ in `@marquee-ui/tokens`.
 
 ## Run the starter
 
-Use Node 22. Copy the starter outside this repository's pnpm workspace, then install
+Use Node 22.12 or newer within Node 22. Copy the starter outside this repository's pnpm workspace, then install
 with npm:
 
 ```sh
