@@ -23,6 +23,26 @@ Tailwind 4. Its package lock pins `@marquee-ui/ui@0.1.10` and
 `@marquee-ui/tokens@0.1.0`. The default component registry reads GitHub's `main`
 branch, which can change independently of those npm versions.
 
+## Unreleased preview components
+
+The local review site also includes Select and Tabs from the component-parity program.
+They are not in published UI 0.1.10 or the main-branch registry yet. The starter above
+continues to demonstrate that published release.
+
+To try the candidate source after setting up the app below, change only the registry
+mapping's branch from `main` to `next`, then run:
+
+```sh
+npx shadcn@4.21.4 add @marquee/select @marquee/tabs
+```
+
+The `next` registry is an unreleased, moving review branch. Pin its path to a reviewed
+commit SHA for repeatable source installs. It uses the same token roles and alias setup;
+its declared primitive dependencies are installed by the CLI. The
+[parity program](https://github.com/marquee-ui/marquee-ui/blob/next/docs/component-parity.md)
+records scope and limits. Local packed-artifact proof for these additions is recorded in
+[BATCH-PARITY-1](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-1.md).
+
 ## Add Marquee to an existing app
 
 Start with a React 19 + Vite + TypeScript app. Install the tokens and Tailwind's

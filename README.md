@@ -81,3 +81,7 @@ Chromium's system libraries; CI installs those before running the gate.
 
 Node 22.12+ within Node 22, pnpm 10.24.0, TypeScript strict with no `any`. `AGENTS.md` is the short
 version for a coding agent.
+
+The [component-parity program](docs/component-parity.md) tracks the finite next batches,
+current behavior differences and unreleased preview components. Publication remains held
+as recorded in [STATUS.md](STATUS.md).
