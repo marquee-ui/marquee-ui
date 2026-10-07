@@ -4,16 +4,19 @@
   "type": "module",
   "packageManager": "pnpm@10.24.0",
   "engines": {
-    "node": ">=22 <23"
+    "node": ">=22.12.0 <23"
   },
   "scripts": {
     "lint": "eslint . && pnpm lint:format",
     "lint:format": "prettier --check . || (echo 'ERROR: prettier found unformatted files (listed above as [warn]). Fix: pnpm format' && exit 1)",
     "format": "prettier --write .",
     "typecheck": "tsc -p tsconfig.json --noEmit && pnpm -r --if-present typecheck",
-    "test": "vitest run",
-    "build": "pnpm -r --if-present build && pnpm build:registry && pnpm build:storybook",
-    "verify": "pnpm lint && pnpm typecheck && pnpm build && pnpm test",
+    "test": "vitest run && pnpm --filter @marquee-ui/docs test && pnpm test:consumer",
+    "test:consumer": "node --test scripts/verify-consumer.test.mjs",
+    "test:docs:browser": "pnpm --filter @marquee-ui/docs test:browser",
+    "build": "pnpm -r --if-present build && pnpm build:registry && pnpm build:storybook && pnpm build:site",
+    "build:site": "node apps/docs/scripts/assemble.mjs",
+    "verify": "pnpm lint && pnpm typecheck && pnpm build && pnpm test && pnpm test:docs:browser",
     "build:registry": "shadcn build --output packages/ui/r",
     "build:storybook": "storybook build --output-dir storybook-static --quiet",
     "storybook": "storybook dev -p 6006"
