@@ -43,6 +43,11 @@ Early ordinary screenshots and red logs live in
 `/home/ankit/.marquee-scratch/RELEASE-1-CONTROLS/s1/`. Preview:4214. Existing4174 is
 untouched. Parent approved the rendered direction; final integration owns capture.
 
+A post-commit focused-row probe exposed the light panel's inherited bright-fill
+outline (Lime1.125:1 on overlay). The local composed row now paints its outline
+with primary ink; the browser checks its actual contrast in both modes for every
+curated accent. This leaves the public RadioGroup API untouched.
+
 ## Independent review and gate
 
 Pending the committed implementation review, then one full stream gate.

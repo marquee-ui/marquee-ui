@@ -16,7 +16,20 @@ async function choosePalette(page: Page, value: string) {
 }
 async function chooseAccent(page: Page, label: string) {
   await page.getByRole("button", { name: /^Customize theme:/ }).click();
-  await page.getByRole("radio", { name: new RegExp(`^${label}\\b`) }).check();
+  const radio = page.getByRole("radio", { name: new RegExp(`^${label}\\b`) });
+  await radio.check();
+  await page.keyboard.press("Tab");
+  await radio.focus();
+  const row = radio.locator("..");
+  await expect(row).toHaveCSS("outline-style", "solid");
+  const focus = await row.evaluate((el) => ({
+    ink: getComputedStyle(el).outlineColor,
+    ground: getComputedStyle(el.closest('[role="dialog"]')!).backgroundColor,
+  }));
+  expect(
+    contrast(focus.ink, focus.ground),
+    `${label} panel focus outline is readable on its overlay`,
+  ).toBeGreaterThanOrEqual(3);
   await page.getByRole("button", { name: "Done", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /^Customize theme:/ })).toBeFocused();

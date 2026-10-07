@@ -136,13 +136,19 @@
   border-color: var(--primary-ink);
   box-shadow: var(--shadow-lift);
 }
+.theme-choice:has(input:focus-visible) {
+  outline-color: var(--primary-ink);
+}
 .theme-choice-check {
   margin-left: auto;
   color: var(--primary-ink);
   opacity: 0;
   font-size: var(--text-sm);
 }
-.theme-choice:has(input:checked) .theme-choice-check {
+.theme-choice:has(input:checked) .theme-choice:has(input:focus-visible) {
+  outline-color: var(--primary-ink);
+}
+.theme-choice-check {
   opacity: 1;
 }
 .theme-base-choice {
