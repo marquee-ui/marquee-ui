@@ -100,10 +100,23 @@ test("Select popup fits, exposes 44px choices and stays readable through dark, l
   await isolatedTrigger.evaluate(async (el) => {
     await Promise.all(el.getAnimations().map((animation) => animation.finished));
   });
+  await expect(isolatedTrigger, "isolated Light trigger outline style").toHaveCSS(
+    "outline-style",
+    "solid",
+  );
+  expect(
+    await isolatedTrigger.evaluate((el) => parseFloat(getComputedStyle(el).outlineWidth)),
+    "isolated Light trigger outline width",
+  ).toBeGreaterThanOrEqual(2);
   const isolatedTriggerOutline = await contrast(isolatedTrigger, isolatedTrigger, "outlineColor");
   await isolatedTrigger.press("Enter");
   const apple = page.getByRole("option", { name: "Apple", exact: true });
   await expect(apple).toBeFocused();
+  await expect(apple, "isolated Light item outline style").toHaveCSS("outline-style", "solid");
+  expect(
+    await apple.evaluate((el) => parseFloat(getComputedStyle(el).outlineWidth)),
+    "isolated Light item outline width",
+  ).toBeGreaterThanOrEqual(2);
   const isolatedItemOutline = await contrast(apple, apple, "outlineColor");
 
   expect(isolatedTriggerOutline, "isolated Light trigger outline contrast").toBeGreaterThanOrEqual(

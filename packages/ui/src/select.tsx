@@ -99,7 +99,7 @@ export function SelectItem({ className, ...props }: ComponentProps<typeof Select
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex min-h-hit min-w-hit cursor-default items-center gap-3 rounded-sm px-3 py-2 text-sm outline-none data-[highlighted]:bg-primary-muted data-[highlighted]:text-primary-ink data-[highlighted]:outline-2 data-[highlighted]:-outline-offset-2 data-[highlighted]:outline-primary-ink data-[disabled]:pointer-events-none data-[disabled]:text-foreground-faint",
+        "relative flex min-h-hit min-w-hit cursor-default items-center gap-3 rounded-sm px-3 py-2 text-sm outline-none data-[highlighted]:bg-primary-muted data-[highlighted]:text-primary-ink data-[highlighted]:outline-solid data-[highlighted]:outline-2 data-[highlighted]:-outline-offset-2 data-[highlighted]:outline-primary-ink data-[disabled]:pointer-events-none data-[disabled]:text-foreground-faint",
         className,
       )}
       {...props}
