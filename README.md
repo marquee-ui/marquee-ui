@@ -19,7 +19,7 @@ parts and props instead of inventing one.
 Twenty-one component families and two token presets are published on npm.
 The [quickstart](docs/getting-started.md) includes a standalone React 19 + Tailwind 4
 starter; [supported stack](docs/supported-stack.md) records its scope and limitations.
-The documentation site's canonical publication URL is
+The documentation site is available for local review. Its planned publication URL is
 [marquee-ui.github.io/marquee-ui](https://marquee-ui.github.io/marquee-ui/).
 
 - **`packages/tokens`**: the typed role contract, two presets (`arcade`, the dark
@@ -63,8 +63,10 @@ only the repository root stays `"private": true`.
 ## Working in this repo
 
 ```sh
-pnpm install
-pnpm verify        # lint + typecheck + build + test
+pnpm install --frozen-lockfile
+pnpm --filter @marquee-ui/docs exec playwright install chromium
+pnpm verify        # lint + typecheck + build + unit + responsive browser tests
+pnpm --filter @marquee-ui/docs dev   # docs preview, on :4176/marquee-ui/
 pnpm storybook     # the workbench, on :6006
 ```
 
@@ -72,5 +74,10 @@ pnpm storybook     # the workbench, on :6006
 stylesheet and the BUILT registry, so those artefacts have to exist, and be
 current, before the tests can judge them.
 
-Node 22, pnpm 10.24.0, TypeScript strict with no `any`. `AGENTS.md` is the short
+For the assembled docs and nested Storybook, run `pnpm build`, then
+`pnpm --filter @marquee-ui/docs preview` and open `/marquee-ui/` on port 4176.
+Stop the dev server before using the same preview port. Browser tests also need
+Chromium's system libraries; CI installs those before running the gate.
+
+Node 22.12+ within Node 22, pnpm 10.24.0, TypeScript strict with no `any`. `AGENTS.md` is the short
 version for a coding agent.
