@@ -95,6 +95,33 @@ the site's font-family declarations use `var(--font-*)`.
   Font/contrast, all-family story links and nested preset checks previously passed
   all three widths; the final full gate will rebuild everything after review.
 
-## Layer 1
+## Layer 1 (reviewer, detached worktree of 807c7af98f3d3b9f47c6070d124ba41c134de3c8, slot r6)
 
-Pending detached review of the committed implementation, before the full gate.
+<!-- prettier-ignore -->
+| file | test | mutation applied | red / GREEN | what it asserts now |
+| --- | --- | --- | --- | --- |
+| apps/docs/test/copy-code.test.tsx | copies the exact usable composition and announces success | In CopyCode replace navigator.clipboard.writeText(code) with Promise.resolve(), leaving success announcement intact | red | Exact clipboard write is required; expected one write with source, received zero calls. |
+| apps/docs/test/copy-code.test.tsx | keeps the code selectable and announces a denied clipboard | Same no-op clipboard write | red | Denied write must announce failure; expected "Could not copy. Select the code below.", received "Copied to clipboard". |
+| apps/docs/test/explorer.test.tsx | selects a family, renders its real preview and exposes its composition | Replace every live Preview with the constant text "Preview unavailable" | red | Switch preview must contain the actual interactive switch; missing role switch named Email updates. |
+| apps/docs/test/explorer.test.tsx | keeps every family discoverable and resets preview state when switching | Same constant-preview collapse | red | Initial Button preview must expose its functional control; missing button named Try the button. |
+| apps/docs/test/markdown.test.tsx | keeps canonical guide links on the docs site and external citations intact | Collapse every guide href to #collapsed | red | Limits must retain the mapped #supported-stack target; received #collapsed. |
+| apps/docs/test/markdown.test.tsx | copies the canonical fenced command without Markdown syntax | Collapse fenced source passed to CopyCode to an empty string | red | Clipboard must receive npm ci + newline + npm run dev; received empty string. |
+| packages/ui/test/storybook-preview.test.ts | links the generated font sheet without copying preset descriptors | Drop deployment base by changing ./tokens/fonts.css to /tokens/fonts.css | red | Font URL resolves beneath /marquee-ui/storybook/; received /tokens/fonts.css. |
+| packages/ui/test/storybook-preview.test.ts | loads the light preset inside the same workbench path | Drop deployment base by changing lightHref from ./tokens/light.css to /tokens/light.css | red | Light URL resolves beneath /marquee-ui/storybook/; received /tokens/light.css. |
+| apps/docs/browser/site.spec.ts | loads real fonts, readable primary actions and a page that fits the viewport [mobile, tablet, desktop] | Delete the documentation font-sheet link in index.html, rebuild docs and assemble site | red (3/3) | Actually loaded face list is required; expected Boldonse, Space Grotesk, Space Mono, received []. |
+| apps/docs/browser/site.spec.ts | navigates on mobile and operates real examples with a keyboard [mobile, tablet, desktop] | Replace clipboard write with Promise.resolve(), preserving success UI; rebuild docs and assemble site | red (3/3) | Browser reads real clipboard contents and compares exact displayed composition; received empty string despite success status. |
+| apps/docs/browser/site.spec.ts | renders every family and sends each workbench link to a real story [mobile, tablet, desktop], original 807c7af | Replace every live Preview with the constant text "Preview unavailable"; rebuild docs and assemble site | GREEN (3/3) | Original not.toBeEmpty only required text, so no actual family rendering was pinned. Action: require independently listed component parts and meaningful portalled Sheet/Toast rendering. Author fixed this in e0d5c5e; see closure row below. |
+| apps/docs/browser/site.spec.ts | serves Storybook fonts and both presets beneath the deployment subpath [mobile, tablet, desktop] | Set light stylesheet link.disabled=true, retaining correct href and link; rebuild Storybook and assemble site | red (3/3) | Actual applied Light values must change computed --background; dark #0a0b07 remained, violating not.toBe(darkGround). |
+| apps/docs/browser/site.spec.ts | renders every family and sends each workbench link to a real story [mobile, tablet, desktop], closure e0d5c5e | Reapply exact every-live-Preview to "Preview unavailable" collapse against committed test closure, rebuild docs and assemble site | red (3/3) | Independently listed actual part required: "Button must render its actual parts", absent button[data-slot=button] in family canvas. |
+
+One MEDIUM finding closed in e0d5c5e. The original browser placeholder collapse
+stayed green at all three widths; the test now requires an independent list of
+actual family parts, named dialogs and notifications, and rejects the same
+mutation at all three widths. This is the concrete response to the GREEN row.
+The reviewer inspected the Node-engine follow-up 8d3ae92. No finding remains.
+
+Review measurement, 2026-10-08: docs unit 3 files / 6 tests, Storybook guard
+1 file / 2 tests, final Chromium 12 passed (9.5 s), all runner exit 0.
+20 red mutated cases and the original 3 GREEN cases are recorded above.
+Canonical consumer final 11f4330 was merged without editing its owned files.
+The full stream gate follows this committed review record.
