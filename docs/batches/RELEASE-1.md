@@ -34,13 +34,17 @@ proof and verifies the site in Chromium at 390, 768 and 1280px with keyboard and
 checks. Capture responsive screenshots at the reviewed head. No Pile-specific gate applies.
 
 One PR from `next` to `main`, with layer 2's DECISIONS, one section per stream, validation,
-and exact Prod ops. Merge on green CI without deleting persistent `next`; deploy and
-verify the public effect, then merge main back into next and clean this batch's worktrees.
+and exact proposed Prod ops. **User hold: localhost review before publication.** Prepare
+the PR and green CI, but do not merge or activate hosting until the user directs onward.
+When released, preserve persistent `next`, verify the deployed effect, merge main back
+into next, and clean only this batch's safe worktrees.
 
 Hosting investigation on 2026-10-08: GitHub API reports admin permission, public repository,
 `has_pages: false`; Pages GET returns 404. The available default destination is
-`https://marquee-ui.github.io/marquee-ui/`. Domain ownership is unknown; no CNAME will
-claim `marquee-ui.dev` without access/ownership evidence. The default URL ships first.
+`https://marquee-ui.github.io/marquee-ui/`. The user confirmed on 2026-10-08 that `marquee-ui.dev` is not yet owned and asked
+to see localhost first. No public publication, Pages activation, production deployment,
+or PR merge occurs until the user reviews localhost and directs onward. Prepare the
+reviewable site and PR independently; do not buy or register a domain.
 
 ## Cold resume
 
