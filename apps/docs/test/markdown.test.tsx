@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
 import { MarkdownGuide } from "../src/markdown-guide";
+
+beforeEach(() => vi.restoreAllMocks());
 
 it("keeps canonical guide links on the docs site and external citations intact", () => {
   render(
@@ -27,4 +29,27 @@ it("copies the canonical fenced command without Markdown syntax", async () => {
   render(<MarkdownGuide source={"```sh\nnpm ci\nnpm run dev\n```"} />);
   await user.click(screen.getByRole("button", { name: "Copy SH example" }));
   expect(write).toHaveBeenCalledExactlyOnceWith("npm ci\nnpm run dev");
+});
+
+it("passes the fence grammar and removes only the renderer's closing newline", async () => {
+  const user = userEvent.setup();
+  const write = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+  const { container } = render(
+    <MarkdownGuide source={"```css\n:root { color: var(--foreground); }\n\n```"} />,
+  );
+  const source = ":root { color: var(--foreground); }\n";
+  expect(container.querySelector("pre code")?.textContent).toBe(source);
+  expect(container.querySelector(".token.property")?.textContent).toBe("color");
+  await user.click(screen.getByRole("button", { name: "Copy CSS example" }));
+  expect(write).toHaveBeenCalledExactlyOnceWith(source);
+});
+
+it("keeps an unspecified fence plain and leaves inline code in prose", () => {
+  const { container } = render(
+    <MarkdownGuide source={"Use `count` here.\n\n```\nconst count = 2;\n```"} />,
+  );
+  expect(container.querySelector("p code")?.textContent).toBe("count");
+  expect(container.querySelector("pre code")?.textContent).toBe("const count = 2;");
+  expect(container.querySelectorAll("pre code span")).toHaveLength(0);
+  expect(screen.getByText("TEXT", { exact: true })).toBeVisible();
 });

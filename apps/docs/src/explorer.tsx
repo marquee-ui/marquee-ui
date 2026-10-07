@@ -51,7 +51,12 @@ export function ComponentExplorer({
               <Preview key={family.id} />
             </div>
           </div>
-          <CopyCode key={family.id} label={`${family.name} composition`} code={family.code} />
+          <CopyCode
+            key={family.id}
+            label={`${family.name} composition`}
+            language="tsx"
+            code={family.code}
+          />
         </div>
       </div>
     </div>
