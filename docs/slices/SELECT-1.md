@@ -163,6 +163,14 @@ prints are removed; assertions remain. Orchestrator separately owns standalone
 packed-consumer verification. Evidence: scratch s1/outline-isolated-before.log
 (exit 1) and outline-after.log (exit 0), measured 2026-10-08.
 
+Author guard proof after committing 8444614: changed only the two source
+outline roles back to primary, confirmed both lines with rg, rebuilt Storybook
+and assembled it. The mobile popup test failed at the predicted assertion
+`isolated Light trigger outline contrast`, expected at least 3, received
+1.076784646077168 (1 failed, exit 1). Restored the source from git. Evidence:
+scratch s1/outline-mutation.log and outline-mutation.exit. This confirms the
+isolated assertion sees the part's own styling rather than the docs override.
+
 Retro: the original scroll assertion measured existing state instead of a
 pointer effect; browser evidence must compare before/after and establish the
 fixture state. A focused docs rebuild clears the assembled Storybook directory:
