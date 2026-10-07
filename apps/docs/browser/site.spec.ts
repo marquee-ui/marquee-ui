@@ -1,4 +1,23 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
+
+async function foregroundContrast(control: Locator) {
+  return control.evaluate((el) => {
+    const style = getComputedStyle(el);
+    const luminance = (color: string) => {
+      const channels = color
+        .match(/[\d.]+/g)!
+        .slice(0, 3)
+        .map((value) => {
+          const channel = Number(value) / 255;
+          return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+        });
+      return channels[0]! * 0.2126 + channels[1]! * 0.7152 + channels[2]! * 0.0722;
+    };
+    const ink = luminance(style.color),
+      fill = luminance(style.backgroundColor);
+    return (Math.max(ink, fill) + 0.05) / (Math.min(ink, fill) + 0.05);
+  });
+}
 
 test("loads real fonts, readable primary actions and a page that fits the viewport", async ({
   page,
@@ -6,6 +25,21 @@ test("loads real fonts, readable primary actions and a page that fits the viewpo
   const failures: string[] = [];
   page.on("pageerror", (error) => failures.push(error.message));
   await page.goto("./");
+  const skip = page.getByRole("link", { name: "Skip to content" });
+  await page.keyboard.press("Tab");
+  await expect(skip).toBeFocused();
+  await expect(skip).toBeVisible();
+  const skipBox = await skip.boundingBox();
+  expect(skipBox!.x).toBeGreaterThanOrEqual(0);
+  expect(skipBox!.y).toBeGreaterThanOrEqual(0);
+  expect(skipBox!.x + skipBox!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  expect(await foregroundContrast(skip), "focused skip-link label contrast").toBeGreaterThanOrEqual(
+    4.5,
+  );
+  expect(await skip.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe("solid");
+  await page.screenshot({ path: test.info().outputPath("skip-link.png") });
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#main$/);
   await expect(page.getByRole("heading", { name: "Run the starter", level: 3 })).toBeVisible();
   await expect(
     page.locator("#getting-started").getByRole("link", { name: "supported stack and limitations" }),
@@ -23,22 +57,7 @@ test("loads real fonts, readable primary actions and a page that fits the viewpo
     "Boldonse",
   );
   const primary = page.getByRole("link", { name: "Start building" });
-  const contrast = await primary.evaluate((el) => {
-    const style = getComputedStyle(el);
-    const luminance = (color: string) => {
-      const channels = color
-        .match(/[\d.]+/g)!
-        .slice(0, 3)
-        .map((value) => {
-          const channel = Number(value) / 255;
-          return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
-        });
-      return channels[0]! * 0.2126 + channels[1]! * 0.7152 + channels[2]! * 0.0722;
-    };
-    const ink = luminance(style.color),
-      fill = luminance(style.backgroundColor);
-    return (Math.max(ink, fill) + 0.05) / (Math.min(ink, fill) + 0.05);
-  });
+  const contrast = await foregroundContrast(primary);
   expect(contrast, "primary action label contrast").toBeGreaterThanOrEqual(4.5);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
     page.viewportSize()!.width,
