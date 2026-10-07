@@ -1,13 +1,26 @@
 import {
   demoThemes,
+  DEMO_ACCENTS,
+  withDemoAccent,
+  type DemoAccent,
   type DemoMode,
   type DemoPalette,
 } from "../../../packages/tokens/src/presets/docs-themes";
 import { resolveColors } from "../../../packages/tokens/src/resolve";
 import { interpolateRoles } from "../../../packages/tokens/src/tokens";
 
-export type ThemeSettings = { mode: DemoMode; palette: DemoPalette; expressive: boolean };
-export const DEFAULT_THEME: ThemeSettings = { mode: "dark", palette: "arcade", expressive: true };
+export type ThemeSettings = {
+  mode: DemoMode;
+  palette: DemoPalette;
+  accent: DemoAccent;
+  expressive: boolean;
+};
+export const DEFAULT_THEME: ThemeSettings = {
+  mode: "dark",
+  palette: "arcade",
+  accent: "auto",
+  expressive: true,
+};
 export const THEME_STORAGE_KEY = "marquee-demo-theme-v1";
 export const PALETTES = [
   { value: "arcade", label: "Arcade acid" },
@@ -16,19 +29,36 @@ export const PALETTES = [
   { value: "tide", label: "Tide" },
 ] as const;
 
+export const ACCENTS = [
+  { value: "auto", label: "Automatic", description: "Follow the base palette" },
+  { value: "lime", label: "Lime", description: "Bright and punchy" },
+  { value: "mint", label: "Mint", description: "Fresh and cool" },
+  { value: "cyan", label: "Cyan", description: "Crisp and electric" },
+  { value: "blue", label: "Blue", description: "Clear and focused" },
+  { value: "violet", label: "Violet", description: "Rich and playful" },
+  { value: "pink", label: "Pink", description: "Warm and vivid" },
+  { value: "amber", label: "Amber", description: "Soft and golden" },
+] as const;
+
 export function readTheme(
   storage: () => Pick<Storage, "getItem"> = () => window.localStorage,
 ): ThemeSettings {
   try {
     const parsed: unknown = JSON.parse(storage().getItem(THEME_STORAGE_KEY) ?? "null");
     if (typeof parsed !== "object" || parsed === null) return DEFAULT_THEME;
-    const { mode, palette, expressive } = parsed as Record<string, unknown>;
+    const { mode, palette, expressive, accent } = parsed as Record<string, unknown>;
     if (
       (mode === "dark" || mode === "light") &&
       PALETTES.some((entry) => entry.value === palette) &&
-      typeof expressive === "boolean"
+      typeof expressive === "boolean" &&
+      (accent === undefined || DEMO_ACCENTS.includes(accent as DemoAccent))
     ) {
-      return { mode, palette: palette as DemoPalette, expressive };
+      return {
+        mode,
+        palette: palette as DemoPalette,
+        expressive,
+        accent: (accent ?? "auto") as DemoAccent,
+      };
     }
   } catch {
     /* Browsing still works when preferences are unavailable. */
@@ -47,7 +77,8 @@ export function saveTheme(
   }
 }
 
-export const themePreset = (settings: ThemeSettings) => demoThemes[settings.palette][settings.mode];
+export const themePreset = (settings: ThemeSettings) =>
+  withDemoAccent(demoThemes[settings.palette][settings.mode], settings.accent);
 
 function themeDeclarations(settings: ThemeSettings): [string, string][] {
   const preset = themePreset(settings);
@@ -77,7 +108,7 @@ export function applyTheme(settings: ThemeSettings): void {
 
 export function customizationRecipe(settings: ThemeSettings): string {
   return [
-    `/* Local demo customization: ${settings.palette} / ${settings.mode}.`,
+    `/* Local demo customization: ${settings.palette} / ${settings.mode} / ${settings.accent} accent.`,
     "   These additional recipes are not npm 0.1.0 preset exports.",
     "   Place after your token import. Keep the fonts import if you load no faces yourself. */",
     '@import "@marquee-ui/tokens/tokens.css";',

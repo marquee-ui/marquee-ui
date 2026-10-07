@@ -106,3 +106,43 @@ export const demoThemes: Record<DemoPalette, Record<DemoMode, Preset>> = {
   },
   tide: { dark: localPreset("tide", "dark"), light: localPreset("tide", "light") },
 };
+
+/** Curated local action recipes; surfaces and identity remain the base palette's. */
+const accents = {
+  lime: ["#e4ff3a", "#f0ff8a", "#435000", "#28320d", "#edf4be"],
+  mint: ["#7febc4", "#b2f4dc", "#005c44", "#12392e", "#d6f5e9"],
+  cyan: ["#7fe7ff", "#aaf0ff", "#00566e", "#132d3d", "#d5f4ff"],
+  blue: ["#93bcff", "#bdd6ff", "#244e95", "#142942", "#e0ecff"],
+  violet: ["#c4a2ff", "#dfc9ff", "#6034a4", "#2e2047", "#eee2ff"],
+  pink: ["#f6a6db", "#fac9ea", "#7e285b", "#402235", "#fbe2f2"],
+  amber: ["#ffdb91", "#ffe7b6", "#754b00", "#34270d", "#fff0cf"],
+} as const;
+
+export type DemoAccent = "auto" | keyof typeof accents;
+export const DEMO_ACCENTS = ["auto", ...Object.keys(accents)] as readonly DemoAccent[];
+
+export function withDemoAccent(base: Preset, accent: DemoAccent): Preset {
+  if (accent === "auto") return base;
+  const [fill, hover, ink, darkMuted, lightMuted] = accents[accent];
+  const dark = base.colorScheme === "dark";
+  return definePreset<Record<string, string>>({
+    ...base,
+    name: `${base.name}-${accent}`,
+    primitives: {
+      ...base.primitives,
+      "accent-fill": fill,
+      "accent-hover": hover,
+      "accent-ink": dark ? fill : ink,
+      "accent-on-fill": "#101208",
+      "accent-muted": dark ? darkMuted : lightMuted,
+    },
+    color: {
+      ...base.color,
+      primary: "accent-fill",
+      "primary-hover": "accent-hover",
+      "primary-ink": "accent-ink",
+      "primary-foreground": "accent-on-fill",
+      "primary-muted": "accent-muted",
+    },
+  });
+}

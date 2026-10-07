@@ -13,8 +13,21 @@ import {
 
 describe("theme preference boundary", () => {
   it("reads a complete saved choice including the expressive composition", () => {
-    const saved = { mode: "light", palette: "electric", expressive: false } as const;
+    const saved = {
+      mode: "light",
+      palette: "electric",
+      expressive: false,
+      accent: "violet",
+    } as const;
     expect(readTheme(() => ({ getItem: () => JSON.stringify(saved) }))).toEqual(saved);
+  });
+
+  it("upgrades valid saved choices from before accents to Automatic", () => {
+    const legacy = { mode: "light", palette: "tide", expressive: false };
+    expect(readTheme(() => ({ getItem: () => JSON.stringify(legacy) }))).toEqual({
+      ...legacy,
+      accent: "auto",
+    });
   });
 
   it.each([
@@ -27,6 +40,8 @@ describe("theme preference boundary", () => {
     JSON.stringify({ mode: "dark", palette: "missing", expressive: true }),
     JSON.stringify({ mode: "dark", palette: "arcade", expressive: "false" }),
     JSON.stringify({ mode: "light", palette: "tide" }),
+    JSON.stringify({ mode: "light", palette: "tide", expressive: true, accent: "unknown" }),
+    JSON.stringify({ mode: "light", palette: "tide", expressive: true, accent: null }),
   ])("safely defaults malformed/incomplete preferences: %s", (raw) => {
     expect(readTheme(() => ({ getItem: () => raw }))).toEqual(DEFAULT_THEME);
   });
@@ -48,7 +63,7 @@ describe("theme preference boundary", () => {
 
   it("writes the whole choice under its versioned key and tolerates blocked writes", () => {
     const entries: [string, string][] = [];
-    const saved = { mode: "light", palette: "tide", expressive: false } as const;
+    const saved = { mode: "light", palette: "tide", expressive: false, accent: "violet" } as const;
     saveTheme(saved, () => ({
       setItem: (key, value) => {
         entries.push([key, value]);
@@ -80,8 +95,30 @@ describe("live canonical roles and the copyable recipe", () => {
     expect(document.documentElement.style.colorScheme).toBe("dark");
   });
 
+  it("changes action ink and fill independently of surfaces and identity", () => {
+    const base = resolveColors(themePreset(DEFAULT_THEME));
+    const custom = resolveColors(themePreset({ ...DEFAULT_THEME, accent: "violet" }));
+    for (const role of [
+      "background",
+      "surface",
+      "raised",
+      "overlay",
+      "sunken",
+      "brand",
+      "brand-ink",
+    ] as const)
+      expect(custom[role], role).toBe(base[role]);
+    for (const role of ["primary", "primary-ink", "primary-hover", "primary-muted"] as const)
+      expect(custom[role], role).not.toBe(base[role]);
+  });
+
   it("produces a full CSS override for the exact selected mode and palette", () => {
-    const choice = { mode: "light", palette: "electric", expressive: true } as const;
+    const choice = {
+      mode: "light",
+      palette: "electric",
+      expressive: true,
+      accent: "blue",
+    } as const;
     const preset = themePreset(choice);
     const recipe = customizationRecipe(choice);
     expect(recipe).toContain('@import "@marquee-ui/tokens/tokens.css";');

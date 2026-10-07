@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { sourceFiles, stripComments } from "./helpers/source-files.js";
-import { demoThemes } from "../src/presets/docs-themes.js";
+import { demoThemes, DEMO_ACCENTS, withDemoAccent } from "../src/presets/docs-themes.js";
 
 /**
  * D8: "a lint rule fails on any literal colour, font name or shadow in library
@@ -12,7 +12,11 @@ import { demoThemes } from "../src/presets/docs-themes.js";
  * own values catch a COPIED one - the case a pattern misses when someone writes the
  * accent as `color-mix(...)` or pastes a family name.
  */
-const PRESETS = Object.values(demoThemes).flatMap((themes) => Object.values(themes));
+const PRESETS = Object.values(demoThemes).flatMap((themes) =>
+  Object.values(themes).flatMap((base) =>
+    DEMO_ACCENTS.map((accent) => withDemoAccent(base, accent)),
+  ),
+);
 
 const isPreset = (rel: string) => rel.includes("/src/presets/");
 
