@@ -9,9 +9,9 @@ local implementation or subsequent green batches.
 
 ## Active batch
 
-Next: BATCH-PARITY-2 — Dialog and AlertDialog. Expand the two bounded slices from
-[the roadmap](docs/component-parity.md), verify compatible shared overlay dependencies,
-and continue the same reviewed candidate/install/localhost workflow.
+Next: BATCH-PARITY-2 — Dialog and AlertDialog. Active: [batch record](docs/batches/BATCH-PARITY-2.md),
+[DIALOG-1](docs/slices/DIALOG-1.md) and [ALERT-DIALOG-1](docs/slices/ALERT-DIALOG-1.md).
+Independent streams are implementing compatible composable overlays and their proofs.
 
 [BATCH-PARITY-1](docs/batches/BATCH-PARITY-1.md) is complete: Select and Tabs, independent
 reviews, merged gate, fresh packed-consumer proof and inspected responsive visuals.
