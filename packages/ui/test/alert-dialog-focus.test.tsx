@@ -64,3 +64,32 @@ it.each([false, true])(
     }
   },
 );
+
+it.each([
+  ["primary", "var(--primary)", "var(--primary-foreground)", "var(--primary)"],
+  ["destructive", "var(--destructive)", "var(--destructive)", "var(--surface)"],
+] as const)(
+  "%s Action preserves its compiled visual border, ink and ground",
+  (variant, border, ink, ground) => {
+    render(
+      <AlertDialog defaultOpen>
+        <AlertDialogContent>
+          <AlertDialogTitle>Confirm</AlertDialogTitle>
+          <AlertDialogDescription>Review the change.</AlertDialogDescription>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction variant={variant}>Confirm change</AlertDialogAction>
+        </AlertDialogContent>
+      </AlertDialog>,
+    );
+    const action = screen.getByRole("button", { name: "Confirm change" });
+    const resting = action.className.split(/\s+/).filter((token) => !token.includes(":"));
+    expect(sheet.declaredValues(resting, "border-color"), `${variant} Action border role`).toEqual([
+      border,
+    ]);
+    expect(sheet.declaredValues(resting, "color"), `${variant} Action ink role`).toEqual([ink]);
+    expect(
+      sheet.declaredValues(resting, "background-color"),
+      `${variant} Action ground role`,
+    ).toEqual([ground]);
+  },
+);
