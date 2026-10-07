@@ -1,3 +1,5 @@
+import Previewalertdialog from "./examples/alert-dialog";
+import codealertdialog from "./examples/alert-dialog?raw";
 import Preview0 from "./examples/button";
 import code0 from "./examples/button?raw";
 import Preview1 from "./examples/accordion";
@@ -234,5 +236,14 @@ export const catalog = [
     story: "default",
     Preview: PreviewTabs,
     code: codeTabs,
+  },
+  {
+    id: "alert-dialog",
+    name: "AlertDialog",
+    description:
+      "Unreleased candidate. A composed confirmation with Cancel initial focus, blocked outside dismissal, and caller-controlled closing. Portal, overlay and actions are explicit.",
+    story: "default",
+    Preview: Previewalertdialog,
+    code: codealertdialog,
   },
 ] as const;

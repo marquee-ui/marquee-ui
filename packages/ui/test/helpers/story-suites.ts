@@ -36,7 +36,10 @@ import * as toggle from "../../stories/toggle.stories.js";
  * `storySuiteNames()` reads the directory so the map cannot fall behind the files
  * either.
  */
+import * as alertdialog from "../../stories/alert-dialog.stories.js";
+
 export const STORY_SUITES = {
+  "alert-dialog": alertdialog,
   accordion,
   alert,
   avatar,

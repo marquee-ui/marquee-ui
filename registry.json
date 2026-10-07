@@ -360,6 +360,25 @@
           "target": "components/ui/tabs.tsx"
         }
       ]
+    },
+    {
+      "name": "alert-dialog",
+      "type": "registry:ui",
+      "title": "AlertDialog",
+      "description": "A composed confirmation with Cancel initial focus, blocked outside dismissal, and caller-controlled closing. Portal, overlay and actions are explicit.",
+      "dependencies": [
+        "@radix-ui/react-alert-dialog@^1.1.24",
+        "@radix-ui/react-slot@^1.3.3",
+        "class-variance-authority@^0.7.1"
+      ],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/alert-dialog.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/alert-dialog.tsx"
+        }
+      ]
     }
   ]
 }
