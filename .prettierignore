@@ -3,4 +3,5 @@ dist
 coverage
 pnpm-lock.yaml
 storybook-static
+.docs-browser-results
 packages/*/r
