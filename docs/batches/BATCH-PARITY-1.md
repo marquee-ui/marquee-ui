@@ -38,3 +38,8 @@ floor check treated it as a visible control. The exclusion requires a native sel
 aria-hidden, tabindex -1 and both inline dimensions at 1px; actual triggers remain measured.
 Layer 1 removed the trigger minimum and observed the intended floor assertion redden.
 Absent jsdom browser APIs are shims only; browser evidence uses real Chromium behavior.
+
+The live docs stylesheet masked Select's own light focus outline (isolated ratios about
+1.07:1) and a removed Tabs Trigger outline width. Select now uses action ink; Tabs has a
+per-host compiled-style check. Isolated component and packed-consumer focus/selection proof
+is an explicit acceptance rule for later batches in the roadmap.

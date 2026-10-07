@@ -58,5 +58,11 @@ Two isolated streams, one independent reviewer per stream, one merged review and
 `pnpm verify` gate per batch. The orchestrator owns shared registration surfaces, status,
 reconciliation, packed-consumer proof and the stable 4174 preview. Browser checks cover
 390, 768 and 1280px in Chromium; screenshots are inspected, not merely captured.
+Check each new family's focus and selected-state paint in isolation from docs CSS as well
+as in the live demo. The docs page's unlayered focus rule can mask a component's missing
+outline or low-contrast role: batch 1 reproduced both shapes. Use isolated Storybook and
+fresh packed registry copies for the component contract, including dark/light and
+forced-colors where relevant; require the predicted assertion to redden under mutation.
+
 Public operations stay held as recorded in [STATUS.md](../STATUS.md). Green implementation
 advances to the next batch while the accumulated release PR remains draft and unmerged.
