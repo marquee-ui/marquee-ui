@@ -5,7 +5,7 @@ import { CopyCode } from "./copy-code";
 
 export function MarkdownGuide({ source }: { source: string }) {
   return (
-    <div className="canonical-guide">
+    <div className="canonical-guide guide-presentation">
       <Markdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -28,11 +28,11 @@ export function MarkdownGuide({ source }: { source: string }) {
           pre: ({ children }) => {
             if (!isValidElement<{ children: string; className?: string }>(children))
               return <pre>{children}</pre>;
-            const language =
-              children.props.className?.replace("language-", "").toUpperCase() ?? "Code";
+            const language = children.props.className?.replace("language-", "") ?? "text";
             return (
               <CopyCode
-                label={`${language} example`}
+                language={language}
+                label={`${language === "text" ? "Code" : language.toUpperCase()} example`}
                 code={children.props.children.replace(/\n$/, "")}
               />
             );
