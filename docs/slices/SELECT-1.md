@@ -43,7 +43,7 @@ Icon and scroll controls are explicit caller compositions. Content does not
 insert a portal or viewport; Item does not insert text or a check icon. Radix's
 item-aligned positioning default is preserved, with popper positioning shown in
 the demo. No compact sub-44px trigger size is offered. Value and ItemText stay
-unstyled to preserve Radix positioning. Only semantic token roles paint the parts.
+unstyled to preserve Radix positioning. Only semantic token roles paint the parts; focus outlines use primary-ink.
 SelectSeparator draws a border so forced colors retains the separator.
 This is single-choice Select; editable search and multiple selection belong to
 other families. Items require nonempty values, as the underlying primitive does.
@@ -147,6 +147,21 @@ Resolution of original-sha findings:
   completion; they are not claimed as proof that a call did work.
 - Other GREEN survivors in the table retain behavior the particular mutation
   preserved. No weakened assertion or skip was added.
+
+Review addendum: the orchestrator requested actual focus-outline contrast in
+Light/Automatic before the gate. The docs renderer initially passed, but its
+unlayered global focus rule overrides component outlines. The isolated Light
+Storybook iframe (embed mode, no global focus rule) instead measured trigger
+1.076784646077168 and highlighted item 1.0631628064607772 after CSS transitions
+finished; the intended 3:1 assertion failed. Changed both source outlines from
+primary to primary-ink. Actual isolated ratios are now 7.298350997385067 and
+7.206023374482298 at all three widths; the full Select browser file passed 12
+checks in 15.1s. The same existing browser contract now observes emitted Light
+component styling and Dark/Automatic, Light/Automatic and Light/Violet docs
+states, with CSS transitions finished before taking measurements. Diagnostic
+prints are removed; assertions remain. Orchestrator separately owns standalone
+packed-consumer verification. Evidence: scratch s1/outline-isolated-before.log
+(exit 1) and outline-after.log (exit 0), measured 2026-10-08.
 
 Retro: the original scroll assertion measured existing state instead of a
 pointer effect; browser evidence must compare before/after and establish the

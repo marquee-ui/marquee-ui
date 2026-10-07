@@ -3,23 +3,30 @@ import { expect, test, type Locator } from "@playwright/test";
 
 const example = readFileSync(new URL("../src/examples/select.tsx", import.meta.url), "utf8");
 
-async function contrast(control: Locator, ground: Locator) {
+async function contrast(
+  control: Locator,
+  ground: Locator,
+  property: "color" | "outlineColor" = "color",
+) {
   const fill = await ground.evaluate((el) => getComputedStyle(el).backgroundColor);
-  return control.evaluate((el, background) => {
-    const luminance = (color: string) => {
-      const channels = color
-        .match(/[\d.]+/g)!
-        .slice(0, 3)
-        .map((value) => {
-          const channel = Number(value) / 255;
-          return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
-        });
-      return channels[0]! * 0.2126 + channels[1]! * 0.7152 + channels[2]! * 0.0722;
-    };
-    const ink = luminance(getComputedStyle(el).color),
-      fill = luminance(background);
-    return (Math.max(ink, fill) + 0.05) / (Math.min(ink, fill) + 0.05);
-  }, fill);
+  return control.evaluate(
+    (el, { background, property }) => {
+      const luminance = (color: string) => {
+        const channels = color
+          .match(/[\d.]+/g)!
+          .slice(0, 3)
+          .map((value) => {
+            const channel = Number(value) / 255;
+            return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+          });
+        return channels[0]! * 0.2126 + channels[1]! * 0.7152 + channels[2]! * 0.0722;
+      };
+      const ink = luminance(getComputedStyle(el)[property]),
+        fill = luminance(background);
+      return (Math.max(ink, fill) + 0.05) / (Math.min(ink, fill) + 0.05);
+    },
+    { background: fill, property },
+  );
 }
 
 async function visibleTarget(control: Locator) {
@@ -80,19 +87,56 @@ test("Select demo selects with the keyboard, skips disabled, restores focus and 
 test("Select popup fits, exposes 44px choices and stays readable through dark, light and accent roles", async ({
   page,
 }) => {
+  // The docs' global focus rule can conceal a part's own outline. Measure the
+  // exported styling in Storybook too, under the emitted Light token preset.
+  await page.goto(
+    "storybook/iframe.html?id=parts-select--default&viewMode=story&embed=true&globals=preset:light",
+  );
+  await expect(page.locator("#marquee-light-preset")).toHaveAttribute("href", "./tokens/light.css");
+  await expect(page.locator("html")).toHaveCSS("color-scheme", "light");
+  const isolatedTrigger = page.getByRole("combobox", { name: "Produce" });
+  await page.keyboard.press("Tab");
+  await isolatedTrigger.focus();
+  await isolatedTrigger.evaluate(async (el) => {
+    await Promise.all(el.getAnimations().map((animation) => animation.finished));
+  });
+  const isolatedTriggerOutline = await contrast(isolatedTrigger, isolatedTrigger, "outlineColor");
+  await isolatedTrigger.press("Enter");
+  const apple = page.getByRole("option", { name: "Apple", exact: true });
+  await expect(apple).toBeFocused();
+  const isolatedItemOutline = await contrast(apple, apple, "outlineColor");
+
+  expect(isolatedTriggerOutline, "isolated Light trigger outline contrast").toBeGreaterThanOrEqual(
+    3,
+  );
+  expect(isolatedItemOutline, "isolated Light item outline contrast").toBeGreaterThanOrEqual(3);
   await page.goto("./");
-  for (const mode of ["Dark", "Light"]) {
+  for (const [mode, accent] of [
+    ["Dark", "Automatic"],
+    ["Light", "Automatic"],
+    ["Light", "Violet"],
+  ] as const) {
     await page.getByRole("button", { name: mode, exact: true }).click();
-    if (mode === "Light") {
+    if (accent === "Violet") {
       await page.getByRole("button", { name: /^Customize theme:/ }).click();
       await page.getByRole("radio", { name: /^Violet\b/ }).click();
       await page.keyboard.press("Escape");
     }
     await page.getByRole("button", { name: "Preview Select", exact: true }).click();
     const trigger = page.getByRole("combobox", { name: "Project priority" });
+    await trigger.evaluate(async (el) => {
+      await Promise.all(el.getAnimations().map((animation) => animation.finished));
+    });
     expect(await contrast(trigger, trigger), `${mode} trigger contrast`).toBeGreaterThanOrEqual(
       4.5,
     );
+    await page.keyboard.press("Tab");
+    await trigger.focus();
+    await trigger.evaluate(async (el) => {
+      await Promise.all(el.getAnimations().map((animation) => animation.finished));
+    });
+    expect(await trigger.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe("solid");
+    const triggerOutline = await contrast(trigger, trigger, "outlineColor");
     await trigger.click();
     const list = page.getByRole("listbox");
     const low = page.getByRole("option", { name: "Low", exact: true });
@@ -112,7 +156,13 @@ test("Select popup fits, exposes 44px choices and stays readable through dark, l
       4.5,
     );
     expect(await low.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe("solid");
-    await page.screenshot({ path: test.info().outputPath(`select-${mode.toLowerCase()}.png`) });
+    const itemOutline = await contrast(low, low, "outlineColor");
+
+    expect(triggerOutline, `${mode}/${accent} trigger outline contrast`).toBeGreaterThanOrEqual(3);
+    expect(itemOutline, `${mode}/${accent} item outline contrast`).toBeGreaterThanOrEqual(3);
+    await page.screenshot({
+      path: test.info().outputPath(`select-${mode.toLowerCase()}-${accent.toLowerCase()}.png`),
+    });
     await page.keyboard.press("Escape");
   }
   await page.emulateMedia({ forcedColors: "active" });

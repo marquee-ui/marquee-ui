@@ -25,7 +25,7 @@ export function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        "flex min-h-hit min-w-hit items-center justify-between gap-3 rounded-md border-2 border-border bg-surface px-3 py-2 text-sm text-foreground transition-colors data-[placeholder]:text-muted focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary focus-visible:shadow-focus-ring disabled:cursor-not-allowed disabled:text-foreground-faint",
+        "flex min-h-hit min-w-hit items-center justify-between gap-3 rounded-md border-2 border-border bg-surface px-3 py-2 text-sm text-foreground transition-colors data-[placeholder]:text-muted focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-ink focus-visible:shadow-focus-ring disabled:cursor-not-allowed disabled:text-foreground-faint",
         className,
       )}
       {...props}
@@ -99,7 +99,7 @@ export function SelectItem({ className, ...props }: ComponentProps<typeof Select
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex min-h-hit min-w-hit cursor-default items-center gap-3 rounded-sm px-3 py-2 text-sm outline-none data-[highlighted]:bg-primary-muted data-[highlighted]:text-primary-ink data-[highlighted]:outline-2 data-[highlighted]:-outline-offset-2 data-[highlighted]:outline-primary data-[disabled]:pointer-events-none data-[disabled]:text-foreground-faint",
+        "relative flex min-h-hit min-w-hit cursor-default items-center gap-3 rounded-sm px-3 py-2 text-sm outline-none data-[highlighted]:bg-primary-muted data-[highlighted]:text-primary-ink data-[highlighted]:outline-2 data-[highlighted]:-outline-offset-2 data-[highlighted]:outline-primary-ink data-[disabled]:pointer-events-none data-[disabled]:text-foreground-faint",
         className,
       )}
       {...props}
