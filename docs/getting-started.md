@@ -36,6 +36,18 @@ mapping's branch from `main` to `next`, then run:
 npx shadcn@4.21.4 add @marquee/select @marquee/tabs
 ```
 
+If the app already uses a Sheet from an earlier Marquee release, update its Dialog
+primitive before combining it with the new Select. Older Dialog and newer Select
+versions maintain separate focus stacks, which can break nested keyboard selection
+and leave pointer input blocked after closing:
+
+```sh
+npm install '@radix-ui/react-dialog@^1.2.0'
+```
+
+The candidate Sheet registry declares this minimum automatically. Existing copied Sheet
+source keeps its API; it needs the compatible dependency rather than a markup rewrite.
+
 The `next` registry is an unreleased, moving review branch. Pin its path to a reviewed
 commit SHA for repeatable source installs. It uses the same token roles and alias setup;
 its declared primitive dependencies are installed by the CLI. The

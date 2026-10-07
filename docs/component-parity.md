@@ -60,9 +60,13 @@ reconciliation, packed-consumer proof and the stable 4174 preview. Browser check
 390, 768 and 1280px in Chromium; screenshots are inspected, not merely captured.
 Check each new family's focus and selected-state paint in isolation from docs CSS as well
 as in the live demo. The docs page's unlayered focus rule can mask a component's missing
-outline or low-contrast role: batch 1 reproduced both shapes. Use isolated Storybook and
+outline style/width or low-contrast role: batch 1 reproduced both shapes. Use isolated Storybook and
 fresh packed registry copies for the component contract, including dark/light and
-forced-colors where relevant; require the predicted assertion to redden under mutation.
+forced-colors where relevant. Check painted style, width and contrast together; a color
+measurement alone cannot prove that an outline is visible. Exercise new overlays nested
+with existing overlay parts and align compatible primitive dependencies in both the
+workspace and shipped registry; workspace-only overrides do not protect copied components.
+Require the predicted assertion to redden under mutation.
 
 Public operations stay held as recorded in [STATUS.md](../STATUS.md). Green implementation
 advances to the next batch while the accumulated release PR remains draft and unmerged.
