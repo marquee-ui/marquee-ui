@@ -41,6 +41,9 @@ import code19 from "./examples/toast?raw";
 import Preview20 from "./examples/toggle";
 import code20 from "./examples/toggle?raw";
 
+import PreviewTabs from "./examples/tabs";
+import codeTabs from "./examples/tabs?raw";
+
 export const catalog = [
   {
     id: "button",
@@ -210,5 +213,14 @@ export const catalog = [
     story: "default",
     Preview: Preview20,
     code: code20,
+  },
+  {
+    id: "tabs",
+    name: "Tabs",
+    description:
+      "Linked tabs and panels with automatic or manual activation, horizontal or vertical orientation, and default or line styling.",
+    story: "default",
+    Preview: PreviewTabs,
+    code: codeTabs,
   },
 ] as const;

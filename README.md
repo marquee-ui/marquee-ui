@@ -25,9 +25,9 @@ The documentation site is available for local review. Its planned publication UR
 - **`packages/tokens`**: the typed role contract, two presets (`arcade`, the dark
   default, and `light`), the generated stylesheet and W3C DTCG JSON, the three
   faces with their licences, and the build checks that stop a preset publishing.
-- **`packages/ui`**: twenty-one part families - `Button`, `Toggle`, `Input`, `Textarea`, `Label`, `Card`,
+- **`packages/ui`**: twenty-two part families - `Button`, `Toggle`, `Input`, `Textarea`, `Label`, `Card`,
   `Badge`, `Separator`, `Accordion`, `Sheet`, `Switch`, `Checkbox`, `RadioGroup`, `Toast`,
-  `Ribbon`, `Breadcrumb`, `Pagination`, `Alert`, `Form`, `DescriptionList`, `Avatar` - as parts with `asChild`
+  `Ribbon`, `Breadcrumb`, `Pagination`, `Alert`, `Form`, `DescriptionList`, `Avatar`, `Tabs` - as parts with `asChild`
   slots, `cva` for visual axes only, Radix where a primitive exists. Eight of them were
   moved out of a real product through the role rename table, and
   `packages/ui/test/fidelity.test.tsx` is what says the move changed no pixel.

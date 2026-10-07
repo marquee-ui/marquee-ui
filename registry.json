@@ -330,6 +330,21 @@
           "target": "components/ui/pagination.tsx"
         }
       ]
+    },
+    {
+      "name": "tabs",
+      "type": "registry:ui",
+      "title": "Tabs",
+      "description": "Composable Tabs parts with Radix keyboard and state behavior.",
+      "dependencies": ["@radix-ui/react-tabs@^1.1.22", "class-variance-authority@^0.7.1"],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/tabs.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/tabs.tsx"
+        }
+      ]
     }
   ]
 }

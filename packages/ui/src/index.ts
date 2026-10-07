@@ -100,3 +100,5 @@ export { Textarea, textareaClass } from "./textarea.js";
 export { Toast, ToastAction, ToastMessage, type ToastProps } from "./toast.js";
 export { Toggle, toggleClass } from "./toggle.js";
 export { cn } from "./lib/utils.js";
+
+export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs.js";
