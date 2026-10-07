@@ -413,6 +413,13 @@ test("visual theme panel supports keyboard choices, scroll reachability and focu
   await expect(page.getByRole("radiogroup", { name: "Action accent", exact: true })).toBeVisible();
   const choices = page.getByRole("radio");
   await expect(choices).toHaveCount(12);
+  for (const choice of await choices.all()) {
+    const checked = await choice.isChecked();
+    await expect(
+      choice.locator("..").locator(".theme-choice-check"),
+      "only selected theme choices paint a checkmark",
+    ).toHaveCSS("opacity", checked ? "1" : "0");
+  }
   for (const control of await panel.locator("button, input").all()) {
     const bounds = await control.boundingBox();
     expect(bounds!.width, "theme panel target width").toBeGreaterThanOrEqual(44);

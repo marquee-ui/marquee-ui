@@ -145,10 +145,7 @@
   opacity: 0;
   font-size: var(--text-sm);
 }
-.theme-choice:has(input:checked) .theme-choice:has(input:focus-visible) {
-  outline-color: var(--primary-ink);
-}
-.theme-choice-check {
+.theme-choice:has(input:checked) .theme-choice-check {
   opacity: 1;
 }
 .theme-base-choice {
