@@ -215,6 +215,15 @@ describe("every interactive element clears the 44px tap floor", () => {
           'button, a[href], input, select, textarea, [role="button"]',
         );
         for (const element of interactive) {
+          // Radix Select submits through a visually hidden native select. Its
+          // accessible trigger is the tap target; still measure ordinary selects
+          // and every button, including an incorrectly aria-hidden button.
+          if (
+            element.matches('select[aria-hidden="true"][tabindex="-1"]') &&
+            element.style.width === "1px" &&
+            element.style.height === "1px"
+          )
+            continue;
           const tokens = (element.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
           let best = 0;
           for (const token of tokens) {

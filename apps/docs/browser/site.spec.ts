@@ -130,7 +130,7 @@ test("renders every family and sends each workbench link to a real story", async
   expect(index.status()).toBe(200);
   const storyIndex = (await index.json()) as { entries: Record<string, unknown> };
   const families = page.getByRole("button", { name: /^Preview / });
-  await expect(families).toHaveCount(21);
+  await expect(families).toHaveCount(22);
   // Independent of the production catalog: a nonempty placeholder is not a preview.
   const expectedParts = [
     ["Button", "button[data-slot=button]"],
@@ -153,6 +153,7 @@ test("renders every family and sends each workbench link to a real story", async
     ["Switch", "button[role=switch] [data-slot=switch-track]"],
     ["Textarea", "textarea[data-slot=textarea]"],
     ["Toast", "button[data-slot=button]"],
+    ["Select", "[data-slot=select-trigger]"],
     ["Toggle", "button[data-slot=toggle][aria-pressed]"],
   ] as const;
   for (const [name, selector] of expectedParts) {

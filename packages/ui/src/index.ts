@@ -100,3 +100,22 @@ export { Textarea, textareaClass } from "./textarea.js";
 export { Toast, ToastAction, ToastMessage, type ToastProps } from "./toast.js";
 export { Toggle, toggleClass } from "./toggle.js";
 export { cn } from "./lib/utils.js";
+
+export {
+  Select,
+  SelectPortal,
+  SelectTrigger,
+  SelectValue,
+  SelectIcon,
+  SelectContent,
+  SelectViewport,
+  SelectGroup,
+  SelectLabel,
+  SelectItem,
+  SelectItemText,
+  SelectItemIndicator,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+  SelectArrow,
+} from "./select.js";

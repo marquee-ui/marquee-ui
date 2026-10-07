@@ -21,6 +21,7 @@ import * as sheet from "../../stories/sheet.stories.js";
 import * as switchPart from "../../stories/switch.stories.js";
 import * as textarea from "../../stories/textarea.stories.js";
 import * as toast from "../../stories/toast.stories.js";
+import * as select from "../../stories/select.stories.js";
 import * as toggle from "../../stories/toggle.stories.js";
 
 /**
@@ -55,6 +56,7 @@ export const STORY_SUITES = {
   switch: switchPart,
   textarea,
   toast,
+  select,
   toggle,
 };
 
