@@ -80,4 +80,8 @@ probes remain in the reviewer scratch directory.
 
 The one full stream gate runs against frozen source commit1debecb, with
 `DOCS_PORT=4215 pnpm verify`, Node22.18.0/pnpm10.24.0, on2026-10-08.
-Its real exit sentinel and runner log are in the s1 scratch directory. Result pending.
+Its real exit sentinel is0. Runner summaries: root37 files /708 tests passed,
+docs4 files /39 tests passed, consumer5 passed /0 failed, browser63 passed (57.9s).
+Wall time81s, UTC21:57:03–21:58:24 on2026-10-07 (local2026-10-08).
+The source remained frozen; subsequent commits only record the review and result.
+The sentinel, runner log, start/end timestamps and browser artifacts remain in s1.
