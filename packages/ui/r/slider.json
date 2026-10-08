@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "slider",
+  "title": "Slider",
+  "description": "Numeric values and ranges with explicit track, range and independently named thumbs. Radix owns keyboard, pointer, direction and form reset; controlled callers accept reset changes.",
+  "dependencies": [
+    "@radix-ui/react-slider@^1.5.0"
+  ],
+  "registryDependencies": [
+    "@marquee/utils"
+  ],
+  "files": [
+    {
+      "path": "packages/ui/src/slider.tsx",
+      "content": "\"use client\";\n\nimport * as SliderPrimitive from \"@radix-ui/react-slider\";\nimport type { ComponentProps } from \"react\";\nimport { cn } from \"@/lib/utils\";\n\n/**\n * A numeric value or range, composed as Root, Track, Range and named Thumbs.\n * Radix owns values, keyboard and pointer input, orientation, direction, commits\n * and form association. Every primitive prop, ref and asChild host passes through.\n * Nothing creates thumbs from the value array: each thumb is the caller's part.\n *\n * Uncontrolled form reset restores the initial value at mount. Controlled reset\n * asks onValueChange for that initial value; the caller must accept the change.\n * Radix 1.5's hidden inputs still serialize disabled named sliders. Omit their\n * names when disabled values must be excluded; this wrapper adds no form API.\n */\nexport function Slider({ className, ...props }: ComponentProps<typeof SliderPrimitive.Root>) {\n  return (\n    <SliderPrimitive.Root\n      data-slot=\"slider\"\n      className={cn(\n        \"relative flex min-h-hit w-full touch-none select-none items-center data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[orientation=vertical]:h-48 data-[orientation=vertical]:min-w-hit data-[orientation=vertical]:w-11 data-[orientation=vertical]:flex-col\",\n        className,\n      )}\n      {...props}\n    />\n  );\n}\n\nexport function SliderTrack({ className, ...props }: ComponentProps<typeof SliderPrimitive.Track>) {\n  return (\n    <SliderPrimitive.Track\n      data-slot=\"slider-track\"\n      className={cn(\n        \"relative h-1.5 w-full grow rounded-full bg-border data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5 forced-colors:border forced-colors:border-current\",\n        className,\n      )}\n      {...props}\n    />\n  );\n}\n\nexport function SliderRange({ className, ...props }: ComponentProps<typeof SliderPrimitive.Range>) {\n  return (\n    <SliderPrimitive.Range\n      data-slot=\"slider-range\"\n      className={cn(\n        \"absolute h-full rounded-full bg-primary-ink data-[orientation=vertical]:w-full forced-colors:border-2 forced-colors:border-current\",\n        className,\n      )}\n      {...props}\n    />\n  );\n}\n\n/**\n * The actual focusable, draggable host is 44px on both axes. Its smaller visible\n * marker is a noninteractive pseudo-element, so the track stays narrow and the\n * whole thumb accepts the pointer. The outline belongs to that real target and\n * survives forced colors; the marker and range retain system-color borders.\n */\nexport function SliderThumb({ className, ...props }: ComponentProps<typeof SliderPrimitive.Thumb>) {\n  return (\n    <SliderPrimitive.Thumb\n      data-slot=\"slider-thumb\"\n      className={cn(\n        \"relative block size-11 min-h-hit min-w-hit cursor-grab rounded-full text-foreground active:cursor-grabbing focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-ink data-[disabled]:cursor-not-allowed after:pointer-events-none after:absolute after:left-1/2 after:top-1/2 after:size-5 after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-full after:border-2 after:border-primary-ink after:bg-surface forced-colors:after:border-current\",\n        className,\n      )}\n      {...props}\n    />\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/slider.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}

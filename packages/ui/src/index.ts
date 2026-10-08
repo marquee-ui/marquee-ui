@@ -170,3 +170,5 @@ export {
   TooltipContent,
   TooltipArrow,
 } from "./tooltip.js";
+
+export { Slider, SliderTrack, SliderRange, SliderThumb } from "./slider.js";

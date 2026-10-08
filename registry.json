@@ -424,6 +424,21 @@
           "target": "components/ui/tooltip.tsx"
         }
       ]
+    },
+    {
+      "name": "slider",
+      "type": "registry:ui",
+      "title": "Slider",
+      "description": "Numeric values and ranges with explicit track, range and independently named thumbs. Radix owns keyboard, pointer, direction and form reset; controlled callers accept reset changes.",
+      "dependencies": ["@radix-ui/react-slider@^1.5.0"],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/slider.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/slider.tsx"
+        }
+      ]
     }
   ]
 }

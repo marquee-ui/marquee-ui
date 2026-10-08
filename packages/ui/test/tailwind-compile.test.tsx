@@ -205,6 +205,7 @@ function slotTokens(module: object, storyName: string, selector: string): string
 describe("every interactive element clears the 44px tap floor", () => {
   const offenders: string[] = [];
   const checked: string[] = [];
+  const sliderTransports: string[] = [];
 
   beforeAll(() => {
     const suites = STORY_SUITES;
@@ -212,7 +213,7 @@ describe("every interactive element clears the 44px tap floor", () => {
       for (const [, Story] of storiesOf(module)) {
         render(<Story />);
         const interactive = document.querySelectorAll<HTMLElement>(
-          'button, a[href], input, select, textarea, [role="button"]',
+          'button, a[href], input, select, textarea, [role="button"], [role="slider"]',
         );
         for (const element of interactive) {
           // Radix Select submits through a visually hidden native select. Its
@@ -224,6 +225,27 @@ describe("every interactive element clears the 44px tap floor", () => {
             element.style.height === "1px"
           )
             continue;
+          // Slider 1.5 submits a hidden input beside each thumb's position wrapper.
+          // Only that exact transport is exempt; the named, visible thumb below
+          // remains a measured control, as does any ordinary or visible input.
+          const sliderThumb = element.previousElementSibling?.querySelector<HTMLElement>(
+            '[data-slot="slider-thumb"][role="slider"][aria-valuenow]',
+          );
+          if (
+            element instanceof HTMLInputElement &&
+            element.style.display === "none" &&
+            !element.hasAttribute("data-slot") &&
+            element.name !== "" &&
+            element.parentElement?.matches('[data-slot="slider"]') &&
+            sliderThumb !== undefined &&
+            sliderThumb !== null &&
+            (sliderThumb.hasAttribute("aria-label") ||
+              sliderThumb.hasAttribute("aria-labelledby")) &&
+            sliderThumb.getAttribute("aria-valuenow") === element.value
+          ) {
+            sliderTransports.push(element.name);
+            continue;
+          }
           const tokens = (element.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
           let best = 0;
           for (const token of tokens) {
@@ -252,6 +274,8 @@ describe("every interactive element clears the 44px tap floor", () => {
     // Anchor: an empty candidate list, or a resolver that returns null for
     // everything, would make the assertion below vacuous.
     expect(checked.length).toBeGreaterThan(20);
+    expect(checked.some((id) => id.includes("[data-slot=slider-thumb]"))).toBe(true);
+    expect(sliderTransports).toEqual(["volume"]);
     expect(sheet.rootVars().get("--hit-min")).toBe("44px");
     expect(sheet.lengthPx("var(--hit-min)")).toBe(TAP_FLOOR_PX);
     expect(sheet.lengthPx("2.75rem")).toBe(TAP_FLOOR_PX);
