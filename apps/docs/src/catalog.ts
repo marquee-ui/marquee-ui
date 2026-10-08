@@ -1,3 +1,5 @@
+import Previewslider from "./examples/slider";
+import codeslider from "./examples/slider?raw";
 import Previewtooltip from "./examples/tooltip";
 import codetooltip from "./examples/tooltip?raw";
 import Previewpopover from "./examples/popover";
@@ -278,5 +280,14 @@ export const catalog = [
     story: "default",
     Preview: Previewtooltip,
     code: codetooltip,
+  },
+  {
+    id: "slider",
+    name: "Slider",
+    description:
+      "Unreleased candidate. Numeric values and ranges with explicit track, range and independently named thumbs. Radix owns keyboard, pointer, direction and form reset; controlled callers accept reset changes.",
+    story: "default",
+    Preview: Previewslider,
+    code: codeslider,
   },
 ] as const;
