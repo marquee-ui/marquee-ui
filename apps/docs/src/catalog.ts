@@ -1,3 +1,5 @@
+import Previewdialog from "./examples/dialog";
+import codedialog from "./examples/dialog?raw";
 import Preview0 from "./examples/button";
 import code0 from "./examples/button?raw";
 import Preview1 from "./examples/accordion";
@@ -234,5 +236,14 @@ export const catalog = [
     story: "default",
     Preview: PreviewTabs,
     code: codeTabs,
+  },
+  {
+    id: "dialog",
+    name: "Dialog",
+    description:
+      "Unreleased candidate. A centered, scrollable dialog with explicit portal, overlay and close parts. Radix owns modal focus and dismissal; the caller owns content and saving.",
+    story: "default",
+    Preview: Previewdialog,
+    code: codedialog,
   },
 ] as const;

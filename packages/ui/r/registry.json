@@ -360,6 +360,21 @@
           "target": "components/ui/tabs.tsx"
         }
       ]
+    },
+    {
+      "name": "dialog",
+      "type": "registry:ui",
+      "title": "Dialog",
+      "description": "A centered, scrollable dialog with explicit portal, overlay and close parts. Radix owns modal focus and dismissal; the caller owns content and saving.",
+      "dependencies": ["@radix-ui/react-dialog@^1.2.0", "@radix-ui/react-slot@^1.3.3"],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/dialog.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/dialog.tsx"
+        }
+      ]
     }
   ]
 }
