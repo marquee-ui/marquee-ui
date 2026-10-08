@@ -175,6 +175,64 @@ async function rangePaint(root: Locator) {
   }
 }
 
+async function containedCalendar(root: Locator) {
+  const geometry = await root.evaluate((el) => {
+    const box = (node: Element) => {
+      const rect = node.getBoundingClientRect();
+      const css = getComputedStyle(node);
+      const leftInset = parseFloat(css.borderLeftWidth) + parseFloat(css.paddingLeft);
+      const rightInset = parseFloat(css.borderRightWidth) + parseFloat(css.paddingRight);
+      const topInset = parseFloat(css.borderTopWidth) + parseFloat(css.paddingTop);
+      const bottomInset = parseFloat(css.borderBottomWidth) + parseFloat(css.paddingBottom);
+      return {
+        left: rect.left,
+        right: rect.right,
+        top: rect.top,
+        bottom: rect.bottom,
+        width: rect.width,
+        content: {
+          left: rect.left + leftInset,
+          right: rect.right - rightInset,
+          top: rect.top + topInset,
+          bottom: rect.bottom - bottomInset,
+        },
+        inlineInsets: leftInset + rightInset,
+      };
+    };
+    return {
+      root: box(el),
+      grids: [...el.querySelectorAll('[role="grid"]')].map(box),
+      days: [...el.querySelectorAll('td[role="gridcell"], [data-slot="calendar-day-button"]')].map(
+        box,
+      ),
+    };
+  });
+  const required =
+    Math.max(...geometry.grids.map((grid) => grid.width)) + geometry.root.inlineInsets;
+  expect(
+    geometry.root.width,
+    "Calendar frame honors its actual grid plus inline padding and border",
+  ).toBeGreaterThanOrEqual(required);
+  for (const child of [...geometry.grids, ...geometry.days]) {
+    expect(
+      child.left,
+      "Calendar grid/day starts inside its painted content",
+    ).toBeGreaterThanOrEqual(geometry.root.content.left - 0.5);
+    expect(child.right, "Calendar grid/day ends inside its painted content").toBeLessThanOrEqual(
+      geometry.root.content.right + 0.5,
+    );
+    expect(
+      child.top,
+      "Calendar grid/day top stays inside its painted content",
+    ).toBeGreaterThanOrEqual(geometry.root.content.top - 0.5);
+    expect(
+      child.bottom,
+      "Calendar grid/day bottom stays inside its painted content",
+    ).toBeLessThanOrEqual(geometry.root.content.bottom + 0.5);
+  }
+  return { root: geometry.root, required };
+}
+
 test("Calendar docs preserve controlled day, keyboard movement, multiple dates, range bounds and reset", async ({
   page,
 }) => {
@@ -224,7 +282,36 @@ test("Calendar grids fit every viewport and every enabled day/navigation control
   const canvas = page.locator(".family-canvas");
   const roots = canvas.locator('[data-slot="calendar"]');
   await expect(roots).toHaveCount(3);
+  const canvasBounds = (await canvas.boundingBox())!;
+  const previewContent = await canvas.locator("..").evaluate((el) => {
+    const bounds = el.getBoundingClientRect();
+    const css = getComputedStyle(el);
+    return {
+      left: bounds.left + parseFloat(css.borderLeftWidth) + parseFloat(css.paddingLeft),
+      right: bounds.right - parseFloat(css.borderRightWidth) - parseFloat(css.paddingRight),
+    };
+  });
   for (const root of await roots.all()) {
+    const geometry = await containedCalendar(root);
+    expect(
+      canvasBounds.width,
+      "Calendar preview grants the real required inline size",
+    ).toBeGreaterThanOrEqual(geometry.required);
+    expect(
+      geometry.root.left,
+      "Calendar frame begins inside its actual canvas",
+    ).toBeGreaterThanOrEqual(canvasBounds.x - 0.5);
+    expect(geometry.root.right, "Calendar frame ends inside its actual canvas").toBeLessThanOrEqual(
+      canvasBounds.x + canvasBounds.width + 0.5,
+    );
+    expect(
+      geometry.root.left,
+      "Calendar frame begins inside preview painted content",
+    ).toBeGreaterThanOrEqual(previewContent.left - 0.5);
+    expect(
+      geometry.root.right,
+      "Calendar frame ends inside preview painted content",
+    ).toBeLessThanOrEqual(previewContent.right + 0.5);
     const bounds = (await root.boundingBox())!;
     expect(bounds.x, "calendar left stays in viewport").toBeGreaterThanOrEqual(0);
     expect(bounds.x + bounds.width, "calendar right stays in viewport").toBeLessThanOrEqual(
@@ -232,6 +319,11 @@ test("Calendar grids fit every viewport and every enabled day/navigation control
     );
     for (const button of await root.locator("button:not(:disabled)").all()) await target(button);
   }
+  const saturday = day(canvas.getByRole("region", { name: "Single day" }), 31);
+  await target(saturday);
+  await saturday.click();
+  await expect(saturday.locator("..")).toHaveAttribute("aria-selected", "true");
+  await expect(canvas.getByText("Selected day: 31")).toBeVisible();
   const range = canvas.getByRole("region", { name: "Date range" });
   const grids = await range.getByRole("grid").all();
   expect(grids).toHaveLength(2);
@@ -248,6 +340,32 @@ test("Calendar grids fit every viewport and every enabled day/navigation control
     ).toBeLessThanOrEqual(0.5);
   }
   await range.screenshot({ path: test.info().outputPath("calendar-two-month-grid.png") });
+  await canvas.screenshot({
+    path: test.info().outputPath("calendar-contained-complete-canvas.png"),
+  });
+});
+
+test("Calendar preserves its intrinsic frame when a caller grants less than the seven-day minimum", async ({
+  page,
+}) => {
+  await page.goto("storybook/iframe.html?id=parts-calendar--default&viewMode=story&embed=true");
+  const root = page.locator('[data-slot="calendar"]');
+  await expect(root).toBeVisible();
+  await root.locator("..").evaluate((el) => {
+    (el as HTMLElement).style.width = "306px";
+  });
+  const geometry = await containedCalendar(root);
+  expect(
+    geometry.required,
+    "default seven-day frame needs 308px grid plus 20px padding/border",
+  ).toBe(328);
+  expect(
+    (await root.locator("..").boundingBox())!.width,
+    "deliberately insufficient caller inline size",
+  ).toBe(306);
+  await target(day(root, 31));
+  await day(root, 31).click();
+  await expect(day(root, 31).locator("..")).toHaveAttribute("aria-selected", "true");
 });
 
 test("Calendar selected text and focus paint outside docs CSS in dark, light, accent and forced colors", async ({

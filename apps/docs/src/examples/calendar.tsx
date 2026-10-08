@@ -86,6 +86,11 @@ export default function CalendarExample() {
         Selection, reset and announcements belong to this example. Calendar is inline; popup
         DatePicker and form date transport are separate compositions.
       </p>
+      <p className="text-sm text-foreground-2">
+        The default seven-day Calendar needs at least 328px of inline space, including its frame.
+        Reduce a narrow panel's padding to grant that space. Week numbers or replacement parts may
+        need more.
+      </p>
     </div>
   );
 }

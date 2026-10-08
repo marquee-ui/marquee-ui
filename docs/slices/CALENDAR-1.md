@@ -1,6 +1,6 @@
 # CALENDAR-1 — composable Calendar
 
-Batch: BATCH-PARITY-5. Status: complete; unreleased.
+Batch: BATCH-PARITY-5. Status: geometry closure in independent review; unreleased.
 Stream port 4192; reviewer 4196.
 
 ## Scope
@@ -13,9 +13,11 @@ caller labels/locale/formatters and replaceable component slots. Expose styled d
 navigation parts where useful; preserve DayPicker focus and event/ref props through
 composition. Do not render data/config arrays to invent component structure.
 
-Prove 44px day and navigation targets and a seven-day grid that fits 390px. Multi-month
-layouts must stay within the viewport (stack on small screens); measure full range
-paint and selected text/outline. Caller-owned footer announcements and reset/state are
+Prove 44px day and navigation targets and a seven-day grid contained within its
+painted Calendar frame and caller content at 390px. The default seven-day Gregorian
+frame requires at least 328px of inline space; week numbers and custom parts may
+require more. Multi-month layouts must stay within the viewport (stack on small
+screens); measure full range paint and selected text/outline. Caller-owned footer announcements and reset/state are
 explicit. Native date input, popup DatePicker, alternate calendar systems, time selection
 and exhaustive timezone/locale coverage belong to later/deferred work. DatePicker is Batch6.
 
@@ -30,7 +32,10 @@ with literal colors; style through role classes and slots.
 ## Execution and ownership
 
 Test first, implement, commit, obtain a fresh independent detached layer-1 review,
-close findings, then run one full stream `pnpm verify`. Node 22.18.0 / pnpm 10.24.0.
+close findings, then run one full stream `pnpm verify`. A concrete geometry defect
+found after that green gate requires a bounded fix, fresh independent closure and
+a second gate authorized by the coordinator. Preserve the original gate evidence.
+Node 22.18.0 / pnpm 10.24.0.
 No Pile database, Steam or shots commands. Public operations remain held.
 The orchestrator owns dependencies/lockfile, exports, source/story/focus inventories,
 registry/generated files, counts, catalog, guide and STATUS. Request wiring once
@@ -64,7 +69,11 @@ disabled. No upstream CSS is imported.
 
 The inclusive range paints complete cells, with framed endpoints and contiguous
 muted action fill; the same role fill keeps an external focus outline visible next
-to a selected neighbor. The two-month calendar wraps complete seven-column grids.
+to a selected neighbor. The two-month calendar wraps complete seven-column grids. The root preserves its
+intrinsic minimum so its painted frame cannot shrink around an overflowing grid.
+The live example documents the default 328px inline minimum; callers must grant
+that space, including in Dialog/Popover panels. Week numbers or replacement slots
+can require more; 328px is not an unrestricted composition guarantee.
 Footer announcements and reset belong to the caller. The copyable example renders
 single, multiple and range selections and a reset that clears selections/months.
 
@@ -226,7 +235,7 @@ Review worktree removed; all original logs, landing proofs, screenshots, traces 
 476 unrelated surviving unit rows remain in
 `/home/ankit/.marquee-scratch/BATCH-PARITY-5/r6/report.md` and its adjacent artifacts.
 
-## Full stream gate
+## Original full stream gate
 
 One full stream `DOCS_PORT=4192 pnpm verify`, after independent review closure,
 exited **0** on `b857e0e1e00ac90e853900993662223a59ceca3d`. Command environment:
@@ -237,10 +246,11 @@ and summaries were read. Started 2026-10-08 04:35:42 UTC, finished 04:40:44 UTC:
 302 seconds wall time. Runner: **897 library tests (53 files), 39 docs tests
 (four files), five consumer checks, 234 browser cases (4.5m)**, all passed.
 
-No full gate preceded review or was repeated. The final record commit changes only
-this Markdown file after the green source/artifact gate. The working tree was clean
-at completion and port 4192 was released. Stream branch is ready for coordinator
-reconciliation; publication hold remains in force. No database, Steam, shots,
+No full gate preceded the original review. The original final record commit
+changed only this Markdown file after that source/artifact gate. The gate is retained
+as evidence of the original checks, whose viewport-only assertion missed the
+containment defect below; it does not certify the corrected geometry. Publication
+hold remains in force. No database, Steam, shots,
 STATUS, PR, main merge, deployment, npm, Pages or domain operation was performed.
 
 Final decisions: preserve the maintained DayPicker v10 selection contract and
@@ -248,3 +258,52 @@ replaceable slots; use muted action selection fill plus framed endpoints so the
 external focus ring contrasts with adjacent selected days; under forced colors,
 underline inclusive selected dates; keep announcements/reset/native date transport
 caller-owned. Context limits and original failures above remain part of the record.
+
+## Geometry closure after the original green gate
+
+The coordinator inspected the complete mobile canvas and found Saturday cropped
+at the right frame edge. Independent live measurements on the original build at
+390px reproduced the defect: preview width 350px, 20px inline padding and 2px
+borders left a 306px canvas; the root shrank to 306px, while each grid remained
+308px plus 20px root padding/border. The Saturday buttons ended at x360 beyond
+the root's x348 painted edge. They were within the viewport, so the earlier
+viewport-only check passed without proving the frame shape. Root client/scroll
+widths were 302/316 and canvas client/scroll widths 306/318. This is a product
+geometry defect, not an instrument correction or an accepted narrow viewport.
+
+The bounded source fix preserves the intrinsic root minimum. The coordinator's
+mobile-only Calendar-containing preview rule reduces inline padding to 8px,
+granting a 330px canvas; other families keep their padding. In the rebuilt page,
+all three roots are 330px wide at x30–360, root client/scroll widths are both 326,
+and their 308px grids end at x348 inside their 310px content. Canvas client/scroll
+widths are both 330. The seven 44px targets were preserved. Two-month grids stack
+without changing column width.
+
+New browser checks measure every grid/cell/button within the actual root content
+box, roots within the canvas and preview content box, and available inline size
+against the measured grid plus frame insets. The last-column Saturday uses three
+real hit points and an actual click that selects day 31. A separate connected
+Storybook case deliberately grants only 306px and proves the source retains its
+328px frame instead of shrinking its paint. The caller still owes enough space;
+this test does not claim that an insufficient external panel contains the root.
+
+Original default Dialog measurements were geometric diagnostics using a clone
+of rendered Calendar markup, not event proof: a 358px panel with 24px padding
+and 2px borders grants 306px; caller padding of 12px grants 330px. Real packed
+Dialog/Popover interaction checks belong to the coordinator's candidate fixture.
+
+2026-10-08 evidence in stream scratch: `geometry-before.json`,
+`calendar-geometry-before.png`, `geometry-current.json`,
+`calendar-geometry-current.png`, and `dialog-geometry.json`. Two new mobile
+checks ran against the original build before the source/CSS fix and failed at
+the predicted frame assertion, received 306 versus required 328; original
+`geometry-red.log`, exit 1 and traces remain. Rebuilt focused run:
+`DOCS_PORT=4192 pnpm exec playwright test browser/calendar.spec.ts` from
+`apps/docs`, **18 passed in 48.5s** over all three projects, exit 0. The complete
+mobile canvas and isolated screenshots are in `geometry-green/`; Saturday is
+fully inside the frame. Root Vitest calendar/focus: **13 passed**, two files,
+2.51s. Repo lint and typecheck exit 0. An initial root-level Playwright invocation
+exited 254 because Playwright is a docs-package dependency; the corrected package
+invocation produced the browser evidence above. This runner-path error was not
+a product failure. Fresh independent mutations and the justified second full
+gate remain pending.
