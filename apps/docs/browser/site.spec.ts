@@ -78,8 +78,8 @@ test("navigates on mobile and operates real examples with a keyboard", async ({
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("./");
   if (info.project.name === "mobile") {
-    await page.getByRole("button", { name: "Menu" }).click();
-    await expect(page.getByRole("button", { name: "Menu" })).toHaveAttribute(
+    await page.getByRole("button", { name: "Menu", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Menu", exact: true })).toHaveAttribute(
       "aria-expanded",
       "true",
     );
@@ -87,7 +87,7 @@ test("navigates on mobile and operates real examples with a keyboard", async ({
       .getByRole("navigation", { name: "Main navigation" })
       .getByRole("link", { name: "Components", exact: true })
       .click();
-    await expect(page.getByRole("button", { name: "Menu" })).toHaveAttribute(
+    await expect(page.getByRole("button", { name: "Menu", exact: true })).toHaveAttribute(
       "aria-expanded",
       "false",
     );
