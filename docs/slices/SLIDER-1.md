@@ -264,3 +264,30 @@ The family unit test, stories, docs example, browser case, compiled-floor and
 focus inventories remain consumers; their existing contracts are retained.
 Only source, this browser regression and this record belong to the stream's
 reopened fence. Registry refresh and shared counts remain with the orchestrator.
+
+### Independent geometry closure
+
+The same named reviewer recreated its detached worktree at committed source
+`3296ef5ed689e81ec1ed04b5da3d74bd36d1d879`, with an independently installed,
+lock-pinned consumer on port 4196. Its initial fixed-source runner passed all
+9 normal/inverted/range × 390/768/1280 checks. Each checks live values at
+0/25/50/75/100, physical starting edge, bounds, selected-color pixels for nonzero
+spans and rejection of range hits below the track.
+
+The reviewer removed the vertical `h-auto` correction from the committed source,
+verified the mutation landed, and freshly rebuilt both artifacts. The family
+runner exited 1 with **3 failed / 15 passed (20.4s)**: only the new range geometry
+case failed, at every width, on the predicted bottom-boundary assertion. The
+independent consumer exited 1 with **9 failed**: normal and range failed their
+bottom bounds; inverted failed its selected length from live aria values. Those
+15 surviving family cases reproduce the original green-run blind spot; their
+unchanged keyboard, pointer, focus, form and copy contracts do not assert this
+new geometry property.
+
+After restoring the source from git and freshly rebuilding, the family runner
+exited 0 with **18 passed (26.7s)** and the independent consumer exited 0 with
+**9 passed (11.1s)**. This closes the MEDIUM vertical-range behavior finding.
+Durable evidence is under batch scratch `r6/geometry/`: `controls.json`,
+`regression-mutated.log`, `consumer-mutated.log`, `regression-restored.log` and
+`consumer-restored.log`. The orchestrator admitted the corrected full gate from
+these completed controls; the reviewer's concise final table follows when issued.
