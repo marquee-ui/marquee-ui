@@ -179,5 +179,32 @@ inventory scoped to descendants of the Chart host. Unknown names, names outside
 that host and caller host classes remain checked; equality with the collected
 marker set makes unused exceptions fail. Eight test-first fixtures produce four
 predicted failures / 44 passes before the correction, then 48 passes and green
-ESLint. Independent counterexample review and the corrected full gate follow;
-this instrument correction changes no Chart family source.
+ESLint. This instrument correction changes no Chart family source.
+
+At `c79a841`, the independent reviewer lands five separate controls: collapse
+classification; broaden the exact inventory to every Recharts prefix; remove
+chart ancestry/root bounds; add a never-rendered exception; and put a missing
+Tailwind utility on the real Bar through the committed Keyboard story. Every
+control fails the predicted fixture or actual compilation assertion and restores
+to **48 passed**. The prefix control also rejects exempting `recharts-surface`,
+whose focus selectors are owned compiled utilities rather than structural markers.
+
+The reviewer finds one additional boundary gap: a caller ChartContainer nested
+inside another ChartContainer inherits the outer ancestry and can escape utility
+checking. Its regression-input probe strengthens the existing caller-root fixture
+with an outer host, retaining expected `true`; the named root assertion receives
+`false` (**1 failed / 47 passed**) before git restoration to 48 passes.
+Coordinator commit `1eb82b8` explicitly requires utilities on every ChartContainer
+element itself regardless of outer ancestry and retains that nested-root input.
+The same reviewer removes the new protection at the committed correction and
+obtains the same predicted named assertion red, then restores **48 passed**.
+
+The complete marker supplement closes that finding with six committed-subject
+mutations and one additional regression-input counterexample; it has no mutation
+survivors. Together with the earlier family and client-boundary reviews, evidence
+now covers **29 committed-subject mutations and one regression-input probe**
+across twelve touched test-bearing surfaces. The two earlier shared-runner ceilings
+remain documented above. Reports and exact landed diffs, predictions, runner
+exits and restorations are retained in `r6/tailwind-marker-initial.md` and
+`r6/tailwind-marker-supplement.md`, with `t01`–`t07` logs. The corrected full gate uses
+separate `s2/verify-corrected.*` evidence so the original failure remains intact.
