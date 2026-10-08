@@ -394,6 +394,12 @@ h1 span {
   padding: 1.25rem;
   min-width: 0;
 }
+/* Seven 44px date columns plus the Calendar frame need 328px. */
+@media (width < 48rem) {
+  .family-preview:has([data-slot="calendar"]) {
+    padding-inline: 0.5rem;
+  }
+}
 .family-canvas {
   display: flex;
   align-items: center;
