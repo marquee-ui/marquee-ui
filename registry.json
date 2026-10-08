@@ -529,6 +529,21 @@
           "target": "components/ui/data-table.tsx"
         }
       ]
+    },
+    {
+      "name": "chart",
+      "type": "registry:ui",
+      "title": "Chart",
+      "description": "Unreleased candidate. Composed Recharts 3 presentation with explicit chart children, live tooltip and legend parts, keyboard bar/line data access and a native data-table alternative. Additional chart types and advanced controls are deferred.",
+      "dependencies": ["@radix-ui/react-slot@^1.3.3", "recharts@^3.10.1"],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/chart.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/chart.tsx"
+        }
+      ]
     }
   ]
 }

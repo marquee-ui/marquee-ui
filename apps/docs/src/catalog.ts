@@ -1,3 +1,5 @@
+import Previewchart from "./examples/chart";
+import codechart from "./examples/chart?raw";
 import Previewdatatable from "./examples/data-table";
 import codedatatable from "./examples/data-table?raw";
 import Previewtable from "./examples/table";
@@ -70,6 +72,15 @@ import PreviewTabs from "./examples/tabs";
 import codeTabs from "./examples/tabs?raw";
 
 export const catalog = [
+  {
+    id: "chart",
+    name: "Chart",
+    description:
+      "Unreleased candidate. Composed Recharts 3 presentation with explicit chart children, live tooltip and legend parts, keyboard bar/line data access and a native data-table alternative. Additional chart types and advanced controls are deferred.",
+    story: "default",
+    Preview: Previewchart,
+    code: codechart,
+  },
   {
     id: "data-table",
     name: "DataTable",

@@ -390,6 +390,7 @@ describe("the invariant, over every part rather than a hand-written table", () =
       "accordion.tsx (focus-visible)",
       "alert-dialog.tsx (focus-visible)",
       "calendar.tsx (focus-visible)",
+      "chart.tsx (focus-visible)",
       "checkbox.tsx (has-focus-visible)",
       "combobox.tsx (focus-visible)",
       "data-table.tsx (focus-visible)",

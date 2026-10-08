@@ -1,0 +1,98 @@
+"use client";
+
+import { Slot } from "@radix-ui/react-slot";
+import type { ComponentProps } from "react";
+import { Legend, Tooltip } from "recharts";
+import { cn } from "@/lib/utils";
+
+type Slotted = { asChild?: boolean };
+const focus =
+  "focus-visible:outline-solid focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-ink";
+
+/**
+ * Presentation only: compose ResponsiveContainer and Recharts primitives inside.
+ * The default height gives ResponsiveContainer a measurable first render; keep
+ * a positive height/aspect when overriding it. Data, axes, labels, series, state
+ * and accessible naming belong to the caller. The actual keyboard chart surface
+ * receives its own visible focus ring, including in isolated registry usage.
+ */
+export function ChartContainer({
+  className,
+  asChild = false,
+  ...props
+}: ComponentProps<"div"> & Slotted) {
+  const Host = asChild ? Slot : "div";
+  return (
+    <Host
+      data-slot="chart-container"
+      className={cn(
+        "h-64 w-full min-w-0 text-sm text-foreground [&_.recharts-surface]:focus-visible:outline-solid [&_.recharts-surface]:focus-visible:outline-2 [&_.recharts-surface]:focus-visible:-outline-offset-2 [&_.recharts-surface]:focus-visible:outline-primary-ink",
+        focus,
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+/** Recharts owns interaction. Supply content explicitly; no data/config inference. */
+export const ChartTooltip = Tooltip;
+export const ChartLegend = Legend;
+
+/** Keep point announcements concise; only render this host for an active point. */
+export function ChartTooltipContent({
+  className,
+  asChild = false,
+  ...props
+}: ComponentProps<"div"> & Slotted) {
+  const Host = asChild ? Slot : "div";
+  return (
+    <Host
+      data-slot="chart-tooltip-content"
+      role="status"
+      aria-live="assertive"
+      aria-atomic="true"
+      className={cn(
+        "grid gap-1 rounded-md border-2 border-border bg-overlay px-3 py-2 text-sm text-foreground shadow-md",
+        focus,
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+/** Explicit list children retain labels independent of color. Slotted hosts stay ul/li. */
+export function ChartLegendContent({
+  className,
+  asChild = false,
+  ...props
+}: ComponentProps<"ul"> & Slotted) {
+  const Host = asChild ? Slot : "ul";
+  return (
+    <Host
+      data-slot="chart-legend-content"
+      className={cn(
+        "flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-foreground",
+        focus,
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function ChartLegendItem({
+  className,
+  asChild = false,
+  ...props
+}: ComponentProps<"li"> & Slotted) {
+  const Host = asChild ? Slot : "li";
+  return (
+    <Host
+      data-slot="chart-legend-item"
+      className={cn("inline-flex items-center gap-2", focus, className)}
+      {...props}
+    />
+  );
+}

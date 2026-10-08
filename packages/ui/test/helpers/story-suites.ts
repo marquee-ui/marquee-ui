@@ -1,3 +1,4 @@
+import * as chart from "../../stories/chart.stories.js";
 import * as datatable from "../../stories/data-table.stories.js";
 import * as table from "../../stories/table.stories.js";
 import * as datepicker from "../../stories/date-picker.stories.js";
@@ -52,6 +53,7 @@ import * as popover from "../../stories/popover.stories.js";
 import * as tooltip from "../../stories/tooltip.stories.js";
 
 export const STORY_SUITES = {
+  chart: chart,
   "data-table": datatable,
   table: table,
   "date-picker": datepicker,

@@ -25,7 +25,7 @@ branch, which can change independently of those npm versions.
 
 ## Unreleased preview components
 
-The local review site also includes Select, Tabs, Dialog, AlertDialog, Popover, Tooltip, DropdownMenu, Slider, Combobox, Calendar, DatePicker, Table and DataTable from the component-parity program.
+The local review site also includes Select, Tabs, Dialog, AlertDialog, Popover, Tooltip, DropdownMenu, Slider, Combobox, Calendar, DatePicker, Table, DataTable and Chart from the component-parity program.
 They are not in published UI 0.1.10 or the main-branch registry yet. The starter above
 continues to demonstrate that published release.
 
@@ -33,7 +33,7 @@ To try the candidate source after setting up the app below, change only the regi
 mapping's branch from `main` to `next`, then run:
 
 ```sh
-npx shadcn@4.21.4 add @marquee/select @marquee/tabs @marquee/dialog @marquee/alert-dialog @marquee/popover @marquee/tooltip @marquee/dropdown-menu @marquee/slider @marquee/combobox @marquee/calendar @marquee/date-picker @marquee/table @marquee/data-table
+npx shadcn@4.21.4 add @marquee/select @marquee/tabs @marquee/dialog @marquee/alert-dialog @marquee/popover @marquee/tooltip @marquee/dropdown-menu @marquee/slider @marquee/combobox @marquee/calendar @marquee/date-picker @marquee/table @marquee/data-table @marquee/chart
 ```
 
 If the app already uses a Sheet from an earlier Marquee release, update its Dialog
@@ -58,7 +58,8 @@ records scope and limits. Local packed-artifact proof for these additions is rec
 [BATCH-PARITY-3](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-3.md)
 [BATCH-PARITY-4](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-4.md)
 [BATCH-PARITY-5](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-5.md)
-and [BATCH-PARITY-6](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-6.md).
+[BATCH-PARITY-6](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-6.md)
+and [BATCH-PARITY-7](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-7.md).
 
 Combobox is a composed **single-select searchable popup** using cmdk and Radix Popover.
 It is not a drop-in copy of the current shadcn Base UI Combobox API. Editable inline
@@ -98,8 +99,31 @@ scrolling is needed; supply a meaningful accessible name with `aria-label` or
 `aria-labelledby`. Its native keyboard scrolling keeps a wide table inside its caller.
 Compose captions, header scopes, spans and genuine controls in cells; keep native table
 hosts when using `asChild`. Selected row paint does not supply selection logic.
-Sorting, filtering, pagination and data engines belong to the next DataTable batch.
+Sorting, filtering, pagination and data engines belong to the composed DataTable recipe.
 Unlike shadcn's implicit wrapper, `Table` itself remains a bare table here.
+
+DataTable provides **presentation over a caller-created TanStack React Table 9
+instance**. Compose a caption, named TableContainer, explicit header/row render
+slots, empty row and controls. The caller owns columns, data, features and state
+updates; keep `useTable`'s reactive selection or compose `table.Subscribe` so
+changes update the rendered rows. The demonstrated recipe covers client sorting,
+name filtering, pagination and cell actions. Header slots supply native `th`,
+scope, grouped spans and `aria-sort`; row slots supply native `tr` and cells.
+Keyboard-focused cell controls in a horizontally scrolling table need the
+caller's reveal policy and enough scroll margin for their focus ring, as the
+example shows. Server/virtualized grids, editing, selection managers, column
+resizing/reordering and aggregation/export remain deferred.
+
+Chart provides **presentation parts around Recharts 3**. Compose chart primitives,
+series, axes, a concise live tooltip and named legend content explicitly. Keep a
+positive height or aspect for ResponsiveContainer; ChartContainer's default
+height is 256px. The bar/line example uses data token roles, a solid/dashed series
+distinction, named keyboard chart surfaces and a native table containing every
+value. Keep axis labels clear of the actual chart's inset focus ring when choosing
+caller margins. No chart configuration object generates colors, tooltip text or
+legend content. Additional chart types, brush/zoom, animation controls and export
+remain outside this bounded recipe. These parts do not promise a drop-in shadcn
+API or extend the verified React 19/Tailwind 4/Vite consumer stack.
 
 DropdownMenu composes action items, checkbox/radio choices and directional submenus.
 Portals, indicators, arrows and chevrons are explicit parts. Selection closes by default;

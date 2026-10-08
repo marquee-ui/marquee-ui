@@ -254,3 +254,12 @@ export {
   type DataTableBodyProps,
   type DataTableSortButtonProps,
 } from "./data-table.js";
+
+export {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  ChartLegendItem,
+} from "./chart.js";

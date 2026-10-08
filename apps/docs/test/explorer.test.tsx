@@ -24,7 +24,7 @@ it("selects a family, renders its real preview and exposes its composition", asy
 it("keeps every family discoverable and resets preview state when switching", async () => {
   const user = userEvent.setup();
   render(<ComponentExplorer />);
-  expect(screen.getAllByRole("button", { name: /^Preview / })).toHaveLength(34);
+  expect(screen.getAllByRole("button", { name: /^Preview / })).toHaveLength(35);
   await user.click(screen.getByRole("button", { name: "Try the button" }));
   expect(screen.getByRole("status", { name: "Button result" })).toHaveTextContent("Pressed 1 time");
   await user.click(screen.getByRole("button", { name: "Preview Card" }));
