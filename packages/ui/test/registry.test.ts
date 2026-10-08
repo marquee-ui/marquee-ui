@@ -223,7 +223,7 @@ const dependencyDrift = (
 };
 
 describe("registry.json", () => {
-  it("declares the twenty-five part families plus the one shared lib", () => {
+  it("declares the twenty-six part families plus the one shared lib", () => {
     // Anchor: every loop below is vacuous against an empty item list.
     expect(registry.items.map((item) => item.name).sort()).toEqual([
       "accordion",
@@ -241,6 +241,7 @@ describe("registry.json", () => {
       "input",
       "label",
       "pagination",
+      "popover",
       "radio-group",
       "ribbon",
       "select",
@@ -336,7 +337,7 @@ describe("registry.json", () => {
         checked++;
       }
     }
-    expect(checked).toBe(27);
+    expect(checked).toBe(28);
   });
 
   it("declares exactly the registry dependencies its sources import", () => {
@@ -364,7 +365,7 @@ describe("registry.json", () => {
     // Anchor: the same total the count above holds, reached from the imports. And the
     // rule, holding on the tree: `ribbon` imports `./ribbon.css`, its own file, and
     // declares `@marquee/utils` alone, so a reader without the rule reddens `ribbon`.
-    expect(derived).toBe(27);
+    expect(derived).toBe(28);
   });
 
   it("reads a source's registry dependencies as the items that ship the files it imports", () => {
@@ -596,7 +597,7 @@ describe("the built registry in packages/ui/r", () => {
         compared++;
       }
     }
-    expect(compared).toBe(27);
+    expect(compared).toBe(28);
   });
 
   it("carries the title, description and both dependency lists into the item file", () => {

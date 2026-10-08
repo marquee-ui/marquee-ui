@@ -148,3 +148,16 @@ export {
   AlertDialogAction,
   AlertDialogCancel,
 } from "./alert-dialog.js";
+
+export {
+  Popover,
+  PopoverTrigger,
+  PopoverAnchor,
+  PopoverPortal,
+  PopoverContent,
+  PopoverClose,
+  PopoverArrow,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverDescription,
+} from "./popover.js";
