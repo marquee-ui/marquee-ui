@@ -1,6 +1,6 @@
 # CHART-1 — composed responsive charts
 
-Batch: BATCH-PARITY-7. Status: merged scroll/modal closure reviewed; new full gate pending.
+Batch: BATCH-PARITY-7. Status: merged scroll/modal closure reviewed; full gate green.
 Stream port 4192; reviewer 4196.
 
 ## Supported contract
@@ -313,6 +313,23 @@ separately, with the other protections intact:
 All four git restorations freshly rebuild and pass the **whole 15-case browser
 suite**; the conditional-host independent probe also restores **three passed**.
 Final unit validation is **15 passed**, and modal screenshots at all widths are
-independently inspected. Exact predictions, landed diffs, builds, runner exits,+reds and restorations remain in `r6/scroll-u01`–`scroll-u12`,
+independently inspected. Exact predictions, landed diffs, builds, runner exits,
+red failures and restorations remain in `r6/scroll-u01`–`scroll-u12`,
 `r6/scroll-b01`–`scroll-b04` and `r6/scroll-browser-driver.log`. Reviewer tree is
 clean at `b4d16db`; the new full gate records separate `s2/verify-scroll.*` evidence.
+
+The final independent report is `r6/scroll-final-review.md`; it records **45
+cumulative landed source executions** (29 prior plus 16 in this supplement),
+separates the early host-count red from the native Tab red, and does not claim a
+complete DOM-removal count from the retained single-Text shape probe. No bounded
+finding remains open.
+
+The new `DOCS_PORT=4192 pnpm verify` at clean `bb5589d` runs 2026-10-08
+**23:00:08–23:06:37 IST**, total 6m29s, and exits **0**. Lint, typecheck and build
+pass; runner summaries are **984 library tests in 59 files**, **39 docs tests in
+four files**, **five consumer tests / zero failed**, and **300 browser cases in
+5.9m**. All 15 Chart cases pass at 390/768/1280, and the gate's full modal captures
+were inspected at every width. The new source and recipe remain frozen during
+the gate. Exact head, start/end times, full runner log and exit remain in
+`s2/verify-scroll.sha`, `.start`, `.end`, `.log` and `.exit`; browser captures are
+in `s2/gate-scroll-browser/`. Every earlier gate and probe artifact is preserved.
