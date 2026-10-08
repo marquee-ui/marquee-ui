@@ -83,23 +83,19 @@ async function paint(control: Locator) {
     }
     const ink = rgba(css.color),
       outline = rgba(css.outlineColor);
+    const composite = (color: number[], fill: number[]) =>
+      color
+        .slice(0, 3)
+        .map((channel, index) => channel * color[3]! + fill[index]! * (1 - color[3]!));
+    const textGround = ground(el);
     return {
       opacity,
       visible,
       outlineStyle: css.outlineStyle,
       outlineWidth: parseFloat(css.outlineWidth),
       outlineAlpha: outline[3],
-      focusContrast: Math.min(
-        ...exterior.map((fill) =>
-          contrast(
-            outline
-              .slice(0, 3)
-              .map((channel, index) => channel * outline[3]! + fill[index]! * (1 - outline[3]!)),
-            fill,
-          ),
-        ),
-      ),
-      textContrast: contrast(ink, ground(el)),
+      focusContrast: Math.min(...exterior.map((fill) => contrast(composite(outline, fill), fill))),
+      textContrast: contrast(composite(ink, textGround), textGround),
       backgroundAlpha: rgba(css.backgroundColor)[3],
     };
   });
