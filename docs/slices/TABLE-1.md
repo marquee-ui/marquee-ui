@@ -1,6 +1,6 @@
 # TABLE-1 — semantic composable tables
 
-Batch: BATCH-PARITY-6. Status: independent review closed; stream gate pending. Stream port 4192;
+Batch: BATCH-PARITY-6. Status: independent review and shared preview guard closed; repeat gate pending. Stream port 4192;
 reviewer port 4196.
 
 ## Scope and contracts
@@ -230,3 +230,19 @@ explicitly authorized one repeat full gate after the existing independent review
 proves the added preview assertion red under a Table-only preview collapse and green
 after restoration. That control keeps the 32-family count correct, so it must fail
 at the named Table-parts assertion rather than a count mismatch.
+
+## Layer 1 follow-up (reviewer, detached worktree of e6118b7361308ed3532965302f1b9206078bc793, slot r6)
+
+| file                           | test                                                               | mutation applied                                                                                                                                           | red / GREEN                                                                              | what it asserts now                                                                                                                                                                                     |
+| ------------------------------ | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| apps/docs/browser/site.spec.ts | renders every family and sends each workbench link to a real story | M20 at e6118b7: replace only Table catalog Preview with () => null; retain all 32 entries, Table name/id/story/link/code; rebuild root/docs/Storybook/site | red on mobile/tablet/desktop: 3 failed, exit 1; restore/rebuild: 3 passed (8.7s), exit 0 | Table must render its actual parts fails at line 176: expected visible, element(s) not found for .family-canvas table[data-slot=table]; the count remains 32 and the Table heading/link remain present. |
+
+The preview collapse retained the 32-family catalog, Table id/name, source code and
+Storybook link. All three viewport cases failed the predicted `Table must render its
+actual parts` assertion, not inventory or build. Restoring from committed git and
+rebuilding passed all 3 cases (8.7s); both builds exited 0 and tracked state was clean.
+Full evidence remains in `r6/site-followup/report.md`; the original 19-control report
+and table checksums were verified unchanged. No new finding or REQUEST was raised.
+Total independently run controls: 20; fully GREEN controls: 1, closed by the per-host
+event-spy fix. The coordinator-authorized repeat is recorded separately below and
+preserves every original failure.
