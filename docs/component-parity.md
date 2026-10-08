@@ -1,6 +1,6 @@
 # Component parity program
 
-Checked 2026-10-08 against the [official shadcn component catalog](https://ui.shadcn.com/docs/components).
+Checked 2026-10-09 against the [official shadcn component catalog](https://ui.shadcn.com/docs/components).
 This is a finite approved program, not a promise to copy every future catalog entry.
 Registry/source compatibility, named-family coverage and API/behavior parity are distinct.
 The catalog mixes primitives and recipes, so a percentage based on its entry count is misleading.
@@ -16,7 +16,7 @@ The catalog mixes primitives and recipes, so a percentage based on its entry cou
 | BATCH-PARITY-5 | Combobox; Calendar                               | Popover; maintained DayPicker 10              | Complete |
 | BATCH-PARITY-6 | DatePicker; Table                                | Calendar + Popover; semantic table foundation | Complete |
 | BATCH-PARITY-7 | DataTable; Chart                                 | Table; TanStack React Table 9 / Recharts 3    | Complete |
-| BATCH-PARITY-8 | Existing common-name API audit and documentation | New families complete                         | Planned  |
+| BATCH-PARITY-8 | Existing common-name API audit and documentation | New families complete                         | Active   |
 
 Each stream owns a bounded family and its tests, live example, copyable source and install
 contract. Expand slice records only for the active batch. DataTable/Chart are bounded
@@ -46,9 +46,9 @@ helper rather than a component family. Newly completed families are recorded by 
 | Toast                          | Controlled open/onDismiss/duration portal; no manager, queue or promise API.                                                                                                                                                                                                                                       |
 | Sheet                          | Radix Dialog with mobile-bottom/desktop-center presentation; no four-side or drag API.                                                                                                                                                                                                                             |
 | Checkbox / RadioGroup / Toggle | Native checkbox without an indeterminate visual API; named native radios with per-input state; caller-controlled aria-pressed toggle.                                                                                                                                                                              |
-| Common-name audit              | Batch 8 verifies these differences against source and contemporary official docs; matching names do not establish parity.                                                                                                                                                                                          |
+| Common-name audit              | [Original family contracts](common-name-api.md) and [candidate contracts](recipe-contracts.md) audit all 35 families against source and contemporary official primary docs. Matching names do not establish drop-in parity.                                                                                        |
 | Install evidence               | Published baseline covers seven selected families. [Batch 7 packed candidate](batches/BATCH-PARITY-7.md) proves React 19/Tailwind 4/Vite/strict TypeScript and Chromium at 390/768/1280 for 21 selected families, 22 copied files and 99 cases. Additions remain unreleased; other stacks remain unvalidated.      |
-| Deferred catalog gaps          | Remaining catalog primitives/recipes, additional behaviors and future catalog entries are unplanned pending a new scope decision.                                                                                                                                                                                  |
+| Deferred catalog gaps          | The finite deferred backlog below records names absent from this registry and broader API/validation limits. Further work needs a new scope decision; completing this program does not establish full catalog or API parity.                                                                                       |
 
 Primary references for batch 1: shadcn [Select](https://ui.shadcn.com/docs/components/radix/select)
 and [Tabs](https://ui.shadcn.com/docs/components/radix/tabs), and Radix
@@ -76,6 +76,36 @@ Require the predicted assertion to redden under mutation.
 
 Public operations stay held as recorded in [STATUS.md](../STATUS.md). Green implementation
 advances to the next batch while the accumulated release PR remains draft and unmerged.
+
+## Deferred backlog after the finite program
+
+The 2026-10-09 catalog check used `web.run` to open the official component catalog
+above; the local inventory used `registry.json`'s `registry:ui` item names. These
+are scope observations, not a compatibility percentage or a promise to follow
+future catalog growth. The registry has 35 families and one shared `utils` item.
+DescriptionList, Ribbon and the legacy Form wiring are Marquee contracts; a
+matching current catalog entry is not claimed for them.
+
+Current catalog names with no Marquee registry family: Aspect Ratio, Attachment,
+Bubble, Button Group, Carousel, Collapsible, Command, Context Menu, Direction,
+Drawer, Empty, Field, Hover Card, Input Group, Input OTP, Item, Kbd, Marker,
+Menubar, Message, Message Scroller, Native Select, Navigation Menu, Progress,
+Questionnaire, Resizable, Scroll Area, Sidebar, Skeleton, Spinner, Toggle Group
+and Typography. An underlying dependency (such as cmdk inside Combobox), a native
+HTML host or an example composition does not supply a separate family contract.
+
+Existing-family extensions remain deferred: controller-bound Form integration,
+tri-state Checkbox presentation, group-managed RadioGroup/Toggle APIs,
+four-side or draggable Sheet, toast queues/promise management, automatic Avatar
+fallback and additional form transports. The contract guides describe the current
+caller responsibilities; their absence is not silently implemented by this audit.
+
+New-family extensions remain bounded by the candidate guide: editable/multiple
+Combobox modes; date parsing/time/alternate calendars; server/virtual grids,
+editing and advanced table operations; additional chart types, brush/zoom and
+export. Broad SSR/RSC/framework and cross-browser proof, exhaustive locale/timezone
+coverage and the finite runner limitations below remain outside the measured
+consumer evidence. No further batch is queued.
 
 Finite validation limits for DataTable/Chart are recorded in [Batch 7](batches/BATCH-PARITY-7.md#finite-deferred-validation-limits), including the existing global story-play no-op survivor. Changing that runner is a separate scoped decision.
 

@@ -82,6 +82,8 @@ Chromium's system libraries; CI installs those before running the gate.
 Node 22.12+ within Node 22, pnpm 10.24.0, TypeScript strict with no `any`. `AGENTS.md` is the short
 version for a coding agent.
 
-The [component-parity program](docs/component-parity.md) tracks the finite next batches,
-current behavior differences and unreleased preview components. Publication remains held
-as recorded in [STATUS.md](STATUS.md).
+The [component-parity program](docs/component-parity.md) records the finite approved
+scope and deferred backlog. Read the [original family contracts](docs/common-name-api.md)
+and [candidate contracts](docs/recipe-contracts.md) before adapting shadcn examples:
+matching names do not imply drop-in APIs. Fourteen newer families remain unreleased;
+publication stays held as recorded in [STATUS.md](STATUS.md).
