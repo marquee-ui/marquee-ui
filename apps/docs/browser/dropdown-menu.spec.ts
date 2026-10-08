@@ -148,9 +148,7 @@ test("DropdownMenu demo owns checked and radio state, selects a submenu action a
 test("DropdownMenu keyboard navigation skips disabled items, typeaheads and dispatches an action", async ({
   page,
 }) => {
-  await page.goto(
-    "storybook/iframe.html?id=parts-dropdown-menu--default&viewMode=story&embed=true",
-  );
+  await page.goto("storybook/iframe.html?id=parts-dropdownmenu--default&viewMode=story&embed=true");
   const trigger = page.getByRole("button", { name: "Project actions" });
   await trigger.focus();
   await trigger.press("ArrowDown");
@@ -179,9 +177,7 @@ test("DropdownMenu keyboard navigation skips disabled items, typeaheads and disp
 test("Default modal menu blocks outside pointers and scroll, keeps Tab inside and releases locks on Escape", async ({
   page,
 }) => {
-  await page.goto(
-    "storybook/iframe.html?id=parts-dropdown-menu--default&viewMode=story&embed=true",
-  );
+  await page.goto("storybook/iframe.html?id=parts-dropdownmenu--default&viewMode=story&embed=true");
   const trigger = page.getByRole("button", { name: "Project actions" });
   await trigger.focus();
   await trigger.press("Enter");
@@ -207,7 +203,7 @@ test("Nonmodal menu closes on outside pointer and focus while the outside contro
   page,
 }) => {
   await page.goto(
-    "storybook/iframe.html?id=parts-dropdown-menu--nonmodal&viewMode=story&embed=true",
+    "storybook/iframe.html?id=parts-dropdownmenu--nonmodal&viewMode=story&embed=true",
   );
   const trigger = page.getByRole("button", { name: "Project actions" });
   const outside = page.getByRole("button", { name: "Outside action" });
@@ -231,7 +227,7 @@ test("preventDefault preserves selection, Escape and outside interaction until a
   page,
 }) => {
   await page.goto(
-    "storybook/iframe.html?id=parts-dropdown-menu--prevent-dismiss&viewMode=story&embed=true",
+    "storybook/iframe.html?id=parts-dropdownmenu--prevent-dismiss&viewMode=story&embed=true",
   );
   const trigger = page.getByRole("button", { name: "Protected actions" });
   await trigger.focus();
@@ -258,7 +254,7 @@ test("directional submenu traversal preserves its parent on the return key and s
     ["right-to-left", "ArrowLeft", "ArrowRight"],
   ]) {
     await page.goto(
-      `storybook/iframe.html?id=parts-dropdown-menu--${story}&viewMode=story&embed=true`,
+      `storybook/iframe.html?id=parts-dropdownmenu--${story}&viewMode=story&embed=true`,
     );
     const trigger = page.getByRole("button", { name: "Share actions" });
     await trigger.focus();
@@ -294,7 +290,7 @@ test("menu inside Dialog, Sheet and Popover closes its own layer and preserves p
   page,
 }) => {
   await page.goto(
-    "storybook/iframe.html?id=parts-dropdown-menu--nested-overlays&viewMode=story&embed=true",
+    "storybook/iframe.html?id=parts-dropdownmenu--nested-overlays&viewMode=story&embed=true",
   );
   for (const name of ["dialog", "sheet", "popover"]) {
     const outside = page.getByRole("button", { name: `Open parent ${name}` });
@@ -360,7 +356,7 @@ test("isolated DropdownMenu hosts paint readable focus in dark, light, accent an
     ["Accent", "light"],
   ]) {
     await page.goto(
-      `storybook/iframe.html?id=parts-dropdown-menu--checkable&viewMode=story&embed=true&globals=preset:${preset}`,
+      `storybook/iframe.html?id=parts-dropdownmenu--checkable&viewMode=story&embed=true&globals=preset:${preset}`,
     );
     await expect(page.locator("html")).toHaveCSS(
       "color-scheme",
@@ -395,7 +391,7 @@ test("isolated DropdownMenu hosts paint readable focus in dark, light, accent an
     }
     await page.keyboard.press("Escape");
     await page.goto(
-      `storybook/iframe.html?id=parts-dropdown-menu--submenu&viewMode=story&embed=true&globals=preset:${preset}`,
+      `storybook/iframe.html?id=parts-dropdownmenu--submenu&viewMode=story&embed=true&globals=preset:${preset}`,
     );
     if (mode === "Accent")
       await page.locator("html").evaluate((el, roles) => {
@@ -414,7 +410,7 @@ test("isolated DropdownMenu hosts paint readable focus in dark, light, accent an
     expect(await contrast(copy, copy, "color"), `${mode} Item text`).toBeGreaterThanOrEqual(4.5);
     await page.keyboard.press("Escape");
     await page.goto(
-      `storybook/iframe.html?id=parts-dropdown-menu--content-focus&viewMode=story&embed=true&globals=preset:${preset}`,
+      `storybook/iframe.html?id=parts-dropdownmenu--content-focus&viewMode=story&embed=true&globals=preset:${preset}`,
     );
     if (mode === "Accent")
       await page.locator("html").evaluate((el, roles) => {

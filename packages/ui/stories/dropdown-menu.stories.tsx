@@ -40,7 +40,7 @@ import {
   DropdownMenuSubContent,
 } from "@/dropdown-menu";
 
-const meta = { title: "Parts/Dropdown Menu", component: DropdownMenu } satisfies Meta<
+const meta = { title: "Parts/DropdownMenu", component: DropdownMenu } satisfies Meta<
   typeof DropdownMenu
 >;
 export default meta;

@@ -99,7 +99,18 @@ instrument blind spot: making the Storybook body background equal to primary-ink
 left all three isolated focus cases green because exterior outlines compared
 against their own fill. The browser checks now measure Trigger, Content and
 SubContent exterior outlines against the page body; inset item outlines keep the
-actual highlighted item background. A closure control and full gate follow.
+actual highlighted item background. The same body-background collapse then failed on all three viewports at
+`Dark Trigger outline contrast` (expected at least 3; received 1). Its restored
+positive focus cases passed.
+
+The reviewer also found a cross-consumer story identity defect: the catalog's
+workbench URL normalizes `dropdown-menu` to `parts-dropdownmenu--default`, while
+our initial `Parts/Dropdown Menu` title emitted `parts-dropdown-menu--default`.
+The shared site family sweep failed at every width with `missing Storybook story
+parts-dropdownmenu--default`. The owned title is now `Parts/DropdownMenu` and
+owned iframe test URLs use that identity; the explorer's shared URL contract is
+preserved. The initial wiring request's story ID is withdrawn. Closure sweep
+and full gate follow.
 
 ## Consumers
 
@@ -144,7 +155,21 @@ Routes: none. ARIA menu roles belong to Radix; existing Select/RadioGroup consum
 contracts are untouched. CROSS consumers owned by the coordinator: exports,
 catalog, source/story maps, registry and count/focus inventories. Wiring was
 requested with the exact 16 exports and 10 stories/10 plays and completed in
-`98a6a75` and `b488fa8`. No sibling-owned consumer or unowned behavior was changed.
+`98a6a75` and `b488fa8`. No sibling-owned consumer or unowned behavior was changed. The independent
+scan added the shared workbench URL builder `apps/docs/src/explorer.tsx`, which
+was read and preserved, plus dynamically walked consumers:
+
+```text
+packages/ui/test/entry-point.test.ts
+packages/ui/test/client-boundary.test.ts
+packages/tokens/test/brand-guard.test.ts
+packages/tokens/test/literal-guard.test.ts
+packages/tokens/test/source-coverage.test.ts
+packages/tokens/test/project-coverage.test.ts
+```
+
+These were read. The reviewer ran entry/client checks (2 files / 17 tests) and
+token brand/literal/source/project guards (4 files / 16 tests), all green.
 
 ## Decisions
 
