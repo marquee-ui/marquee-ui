@@ -1,7 +1,7 @@
 {
   "name": "@marquee-ui/ui",
   "version": "0.1.10",
-  "description": "Marquee UI components: twenty-six part families over the @marquee-ui/tokens role contract, shipped through a shadcn registry.",
+  "description": "Marquee UI components: twenty-seven part families over the @marquee-ui/tokens role contract, shipped through a shadcn registry.",
   "type": "module",
   "sideEffects": [
     "*.css"

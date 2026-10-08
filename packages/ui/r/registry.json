@@ -409,6 +409,21 @@
           "target": "components/ui/popover.tsx"
         }
       ]
+    },
+    {
+      "name": "tooltip",
+      "type": "registry:ui",
+      "title": "Tooltip",
+      "description": "Supplemental noninteractive text with explicit provider, portal and arrow. Radix owns focus, hover and collision placement; actions retain independent accessible names.",
+      "dependencies": ["@radix-ui/react-tooltip@^1.3.0"],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/tooltip.tsx"
+        }
+      ]
     }
   ]
 }

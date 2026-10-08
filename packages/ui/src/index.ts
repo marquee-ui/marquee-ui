@@ -161,3 +161,12 @@ export {
   PopoverTitle,
   PopoverDescription,
 } from "./popover.js";
+
+export {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipPortal,
+  TooltipContent,
+  TooltipArrow,
+} from "./tooltip.js";

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "tooltip",
+  "title": "Tooltip",
+  "description": "Supplemental noninteractive text with explicit provider, portal and arrow. Radix owns focus, hover and collision placement; actions retain independent accessible names.",
+  "dependencies": [
+    "@radix-ui/react-tooltip@^1.3.0"
+  ],
+  "registryDependencies": [
+    "@marquee/utils"
+  ],
+  "files": [
+    {
+      "path": "packages/ui/src/tooltip.tsx",
+      "content": "\"use client\";\n\nimport * as TooltipPrimitive from \"@radix-ui/react-tooltip\";\nimport type { ComponentProps } from \"react\";\nimport { cn } from \"@/lib/utils\";\n\n/**\n * Short supplemental, noninteractive text for a trigger with its own accessible name.\n * Provider owns timing and hoverability; Radix owns state and positioning.\n * Compose Portal and Arrow explicitly. All primitive props and refs pass through.\n * Essential instructions and touch actions must remain understandable without it.\n */\nexport const TooltipProvider = TooltipPrimitive.Provider;\nexport const Tooltip = TooltipPrimitive.Root;\nexport const TooltipPortal = TooltipPrimitive.Portal;\n\nexport function TooltipTrigger({\n  className,\n  ...props\n}: ComponentProps<typeof TooltipPrimitive.Trigger>) {\n  return (\n    <TooltipPrimitive.Trigger\n      data-slot=\"tooltip-trigger\"\n      className={cn(\n        \"inline-flex min-h-hit min-w-hit items-center justify-center rounded-md border-2 border-border bg-surface px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-border-strong focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-ink disabled:cursor-not-allowed disabled:text-foreground-faint\",\n        className,\n      )}\n      {...props}\n    />\n  );\n}\n\nexport function TooltipContent({\n  className,\n  sideOffset = 8,\n  collisionPadding = 8,\n  ...props\n}: ComponentProps<typeof TooltipPrimitive.Content>) {\n  return (\n    <TooltipPrimitive.Content\n      data-slot=\"tooltip-content\"\n      sideOffset={sideOffset}\n      collisionPadding={collisionPadding}\n      className={cn(\n        \"z-50 max-w-[min(20rem,var(--radix-tooltip-content-available-width))] break-words rounded-md border-2 border-border bg-overlay px-3 py-2 text-sm text-foreground shadow-md\",\n        className,\n      )}\n      {...props}\n    />\n  );\n}\n\nexport function TooltipArrow({\n  className,\n  ...props\n}: ComponentProps<typeof TooltipPrimitive.Arrow>) {\n  return (\n    <TooltipPrimitive.Arrow\n      data-slot=\"tooltip-arrow\"\n      className={cn(\"fill-overlay\", className)}\n      {...props}\n    />\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/tooltip.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}

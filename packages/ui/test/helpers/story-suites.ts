@@ -42,7 +42,10 @@ import * as alertdialog from "../../stories/alert-dialog.stories.js";
 
 import * as popover from "../../stories/popover.stories.js";
 
+import * as tooltip from "../../stories/tooltip.stories.js";
+
 export const STORY_SUITES = {
+  tooltip: tooltip,
   popover: popover,
   "alert-dialog": alertdialog,
   dialog: dialog,
