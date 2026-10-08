@@ -324,8 +324,9 @@ is narrower than complete API, browser or assistive-technology equivalence.
 | [Navigation tests](https://github.com/marquee-ui/marquee-ui/blob/next/packages/ui/test/nav-consumption.test.tsx), [Card tests](https://github.com/marquee-ui/marquee-ui/blob/next/packages/ui/test/card-structure.test.tsx), [DescriptionList tests](https://github.com/marquee-ui/marquee-ui/blob/next/packages/ui/test/description-list-structure.test.tsx)  | Native landmarks/list order/current-page attributes and Slot precedence; Card hosts/heading levels; guarded description-list structure and its explicit composition limits.                                                                                   |
 | [Family stories](https://github.com/marquee-ui/marquee-ui/tree/next/packages/ui/stories) and [story runner](https://github.com/marquee-ui/marquee-ui/blob/next/packages/ui/test/stories.test.tsx)                                                                                                                                                              | Declared examples and plays, including Accordion disclosures, Input/Label association, Separator semantics and Ribbon empty/decorative rendering. A story's existence or a green runner does not prove every advertised primitive behavior.                   |
 
-This documentation audit changes no component or test behavior. It adds no fresh browser,
-screen-reader, SSR, form-controller or migration-application proof. Inherited Radix
+Component behavior is unchanged. This source audit does not broaden the retained
+component/browser, screen-reader, SSR, form-controller or migration-application proof.
+Documentation rendering and navigation are checked separately. Inherited Radix
 behavior is identified from the wrapper and official primitive docs; it is not claimed
 to have been separately exercised in every composition here. Full catalog/API parity,
 additional managers and deferred behavior require a new implementation scope.
