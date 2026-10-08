@@ -163,3 +163,21 @@ survivors in this supplement. Evidence is `r6/client-boundary-supplement.md` and
 `b01`–`b05` logs. Total review evidence is **23 landed mutations**, now including
 the eleventh touched test-bearing surface, `client-boundary.test.ts`. This finite
 source guard is not a Next integration certification.
+
+## Full gate recovery
+
+The first `DOCS_PORT=4192 pnpm verify` at `690c2fa` runs 2026-10-08
+21:41:37–21:42:08 IST and exits **1**. Lint, typecheck and build pass;
+the library runner reports **964 passed / 1 failed in 59 files**. The sole
+failure is `tailwind-compile.test.tsx` classifying 42 Recharts-generated DOM
+markers as missing Tailwind utilities. The chain stops before docs, consumer
+and browser runs. Original runner evidence remains unchanged in
+`s2/verify.log`, `.sha`, `.start`, `.end` and `.exit`.
+
+Coordinator commit `c79a841` corrects the shared instrument with an exact marker
+inventory scoped to descendants of the Chart host. Unknown names, names outside
+that host and caller host classes remain checked; equality with the collected
+marker set makes unused exceptions fail. Eight test-first fixtures produce four
+predicted failures / 44 passes before the correction, then 48 passes and green
+ESLint. Independent counterexample review and the corrected full gate follow;
+this instrument correction changes no Chart family source.
