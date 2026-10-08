@@ -121,3 +121,62 @@ No other stream's behavior is consumed or changed; no unowned contract moved.
 3. Delegate reset and disabled behavior to Radix and state its observed limits.
 4. Demonstrate disabled-value exclusion through a native disabled fieldset.
 5. Keep publication held; no PR, release, merge or deployment from this stream.
+
+## Layer 1 (reviewer, detached worktree of 2ad682471899d911f102d5ef1152ef3b6b689e62, slot r6 / DOCS_PORT=4196)
+
+<!-- prettier-ignore -->
+| file | test | mutation applied | red / GREEN | what it asserts now |
+| --- | --- | --- | --- | --- |
+| packages/ui/test/slider.test.tsx | steps by min/max/step…; rejects a range move…; four honors-direction cases; serializes…; resets uncontrolled… | U01-freeze-values: Force uncontrolled Root value to initial default array, making value updates a no-op. | Eight red; eight GREEN. | Uncontrolled keyboard/value/form updates fail; retained controlled callbacks and static contracts survive appropriately. |
+| packages/ui/test/stories.test.tsx | slider/Default, Range, Vertical, RightToLeft, Inverted, InAForm, AsChild | U02-stories-freeze: Same initial-value freeze, running every new Slider story play. | Seven red; four GREEN. | Every uncontrolled enabled story observes changed values; Controlled, ControlledRange, Disabled and has-stories survive for distinct valid reasons. |
+| packages/ui/test/slider.test.tsx | serializes single, range and per-thumb names through the primitive's native inputs | U03-native-name: Remove Root name transport prop. | red | Exact FormData entries lose root-named volume/window values; per-thumb names do not substitute for those values. |
+| packages/ui/test/tailwind-compile.test.tsx | measures every one of them at or above the floor | U04-thumb-floor: Replace actual Thumb size-11/min-h-hit/min-w-hit with size-5. | red; anchor GREEN | Actual slider-thumb heights resolve to 20px; candidate/transport collection remains intact. |
+| packages/ui/test/tailwind-compile.test.tsx | found interactive elements to measure, and resolved a real variable | U05-remove-slider-selector: Delete [role=slider] from interactive selector. | red; floor GREEN | Anchor detects that real slider thumbs vanished even when remaining controls clear the floor. |
+| packages/ui/test/tailwind-compile.test.tsx | found interactive elements…; measures every one… | U06-visible-transport: Make the actual volume transport display:block before guard evaluation. | both red | Visible native input is measured as input[data-slot=-] -> 0px; transport anchor becomes []. |
+| packages/ui/test/tailwind-compile.test.tsx | found interactive elements…; measures every one… | U07-orphan-transport: Move actual volume transport under a new span instead of direct Slider child. | both red | Non-direct/orphan input cannot borrow Slider transport exemption; floor and transport anchor both detect it. |
+| packages/ui/test/tailwind-compile.test.tsx | found interactive elements…; measures every one… | U08-mismatched-transport: Change actual volume transport value to 999 while thumb remains 40. | both red | Value-mismatched input cannot borrow the exemption; floor and transport anchor both detect it. |
+| packages/ui/test/focus-outline.test.tsx | gives every focus ring an outline beside it, or names it as a known gap | U09-focus-width: Delete actual Thumb focus-visible:outline-2. | red; two anchors GREEN | Reports slider.tsx (focus-visible): outline-width null; unaffected ring-site inventory/predicate remain valid. |
+| packages/ui/test/registry.test.ts | declares the twenty-eight part families plus the one shared lib; seven coverage/build/dependency arms | U10-registry-family: Remove slider item from source registry.json; keep built source intact. | Eight red; eleven GREEN | Exact item list, source coverage, dependency totals and built registry detect omitted family. Surviving other-item properties are unaffected. |
+| packages/ui/test/stories.test.tsx | covers all twenty-seven part families, with every story counted; runs all 141 play functions… | U11-story-family: Remove slider from shared STORY_SUITES. | Two red;188 GREEN | Exact suites/file and play-count anchors detect lost family. Unchanged sibling stories still pass; their names are listed below, not audited. |
+| apps/docs/test/explorer.test.tsx | keeps every family discoverable and resets preview state when switching | U12-explorer-family: Remove Slider entry from docs catalog. | red; other test GREEN | Independent family count observes27 versus 28. Existing Button/Card composition test is unaffected. |
+| apps/docs/browser/slider.spec.ts | keys/commit/form; orientation; isolated forced-color movement; native form reset | B01-no-keyboard: Override actual Root key handler to preventDefault, rebuild and run entire new file on mobile. | Four red; pointer test GREEN | Keyboard assertions see unchanged aria-valuenow; pointer updates are a distinct preserved contract. |
+| apps/docs/browser/slider.spec.ts | Slider keys step, constrain independently named range values, commit, submit and reset | B02-tiny-target: Reduce actual Thumb target to 20px, rebuild docs. | red | Named real slider thumb tap width assertion receives 20 versus 44. |
+| apps/docs/browser/slider.spec.ts | Slider focus and markers paint without docs CSS in dark, light, accent and forced colors | B03-no-focus: Replace actual Thumb focus-visible:outline-solid with outline-none; rebuild isolated Storybook. | red | Dark/Automatic isolated focus style receives none versus solid; docs CSS cannot supply missing paint. |
+| apps/docs/browser/slider.spec.ts | Slider focus and markers paint without docs CSS in dark, light, accent and forced colors | B04-no-selected-paint: Replace actual Range bg-primary-ink with bg-transparent; rebuild isolated Storybook. | red | Named selected range contrast receives 1.425971921993074 versus minimum 3; dimensions alone do not certify paint. |
+| apps/docs/browser/slider.spec.ts | Slider keys step, constrain independently named range values, commit, submit and reset | B05-no-form-name: Remove actual Root name transport prop, rebuild docs. | red | Saved volume: null; range:70–80 differs from expected volume 5; live FormData submission is observed. |
+| apps/docs/browser/site.spec.ts | renders every family and sends each workbench link to a real story | B06-site-family: Remove Slider catalog entry, rebuild docs. | red | Rendered real catalog has 27 Preview buttons versus 28. |
+| packages/ui/test/tailwind-compile.test.tsx | found interactive elements…; measures every one… | U13-unnamed-transport: Set actual volume thumb aria-label empty and remove aria-labelledby before guard. | both GREEN | PROVED LOW-1: attribute presence does not prove the named-thumb condition. |
+| packages/ui/test/slider.test.tsx | resets uncontrolled values to their initial value, including an external form association | U14-no-form-reset-association: Override Root form prop with nonexistent form id. | red | Native external reset association is observed: value remains 100 versus expected 30. |
+| apps/docs/browser/slider.spec.ts | Slider keys step, constrain independently named range values, commit, submit and reset | B07-clipped-target: Keep actual 44x44 Thumb bounds but clip pointer paint/hit area to circle 20px; rebuild docs. | red | Named thumb accepts pointer beyond visible marker receives false versus true; corner/center geometry alone is insufficient. |
+| packages/ui/test/tailwind-compile.test.tsx | found interactive elements…; measures every one… | U15-dangling-labelledby: Remove actual volume thumb aria-label; add aria-labelledby pointing at nonexistent id. | both GREEN | PROVED LOW-1: attribute presence accepts unresolved naming reference too. |
+
+## LOW-1 closure (reviewer detached fixed sha 14e2224b6e650b1f50efd60e20505e466fe7bc86, slot r6)
+
+Author HEAD independently verified as14e2224b6e650b1f50efd60e20505e466fe7bc86 before checkout. The only diff from reviewed 2ad6824 is the naming condition in packages/ui/test/tailwind-compile.test.tsx: it now trims explicit aria-label and resolves aria-labelledby ids to nonempty referenced text. No library source, story, demo or browser test changed.
+
+<!-- prettier-ignore -->
+| file | test | mutation applied | red / GREEN | what it asserts now |
+| --- | --- | --- | --- | --- |
+| packages/ui/test/tailwind-compile.test.tsx | found interactive elements to measure, and resolved a real variable; measures every one of them at or above the floor | C01-empty-label: actual volume thumb aria-label empty; aria-labelledby removed, mutation verified LANDED before runner | both red, exit 1; runner2 failed / 38 skipped | An unnamed counterpart no longer permits hidden-input exemption: transport [] differs from [volume], and input[data-slot=-] -> 0px is measured. |
+| packages/ui/test/tailwind-compile.test.tsx | found interactive elements to measure, and resolved a real variable; measures every one of them at or above the floor | C02-dangling-labelledby: actual volume thumb aria-label removed; aria-labelledby points at absent review-missing-label, verified LANDED before runner | both red, exit 1; runner2 failed / 38 skipped | An unresolved naming reference no longer permits exemption; transport and floor independently detect it. |
+| packages/ui/test/tailwind-compile.test.tsx | entire file | C03-restored-baseline: restore source from fixed sha then run full file | GREEN, exit 0; runner40 passed | Real named Slider transport remains exempt; actual thumbs remain measured; existing narrow Select exemption still works. |
+
+Closure verdict: **LOW-1 CLOSED / PROVED** at 14e2224. C01/C02 actual reds name the predicted transport anchor and floor assertions, not a broken build or collector. No tested assertion stayed GREEN during either malformed-name control; the38 runner-skipped tests were outside focused selection. Restored full-file runner reported `Test Files1passed(1)` / `Tests40 passed(40)` after both mutations were reverted. Full logs and landed snapshots are C01-empty-label._, C02-dangling-labelledby._, C03-restored-baseline.log, closure.json and closure-run.log alongside this report.
+
+GREEN survivor disposition: U01/U02 retain controlled/static/disabled contracts
+outside the frozen uncontrolled value; U04 retains the collection anchor while
+floor measurement fails; U05 retains the remaining controls' floor while its
+candidate anchor fails; U09 retains inventory/predicate controls; U10 retains
+unaffected other-item dependency properties; U11 retains unchanged sibling story
+plays; U12 retains the unrelated Button/Card composition; B01 retains the pointer
+path while keyboard paths fail. No assertion change is needed for these survivors.
+U13/U15 were the sole real weakness: the orchestrator changed the shared exemption
+in `14e2224`, and independent C01/C02 now reject both malformed naming states.
+C03 is a positive restored baseline, not a collapse survivor.
+
+The review ran 22 original controls plus two malformed-name closure controls and
+one restored full-file baseline. It found 0 HIGH / 0 MEDIUM / 1 LOW, with the LOW
+independently closed. Every GREEN survivor is named in the durable reviewer
+report at `/home/ankit/.marquee-scratch/BATCH-PARITY-4/r6/report.md`. The independent
+consumer scan found no missed consumer. No product source changed after the
+reviewed `2ad6824`; the naming-only guard fix was separately reviewed at `14e2224`.
