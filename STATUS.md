@@ -9,9 +9,17 @@ local implementation or subsequent green batches.
 
 ## Active batch
 
-Next: BATCH-PARITY-3 — Popover and Tooltip. Expand its two bounded slices from
-[the roadmap](docs/component-parity.md), preserving compatible overlay dependencies
-and the reviewed candidate/install/localhost workflow.
+BATCH-PARITY-3 is active from clean base `3bc6ba0efe0895896c88da025757f268ee14e1a0`.
+
+| Stream | Slice | Worktree | Browser / reviewer ports |
+| --- | --- | --- | --- |
+| Popover | [POPOVER-1](docs/slices/POPOVER-1.md) | `/home/ankit/Code/marquee-popover-1` | 4191 / 4195 |
+| Tooltip | [TOOLTIP-1](docs/slices/TOOLTIP-1.md) | `/home/ankit/Code/marquee-tooltip-1` | 4192 / 4196 |
+
+Orchestrator owns shared wiring, registry, counts, consumer proof and next. Baseline
+`DOCS_PORT=4182 pnpm verify` passed: 776 library / 39 docs / 5 consumer / 123 browser
+on 2026-10-08. Scratch: `/home/ankit/.marquee-scratch/BATCH-PARITY-3/`.
+Next after this batch: BATCH-PARITY-4 — DropdownMenu and Slider.
 
 [BATCH-PARITY-2](docs/batches/BATCH-PARITY-2.md) is complete: Dialog and AlertDialog,
 independent reviews, merged gate, fresh packed-consumer proof and responsive inspection.
