@@ -3,7 +3,20 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { CopyCode } from "./copy-code";
 
-export function MarkdownGuide({ source }: { source: string }) {
+const guideLinks: Record<string, string> = {
+  "./supported-stack.md": "#supported-stack",
+  "./getting-started.md": "#getting-started",
+  "./common-name-api.md": "#common-name-api",
+  "./recipe-contracts.md": "#recipe-contracts",
+};
+
+export function MarkdownGuide({
+  source,
+  tableLabel = "Supported stack details",
+}: {
+  source: string;
+  tableLabel?: string;
+}) {
   return (
     <div className="canonical-guide guide-presentation">
       <Markdown
@@ -12,19 +25,7 @@ export function MarkdownGuide({ source }: { source: string }) {
           h1: () => null,
           h2: ({ children }) => <h3>{children}</h3>,
           h3: ({ children }) => <h4>{children}</h4>,
-          a: ({ href, children }) => (
-            <a
-              href={
-                href === "./supported-stack.md"
-                  ? "#supported-stack"
-                  : href === "./getting-started.md"
-                    ? "#getting-started"
-                    : href
-              }
-            >
-              {children}
-            </a>
-          ),
+          a: ({ href, children }) => <a href={guideLinks[href ?? ""] ?? href}>{children}</a>,
           pre: ({ children }) => {
             if (!isValidElement<{ children: string; className?: string }>(children))
               return <pre>{children}</pre>;
@@ -38,12 +39,7 @@ export function MarkdownGuide({ source }: { source: string }) {
             );
           },
           table: ({ children }) => (
-            <div
-              className="table-scroll"
-              tabIndex={0}
-              role="region"
-              aria-label="Supported stack details"
-            >
+            <div className="table-scroll" tabIndex={0} role="region" aria-label={tableLabel}>
               <table>{children}</table>
             </div>
           ),

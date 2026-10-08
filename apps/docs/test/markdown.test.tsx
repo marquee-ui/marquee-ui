@@ -9,7 +9,7 @@ it("keeps canonical guide links on the docs site and external citations intact",
   render(
     <MarkdownGuide
       source={
-        "# Getting started\n\n## Setup\n\n[Limits](./supported-stack.md) and [install](./getting-started.md). [Reference](https://example.test/reference)."
+        "# Getting started\n\n## Setup\n\n[Limits](./supported-stack.md) and [install](./getting-started.md). [Original contracts](./common-name-api.md), [candidate contracts](./recipe-contracts.md). [Reference](https://example.test/reference)."
       }
     />,
   );
@@ -17,6 +17,14 @@ it("keeps canonical guide links on the docs site and external citations intact",
   expect(screen.getByRole("heading", { name: "Setup", level: 3 })).toBeVisible();
   expect(screen.getByRole("link", { name: "Limits" })).toHaveAttribute("href", "#supported-stack");
   expect(screen.getByRole("link", { name: "install" })).toHaveAttribute("href", "#getting-started");
+  expect(screen.getByRole("link", { name: "Original contracts" })).toHaveAttribute(
+    "href",
+    "#common-name-api",
+  );
+  expect(screen.getByRole("link", { name: "candidate contracts" })).toHaveAttribute(
+    "href",
+    "#recipe-contracts",
+  );
   expect(screen.getByRole("link", { name: "Reference" })).toHaveAttribute(
     "href",
     "https://example.test/reference",

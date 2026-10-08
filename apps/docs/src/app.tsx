@@ -19,6 +19,8 @@ import { ComponentExplorer } from "./explorer";
 import { MarkdownGuide } from "./markdown-guide";
 import gettingStarted from "../../../docs/getting-started.md?raw";
 import supportedStack from "../../../docs/supported-stack.md?raw";
+import commonNameApi from "../../../docs/common-name-api.md?raw";
+import recipeContracts from "../../../docs/recipe-contracts.md?raw";
 import { ThemeStudio } from "./theme-studio";
 import { applyTheme, customizationRecipe, readTheme, saveTheme, type ThemeSettings } from "./theme";
 
@@ -126,6 +128,9 @@ export function App({ initialTheme = readTheme() }: { initialTheme?: ThemeSettin
           </a>
           <a href="#components" onClick={() => setMenuOpen(false)}>
             Components
+          </a>
+          <a href="#common-name-api" onClick={() => setMenuOpen(false)}>
+            Contracts
           </a>
           <a href={STORYBOOK}>
             Storybook <span aria-hidden="true">↗</span>
@@ -253,7 +258,8 @@ export function App({ initialTheme = readTheme() }: { initialTheme?: ThemeSettin
             <p className="eyebrow">03 / THE COMPONENTS</p>
             <h2 id="components-title">A kit of possibilities.</h2>
             <p>
-              Twenty-one part families. Explore every variant and interaction in the full workbench.
+              Thirty-five part families, including fourteen unreleased additions. Explore the
+              variants and interactions in the full workbench.
             </p>
           </div>
           <ComponentExplorer />
@@ -333,6 +339,28 @@ export function App({ initialTheme = readTheme() }: { initialTheme?: ThemeSettin
             <h2 id="support-title">Know the contract.</h2>
           </div>
           <MarkdownGuide source={supportedStack} />
+        </section>
+        <section
+          id="common-name-api"
+          className="section-shell docs-section"
+          aria-labelledby="common-api-title"
+        >
+          <div className="section-heading">
+            <p className="eyebrow">07 / COMPONENT CONTRACTS</p>
+            <h2 id="common-api-title">Familiar names. Explicit contracts.</h2>
+          </div>
+          <MarkdownGuide source={commonNameApi} tableLabel="Original family contracts" />
+        </section>
+        <section
+          id="recipe-contracts"
+          className="section-shell docs-section"
+          aria-labelledby="recipe-contracts-title"
+        >
+          <div className="section-heading">
+            <p className="eyebrow">08 / CANDIDATE CONTRACTS</p>
+            <h2 id="recipe-contracts-title">Compose the newer families.</h2>
+          </div>
+          <MarkdownGuide source={recipeContracts} tableLabel="Candidate family contracts" />
         </section>
       </main>
       <footer className="site-footer">
