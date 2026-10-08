@@ -145,9 +145,9 @@ Composed and FocusableParts. Their true consumers are the registered story names
 and Storybook; lexical common-name hits in other stories are not imports of this
 family. No sibling API contract changes were required.
 
-Coordinator follow-up identified two additional tree-walking consumers that name the
-shared index: `packages/ui/test/client-boundary.test.ts` and
-`packages/ui/test/entry-point.test.ts`. Both were read and explicitly run for Table
+Coordinator follow-up identified two additional consumers:
+`packages/ui/test/client-boundary.test.ts` walks the native source modules and
+`packages/ui/test/entry-point.test.ts` reads the public barrel. Both were read and explicitly run for Table
 (`s2/index-consumers.log`). Table imports no client-only React hook, spends no client
 directive and exports all nine runtime parts plus TableContainerProps through the
 barrel. The shared story inventory title correction landed at coordinator commit
@@ -206,3 +206,27 @@ removed its clean detached worktree. Original mutation logs, landed diffs, resto
 proofs, traces, captures and complete report remain at
 `/home/ankit/.marquee-scratch/BATCH-PARITY-6/r6/report.md`. Findings: 0 HIGH / 1 MEDIUM
 (closed) / 0 LOW; no unresolved product finding, REQUEST or OWED probe.
+
+## Stream gate: original retained failure
+
+`DOCS_PORT=4192 pnpm verify` at committed `1baf14c2953279dd941567210591ea41b34cc60e`
+exited 1 on 2026-10-08, 12:12:16–12:17:52 IST (5m36s). Runner summaries: 56 library
+files / 928 tests passed, 4 docs files / 39 tests passed, 5 consumer tests passed;
+browser 267 passed / 3 failed (5.1m). All three reds are the same coordinator-owned
+`apps/docs/browser/site.spec.ts:133` inventory assertion, expected 31 preview buttons
+while the new family correctly exposes 32. Table's 12 browser cases passed, and the
+inherited nested Dialog/Sheet Escape failure did not recur.
+
+Original evidence remains unchanged at
+`/home/ankit/.marquee-scratch/BATCH-PARITY-6/s2/verify.log`, with `verify.exit`,
+`verify.source`, `verify.started`, `verify.finished` and `full-browser/`. The source
+and all test files stayed frozen until its runner exited.
+
+The omitted shared browser consumer was reported immediately to its coordinator,
+who corrected the count to 32 and added an independent native Table preview selector
+at `e6118b7361308ed3532965302f1b9206078bc793`. This is an additional consumer of the
+Table docs preview, catalog registration and Storybook default link. The coordinator
+explicitly authorized one repeat full gate after the existing independent reviewer
+proves the added preview assertion red under a Table-only preview collapse and green
+after restoration. That control keeps the 32-family count correct, so it must fail
+at the named Table-parts assertion rather than a count mismatch.
