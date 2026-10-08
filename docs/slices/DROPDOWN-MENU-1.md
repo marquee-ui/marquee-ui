@@ -262,4 +262,17 @@ Complete durable logs and report:
 
 ## Full stream gate
 
-Pending one `DOCS_PORT=4191 pnpm verify` on the committed review closure.
+On 2026-10-08, `DOCS_PORT=4191 pnpm verify` at `7ef0640145020c0091091395cc860a143265219b`
+exited 1 after 219s: library 851 tests / 50 files, docs 39 / 4, consumer 5,
+browser 200 passed / 1 failed (3.2m). The mobile navigation test's partial
+`Menu` accessible-name locator also matched the new `Preview DropdownMenu`
+catalog button. This was a cross-consumer name collision introduced by the
+new family. The coordinator corrected all three navigation locators to exact
+names in `fa37b8551640882889f0c50fe588fee6ccffbc39`, preserving the click and
+both expanded-state assertions. The failed mobile case then passed against the
+gate's unchanged built site: 1 passed (1.8s), exit 0. Logs and sentinels are
+`dropdown-menu/verify.*` and `dropdown-menu/menu-discriminator.*` under the batch
+scratch directory. The coordinator authorized a full gate rerun after this
+discriminator; its result is pending. The independent reviewer inspected the
+three-locator correction without a build or rerun and confirmed that all navigation
+actions and assertions remain intact, then removed its clean detached checkout.
