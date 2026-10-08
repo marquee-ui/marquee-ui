@@ -480,6 +480,7 @@ pre {
 .canonical-guide {
   min-width: 0;
   max-width: var(--content-max);
+  overflow-wrap: anywhere;
 }
 .canonical-guide > p,
 .canonical-guide li {
