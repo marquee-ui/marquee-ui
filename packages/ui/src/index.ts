@@ -191,3 +191,17 @@ export {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from "./dropdown-menu.js";
+
+export {
+  Combobox,
+  ComboboxPortal,
+  ComboboxTrigger,
+  ComboboxContent,
+  ComboboxCommand,
+  ComboboxInput,
+  ComboboxList,
+  ComboboxItem,
+  ComboboxGroup,
+  ComboboxEmpty,
+  ComboboxSeparator,
+} from "./combobox.js";

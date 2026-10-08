@@ -1,3 +1,4 @@
+import * as combobox from "../../stories/combobox.stories.js";
 import * as dropdownmenu from "../../stories/dropdown-menu.stories.js";
 import * as slider from "../../stories/slider.stories.js";
 import { readdirSync } from "node:fs";
@@ -47,6 +48,7 @@ import * as popover from "../../stories/popover.stories.js";
 import * as tooltip from "../../stories/tooltip.stories.js";
 
 export const STORY_SUITES = {
+  combobox,
   "dropdown-menu": dropdownmenu,
   slider: slider,
   tooltip: tooltip,

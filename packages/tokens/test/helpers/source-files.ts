@@ -74,6 +74,7 @@ export const PUBLISHED_SOURCE_FILES = [
   "packages/ui/src/dialog.tsx",
   "packages/ui/src/toggle.tsx",
   "packages/ui/src/slider.tsx",
+  "packages/ui/src/combobox.tsx",
   "packages/ui/src/dropdown-menu.tsx",
 ] as const;
 
@@ -114,6 +115,7 @@ export const STORY_FILES = [
   "packages/ui/stories/dialog.stories.tsx",
   "packages/ui/stories/toggle.stories.tsx",
   "packages/ui/stories/slider.stories.tsx",
+  "packages/ui/stories/combobox.stories.tsx",
   "packages/ui/stories/dropdown-menu.stories.tsx",
 ] as const;
 

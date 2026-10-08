@@ -1,3 +1,5 @@
+import Previewcombobox from "./examples/combobox";
+import codecombobox from "./examples/combobox?raw";
 import Previewdropdownmenu from "./examples/dropdown-menu";
 import codedropdownmenu from "./examples/dropdown-menu?raw";
 import Previewslider from "./examples/slider";
@@ -60,6 +62,15 @@ import PreviewTabs from "./examples/tabs";
 import codeTabs from "./examples/tabs?raw";
 
 export const catalog = [
+  {
+    id: "combobox",
+    name: "Combobox",
+    description:
+      "Unreleased candidate. Caller-composed single-select searchable popup with keyboard navigation, filtering and explicit committed choice.",
+    story: "default",
+    Preview: Previewcombobox,
+    code: codecombobox,
+  },
   {
     id: "button",
     name: "Button",
