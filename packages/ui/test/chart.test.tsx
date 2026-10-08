@@ -200,7 +200,7 @@ it.each([false, true])(
   },
 );
 
-it.each(["ArrowUp", "ArrowDown", "Home", "End", "Enter"])(
+it.each(["ArrowUp", "ArrowDown", "Home", "End", "Enter", "Tab", "Escape"])(
   "keeps %s defaults on the accessible chart",
   (key) => {
     const caller = vi.fn();

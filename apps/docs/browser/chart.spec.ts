@@ -349,10 +349,15 @@ test("Chart keyboard tooltip stays inside existing dialog and dismissal restores
   await trigger.click();
   const dialog = page.getByRole("dialog", { name: "Monthly chart details" });
   const region = dialog.getByRole("region", { name: "Scrollable monthly chart" });
-  const chart = dialog.getByRole("application", { name: "Monthly volume bars" });
+  const chart = dialog.getByRole("application", { name: "Monthly volume lines" });
   const close = dialog.getByRole("button", { name: "Done inspecting" });
   await expect(region).toBeFocused();
   await expect(chart).toBeVisible();
+  const liveHost = dialog.locator('[data-slot="chart-tooltip-content"]');
+  await expect(liveHost, "modal tooltip content remains mounted when inactive").toHaveCount(1);
+  await expect(liveHost).not.toBeVisible();
+  await expect(dialog.getByRole("status"), "inactive modal live status is hidden").toHaveCount(0);
+  await seriesGeometry(chart, "lines");
   expect(
     await region.evaluate((el) => el.scrollWidth - el.clientWidth),
     "native table is wider than its region",
@@ -400,6 +405,10 @@ test("Chart keyboard tooltip stays inside existing dialog and dismissal restores
   ]) {
     await chart.press(key!);
     await expect(live).toHaveText(point!);
+    expect(
+      await liveHost.evaluate((el) => [...el.childNodes].map((node) => node.nodeType)),
+      "modal point content remains one nonempty Text node",
+    ).toEqual([3]);
     await page.waitForTimeout(200);
     await expect(chart).toBeFocused();
     expect(
@@ -431,8 +440,37 @@ test("Chart keyboard tooltip stays inside existing dialog and dismissal restores
   ).toBeGreaterThanOrEqual(2);
   await dialog.screenshot({ path: test.info().outputPath("chart-dialog-native-scroll.png") });
   await chart.press("Tab");
+  await page.waitForTimeout(350);
   await expect(close, "forward Tab leaves the chart for the real Close control").toBeFocused();
+  await expect(liveHost, "same tooltip host survives blur").toHaveCount(1);
+  await expect(liveHost).not.toBeVisible();
+  await expect(dialog.getByRole("status")).toHaveCount(0);
   await close.press("Shift+Tab");
+  await page.waitForTimeout(350);
+  await expect(chart).toBeFocused();
+  // Recharts resumes point announcements on navigation after blur; refocusing
+  // an already selected point does not promise to reactivate its tooltip.
+  await chart.press("ArrowRight");
+  await expect(live).toHaveText("Feb. North 24. South 20.");
+  await chart.press("ArrowLeft");
+  await expect(live).toHaveText("Jan. North 18. South 12.");
+  await chart.press("Tab");
+  await page.waitForTimeout(350);
+  await expect(close).toBeFocused();
+  await close.press("Tab");
+  await page.waitForTimeout(350);
+  await expect(region, "native modal Tab cycle reaches the named region").toBeFocused();
+  await region.press("Tab");
+  await expect(chart).toBeFocused();
+  await chart.press("Tab");
+  await page.waitForTimeout(350);
+  await expect(close).toBeFocused();
+  await close.press("Enter");
+  await expect(dialog, "Close Enter dismisses and recovers the trigger").not.toBeVisible();
+  await expect(trigger).toBeFocused();
+  await trigger.press("Enter");
+  await expect(region).toBeFocused();
+  await region.press("Tab");
   await expect(chart).toBeFocused();
   await expect(dialog.getByRole("table", { name: "Monthly volume data" })).toBeVisible();
   await expect(dialog).toBeVisible();

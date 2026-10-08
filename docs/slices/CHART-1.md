@@ -53,8 +53,10 @@ events and asChild composition. No part generates content from a config or paylo
 Two-series bar and line examples have named solid/dashed marks, explicit tooltip
 render slots, role-token paint and a native table containing every value. Recharts
 owns point state. In Dialog, its responsive SVG appears after measurement;
-autofocus on that later SVG is not promised. The real keyboard path is Close,
-Shift+Tab to the SVG, point arrows, then Escape with trigger restoration.
+autofocus on that later SVG is not promised. Its wide native region receives
+focus; native arrows reveal the chart cell, Tab reaches the SVG, point arrows
+navigate data, and native Tab/Shift+Tab reach Close and return. Enter on Close
+and Escape from the chart restore the trigger.
 
 Primary sources read 2026-10-08: current shadcn
 [Chart](https://ui.shadcn.com/docs/components/chart), Recharts
@@ -256,7 +258,36 @@ Jan/Feb/Mar/Apr and back.
 
 That run then independently exposes the merged review's separate forward-Tab
 finding at all three widths: SVG Tab does not reach Close. Its original failure
-is retained in `scroll-browser-fixed.*`. Coordinator and merged reviewer are
-tracing and proving a bounded caller recipe for that focus transition; no
-speculative global focus correction has been added. Review, registry refresh and
-the new `verify-scroll.*` full gate follow closure of that recipe.
+is retained in `scroll-browser-fixed.*`. The merged reviewer traces a brief BODY
+focus gap during SVG blur: Recharts removes active-dot layers, and Radix's
+MutationObserver focuses DialogContent before native focus reaches Close. Its
+real nine-arm control proves a bounded modal content-lifetime recipe; no Tab
+adapter, global focus search or Dialog change is needed.
+
+InDialog explicitly supplies Line children with `activeDot={false}` and keeps the
+tooltip cursor disabled. Its content render slot always returns the same
+ChartTooltipContent host with one nonempty template-string Text child, including
+inactive placeholders. Recharts' wrapper hides inactive content and its status
+from the accessible tree. Active data remains dynamic; preventing blur-time node
+removal preserves native focus transitions. This caller composition changes no
+exported API or nonmodal recipe.
+
+The first recipe probe retains **12 passed / three failed** in
+`scroll-browser-recipe.*`: forward Tab, hidden inactive status and reverse
+Shift+Tab pass, then an unsupported expectation that refocus alone reopens an
+already selected Jan tooltip fails. The corrected observation uses actual
+Right/Left point arrows after refocus, without changing source for that probe.
+`scroll-browser-recipe-ready.*` passes **all 15 cases in 34.1s** at the three
+widths, proving paced actual values and stable ancestor geometry, native forward
+and reverse Tab plus cycling after 350ms, hidden persistent inactive status,
+Close Enter and Escape with trigger restoration. Full modal screenshots at all
+widths were inspected. Root typecheck/focused ESLint pass, and Chart plus story
+suites pass **262 tests**.
+
+Independent handler review at `f485d81` catches all eight requested landed
+mutations and restores **13 passed** after each. It finds two further unit
+ceilings: intercepting Tab or Escape also stayed green because neither key was
+in the nonnavigation table. Both keys are now retained, giving **15 Chart unit
+cases**, for independent reruns of those same source controls. Evidence is
+`r6/scroll-unit-review.md`. Final recipe review, coordinator-owned family registry
+refresh and the separate `verify-scroll.*` full gate follow.
