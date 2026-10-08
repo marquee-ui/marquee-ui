@@ -231,3 +231,63 @@ Outside action, parent dismissal and restored outside focus: 6/6 green. All hit
 targets measured at least 44px on both axes and matched their actual center hit.
 The original and closure failures are retained separately. No product finding
 remains open; the bounded shared focus-inventory limitation is recorded above.
+
+## Gate-discovered separator correction
+
+The first full gate at aa1d8f782dc3a6e74d238067b6c41fd4ac69d185 returned exit 1,
+2026-10-08 10:07:30–10:08:02 IST, with 896 passed / 1 failed in 52 collected UI
+files. The existing forced-colors at-rest guard detected the fill-only separator
+class. Lint, typecheck and build passed; the chain stopped at root tests before
+docs/consumer/browser. The complete original source/exit/timestamps/log remain in
+`s1/gate-1/`. No assertion or threshold was weakened.
+
+Test-first live border proof was committed at 4c60a31 and failed against the old
+built consumer at "forced separator border width", expected >=1 / received 0.
+The source correction at cc61733 replaces only the fill with a same-color border,
+retaining the 1px geometry; generated registry refresh is 2b19857. Add the dynamic
+consumer `packages/ui/test/forced-colors-state.test.tsx` to the scan list above:
+this tree walk observes newly added part drawings even without a literal source
+filename in its assertions. The independent bounded followup and its exact table
+follow. The repeat full gate is justified by this actual source fix and runs at
+2b19857, with any subsequent slice-record-only commit kept distinct.
+
+## Layer 1 separator followup (detached 2b19857d3351bd97e85bb7d11aaed5c77c968c2c, slot 5)
+
+| file                                          | test                                                                                        | mutation applied                                                                                                                                                | red / GREEN             | what it asserts now                                                                                                                                                     |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| packages/ui/test/forced-colors-state.test.tsx | gives every host drawn at rest in a background alone a paint the mode keeps                 | Restore only ComboboxSeparator source class from my-1 h-px border-t border-border to old my-1 h-px bg-border; landed at line 139 in committed reviewer checkout | red: 1 failed / 7 GREEN | Exact failure names combobox.tsx at rest drawn in background-color: var(--border) alone. Other seven mechanisms/state tests survive for separate subjects, named below. |
+| apps/docs/browser/combobox.spec.ts            | isolated trigger, input, content and active choice paint in dark/light/accent/forced colors | Independently rebuild own Storybook/site from that old-fill source                                                                                              | red: 3/3                | On every viewport, forced separator border width expected >=1 receives 0. The failure names the intended border property, not a navigation or timing failure.           |
+| apps/docs/browser/combobox.spec.ts            | same paint test                                                                             | Current source restored/new build; set actual trigger outline:none!important immediately before default paint                                                   | red: 3/3                | Exact dark trigger outline style expected solid receives none; changing helper kind support did not weaken the default outline contract.                                |
+| apps/docs/browser/combobox.spec.ts            | same paint test                                                                             | Restore spec; set actual trigger parent's opacity:0!important before default paint                                                                              | red: 3/3                | Exact dark trigger cumulative ancestor opacity expected >0 receives 0. The helper still walks ancestor opacity for its default branch.                                  |
+| packages/ui/test/forced-colors-state.test.tsx | every collected test                                                                        | Restore separator source from git                                                                                                                               | GREEN: 8/8              | Existing forced-colors at-rest guard accepts the border correction; source and all prior invariants restored.                                                           |
+| apps/docs/browser/combobox.spec.ts            | all seven named cases, mobile/tablet/desktop                                                | Restore browser spec from git and consume the reviewer's restored own product build                                                                             | GREEN: 21/21            | Full Combobox browser file passes with new border branch, default outline paint, interactions, current-layer dismissal, copy, and keyboard scroll proof.                |
+
+PROVED closure: packages/ui/src/combobox.tsx:139 now draws the separator with a real 1px border, retaining h-px geometry and the same --border role. Independent normal-mode measurement at all three viewports, in arcade and light, reported height=1, borderTopWidth=1px, borderTopStyle=solid, boxSizing=border-box, marginTop/marginBottom=4px, and actual border RGBA equal to --border. Six preset/viewport measurements passed in three probe cases. No product finding remains open from this bounded followup.
+
+The revised browser helper selects borderTopWidth / borderTopStyle / borderTopColor for kind=border, retains outlineWidth / outlineStyle / outlineColor and minimum width 2 for default kind=outline, and composites the selected ink against the actual exterior background with cumulative ancestor opacity. The separator call explicitly uses border with minimum width 1; its forced-colors baseline passes contrast >=3. The old-fill independent build fails the border-width assertion before reaching contrast, as predicted. Normal geometry/role measurement is in separator-geometry.log; no normal-mode contrast floor was invented for the decorative separator.
+
+The original author's red gate is preserved unmodified as separator-author-original-gate-verify.{log,exit,sha,started,finished}; its runner says "1 failed | 896 passed (897)", exit 1, and names the same at-rest fill-only class. This review independently reproduces the failure instead of treating that author's result as certification.
+
+Build/test evidence (all under r5):
+
+- separator-build-current.log: own initial pnpm build exit 0 before compiled-sheet tests/browser consumers.
+- separator-guard-current.log: 8 passed, exit 0; separator-browser-current.log: 3 passed, exit 0.
+- separator-old-fill.diff: exact source mutation; old-fill guard 1 failed / 7 passed, exit 1; old-fill own build exit 0; old-fill paint 3 failed, exit 1, exact width >=1 / 0.
+- separator-build-restored.log: restored own Storybook/site build exit 0.
+- separator-default-outline-none.{diff,log,exit} and separator-default-opacity-zero.{diff,log,exit}: each 3 failed, exit 1, exact predicted default properties.
+- separator-guard-restored.log: 8 passed / 1 file, exit 0.
+- separator-geometry.log: 3 passed, exit 0, exact normal-mode geometry and role readings.
+- separator-browser-restored.log: 21 passed (21.7s), exit 0; all three configured viewports.
+- separator-restored-status.txt is empty; separator-restored-sha.txt records the reviewed commit.
+
+Every surviving old-fill guard test is separate from the at-rest separator invariant:
+
+- found a sheet and the revealed elements to measure
+- tells the mechanisms apart rather than passing everything
+- gives every revealed element a foreground or a forced-colors treatment
+- found the states drawn only in colour, from the literals, placed by the sheet
+- tells the carriers apart rather than passing everything
+- gives every state drawn only in colour a forced-colors treatment, or a sibling that carries it
+- found the hosts drawn at rest, and tells a fill alone from a drawing the mode keeps
+
+All old r5 broad-review evidence remains untouched. Only this bounded followup was run; no full verify, author/sibling write, node_modules mutation, publication, or push occurred. All mutations were in the new detached reviewer checkout and restored from git. Own port 4195 was used. The clean detached worktree is ready for preauthorized removal after this report is durable.
