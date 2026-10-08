@@ -270,8 +270,10 @@ test("bounded list scrolls to its last selectable row with real hit readiness", 
   await input.press("End");
   const last = page.getByRole("option", { name: "Section 24", exact: true });
   await expect(last).toHaveAttribute("aria-selected", "true");
+  await expect
+    .poll(() => list.evaluate((el) => el.scrollTop), { message: "End scrolls the list" })
+    .toBeGreaterThan(0);
   await target(last);
-  expect(await list.evaluate((el) => el.scrollTop), "End scrolls the list").toBeGreaterThan(0);
   await page.screenshot({ path: test.info().outputPath("combobox-scroll.png"), fullPage: true });
   await last.click();
   await expect(trigger).toContainText("Section 24");
