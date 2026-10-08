@@ -1,3 +1,5 @@
+import Previewtable from "./examples/table";
+import codetable from "./examples/table?raw";
 import Previewcombobox from "./examples/combobox";
 import codecombobox from "./examples/combobox?raw";
 import Previewcalendar from "./examples/calendar";
@@ -64,6 +66,15 @@ import PreviewTabs from "./examples/tabs";
 import codeTabs from "./examples/tabs?raw";
 
 export const catalog = [
+  {
+    id: "table",
+    name: "Table",
+    description:
+      "Unreleased candidate. Native table parts with explicit captions, header scopes and a named keyboard-scroll container.",
+    story: "default",
+    Preview: Previewtable,
+    code: codetable,
+  },
   {
     id: "combobox",
     name: "Combobox",

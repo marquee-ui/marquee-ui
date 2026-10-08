@@ -484,6 +484,21 @@
           "target": "components/ui/calendar.tsx"
         }
       ]
+    },
+    {
+      "name": "table",
+      "type": "registry:ui",
+      "title": "Table",
+      "description": "Composable native table parts with an explicit scroll container.",
+      "dependencies": ["@radix-ui/react-slot@^1.3.3"],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/table.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/table.tsx"
+        }
+      ]
     }
   ]
 }
