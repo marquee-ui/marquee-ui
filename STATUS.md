@@ -9,9 +9,8 @@ local implementation or subsequent green batches.
 
 ## Active batch
 
-Next: BATCH-PARITY-5 — Combobox and Calendar. Expand its two slice records just in time
-from the matrix. [BATCH-PARITY-4](docs/batches/BATCH-PARITY-4.md) is locally complete;
-its corrected source, independent closures, full gate and fresh packed proof are recorded.
+Next: [BATCH-PARITY-5](docs/batches/BATCH-PARITY-5.md) — Combobox and Calendar.
+Two scoped streams are active; the orchestrator owns shared wiring and merged proof.
 
 ## Release hold and current preview
 
