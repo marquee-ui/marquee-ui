@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import postcss, { type AtRule, type Rule } from "postcss";
-import { cleanup, render } from "@testing-library/react";
+import { act, cleanup, render } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { composeStories } from "@storybook/react-vite";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
@@ -13,6 +13,7 @@ import * as inputStories from "../stories/input.stories.js";
 import * as radioStories from "../stories/radio-group.stories.js";
 import * as switchStories from "../stories/switch.stories.js";
 import * as textareaStories from "../stories/textarea.stories.js";
+import * as chartStories from "../stories/chart.stories.js";
 
 /**
  * THE FOCUS INDICATOR SURVIVES FORCED-COLORS MODE, ON EVERY KEYBOARD HOST.
@@ -72,6 +73,7 @@ const checkboxes = composeStories(checkboxStories);
 const radios = composeStories(radioStories);
 const inputs = composeStories(inputStories);
 const textareas = composeStories(textareaStories);
+const charts = composeStories(chartStories);
 
 const classesOf = (element: Element | null): string[] =>
   (element?.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
@@ -259,6 +261,49 @@ describe("every keyboard host declares an outline, not only a shadow", () => {
     const shadows = sheet.declaredValues(under(classesFor(host), host.variant), "box-shadow");
     expect(shadows.length, "no box-shadow declared under this variant").toBeGreaterThan(0);
   });
+});
+
+it("the Chart keyboard SVG receives its own focus outline through the compiled descendant selector", () => {
+  const { container } = render(<charts.Keyboard />);
+  const svg = container.querySelector<SVGSVGElement>('svg[role="application"]');
+  expect(svg, "the real Recharts keyboard surface exists").not.toBeNull();
+  const surface = svg!;
+  const host = surface.closest('[data-slot="chart-container"]')!;
+  expect(host, "the SVG belongs to the rendered ChartContainer").not.toBeNull();
+  expect(surface).toHaveAttribute("tabindex", "0");
+  act(() => surface.focus());
+  expect(surface).toHaveFocus();
+
+  // Read classes from the actual ancestor and ask the compiled selectors which
+  // declarations reach the focused SVG. Host-only rules cannot satisfy this.
+  // The compile fixture excludes tests, so these assertions add no utilities.
+  const matches = classesOf(host).flatMap((token) =>
+    sheet
+      .selectorsOf(token)
+      .filter((selector) => surface.matches(selector) && !host.matches(selector))
+      .map((selector) => ({ token, selector })),
+  );
+  expect(matches.length, "compiled Chart classes reach the focused SVG").toBeGreaterThan(0);
+  const tokens = matches.map(({ token }) => token);
+  expect(sheet.declared(tokens, "outline-width"), "SVG outline width").toBe(2);
+  expect(sheet.declared(tokens, "outline-offset"), "SVG outline stays inside its viewport").toBe(
+    -2,
+  );
+  expect(sheet.declaredValues(tokens, "outline-color"), "SVG focus color role").toEqual([
+    "var(--primary-ink)",
+  ]);
+  const styles = sheet.declaredValues(tokens, "outline-style");
+  expect(styles, "SVG outline has a solid style").toContain("solid");
+  expect(styles, "SVG outline is not suppressed").not.toContain("none");
+  expect(sheet.declaredValues(tokens, "--tw-outline-style")).not.toContain("none");
+
+  act(() => surface.blur());
+  expect(surface).not.toHaveFocus();
+  for (const { selector } of matches) {
+    expect(surface.matches(selector), `${selector} must stop matching after SVG blur`).toBe(false);
+  }
+  // This checks selector reach and declarations. The isolated Chart browser
+  // journey remains the proof of actual dark/light/forced-colors paint.
 });
 
 /**
