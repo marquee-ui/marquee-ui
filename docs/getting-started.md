@@ -37,8 +37,8 @@ npx shadcn@4.21.4 add @marquee/select @marquee/tabs @marquee/dialog @marquee/ale
 ```
 
 If the app already uses a Sheet from an earlier Marquee release, update its Dialog
-primitive before combining it with the new overlays or Select. Older Dialog and newer primitives
-versions maintain separate focus stacks, which can break nested keyboard selection
+primitive before combining it with the new overlays or Select. Older Dialog versions and newer overlay primitives
+maintain separate focus stacks, which can break nested keyboard selection
 and leave pointer input blocked after closing:
 
 ```sh
