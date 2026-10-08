@@ -70,7 +70,7 @@ Portal, Content, Arrow and Close separately; use accessible labels on Content. I
 Header, Title and Description are optional presentation slots, so wire IDs and
 `aria-labelledby` / `aria-describedby` yourself when using them as the label.
 
-Tooltip has an explicit Provider, Portal and Arrow. Its text supplements an already
+Tooltip has an explicit Provider, Portal and Arrow. Keep its text short; it supplements an already
 named control; it must not contain interactive actions or carry essential instructions
 that touch users cannot otherwise reach. Provider delay and hover behavior remain
 configurable. Use Popover when the content needs interaction.
