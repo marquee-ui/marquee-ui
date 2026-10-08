@@ -1,6 +1,6 @@
 # CALENDAR-1 — composable Calendar
 
-Batch: BATCH-PARITY-5. Status: geometry closure in independent review; unreleased.
+Batch: BATCH-PARITY-5. Status: complete after geometry closure; unreleased.
 Stream port 4192; reviewer 4196.
 
 ## Scope
@@ -306,4 +306,61 @@ fully inside the frame. Root Vitest calendar/focus: **13 passed**, two files,
 exited 254 because Playwright is a docs-package dependency; the corrected package
 invocation produced the browser evidence above. This runner-path error was not
 a product failure. Fresh independent mutations and the justified second full
-gate remain pending.
+gate are recorded below.
+
+## Layer 1 geometry (reviewer, detached worktree of 0dabffb6d21a06b6f8d2b1524c5768d1ec6f3bf2, slot r6 / port 4196)
+
+The supplemental table is preserved verbatim from the independent report.
+
+```text
+| file | test | mutation applied | red / GREEN | what it asserts now |
+|---|---|---|---|---|
+| apps/docs/browser/calendar.spec.ts | Calendar docs preserve controlled day, keyboard movement, multiple dates, range bounds and reset | Calendar returns null | red 3/3 | Missing day button; state/keyboard/reset. |
+| apps/docs/browser/calendar.spec.ts | Calendar grids fit every viewport and every enabled day/navigation control is a real 44px target | Calendar returns null | red 3/3 | Calendar roots 0 instead of 3. |
+| apps/docs/browser/calendar.spec.ts | Calendar preserves its intrinsic frame when a caller grants less than the seven-day minimum | Calendar returns null | red 3/3 | Missing isolated frame. |
+| apps/docs/browser/calendar.spec.ts | Calendar selected text and focus paint outside docs CSS in dark, light, accent and forced colors | Calendar returns null | red 3/3 | Missing isolated selected/focus subject. |
+| apps/docs/browser/calendar.spec.ts | Calendar disabled/hidden matchers and custom slot keyboard navigation work outside docs CSS | Calendar returns null | red 3/3 | Missing disabled day/slot subject. |
+| apps/docs/browser/calendar.spec.ts | Calendar example source is highlighted and copied byte for byte | Calendar returns null | GREEN 3/3 | Copy/highlight is a separate subject; closure below. |
+| apps/docs/browser/calendar.spec.ts | Calendar example source is highlighted and copied byte for byte | clipboard.writeText no-op | red 3/3 | Clipboard empty, expected exact example bytes. |
+| apps/docs/browser/calendar.spec.ts | Calendar preserves its intrinsic frame when a caller grants less than the seven-day minimum | remove only min-w-min; rebuild | red mobile | Actual frame 306 < required 328. |
+| apps/docs/browser/calendar.spec.ts | Calendar grids fit every viewport and every enabled day/navigation control is a real 44px target | original preview padding; min retained; rebuild | red mobile | Actual canvas 306 < required 328. |
+| apps/docs/browser/calendar-reviewer-probe.spec.ts | reviewer independent Calendar geometry and exact helper control | Saturday translateX(44px) | red mobile | Unchanged containment: right 392 > 350.5. |
+| apps/docs/browser/calendar-reviewer-probe.spec.ts | reviewer independent Calendar geometry and exact helper control | Saturday width/min-width 20px | red mobile | Unchanged target: width 20 < 44. |
+```
+
+Supplemental verdict: PASS, no open findings. Calendar collapse ran all six
+authored cases at all three widths: 15 failed, three GREEN copy/highlight runs.
+That separate subject is CLOSED by clipboard-write no-op, which failed exact
+clipboard-byte equality in all three runs. The intrinsic minimum and old preview
+padding controls separately failed the predicted 306-versus-328 assertions. The
+reviewer-only physical probes use byte-identical authored helpers: displaced
+Saturday failed containment; a 20px Saturday failed the 44px target assertion.
+No assertion was removed or weakened.
+
+Exact authored source, example, browser, docs CSS and generated registry bytes
+were restored to the reviewed SHA. Fresh build exit 0; final runner 21 passed
+(18 authored Calendar cases plus three reviewer probes), 50.0s; focused calendar,
+focus, registry and shared focus guards: 53 passed, four files, exit 0. The
+reviewer inspected complete canvases and all three widths. Clean detached
+worktree removed; port 4196 released. Report, original RED logs/traces, landing
+proofs, helper byte identity and restoration bytes remain in
+`/home/ankit/.marquee-scratch/BATCH-PARITY-5/r6/geometry/`.
+
+## Second full stream gate for geometry closure
+
+The bounded containment defect justified the coordinator-authorized second
+`DOCS_PORT=4192 pnpm verify`, after supplemental independent restoration was green.
+It exited **0** at `0dabffb6d21a06b6f8d2b1524c5768d1ec6f3bf2`, started `2026-10-08T05:18:00Z`,
+finished `2026-10-08T05:22:56Z`; **296 seconds** wall time. Runner:
+**897 library tests (53 files), 39 docs tests (four files), five consumer
+checks, 237 browser cases (4.4m)**, all passed. The three new browser runs are
+the added intrinsic-frame case across the three projects.
+
+The detached runner held a batch gate lock; actual source/exit/timestamps and
+runner summaries remain in stream scratch `verify-geometry.*`; screenshots and
+traces are in `geometry-gate-browser/`. The original `verify.*` gate remains
+unchanged, with its geometry blind spot documented above. This final commit adds
+only the record after the green source/artifact gate. The default 328px caller
+minimum is explicit; custom parts/week numbers can require more. Actual packed
+Dialog/Popover checks and their host padding belong to the coordinator's
+integration fixture. Publication hold and file/runtime fences remain intact.
