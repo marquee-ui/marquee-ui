@@ -138,14 +138,14 @@ it("every semantic part slots the caller's native host, merging refs, classes, a
   ] as const;
   const refs = names.map(() => createRef<HTMLElement>());
   const childRefs = names.map(() => createRef<HTMLElement>());
-  const parent = vi.fn(),
-    child = vi.fn();
+  const parent = names.map(() => vi.fn()),
+    child = names.map(() => vi.fn());
   const props = (index: number) => ({
     ref: (node: HTMLElement | null) => {
       refs[index]!.current = node;
     },
     className: "relative",
-    onClick: parent,
+    onClick: parent[index],
     "data-caller": names[index],
   });
   const childProps = (index: number) => ({
@@ -153,7 +153,7 @@ it("every semantic part slots the caller's native host, merging refs, classes, a
       childRefs[index]!.current = node;
     },
     className: "isolate",
-    onClick: child,
+    onClick: child[index],
   });
   render(
     <TableContainer asChild aria-label="Composed invoices" {...props(0)}>
@@ -203,11 +203,10 @@ it("every semantic part slots the caller's native host, merging refs, classes, a
     expect(childRefs[index]!.current, `${name} child ref`).toBe(host);
     expect(host).toHaveClass("relative", "isolate");
     expect(host).toHaveAttribute("data-caller", name);
-    parent.mockClear();
-    child.mockClear();
+    [...parent, ...child].forEach((handler) => handler.mockClear());
     fireEvent.click(host);
-    expect(parent, `${name} parent event`).toHaveBeenCalled();
-    expect(child, `${name} child event`).toHaveBeenCalled();
+    expect(parent[index], `${name} parent event reaches its own host`).toHaveBeenCalledTimes(1);
+    expect(child[index], `${name} child event reaches its own host`).toHaveBeenCalledTimes(1);
   });
   expect(screen.getByRole("region", { name: "Composed invoices" }).children).toHaveLength(1);
   expect(screen.getByRole("columnheader", { name: "Invoice" })).toHaveAttribute("scope", "col");
