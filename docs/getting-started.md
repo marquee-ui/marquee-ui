@@ -86,7 +86,10 @@ DatePicker provides **namespaced Calendar and Popover parts** with a panel sized
 that standard Calendar frame. Compose the trigger, portal, content and calendar explicitly.
 Its examples cover single dates and date ranges; callers own selection, formatting,
 close-on-selection policy, hidden form values and reset. The aliases retain Calendar's
-selection types and Popover's slots and dismissal behavior. Current shadcn provides a
+selection types and Popover's slots and dismissal behavior. Inside another modal, use
+the example's caller-owned `onOpenAutoFocus` callback to focus the Calendar's current
+roving day after the child Popover focus scope mounts. These aliases do not guarantee
+selected-day initial focus by themselves. Current shadcn provides a
 Date Picker recipe rather than a separate root; these names are Marquee conveniences.
 Text entry, date parsing, natural-language input and time selection remain deferred.
 
