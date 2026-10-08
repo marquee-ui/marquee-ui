@@ -94,7 +94,7 @@ describe("every story renders, and every play function passes", () => {
     }
   }
 
-  it("covers all twenty-seven part families, with every story counted", () => {
+  it("covers all twenty-eight part families, with every story counted", () => {
     // The anchor: a loop that silently composed nothing would pass in silence.
     // Checked against the FILES rather than against a list retyped here, so a
     // part that never entered the shared map reddens instead of vanishing
