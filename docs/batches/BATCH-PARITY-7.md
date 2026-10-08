@@ -100,6 +100,21 @@ Tab/Shift+Tab, Close and Escape remain correct. No general Dialog change or focu
 manager is introduced. Original HOLD report, controls and screenshots remain in
 `merged-review/`; corrected stream/merged review and gates follow.
 
+The corrected Chart keyboard source/output at `b4d16db` has the same independent
+reviewer closure. Six final-head controls fail their predicted property and restore
+green: Tab/Escape default preservation, ancestor scrolling, active dots, tooltip
+cursor and conditional inactive host removal. Conditional removal first fails the
+mounted-host assertion; a separate real keyboard observation then proves its native
+Tab failure. All browser restorations pass the whole 15-case suite. The supplement
+records 16 new / 45 cumulative landed source-mutation executions, retaining the two
+initial unit survivors and their exact closure. See `r6/scroll-final-review.md`.
+
+Corrected keyboard full stream gate at clean `bb5589d`, 2026-10-08
+23:00:08–23:06:37 IST: **exit 0, 389s; 984 library tests in 59 files / 39 docs /
+5 consumer / 300 Chromium browser cases** (5.9m browser runner).
+Separate `s2/verify-scroll.*` and `s2/gate-scroll-browser/` preserve this run.
+The merged review now checks the corrected union before its own full gate.
+
 ## Finite deferred validation limits
 
 The existing global story-play invocation can be replaced with a no-op while its
