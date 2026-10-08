@@ -1,6 +1,6 @@
 # POPOVER-1 — composed Popover
 
-Batch: BATCH-PARITY-3. Status: active; unreleased. Stream port 4191; reviewer 4195.
+Batch: BATCH-PARITY-3. Status: complete; unreleased. Stream port 4191; reviewer 4195.
 
 ## Scope
 
@@ -69,7 +69,7 @@ Exact owned files: `packages/ui/src/popover.tsx`,
   focus, nested Select and Dialog/Sheet, caller save/Cancel, exact highlighted
   copy, Arrow hit/scroll/resize readiness and independent Anchor collision bounds.
   Detached review closed with one MEDIUM instrument finding; the Arrow opacity
-  guard now rejects the predicted negative control. One full stream gate pending.
+  guard now rejects the predicted negative control. Full stream gate passed below.
 
 ## Consumers
 
@@ -201,3 +201,13 @@ in light, and the default Arrow at 390. Text, solid focus outlines, explicit Arr
 and form controls are legible and bounded. Scratch browser screenshots are
 retained under `~/.marquee-scratch/BATCH-PARITY-3/popover/browser/`; batch evidence
 publication is orchestrator-owned.
+
+## Full stream gate
+
+2026-10-08: one `DOCS_PORT=4191 pnpm verify` against committed `ba27fb8` exited 0.
+Runner summaries: library `Test Files 46 passed (46)` / `Tests 801 passed (801)`;
+docs `Test Files 4 passed (4)` / `Tests 39 passed (39)`; consumer `# tests 5` /
+`# pass 5` / `# fail 0`; Chromium `150 passed (2.3m)`. Wall 06:30:40–06:33:23 IST,
+2m43s. Sentinel, own runner log and timestamps are preserved under
+`~/.marquee-scratch/BATCH-PARITY-3/popover/verify.*`. Final change records evidence
+only; source bytes and registry output are unchanged from the gated artifact.
