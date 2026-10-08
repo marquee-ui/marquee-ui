@@ -84,14 +84,16 @@ export function CalendarNavigationButton({
 /**
  * Inline Gregorian calendar. Selection/month state and footer announcements are caller owned.
  * Every DayPicker component is replaceable via `components`; `classNames` can replace individual
- * presentation rules. No upstream stylesheet is imported. Seven 44px columns fit at 390px;
- * extra months wrap as complete grids rather than shrinking targets.
+ * presentation rules. No upstream stylesheet is imported. The default seven 44px columns need
+ * 328px including this frame's padding/border. Callers must grant that inline space; week numbers
+ * or replacement parts can need more. Preserve the intrinsic minimum instead of shrinking the
+ * painted frame around an overflowing grid. Extra months wrap as complete grids.
  */
 export function Calendar({ className, classNames, components, ...props }: CalendarProps) {
   return (
     <DayPicker
       className={cn(
-        "w-fit max-w-full border-2 border-border-strong bg-surface p-2 text-foreground",
+        "w-fit min-w-min max-w-full border-2 border-border-strong bg-surface p-2 text-foreground",
         className,
       )}
       classNames={{
