@@ -1,0 +1,52 @@
+{
+  "source": "87f25c556a80536471476ff1911bd23155f1a684",
+  "command": "DOCS_PORT=4182 DOCS_BROWSER_OUTPUT=.../final-gate-browser pnpm verify",
+  "node": "22.18.0",
+  "pnpm": "10.24.0",
+  "start": "2026-10-09T03:35:47+05:30",
+  "end": "2026-10-09T03:43:36+05:30",
+  "seconds": 469.0,
+  "exit": 0,
+  "library": {
+    "files": 60,
+    "passed": 995
+  },
+  "docs": {
+    "files": 4,
+    "passed": 39
+  },
+  "consumerHarness": {
+    "passed": 5,
+    "freshInstalledRun": false
+  },
+  "browser": {
+    "passed": 312,
+    "widths": [390, 768, 1280],
+    "perWidth": 104,
+    "runnerSummary": "312 passed (7.2m)"
+  },
+  "committedRegistryCurrent": true,
+  "priorRunners": [
+    {
+      "source": "f19714c8e6d68f4e36011bfa281e9ab513638af4",
+      "exit": 1,
+      "libraryPassed": 995,
+      "docsPassed": 39,
+      "consumerPassed": 5,
+      "browserPassed": 286,
+      "browserFailed": 26,
+      "diagnosis": "long prose overflow plus duplicate headings and old one-table selector"
+    },
+    {
+      "source": "d25539d76de23ffe9a5e016c24c7c9449f18b3e1",
+      "exit": 1,
+      "libraryPassed": 995,
+      "docsPassed": 39,
+      "consumerPassed": 5,
+      "browserPassed": 309,
+      "browserFailed": 3,
+      "diagnosis": "missed sibling page-wide Tabs heading at forced-colors transition"
+    }
+  ],
+  "fullRunner": "/home/ankit/.marquee-scratch/BATCH-PARITY-8/integration/final-verify.log"
+}

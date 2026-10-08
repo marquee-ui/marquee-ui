@@ -1,0 +1,107 @@
+{
+  "date": "2026-10-09",
+  "head": "87f25c556a80536471476ff1911bd23155f1a684",
+  "method": "Independent TypeScript AST census of every browser-module getByRole call, with manual CSS/raw-heading query review",
+  "newGuideNames": [
+    "Select",
+    "Tabs",
+    "Dialog",
+    "AlertDialog",
+    "Popover",
+    "Tooltip",
+    "DropdownMenu",
+    "Slider",
+    "Combobox",
+    "Calendar",
+    "DatePicker",
+    "Table",
+    "DataTable",
+    "Chart"
+  ],
+  "headingSelectors": [
+    {
+      "file": "popover.spec.ts",
+      "line": 385,
+      "expression": "panel.getByRole(\"heading\")",
+      "receiver": "panel",
+      "name": null,
+      "pageWide": false,
+      "matchesNewGuideName": false,
+      "potentiallyAmbiguousNewGuideMatch": false
+    },
+    {
+      "file": "site.spec.ts",
+      "line": 43,
+      "expression": "page.getByRole(\"heading\", { name: \"Run the starter\", level: 3 })",
+      "receiver": "page",
+      "name": "Run the starter",
+      "pageWide": true,
+      "matchesNewGuideName": false,
+      "potentiallyAmbiguousNewGuideMatch": false
+    },
+    {
+      "file": "site.spec.ts",
+      "line": 175,
+      "expression": "page.locator(\".family-detail\").getByRole(\"heading\", { name, exact: true, level: 3 })",
+      "receiver": "page.locator(\".family-detail\")",
+      "name": "name",
+      "pageWide": false,
+      "matchesNewGuideName": false,
+      "potentiallyAmbiguousNewGuideMatch": false
+    },
+    {
+      "file": "syntax.spec.ts",
+      "line": 180,
+      "expression": "guide.getByRole(\"heading\", { name: \"Run the starter\" })",
+      "receiver": "guide",
+      "name": "Run the starter",
+      "pageWide": false,
+      "matchesNewGuideName": false,
+      "potentiallyAmbiguousNewGuideMatch": false
+    },
+    {
+      "file": "tabs.spec.ts",
+      "line": 10,
+      "expression": "page.locator(\".family-detail\").getByRole(\"heading\", { name: \"Tabs\", exact: true })",
+      "receiver": "page.locator(\".family-detail\")",
+      "name": "Tabs",
+      "pageWide": false,
+      "matchesNewGuideName": true,
+      "potentiallyAmbiguousNewGuideMatch": false
+    },
+    {
+      "file": "tabs.spec.ts",
+      "line": 204,
+      "expression": "page.locator(\".family-detail\").getByRole(\"heading\", { name: \"Tabs\", exact: true })",
+      "receiver": "page.locator(\".family-detail\")",
+      "name": "Tabs",
+      "pageWide": false,
+      "matchesNewGuideName": true,
+      "potentiallyAmbiguousNewGuideMatch": false
+    },
+    {
+      "file": "tooltip.spec.ts",
+      "line": 351,
+      "expression": "page.getByRole(\"heading\", { name: \"Button\", exact: true, level: 3 })",
+      "receiver": "page",
+      "name": "Button",
+      "pageWide": true,
+      "matchesNewGuideName": false,
+      "potentiallyAmbiguousNewGuideMatch": false
+    }
+  ],
+  "nonliteralRoles": [
+    {
+      "file": "dropdown-menu.spec.ts",
+      "line": 393,
+      "expression": "menu.getByRole(role, { name })"
+    }
+  ],
+  "nonliteralRoleManualClosure": "dropdown-menu.spec.ts:393 receiver menu; role values are only menuitemcheckbox/menuitemradio from the adjacent literal loop; no heading role",
+  "potentiallyAmbiguousNewGuideMatches": [],
+  "additionalRawQueries": [
+    "site.spec.ts:56 page.locator(h1), unique site h1; guide h1 suppressed",
+    "theme.spec.ts:62 and 483 h1 span queried for color, unique site h1",
+    "theme.spec.ts:81-82 h2 evaluated inside .studio-card, scoped"
+  ]
+}

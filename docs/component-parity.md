@@ -16,7 +16,7 @@ The catalog mixes primitives and recipes, so a percentage based on its entry cou
 | BATCH-PARITY-5 | Combobox; Calendar                               | Popover; maintained DayPicker 10              | Complete |
 | BATCH-PARITY-6 | DatePicker; Table                                | Calendar + Popover; semantic table foundation | Complete |
 | BATCH-PARITY-7 | DataTable; Chart                                 | Table; TanStack React Table 9 / Recharts 3    | Complete |
-| BATCH-PARITY-8 | Existing common-name API audit and documentation | New families complete                         | Active   |
+| BATCH-PARITY-8 | Existing common-name API audit and documentation | New families complete                         | Complete |
 
 Each stream owns a bounded family and its tests, live example, copyable source and install
 contract. Expand slice records only for the active batch. DataTable/Chart are bounded
@@ -74,8 +74,10 @@ with existing overlay parts and align compatible primitive dependencies in both 
 workspace and shipped registry; workspace-only overrides do not protect copied components.
 Require the predicted assertion to redden under mutation.
 
-Public operations stay held as recorded in [STATUS.md](../STATUS.md). Green implementation
-advances to the next batch while the accumulated release PR remains draft and unmerged.
+Public operations stay held as recorded in [STATUS.md](../STATUS.md). The finite eight-batch
+program is complete; no next batch is queued. The accumulated release PR remains draft
+and unmerged. [Batch 8](batches/BATCH-PARITY-8.md) records the final audit, review and
+validation closure. Remaining implementation below needs a new scope decision.
 
 ## Deferred backlog after the finite program
 

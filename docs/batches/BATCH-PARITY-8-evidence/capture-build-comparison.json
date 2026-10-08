@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-10-08T22:09:05.216Z",
+  "source": "87f25c556a80536471476ff1911bd23155f1a684",
+  "files": 121,
+  "identical": 120,
+  "differing": ["storybook/project.json"],
+  "onlyDifference": "Storybook project.json generatedAt timestamp; all guide/HTML/JS/CSS/font/other story files identical",
+  "dates": {
+    "staging": 1791487307512,
+    "finalBuild": 1791497169278
+  }
+}
