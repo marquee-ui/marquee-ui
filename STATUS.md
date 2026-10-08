@@ -1,6 +1,6 @@
 # Marquee implementation status
 
-CURSOR: BATCH-PARITY-3 — Popover and Tooltip
+CURSOR: BATCH-PARITY-4 — DropdownMenu and Slider
 
 The user authorized a finite component-parity program on 2026-10-08. Implement the
 [batch roadmap and parity matrix](docs/component-parity.md) in order; expand each next
@@ -9,20 +9,15 @@ local implementation or subsequent green batches.
 
 ## Active batch
 
-BATCH-PARITY-3 is active from clean base `3bc6ba0efe0895896c88da025757f268ee14e1a0`.
+Next: BATCH-PARITY-4 — DropdownMenu and Slider. Expand only its two bounded slices
+from [the roadmap](docs/component-parity.md), preserving compatible overlay dependencies,
+actual painted focus/arrow checks and the candidate install/localhost workflow.
 
-| Stream  | Slice                                 | Worktree                             | Browser / reviewer ports |
-| ------- | ------------------------------------- | ------------------------------------ | ------------------------ |
-| Popover | [POPOVER-1](docs/slices/POPOVER-1.md) | `/home/ankit/Code/marquee-popover-1` | 4191 / 4195              |
-| Tooltip | [TOOLTIP-1](docs/slices/TOOLTIP-1.md) | `/home/ankit/Code/marquee-tooltip-1` | 4192 / 4196              |
-
-Orchestrator owns shared wiring, registry, counts, consumer proof and next. Baseline
-`DOCS_PORT=4182 pnpm verify` passed: 776 library / 39 docs / 5 consumer / 123 browser
-on 2026-10-08. Scratch: `/home/ankit/.marquee-scratch/BATCH-PARITY-3/`.
-Next after this batch: BATCH-PARITY-4 — DropdownMenu and Slider.
-
-[BATCH-PARITY-2](docs/batches/BATCH-PARITY-2.md) is complete: Dialog and AlertDialog,
-independent reviews, merged gate, fresh packed-consumer proof and responsive inspection.
+[BATCH-PARITY-3](docs/batches/BATCH-PARITY-3.md) is complete locally: Popover and Tooltip,
+independent reviews, merged gate, fresh packed consumer and responsive inspection.
+The Tooltip stream recorded one inherited intermittent tablet Dialog failure; cause
+unproved, exact-build discriminator and unchanged full repeat green. No fix is claimed.
+Final-head hosted CI and handoff evidence are recorded at the path below.
 
 ## Release hold and current preview
 
@@ -31,8 +26,8 @@ publish npm until the user directs publication. Continue accumulating reviewed c
 in draft [PR #2](https://github.com/marquee-ui/marquee-ui/pull/2), unmerged.
 
 Current verified preview: **http://localhost:4174/marquee-ui/**, source
-`11c0dcf5ebdef812a054962d85d320a68e630c57`, served from
-`/home/ankit/Code/marquee-integration-parity-2/apps/docs/dist`.
+`7e4e636f8ed8487cb90abc2ef429bc7c5721a7d1`, served from
+`/home/ankit/Code/marquee-integration-parity-3/apps/docs/dist`.
 Preserve it until the next batch's build is verified. New components are unreleased;
 no version bump is implied. Supported consumer evidence and parity limits live in the matrix.
 
@@ -41,7 +36,7 @@ no version bump is implied. Supported consumer evidence and parity limits live i
 [Release](docs/batches/RELEASE-1.md), [theme/code revision](docs/batches/RELEASE-1-UX.md),
 and [visual controls](docs/batches/RELEASE-1-CONTROLS.md) retain their evidence.
 Latest completed handoff:
-`/home/ankit/.marquee-scratch/BATCH-PARITY-2/integration/final-handoff.md`.
+`/home/ankit/.marquee-scratch/BATCH-PARITY-3/integration/final-handoff.md`.
 Inspect status/worktrees, this cursor, the matrix and current slice/batch records.
 This is library work; no Pile product backlog advances.
 
@@ -54,3 +49,5 @@ This is library work; no Pile product backlog advances.
 | 2026-10-08 | RELEASE-1-CONTROLS | Visual picker and independent accents verified; publication held.                                     |
 | 2026-10-08 | BATCH-PARITY-1     | Select/Tabs and nested overlay compatibility verified; localhost refreshed; publication held.         |
 | 2026-10-08 | BATCH-PARITY-2     | Dialog/AlertDialog and four-family overlay lifecycle verified; localhost refreshed; publication held. |
+
+| 2026-10-08 | BATCH-PARITY-3 | Popover/Tooltip, six-family overlay lifecycle and fresh installed proof verified; localhost refreshed; publication held. |

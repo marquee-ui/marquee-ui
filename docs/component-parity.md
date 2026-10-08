@@ -11,7 +11,7 @@ The catalog mixes primitives and recipes, so a percentage based on its entry cou
 | -------------- | ------------------------------------------------ | ---------------------------------------------- | -------- |
 | BATCH-PARITY-1 | Select; Tabs                                     | Existing tokens/composition                    | Complete |
 | BATCH-PARITY-2 | Dialog; AlertDialog                              | Existing Radix approach                        | Complete |
-| BATCH-PARITY-3 | Popover; Tooltip                                 | Overlay conventions from batch 2               | Planned  |
+| BATCH-PARITY-3 | Popover; Tooltip                                 | Overlay conventions from batch 2               | Complete |
 | BATCH-PARITY-4 | DropdownMenu; Slider                             | Overlay conventions from batches 2–3           | Planned  |
 | BATCH-PARITY-5 | Combobox; Calendar                               | Popover; choose maintained calendar primitive  | Planned  |
 | BATCH-PARITY-6 | DatePicker; Table                                | Calendar + Popover; semantic table foundation  | Planned  |
@@ -35,7 +35,8 @@ helper rather than a component family. Newly completed families are recorded by 
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Select, Tabs                   | [Batch 1 complete](batches/BATCH-PARITY-1.md): maintained Radix behavior, composition, keyboard/state tests, docs and fresh packed-consumer install.                                                              |
 | Dialog, AlertDialog            | [Batch 2 complete](batches/BATCH-PARITY-2.md): explicit composed overlays, true confirmation semantics, compatible nested focus stack and fresh packed-consumer proof.                                            |
-| Overlays and everyday controls | Batches 3–5: Popover, Tooltip, DropdownMenu, Slider and Combobox.                                                                                                                                                 |
+| Popover, Tooltip               | [Batch 3 complete](batches/BATCH-PARITY-3.md): explicit anchored panels and supplemental descriptions, shared overlay lifecycle and fresh packed-consumer proof.                                                  |
+| Overlays and everyday controls | Batches 4–5: DropdownMenu, Slider and Combobox.                                                                                                                                                                   |
 | Dates and data                 | Batches 5–7: Calendar, DatePicker, Table, DataTable and Chart.                                                                                                                                                    |
 | Form                           | Accessibility wiring; caller owns controller, validation and submission.                                                                                                                                          |
 | Toast                          | Controlled open/onDismiss/duration portal; no manager, queue or promise API.                                                                                                                                      |

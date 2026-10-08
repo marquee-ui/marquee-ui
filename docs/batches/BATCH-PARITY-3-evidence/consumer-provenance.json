@@ -1,0 +1,28 @@
+{
+  "source": "7e4e636f8ed8487cb90abc2ef429bc7c5721a7d1",
+  "measuredAt": "2026-10-08T01:19:34.956Z",
+  "node": "v22.18.0",
+  "artifacts": [
+    {
+      "name": "@marquee-ui/tokens",
+      "file": "marquee-ui-tokens-0.1.0.tgz",
+      "sha256": "75b30268238e44074a54d923e596d1f6a1a931f2ae85f8a5da3271a7dadf55cd"
+    },
+    {
+      "name": "@marquee-ui/ui",
+      "file": "marquee-ui-ui-0.1.10.tgz",
+      "sha256": "b01820cad77bbbd40b12ec66a6eb924039ede1e16bcb118b007928ffcce2330c"
+    }
+  ],
+  "compared": 14,
+  "consumer": "/home/ankit/.marquee-scratch/BATCH-PARITY-3/consumer-final",
+  "results": {
+    "startTime": "2026-10-08T01:18:30.836Z",
+    "duration": 22919.978,
+    "expected": 27,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "correction": "Initial21passed6failed. Await actual Select Beta optionfocus before Enter; corrected27passed on unchanged packed source."
+}
