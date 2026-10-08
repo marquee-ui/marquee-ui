@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { useState, type ComponentProps, type ReactNode } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { Button } from "@/button";
 import {
@@ -35,6 +35,7 @@ import {
   TableBody,
   TableCaption,
   TableCell,
+  TableContainer,
   TableHead,
   TableHeader,
   TableRow,
@@ -47,7 +48,17 @@ const data = [
   { month: "Apr", north: 32, south: 24 },
 ];
 
-function MonthlyPlot({ kind, fixed = false }: { kind: "bars" | "lines"; fixed?: boolean }) {
+function MonthlyPlot({
+  kind,
+  fixed = false,
+  tooltipContent,
+  children,
+}: {
+  kind: "bars" | "lines";
+  fixed?: boolean;
+  tooltipContent?: ComponentProps<typeof ChartTooltip>["content"];
+  children?: ReactNode;
+}) {
   const parts = (
     <>
       <CartesianGrid vertical={false} stroke="var(--border)" />
@@ -61,14 +72,17 @@ function MonthlyPlot({ kind, fixed = false }: { kind: "bars" | "lines"; fixed?: 
       <ChartTooltip
         isAnimationActive={false}
         cursor={false}
-        content={({ active, label }) => {
-          const point = data.find((row) => row.month === label);
-          return active && point ? (
-            <ChartTooltipContent>
-              {point.month}. North {point.north}. South {point.south}.
-            </ChartTooltipContent>
-          ) : null;
-        }}
+        content={
+          tooltipContent ??
+          (({ active, label }) => {
+            const point = data.find((row) => row.month === label);
+            return active && point ? (
+              <ChartTooltipContent>
+                {point.month}. North {point.north}. South {point.south}.
+              </ChartTooltipContent>
+            ) : null;
+          })
+        }
       />
       <ChartLegend
         content={
@@ -103,23 +117,27 @@ function MonthlyPlot({ kind, fixed = false }: { kind: "bars" | "lines"; fixed?: 
             margin={{ top: 12, right: 12, bottom: 8, left: 0 }}
           >
             {parts}
-            <Bar
-              dataKey="north"
-              name="North"
-              fill="var(--categorical-1)"
-              stroke="var(--foreground)"
-              strokeWidth={2}
-              isAnimationActive={false}
-            />
-            <Bar
-              dataKey="south"
-              name="South"
-              fill="var(--categorical-2)"
-              stroke="var(--foreground)"
-              strokeWidth={2}
-              strokeDasharray="4 3"
-              isAnimationActive={false}
-            />
+            {children ?? (
+              <>
+                <Bar
+                  dataKey="north"
+                  name="North"
+                  fill="var(--categorical-1)"
+                  stroke="var(--foreground)"
+                  strokeWidth={2}
+                  isAnimationActive={false}
+                />
+                <Bar
+                  dataKey="south"
+                  name="South"
+                  fill="var(--categorical-2)"
+                  stroke="var(--foreground)"
+                  strokeWidth={2}
+                  strokeDasharray="4 3"
+                  isAnimationActive={false}
+                />
+              </>
+            )}
           </BarChart>
         ) : (
           <LineChart
@@ -129,21 +147,25 @@ function MonthlyPlot({ kind, fixed = false }: { kind: "bars" | "lines"; fixed?: 
             margin={{ top: 12, right: 16, bottom: 8, left: 0 }}
           >
             {parts}
-            <RechartsLine
-              dataKey="north"
-              name="North"
-              stroke="var(--categorical-1)"
-              strokeWidth={3}
-              isAnimationActive={false}
-            />
-            <RechartsLine
-              dataKey="south"
-              name="South"
-              stroke="var(--categorical-2)"
-              strokeWidth={3}
-              strokeDasharray="4 3"
-              isAnimationActive={false}
-            />
+            {children ?? (
+              <>
+                <RechartsLine
+                  dataKey="north"
+                  name="North"
+                  stroke="var(--categorical-1)"
+                  strokeWidth={3}
+                  isAnimationActive={false}
+                />
+                <RechartsLine
+                  dataKey="south"
+                  name="South"
+                  stroke="var(--categorical-2)"
+                  strokeWidth={3}
+                  strokeDasharray="4 3"
+                  isAnimationActive={false}
+                />
+              </>
+            )}
           </LineChart>
         )}
       </ResponsiveContainer>
@@ -321,6 +343,7 @@ export const FocusableParts: Story = {
   },
 };
 
+/** Modal blur must keep renderer/content nodes mounted while native Tab moves focus. */
 export const InDialog: Story = {
   render: () => (
     <Dialog>
@@ -332,7 +355,47 @@ export const InDialog: Story = {
           <DialogDescription>
             Use the chart or read its native table without leaving this dialog.
           </DialogDescription>
-          <MonthlyDemo />
+          <TableContainer aria-label="Scrollable monthly chart">
+            <Table className="w-[48rem] table-fixed">
+              <TableCaption>Monthly chart comparison</TableCaption>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="w-80">Monthly volume summary</TableCell>
+                  <TableCell className="w-72">
+                    <MonthlyPlot
+                      kind="lines"
+                      tooltipContent={({ label }) => {
+                        const point = data.find((row) => row.month === label);
+                        return (
+                          <ChartTooltipContent>{`${point?.month ?? "Month"}. North ${point?.north ?? "—"}. South ${point?.south ?? "—"}.`}</ChartTooltipContent>
+                        );
+                      }}
+                    >
+                      <RechartsLine
+                        dataKey="north"
+                        name="North"
+                        stroke="var(--categorical-1)"
+                        strokeWidth={3}
+                        activeDot={false}
+                        isAnimationActive={false}
+                      />
+                      <RechartsLine
+                        dataKey="south"
+                        name="South"
+                        stroke="var(--categorical-2)"
+                        strokeWidth={3}
+                        strokeDasharray="4 3"
+                        activeDot={false}
+                        isAnimationActive={false}
+                      />
+                    </MonthlyPlot>
+                  </TableCell>
+                  <TableCell className="w-40">North and South</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <NativeData />
           <DialogClose>Done inspecting</DialogClose>
         </DialogContent>
       </DialogPortal>

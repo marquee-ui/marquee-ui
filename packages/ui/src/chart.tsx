@@ -15,10 +15,13 @@ const focus =
  * a positive height/aspect when overriding it. Data, axes, labels, series, state
  * and accessible naming belong to the caller. The actual keyboard chart surface
  * receives its own visible focus ring, including in isolated registry usage.
+ * Its point arrows suppress native ancestor scrolling while Recharts continues
+ * navigation; caller key handlers run first and keep cancellation/propagation.
  */
 export function ChartContainer({
   className,
   asChild = false,
+  onKeyDown,
   ...props
 }: ComponentProps<"div"> & Slotted) {
   const Host = asChild ? Slot : "div";
@@ -31,6 +34,23 @@ export function ChartContainer({
         className,
       )}
       {...props}
+      onKeyDown={(event) => {
+        onKeyDown?.(event);
+        const target = event.target;
+        if (
+          !event.defaultPrevented &&
+          (event.key === "ArrowLeft" || event.key === "ArrowRight") &&
+          target instanceof Element &&
+          target.matches('svg.recharts-surface[role="application"]') &&
+          target.ownerDocument.activeElement === target &&
+          target.closest('[data-slot="chart-container"]') === event.currentTarget
+        ) {
+          // Recharts already dispatched point navigation. Cancel only the
+          // browser's additional scroll of a native ancestor, without stopping
+          // renderer or caller propagation or claiming descendant input keys.
+          event.preventDefault();
+        }
+      }}
     />
   );
 }
@@ -39,7 +59,11 @@ export function ChartContainer({
 export const ChartTooltip = Tooltip;
 export const ChartLegend = Legend;
 
-/** Keep point announcements concise; only render this host for an active point. */
+/**
+ * Keep visible point announcements concise. Recharts hides inactive content in
+ * its wrapper; modal recipes may keep this host and its text node mounted to
+ * preserve native focus transitions.
+ */
 export function ChartTooltipContent({
   className,
   asChild = false,

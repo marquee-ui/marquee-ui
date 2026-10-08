@@ -1,6 +1,6 @@
 # CHART-1 — composed responsive charts
 
-Batch: BATCH-PARITY-7. Status: independently reviewed; full stream gate green.
+Batch: BATCH-PARITY-7. Status: merged scroll/modal closure reviewed; full gate green.
 Stream port 4192; reviewer 4196.
 
 ## Supported contract
@@ -53,8 +53,10 @@ events and asChild composition. No part generates content from a config or paylo
 Two-series bar and line examples have named solid/dashed marks, explicit tooltip
 render slots, role-token paint and a native table containing every value. Recharts
 owns point state. In Dialog, its responsive SVG appears after measurement;
-autofocus on that later SVG is not promised. The real keyboard path is Close,
-Shift+Tab to the SVG, point arrows, then Escape with trigger restoration.
+autofocus on that later SVG is not promised. Its wide native region receives
+focus; native arrows reveal the chart cell, Tab reaches the SVG, point arrows
+navigate data, and native Tab/Shift+Tab reach Close and return. Enter on Close
+and Escape from the chart restore the trigger.
 
 Primary sources read 2026-10-08: current shadcn
 [Chart](https://ui.shadcn.com/docs/components/chart), Recharts
@@ -221,3 +223,113 @@ native values. Earlier complete paint-mode inspection remains recorded above.
 Exact source SHA, start/end times, runner log and exit are preserved in
 `s2/verify-corrected.sha`, `.start`, `.end`, `.log` and `.exit`; browser evidence is
 in `s2/gate-corrected-browser/`. No family source changed during gate recovery.
+
+## Merged review arrow-scroll closure
+
+Fresh merged review at `9dc572f` exposes a real composition failure: point arrows
+on the focused Recharts SVG also invoke native ancestor scrolling. In the merged
+DataTable/TableContainer/Dialog fixture at 390px, Right advances Jan through Apr
+while scrollLeft moves 340 → 458 and clips 90.75px of the chart. Independent
+evidence is retained in `merged-review/scroll-diagnostic.json`, its runner log/exit
+and `390-natural-arrow-diagnostic.png`.
+
+`ChartContainer` now invokes its caller's onKeyDown first, then prevents the
+browser default only for uncanceled Left/Right whose target itself is the focused
+`svg.recharts-surface[role="application"]` owned by that nearest ChartContainer.
+It does not stop propagation, intercept custom descendant input arrows, dispatch
+data navigation or change the exported API. Existing InDialog now composes a wide
+native Table/TableContainer around the chart cell, with the complete data table
+below. Story/play and browser declaration counts remain unchanged.
+
+Test-first unit evidence is **three predicted failures / ten passed** at the old
+source, then **13 passed** with the narrow handler. Real Recharts still dispatches
+Feb/Jan point data; native event defaults, callback order/propagation, slotted
+cancellation, nonnavigation keys, direct targets, actual focus and nearest nested
+ownership are checked. Root typecheck and focused ESLint pass.
+
+The strengthened browser proof first uses real native region arrows to bring the
+chart cell fully into view, then natural Tab focuses its SVG. There is no scripted
+focus or scroll repair. At the old policy, the predicted stable-scroll assertion
+fails all widths: **320 → 360** at 390, **160 → 200** at 768/1280. Original
+`scroll-browser-first.*` and the readiness-strengthened `scroll-browser-old-ready.*`
+logs/traces remain intact. With the handler, all six paced Left/Right steps retain
+the same scroll position and whole SVG/ring bounds while actual concise data moves
+Jan/Feb/Mar/Apr and back.
+
+That run then independently exposes the merged review's separate forward-Tab
+finding at all three widths: SVG Tab does not reach Close. Its original failure
+is retained in `scroll-browser-fixed.*`. The merged reviewer traces a brief BODY
+focus gap during SVG blur: Recharts removes active-dot layers, and Radix's
+MutationObserver focuses DialogContent before native focus reaches Close. Its
+real nine-arm control proves a bounded modal content-lifetime recipe; no Tab
+adapter, global focus search or Dialog change is needed.
+
+InDialog explicitly supplies Line children with `activeDot={false}` and keeps the
+tooltip cursor disabled. Its content render slot always returns the same
+ChartTooltipContent host with one nonempty template-string Text child, including
+inactive placeholders. Recharts' wrapper hides inactive content and its status
+from the accessible tree. Active data remains dynamic; preventing blur-time node
+removal preserves native focus transitions. This caller composition changes no
+exported API or nonmodal recipe.
+
+The first recipe probe retains **12 passed / three failed** in
+`scroll-browser-recipe.*`: forward Tab, hidden inactive status and reverse
+Shift+Tab pass, then an unsupported expectation that refocus alone reopens an
+already selected Jan tooltip fails. The corrected observation uses actual
+Right/Left point arrows after refocus, without changing source for that probe.
+`scroll-browser-recipe-ready.*` passes **all 15 cases in 34.1s** at the three
+widths, proving paced actual values and stable ancestor geometry, native forward
+and reverse Tab plus cycling after 350ms, hidden persistent inactive status,
+Close Enter and Escape with trigger restoration. Full modal screenshots at all
+widths were inspected. Root typecheck/focused ESLint pass, and Chart plus story
+suites pass **262 tests**.
+
+Independent handler review at `f485d81` catches all eight requested landed
+mutations and restores **13 passed** after each. It finds two further unit
+ceilings: intercepting Tab or Escape also stayed green because neither key was
+in the nonnavigation table. Both keys are now retained, giving **15 Chart unit
+cases**, for independent reruns of those same source controls. Evidence is
+`r6/scroll-unit-review.md`.
+
+Coordinator refreshes only `r/chart.json` at `b4d16db`, build exit 0. The same
+independent reviewer refreshes its detached tree to that exact source/output
+commit and closes the supplement. Both Tab/Escape expansions now fail their named
+default-preservation assertion (**one failed / 14 passed**) and each git
+restoration passes all 15. The complete supplement has **16 landed mutation
+executions**: ten initial unit controls (including the two then-survivors), two
+unit closure reruns and four browser source controls. All currently requested
+properties are closed; the older shared-runner ceilings remain documented above.
+
+Each browser source mutation is confirmed landed, freshly built and run
+separately, with the other protections intact:
+
+| Source counterexample                         | Predicted actual browser red at all three widths                                                                                                                                            |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Remove arrow policy, retain caller forwarding | Native ancestor scroll drifts +40px despite correct point data.                                                                                                                             |
+| Enable modal active dots                      | Native forward Tab fails to focus Close.                                                                                                                                                    |
+| Enable tooltip cursor                         | Native forward Tab fails to focus Close.                                                                                                                                                    |
+| Conditionally remove inactive tooltip host    | Committed initial mounted-host guard fails (zero versus one). An independent real-keyboard probe omits that initial precondition only and reaches the predicted native forward-Tab failure. |
+
+All four git restorations freshly rebuild and pass the **whole 15-case browser
+suite**; the conditional-host independent probe also restores **three passed**.
+Final unit validation is **15 passed**, and modal screenshots at all widths are
+independently inspected. Exact predictions, landed diffs, builds, runner exits,
+red failures and restorations remain in `r6/scroll-u01`–`scroll-u12`,
+`r6/scroll-b01`–`scroll-b04` and `r6/scroll-browser-driver.log`. Reviewer tree is
+clean at `b4d16db`; the new full gate records separate `s2/verify-scroll.*` evidence.
+
+The final independent report is `r6/scroll-final-review.md`; it records **45
+cumulative landed source executions** (29 prior plus 16 in this supplement),
+separates the early host-count red from the native Tab red, and does not claim a
+complete DOM-removal count from the retained single-Text shape probe. No bounded
+finding remains open.
+
+The new `DOCS_PORT=4192 pnpm verify` at clean `bb5589d` runs 2026-10-08
+**23:00:08–23:06:37 IST**, total 6m29s, and exits **0**. Lint, typecheck and build
+pass; runner summaries are **984 library tests in 59 files**, **39 docs tests in
+four files**, **five consumer tests / zero failed**, and **300 browser cases in
+5.9m**. All 15 Chart cases pass at 390/768/1280, and the gate's full modal captures
+were inspected at every width. The new source and recipe remain frozen during
+the gate. Exact head, start/end times, full runner log and exit remain in
+`s2/verify-scroll.sha`, `.start`, `.end`, `.log` and `.exit`; browser captures are
+in `s2/gate-scroll-browser/`. Every earlier gate and probe artifact is preserved.
