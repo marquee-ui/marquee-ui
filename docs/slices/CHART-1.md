@@ -1,6 +1,6 @@
 # CHART-1 — composed responsive charts
 
-Batch: BATCH-PARITY-7. Status: original stream gate green; merged scroll closure pending.
+Batch: BATCH-PARITY-7. Status: merged scroll/modal closure reviewed; new full gate pending.
 Stream port 4192; reviewer 4196.
 
 ## Supported contract
@@ -289,5 +289,30 @@ mutations and restores **13 passed** after each. It finds two further unit
 ceilings: intercepting Tab or Escape also stayed green because neither key was
 in the nonnavigation table. Both keys are now retained, giving **15 Chart unit
 cases**, for independent reruns of those same source controls. Evidence is
-`r6/scroll-unit-review.md`. Final recipe review, coordinator-owned family registry
-refresh and the separate `verify-scroll.*` full gate follow.
+`r6/scroll-unit-review.md`.
+
+Coordinator refreshes only `r/chart.json` at `b4d16db`, build exit 0. The same
+independent reviewer refreshes its detached tree to that exact source/output
+commit and closes the supplement. Both Tab/Escape expansions now fail their named
+default-preservation assertion (**one failed / 14 passed**) and each git
+restoration passes all 15. The complete supplement has **16 landed mutation
+executions**: ten initial unit controls (including the two then-survivors), two
+unit closure reruns and four browser source controls. All currently requested
+properties are closed; the older shared-runner ceilings remain documented above.
+
+Each browser source mutation is confirmed landed, freshly built and run
+separately, with the other protections intact:
+
+| Source counterexample                         | Predicted actual browser red at all three widths                                                                                                                                            |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Remove arrow policy, retain caller forwarding | Native ancestor scroll drifts +40px despite correct point data.                                                                                                                             |
+| Enable modal active dots                      | Native forward Tab fails to focus Close.                                                                                                                                                    |
+| Enable tooltip cursor                         | Native forward Tab fails to focus Close.                                                                                                                                                    |
+| Conditionally remove inactive tooltip host    | Committed initial mounted-host guard fails (zero versus one). An independent real-keyboard probe omits that initial precondition only and reaches the predicted native forward-Tab failure. |
+
+All four git restorations freshly rebuild and pass the **whole 15-case browser
+suite**; the conditional-host independent probe also restores **three passed**.
+Final unit validation is **15 passed**, and modal screenshots at all widths are
+independently inspected. Exact predictions, landed diffs, builds, runner exits,+reds and restorations remain in `r6/scroll-u01`–`scroll-u12`,
+`r6/scroll-b01`–`scroll-b04` and `r6/scroll-browser-driver.log`. Reviewer tree is
+clean at `b4d16db`; the new full gate records separate `s2/verify-scroll.*` evidence.
