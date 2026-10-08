@@ -298,3 +298,21 @@ no further product testing was needed. Layer1 closed one MEDIUM/one LOW, ran nin
 controls (eight original plus the shared inventory), and recorded all surviving
 GREEN tests' independent bounds. All source/registry mutations were restored.
 No public operations; the stream branch stays pushed for coordinator reconciliation.
+
+## Layer 2 panel focus repair (2026-10-08)
+
+Layer 2 measured a supported all-disabled Calendar with hidden navigation and no
+Close control. Keyboard opening naturally focuses DatePickerContent. In a Light
+parent Dialog, its inherited exterior primary-ink outline contrasted only
+1.23–1.59 against actual scrim pixels. DatePickerContent now uses the inherited
+solid 2px role outline at a -4px inset, inside its 2px border against its own
+overlay ground; callers can override offset and ink. Popover contracts and source
+are unchanged.
+
+Tests-first: `pnpm exec vitest run --project ui
+packages/ui/test/date-picker-focus.test.tsx` produced the two predicted offset
+failures (2 instead of -4), with natural keyboard panel focus already confirmed.
+After the narrow fix, DatePicker composition, focus and the derived global focus
+inventory passed 33 tests. Logs: `s1/panel-focus-test-first.log` and
+`s1/panel-focus-fixed.log`. Independent controls and installed browser paint
+measurements follow below before the corrected gate.

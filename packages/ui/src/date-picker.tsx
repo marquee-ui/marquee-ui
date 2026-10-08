@@ -41,6 +41,9 @@ export type DatePickerCalendarProps = CalendarProps;
  * fit one month in a 390px viewport with 16px collision clearance. Week numbers,
  * extra months and replacement parts can need more room; the caller composes it.
  * All positioning, dismissal and focus callbacks remain cancelable and explicit.
+ * If no descendant can take focus, Popover focuses this panel. Its inset outline
+ * contrasts with the panel's own ground, including over a parent modal's scrim.
+ * Caller classes can replace the focus offset or ink just as other panel styles.
  */
 export function DatePickerContent({
   className,
@@ -55,7 +58,7 @@ export function DatePickerContent({
       align={align}
       sideOffset={sideOffset}
       collisionPadding={collisionPadding}
-      className={cn("w-auto gap-2 p-2", className)}
+      className={cn("w-auto gap-2 p-2 focus-visible:-outline-offset-4", className)}
       {...props}
     />
   );
