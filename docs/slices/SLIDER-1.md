@@ -1,6 +1,7 @@
 # SLIDER-1 — composed Slider
 
-Batch: BATCH-PARITY-4. Status: complete; unreleased. Stream port 4192; reviewer 4196.
+Batch: BATCH-PARITY-4. Status: complete; vertical geometry corrected; unreleased.
+Stream port 4192; reviewer 4196.
 
 ## Scope
 
@@ -210,3 +211,146 @@ The final post-gate edit changes only this record. The reviewer worktree was
 verified clean at `14e2224` and removed; port 4196 is free. Gate logs, sentinel,
 source SHA and timing remain in the assigned stream scratch directory. No
 publication operation, PR, merge, release or deployment ran in this stream.
+
+## Vertical range geometry correction
+
+The full-canvas integration screenshots at 390/768/1280 exposed a real source
+defect after the original green gate: `SliderRange` used `h-full` vertically,
+overriding Radix's opposing top/bottom offsets. At value 40 its track and range
+both measured 192px; the selected length should have been 76.8px. The range
+extended 115.1875px below the track and into the following paragraph. Independent
+layer 2 also measured inverted value 40 and a vertical range of 20–80: their
+selected lengths stayed 192px instead of 76.8px and 115.2px respectively, and a
+point below the normal/range tracks actually hit the range element.
+
+The original browser cases observed movement and nonempty selected paint but
+did not constrain the range bounds or proportional length. The original green
+stream gate above, the orchestrator's green merged gate and packed-consumer run
+at `6e5402c3`, and the overflowing complete-canvas screenshots remain preserved;
+they did not prove this property. The new geometry evidence supersedes them for
+the vertical selected-range contract. Original integration images are
+`/home/ankit/.marquee-scratch/BATCH-PARITY-4/integration/images/slider-canvas-*.png`;
+independent measurements and 9 predicted reds are in the batch's `layer2/`
+directory (`vertical-red-measurements.json`, `browser-3.log`, `results-3.json`).
+
+Test first on 2026-10-08, against the original build from `9c224cac`:
+
+```sh
+DOCS_PORT=4192 pnpm --filter @marquee-ui/docs exec playwright test \
+  browser/slider.spec.ts --grep 'selected range stays within'
+```
+
+The runner exited 1 with **3 failed**, one at every width, on the predicted
+`Vertical level selected range bottom stays inside track` assertion. Desktop
+measured bottom 701.90625px against a track bottom of 586.71875px (the assertion
+allows only 0.5px rounding). This was an actual geometric failure, not a collector
+or build error. Log: assigned stream scratch `geometry-red.log`.
+
+The bounded fix adds `data-[orientation=vertical]:h-auto` to Range so Radix's
+offsets determine selected height; horizontal cross-axis height remains full.
+The new family case measures actual Range/Track padding-box bounds, selected
+length and physical starting edge against live aria values. It covers vertical,
+horizontal, RTL and inverted singles at 0/25/50/75/100, horizontal two-thumb spans,
+forced colors and the isolated vertical story. It adds one case, three width runs.
+After a fresh build, the focused runner exited 0 with **3 passed (11.6s)**.
+All three complete canvases were inspected; the vertical half-range terminates
+inside its 192px track and leaves the following paragraph clear. Corrected images
+are the `slider-complete-canvas.png` files under stream scratch `geometry-green/`.
+
+The reopened consumer scan uses the existing four exports without adding or
+changing an API, role, route, story or native form contract. The changed Range
+class is consumed by generated `packages/ui/r/slider.json` (CROSS: orchestrator).
+The family unit test, stories, docs example, browser case, compiled-floor and
+focus inventories remain consumers; their existing contracts are retained.
+Only source, this browser regression and this record belong to the stream's
+reopened fence. Registry refresh and shared counts remain with the orchestrator.
+
+### Independent geometry closure
+
+The same named reviewer recreated its detached worktree at committed source
+`3296ef5ed689e81ec1ed04b5da3d74bd36d1d879`, with an independently installed,
+lock-pinned consumer on port 4196. Its initial fixed-source runner passed all
+9 normal/inverted/range × 390/768/1280 checks. Each checks live values at
+0/25/50/75/100, physical starting edge, bounds, selected-color pixels for nonzero
+spans and rejection of range hits below the track.
+
+The reviewer removed the vertical `h-auto` correction from the committed source,
+verified the mutation landed, and freshly rebuilt both artifacts. The family
+runner exited 1 with **3 failed / 15 passed (20.4s)**: only the new range geometry
+case failed, at every width, on the predicted bottom-boundary assertion. The
+independent consumer exited 1 with **9 failed**: normal and range failed their
+bottom bounds; inverted failed its selected length from live aria values. Those
+15 surviving family cases reproduce the original green-run blind spot; their
+unchanged keyboard, pointer, focus, form and copy contracts do not assert this
+new geometry property.
+
+After restoring the source from git and freshly rebuilding, the family runner
+exited 0 with **18 passed (26.7s)** and the independent consumer exited 0 with
+**9 passed (11.1s)**. This closes the MEDIUM vertical-range behavior finding.
+Durable evidence is under batch scratch `r6/geometry/`: `controls.json`,
+`regression-mutated.log`, `consumer-mutated.log`, `regression-restored.log` and
+`consumer-restored.log`. The orchestrator admitted the corrected full gate from
+these completed controls; the reviewer's final table follows below.
+
+### Layer 1 geometry closure (detached SHA 3296ef5ed689e81ec1ed04b5da3d74bd36d1d879, slot r6, DOCS_PORT=4196)
+
+The reviewer's final verdict is **MED vertical fill defect CLOSED / PROVED**,
+with no outstanding finding in this bounded delta. The following table is
+verbatim from `r6/geometry/report.md`.
+
+<!-- prettier-ignore -->
+| file | test | mutation applied | red / GREEN | what it asserts now |
+| --- | --- | --- | --- | --- |
+| apps/docs/browser/slider.spec.ts | Slider selected range stays within its track and scales to live values in every orientation | Remove only vertical h-auto from committed detached SliderRange; verify LANDED; fresh pnpm build; run entire touched file | New case red at all 3 widths; runner 3 failed / 15 passed, exit 1 | Predicted and observed: Vertical level selected range bottom stays inside track. Normal 40 fills 192px and overflows 115.1875px. |
+| independent consumer/tests/geometry.spec.ts | independent vertical selected geometry normal | Copy verified mutated source; fresh vite build | red at 390/768/1280; part of 9 failed, exit 1 | normal initial selected range bottom stays within actual track: expected <=216.5, received331.1875. |
+| independent consumer/tests/geometry.spec.ts | independent vertical selected geometry inverted | Same rebuilt mutated source, inverted 40 | red at 390/768/1280; part of 9 failed, exit 1 | inverted initial selected length from live aria values: error 115.2 exceeds 0.5px tolerance. Actual 192 versus expected 76.8px. |
+| independent consumer/tests/geometry.spec.ts | independent vertical selected geometry range | Same rebuilt mutated source, range [20,80] | red at 390/768/1280; part of 9 failed, exit 1 | range initial selected range bottom stays within actual track: expected <=216.5, received254.390625. |
+| apps/docs/browser/slider.spec.ts | Entire six-case Slider family, including new geometry case | Restore source and registry from git; verify restored class LANDED; fresh pnpm build | GREEN: 18 passed (26.7s), exit 0 | New bounds, live proportion and physical direction checks pass on 390/768/1280; includes forced colors and isolated vertical Storybook. |
+| independent consumer/tests/geometry.spec.ts | Normal/inverted/range at all widths and live values 0/25/50/75/100 | Copy verified restored source; fresh vite build | GREEN: 9 passed (11.1s), exit 0 | Independent live proportions, physical edges, bounds, zero/full spans, opaque selected paint, actual screenshot selected-color pixels outside thumb markers, and no selected hit beyond track pass. |
+
+The GREEN rows are restored positive baselines, not collapse survivors. The
+15 unchanged family survivors are explained above; the new case and all nine
+independent checks reject the exact source regression. No assertion or tolerance
+was changed. Reviewer's restored source, consumer copy and registry content were
+byte-identical, and its tracked tree was clean at `3296ef5`. It independently
+measured normal/inverted value 40 at 76.8125px and range 20–80 at 115.21875px;
+normal/inverted 0/25/50/75/100 measured 0/48/96/144/192px at every width. All
+60 restored state measurements and screenshots remain in reviewer scratch.
+The original LOW naming-guard closure remains preserved and unchanged.
+After acceptance, the reviewer verified port 4196 idle and removed its clean
+detached worktree; its report and consumer artifacts remain intact.
+
+### Corrected full stream gate
+
+The source change justifies this replacement gate for the reopened finding.
+On 2026-10-08, with Node 22.18.0 / pnpm 10.24.0:
+
+```sh
+PATH=/home/ankit/.nvm/versions/node/v22.18.0/bin:$PATH DOCS_PORT=4192 \
+DOCS_BROWSER_OUTPUT=/home/ankit/.marquee-scratch/BATCH-PARITY-4/slider/geometry-gate/browser pnpm verify
+```
+
+Artifact: clean committed `0fbe9a516ff5484992c8142ea1a775ff3f6a3320`, containing
+the independently reviewed source and registry from `3296ef5`. Sentinel exit
+**0**, wall **212s**, 08:59:04–09:02:36 IST. Runner's own summaries:
+
+```text
+Test Files 49 passed (49)
+Tests 848 passed (848)
+Test Files 4 passed (4)
+Tests 39 passed (39)
+# tests 5
+# pass 5
+# fail 0
+192 passed (3.1m)
+```
+
+This includes lint, typecheck, every build, library/docs/consumer suites and all
+three Chromium browser widths. Relative to the original stream gate, the one
+new case adds three browser runs (189 → 192). All corrected gate logs, exact
+SHA, sentinel and timing are under assigned stream scratch `geometry-gate/`;
+the original gate and all original red evidence are retained. Only this record
+changed after the corrected gate. The source fix, browser regression and record
+stay within the reopened fence; the orchestrator authored the registry refresh.
+The disabled native serialization limitation and proved disabled-fieldset
+workaround remain unchanged. Publication stays held; no public operation ran.
