@@ -63,7 +63,11 @@ Combobox is a composed **single-select searchable popup** using cmdk and Radix P
 It is not a drop-in copy of the current shadcn Base UI Combobox API. Editable inline
 inputs, chips/multiple selection, object collections and virtualization remain outside
 this contract. The caller owns the committed value, its displayed label and form transport;
-search navigation is separate from selection. Its live example documents the supported parts.
+search navigation is separate from selection. Label the search with `ComboboxCommand`'s
+`label` and the results with `ComboboxList`'s `label`, which wire cmdk's own ARIA IDs.
+Popover parts and the supported input/item/empty/separator hosts retain `asChild`;
+cmdk 1.1.1's root/list/group native `asChild` path is unsupported and omitted from those
+wrapper types. Their children remain caller-composed. Its live example shows the supported parts.
 
 Calendar uses DayPicker 10 selection and replaceable component slots, with role-based
 styles and full-size day/navigation targets. Single, multiple and range selection are
