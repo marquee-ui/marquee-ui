@@ -50,121 +50,15 @@ source keeps its API; it needs the compatible dependency rather than a markup re
 
 The `next` registry is an unreleased, moving review branch. Pin its path to a reviewed
 commit SHA for repeatable source installs. It uses the same token roles and alias setup;
-its declared primitive dependencies are installed by the CLI. The
-[parity program](https://github.com/marquee-ui/marquee-ui/blob/next/docs/component-parity.md)
-records scope and limits. Local packed-artifact proof for these additions is recorded in
-[BATCH-PARITY-1](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-1.md)
-[BATCH-PARITY-2](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-2.md)
-[BATCH-PARITY-3](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-3.md)
-[BATCH-PARITY-4](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-4.md)
-[BATCH-PARITY-5](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-5.md)
-[BATCH-PARITY-6](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-6.md)
-and [BATCH-PARITY-7](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-7.md).
+its declared primitive dependencies are installed by the CLI.
 
-Combobox is a composed **single-select searchable popup** using cmdk and Radix Popover.
-It is not a drop-in copy of the current shadcn Base UI Combobox API. Editable inline
-inputs, chips/multiple selection, object collections and virtualization remain outside
-this contract. The caller owns the committed value, its displayed label and form transport;
-search navigation is separate from selection. Label the search with `ComboboxCommand`'s
-`label` and the results with `ComboboxList`'s `label`, which wire cmdk's own ARIA IDs.
-Popover parts and the supported input/item/empty/separator hosts retain `asChild`;
-cmdk 1.1.1's root/list/group native `asChild` path is unsupported and omitted from those
-wrapper types. Their children remain caller-composed. Its live example shows the supported parts.
-
-Calendar uses DayPicker 10 selection and replaceable component slots, with role-based
-styles and full-size day/navigation targets. Single, multiple and range selection are
-supported; caller-owned selection, labels, locale and formatting stay explicit. Time selection,
-alternate calendars and exhaustive timezone/locale validation are not included in the current proof.
-
-The default Calendar needs **at least 328px of inner host width** for seven 44px day
-columns, padding and borders. Week numbers and custom slots may need more. Keep this
-space available instead of clipping the grid or shrinking day targets. For the default
-390px mobile overlay examples, `DialogContent className="p-3"` provides 330px inside
-its frame; `PopoverContent className="w-auto p-2"` sizes to the calendar. Calendar's
-intrinsic minimum stays in force even when its caller is narrower.
-
-DatePicker provides **namespaced Calendar and Popover parts** with a panel sized for
-that standard Calendar frame. Compose the trigger, portal, content and calendar explicitly.
-Its examples cover single dates and date ranges; callers own selection, formatting,
-close-on-selection policy, hidden form values and reset. The aliases retain Calendar's
-selection types and Popover's slots and dismissal behavior. Inside another modal, use
-the example's caller-owned `onOpenAutoFocus` callback to focus the Calendar's current
-roving day after the child Popover focus scope mounts. These aliases do not guarantee
-selected-day initial focus by themselves. Current shadcn provides a
-Date Picker recipe rather than a separate root; these names are Marquee conveniences.
-Text entry, date parsing, natural-language input and time selection remain deferred.
-
-Table provides **native table parts**. Compose `TableContainer` explicitly when horizontal
-scrolling is needed; supply a meaningful accessible name with `aria-label` or
-`aria-labelledby`. Its native keyboard scrolling keeps a wide table inside its caller.
-Compose captions, header scopes, spans and genuine controls in cells; keep native table
-hosts when using `asChild`. Selected row paint does not supply selection logic.
-Sorting, filtering, pagination and data engines belong to the composed DataTable recipe.
-Unlike shadcn's implicit wrapper, `Table` itself remains a bare table here.
-
-DataTable provides **presentation over a caller-created TanStack React Table 9
-instance**. Compose a caption, named TableContainer, explicit header/row render
-slots, empty row and controls. The caller owns columns, data, features and state
-updates; keep `useTable`'s reactive selection or compose `table.Subscribe` so
-changes update the rendered rows. The demonstrated recipe covers client sorting,
-name filtering, pagination and cell actions. Header slots supply native `th`,
-scope, grouped spans and `aria-sort`; row slots supply native `tr` and cells.
-Keyboard-focused cell controls in a horizontally scrolling table need the
-caller's reveal policy and enough scroll margin for their focus ring, as the
-example shows. Server/virtualized grids, editing, selection managers, column
-resizing/reordering and aggregation/export remain deferred.
-
-Chart provides **presentation parts around Recharts 3**. Compose chart primitives,
-series, axes, a concise live tooltip and named legend content explicitly. Keep a
-positive height or aspect for ResponsiveContainer; ChartContainer's default
-height is 256px. The bar/line example uses data token roles, a solid/dashed series
-distinction, named keyboard chart surfaces and a native table containing every
-value. Keep axis labels clear of the actual chart's inset focus ring when choosing
-caller margins. No chart configuration object generates colors, tooltip text or
-legend content. Additional chart types, brush/zoom, animation controls and export
-remain outside this bounded recipe. These parts do not promise a drop-in shadcn
-API or extend the verified React 19/Tailwind 4/Vite consumer stack.
-
-Left/Right on the focused accessible chart SVG keeps point navigation from
-scrolling an enclosing native table; arrows on the TableContainer still scroll
-it. Inside a modal, use the
-[InDialog composition](https://github.com/marquee-ui/marquee-ui/blob/next/packages/ui/stories/chart.stories.tsx):
-disable transient Line active dots and Tooltip cursor, and keep the custom tooltip
-host mounted with one nonempty text child. Recharts hides the inactive tooltip;
-the stable nodes let native Tab and Shift+Tab reach the surrounding controls.
-Conditional removal of active chart nodes during blur can make the modal focus
-scope select its panel before the next control. These are explicit caller recipe
-choices; Chart does not supply a modal focus manager.
-
-DropdownMenu composes action items, checkbox/radio choices and directional submenus.
-Portals, indicators, arrows and chevrons are explicit parts. Selection closes by default;
-prevent its default to keep a settings menu open. It is modal by default and supports
-non-modal composition. Use Select for a form value rather than menu actions.
-
-Slider composes Root, Track, Range and each named Thumb explicitly. Values, range
-separation, keyboard/pointer input, orientation, direction and reset follow Radix.
-A controlled caller must accept reset changes. **Disabled Slider alone still submits
-named values in Radix 1.5.0.** Wrap it in a native disabled fieldset to exclude its form
-value, as the verified example does; this is not native-disabled submission parity.
-No wrapper form controller or implicit thumb factory is included.
-
-Dialog and AlertDialog expose explicit Portal, Overlay and Content parts. Compose their
-titles, descriptions and actions inside Content; no close icon or confirmation controls
-are inserted for you. Dialog supports modal and non-modal interactions. AlertDialog is
-always a confirmation modal: Cancel receives initial focus, outside interaction cannot
-dismiss it, and Action/Cancel remain separate parts. Prevent Action's click default and
-use controlled open state when completion should wait for an asynchronous operation.
-Giving Sheet `role="alertdialog"` alone does not supply these confirmation semantics.
-
-Popover defaults to non-modal behavior and supports an explicit modal option. Compose
-Portal, Content, Arrow and Close separately; use accessible labels on Content. Its
-Header, Title and Description are optional presentation slots, so wire IDs and
-`aria-labelledby` / `aria-describedby` yourself when using them as the label.
-
-Tooltip has an explicit Provider, Portal and Arrow. Keep its text short; it supplements an already
-named control; it must not contain interactive actions or carry essential instructions
-that touch users cannot otherwise reach. Provider delay and hover behavior remain
-configurable. Use Popover when the content needs interaction.
+Read [recipe contracts](./recipe-contracts.md) before composing these families. That
+guide records explicit anatomy, caller-owned state/forms/labels, Calendar host sizing,
+nested DatePicker autofocus, disabled Slider submission and DataTable/Chart focus and
+scroll responsibilities. Matching component names do not establish shadcn API parity.
+The [common-name API guide](./common-name-api.md) covers the original families.
+[Supported stack](./supported-stack.md) distinguishes the published starter from the
+reused packed candidate evidence and its finite validation limits.
 
 ## Add Marquee to an existing app
 
