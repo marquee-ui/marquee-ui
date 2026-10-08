@@ -201,7 +201,7 @@ test("Tabs paints readable state and focus from dark, light and accent roles", a
   expect(paints[0], "dark selected line follows accent").not.toBe(paints[1]);
   expect(paints[2], "light selected line follows accent").not.toBe(paints[3]);
   await page.emulateMedia({ forcedColors: "active" });
-  await page.getByRole("heading", { name: "Tabs", exact: true }).focus();
+  await page.locator(".family-detail").getByRole("heading", { name: "Tabs", exact: true }).focus();
   for (const name of ["Overview", "Profile"]) {
     const active = canvas.getByRole("tab", { name });
     await expect(active).toHaveAttribute("aria-selected", "true");
