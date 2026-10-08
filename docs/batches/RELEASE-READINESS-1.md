@@ -36,7 +36,8 @@ changed since that verified baseline. The immutable Batch 8 preview remains on
 4174 while this work proceeds. Scratch:
 `/home/ankit/.marquee-scratch/RELEASE-READINESS-1/`.
 
-Status: active. Final repository verification and CI remain.
+Status: preparation complete locally; publication held. Final pushed-head CI is
+recorded in the PR checks and durable handoff after push.
 
 ## Completed controls and version decision
 
@@ -88,3 +89,32 @@ Reproduction sources, npm lock, logs, screenshots and the runner script remain
 in `<scratch>/consumer`, `<scratch>/candidate-proof.mjs` and
 `<scratch>/candidate-proof.log`. The script copies no old dependencies, lockfile
 or installed components; it reuses only the explicit app/test source fixtures.
+
+## Final gate, preview and handoff
+
+At `5e2f24b7c25832111aea237f37c86094e5e591e4`, `DOCS_PORT=4182 pnpm verify`
+exited **0** on 2026-10-09, 04:49:33–04:57:19 IST (466.2 seconds): **996 library
+tests in 60 files, 39 docs tests in four files, five consumer-harness tests, and
+312 Chromium browser cases** at 390/768/1280. The registry remained unchanged.
+[Gate record](RELEASE-READINESS-1-evidence/gate.json).
+
+The immutable successful output now serves localhost:4174 from
+`<scratch>/preview`. All **121 served files** equal the gated build byte for byte.
+Fresh stable-preview guide/availability checks and DataTable/Chart keyboard,
+data, focus and bounds checks passed at all three widths with zero page errors.
+The release copy explicitly says 0.2.0 is unpublished; the evidence table
+distinguishes all-family installation from the 21-family behavioral selection.
+Twelve relevant consumer/guide captures were actually inspected; the exact list
+is in [image inspection](RELEASE-READINESS-1-evidence/image-inspection.json).
+
+The initial staging byte request raced startup and received ECONNREFUSED; after
+HTTP readiness, staging and stable byte checks passed. The owned staging server
+was stopped. The serving snapshot and every historical worktree were preserved.
+No public operation occurred. Later completion records do not change the gated
+site or packed UI inputs. The PR's final exact-head CI remains the publication
+gate; its final result and logs are retained in `<scratch>/final-handoff.md`.
+
+The mutation controls were run by this batch's implementing agent. This record
+does not claim a new independent review or exhaustive API, browser, SVG or
+assertion-quality coverage. Existing wider-stack and composition limits remain
+in the supported-stack and component-contract guides.

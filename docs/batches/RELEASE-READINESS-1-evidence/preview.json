@@ -1,0 +1,238 @@
+{
+  "source": "5e2f24b7c25832111aea237f37c86094e5e591e4",
+  "port": 4174,
+  "snapshot": "/home/ankit/.marquee-scratch/RELEASE-READINESS-1/preview",
+  "checkedAt": "2026-10-08T23:30:20.764Z",
+  "indexSHA256": "9f1a9ef9d9140f2a518fba4ae0be69696cfddc318ebbedab49fae49f9ecb7050",
+  "errors": [],
+  "measurements": [
+    {
+      "width": 390,
+      "before": {
+        "left": 0,
+        "client": 306,
+        "scroll": 640
+      },
+      "edge": {
+        "left": 209.109375,
+        "right": 309.109375,
+        "start": 42,
+        "end": 348,
+        "width": 88,
+        "height": 44
+      },
+      "plots": [
+        {
+          "label": "Monthly volume bars",
+          "width": 306,
+          "height": 256,
+          "outlineWidth": 2,
+          "labels": [
+            {
+              "text": "Jan",
+              "left": 52.25,
+              "right": 228.75
+            },
+            {
+              "text": "Feb",
+              "left": 117.75,
+              "right": 163.25
+            },
+            {
+              "text": "Mar",
+              "left": 183.25,
+              "right": 97.75
+            },
+            {
+              "text": "Apr",
+              "left": 249.75,
+              "right": 33.25
+            }
+          ],
+          "inset": 0
+        },
+        {
+          "label": "Monthly volume lines",
+          "width": 306,
+          "height": 256,
+          "outlineWidth": 2,
+          "labels": [
+            {
+              "text": "Jan",
+              "left": 19.5,
+              "right": 261.5
+            },
+            {
+              "text": "Feb",
+              "left": 105.5,
+              "right": 175.5
+            },
+            {
+              "text": "Mar",
+              "left": 191.5,
+              "right": 89.5
+            },
+            {
+              "text": "Apr",
+              "left": 278.5,
+              "right": 4.5
+            }
+          ],
+          "inset": 0
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "before": {
+        "left": 0,
+        "client": 660,
+        "scroll": 660
+      },
+      "edge": {
+        "left": 570.578125,
+        "right": 670.578125,
+        "start": 54,
+        "end": 714,
+        "width": 88,
+        "height": 44
+      },
+      "plots": [
+        {
+          "label": "Monthly volume bars",
+          "width": 660,
+          "height": 256,
+          "outlineWidth": 2,
+          "labels": [
+            {
+              "text": "Jan",
+              "left": 96.5,
+              "right": 538.5
+            },
+            {
+              "text": "Feb",
+              "left": 250.5,
+              "right": 384.5
+            },
+            {
+              "text": "Mar",
+              "left": 404.5,
+              "right": 230.5
+            },
+            {
+              "text": "Apr",
+              "left": 559.5,
+              "right": 77.5
+            }
+          ],
+          "inset": 0
+        },
+        {
+          "label": "Monthly volume lines",
+          "width": 660,
+          "height": 256,
+          "outlineWidth": 2,
+          "labels": [
+            {
+              "text": "Jan",
+              "left": 19.5,
+              "right": 615.5
+            },
+            {
+              "text": "Feb",
+              "left": 223.5,
+              "right": 411.5
+            },
+            {
+              "text": "Mar",
+              "left": 427.5,
+              "right": 207.5
+            },
+            {
+              "text": "Apr",
+              "left": 632.5,
+              "right": 4.5
+            }
+          ],
+          "inset": 0
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "before": {
+        "left": 0,
+        "client": 420,
+        "scroll": 640
+      },
+      "edge": {
+        "left": 351.109375,
+        "right": 451.109375,
+        "start": 70,
+        "end": 490,
+        "width": 88,
+        "height": 44
+      },
+      "plots": [
+        {
+          "label": "Monthly volume bars",
+          "width": 420,
+          "height": 256,
+          "outlineWidth": 2,
+          "labels": [
+            {
+              "text": "Jan",
+              "left": 66.5,
+              "right": 328.5
+            },
+            {
+              "text": "Feb",
+              "left": 160.5,
+              "right": 234.5
+            },
+            {
+              "text": "Mar",
+              "left": 254.5,
+              "right": 140.5
+            },
+            {
+              "text": "Apr",
+              "left": 349.5,
+              "right": 47.5
+            }
+          ],
+          "inset": 0
+        },
+        {
+          "label": "Monthly volume lines",
+          "width": 420,
+          "height": 256,
+          "outlineWidth": 2,
+          "labels": [
+            {
+              "text": "Jan",
+              "left": 19.5,
+              "right": 375.5
+            },
+            {
+              "text": "Feb",
+              "left": 143.5,
+              "right": 251.5
+            },
+            {
+              "text": "Mar",
+              "left": 267.5,
+              "right": 127.5
+            },
+            {
+              "text": "Apr",
+              "left": 392.5,
+              "right": 4.5
+            }
+          ],
+          "inset": 0
+        }
+      ]
+    }
+  ]
+}
