@@ -499,13 +499,17 @@ pre {
   margin: 1.5rem 0;
 }
 .canonical-guide p code,
-.canonical-guide li code {
+.canonical-guide li code,
+.canonical-guide th code,
+.canonical-guide td code {
   color: var(--foreground);
   font: var(--text-xs) var(--font-mono);
   overflow-wrap: anywhere;
 }
 .canonical-guide p a,
-.canonical-guide li a {
+.canonical-guide li a,
+.canonical-guide th a,
+.canonical-guide td a {
   color: var(--primary-ink);
   text-decoration: underline;
   text-underline-offset: 0.2em;
