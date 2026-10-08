@@ -1,3 +1,5 @@
+import Previewdatatable from "./examples/data-table";
+import codedatatable from "./examples/data-table?raw";
 import Previewtable from "./examples/table";
 import codetable from "./examples/table?raw";
 import Previewdatepicker from "./examples/date-picker";
@@ -68,6 +70,15 @@ import PreviewTabs from "./examples/tabs";
 import codeTabs from "./examples/tabs?raw";
 
 export const catalog = [
+  {
+    id: "data-table",
+    name: "DataTable",
+    description:
+      "Unreleased candidate. Composed TanStack Table 9 presentation with caller-owned data, columns and state, explicit header/row slots and client sorting/filter/page controls. Server grids and virtualization are deferred.",
+    story: "default",
+    Preview: Previewdatatable,
+    code: codedatatable,
+  },
   {
     id: "table",
     name: "Table",

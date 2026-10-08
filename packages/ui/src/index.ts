@@ -243,3 +243,14 @@ export {
   TableCell,
   TableCaption,
 } from "./table.js";
+
+export {
+  DataTable,
+  DataTableHeader,
+  DataTableBody,
+  DataTableEmpty,
+  DataTableSortButton,
+  type DataTableHeaderProps,
+  type DataTableBodyProps,
+  type DataTableSortButtonProps,
+} from "./data-table.js";
