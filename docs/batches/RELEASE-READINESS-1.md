@@ -36,7 +36,7 @@ changed since that verified baseline. The immutable Batch 8 preview remains on
 4174 while this work proceeds. Scratch:
 `/home/ankit/.marquee-scratch/RELEASE-READINESS-1/`.
 
-Status: active. Consumer proof and final verification remain.
+Status: active. Final repository verification and CI remain.
 
 ## Completed controls and version decision
 
@@ -64,3 +64,27 @@ tokens **0.1.0**: a tarball comparison found all 32 existing files byte-identica
 with only an additional internal docs-theme source in the local package. No new
 token runtime is needed. [Release notes and commands](../releases/0.2.0.md) make
 the proposed artifact and current public release distinct.
+
+## Fresh release-artifact consumer
+
+At committed source `a8c4b103229eaec9b939ce08e9181291fa3b128d`,
+`pnpm --dir packages/ui pack --pack-destination <scratch>/artifacts` produced
+`marquee-ui-ui-0.2.0.tgz`. The prepack registry rebuild left committed output
+unchanged. A new external consumer used a fresh npm cache, that tarball and the
+published tokens 0.1.0 package. Both installed package directories were real
+files inside the consumer, with no workspace links; npm lock integrity matched
+the exact UI archive and public token metadata.
+
+The shadcn CLI installed all 35 families through a local server reading only
+the installed package's registry. All 37 copied files, including `utils` and
+Ribbon's stylesheet, matched the packed registry and reviewed source byte for
+byte. Strict TypeScript and Vite passed across the copied source. The retained
+Batch 7 browser journeys were rerun fresh: **99 passed**, zero skipped, flaky or
+unexpected cases, at 390/768/1280. These exercise 21 selected families, not all 35. Browser duration was 115.2 seconds on 2026-10-09; no public UI install is claimed.
+
+The exact commands, archive SHA-256/SHA-512, 37 file hashes, npm provenance and
+runner summary are in [consumer provenance](RELEASE-READINESS-1-evidence/consumer-provenance.json).
+Reproduction sources, npm lock, logs, screenshots and the runner script remain
+in `<scratch>/consumer`, `<scratch>/candidate-proof.mjs` and
+`<scratch>/candidate-proof.log`. The script copies no old dependencies, lockfile
+or installed components; it reuses only the explicit app/test source fixtures.

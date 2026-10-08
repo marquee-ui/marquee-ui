@@ -1,0 +1,62 @@
+{
+  "measuredOn": "2026-10-09",
+  "storyGuardCommit": "1843f33",
+  "svgGuardCommit": "b8082b4",
+  "commands": {
+    "stories": "pnpm exec vitest run --project ui packages/ui/test/stories.test.tsx",
+    "focus": "pnpm exec vitest run --project ui packages/ui/test/focus-outline.test.tsx"
+  },
+  "storyControls": [
+    {
+      "mutation": "omit global play invocation before repair",
+      "exit": 0,
+      "passed": 252,
+      "log": "controls/play-omitted-before.log"
+    },
+    {
+      "mutation": "omit invocation with Vitest hasAssertions candidate",
+      "exit": 0,
+      "passed": 252,
+      "log": "controls/play-omitted-after.log",
+      "disposition": "rejected ineffective repair"
+    },
+    {
+      "mutation": "omit invocation with Storybook assertion delta",
+      "exit": 1,
+      "failed": 186,
+      "passed": 66,
+      "expectedFailure": "play executed no assertions",
+      "log": "controls/play-delta-omitted.log"
+    },
+    {
+      "mutation": "replace Button.Primary play with no-op",
+      "exit": 1,
+      "failed": 2,
+      "passed": 250,
+      "expectedFailure": "button/Primary: play executed no assertions",
+      "log": "controls/play-delta-single-noop.log"
+    }
+  ],
+  "svgControls": [
+    {
+      "name": "svg-descendants-removed-before",
+      "exit": 0
+    },
+    {
+      "name": "svg-descendants-removed-after",
+      "exit": 1
+    },
+    {
+      "name": "svg-width-removed-after",
+      "exit": 1
+    }
+  ],
+  "restored": {
+    "exit": 0,
+    "files": 2,
+    "tests": 274,
+    "log": "controls/restored-targeted.log"
+  },
+  "scope": "Per-play assertion calls; real Chart SVG compiled selector reach/width/style/color/offset and focus-only matching. Actual paint remains browser-measured. Not exhaustive matcher or descendant coverage.",
+  "scratch": "/home/ankit/.marquee-scratch/RELEASE-READINESS-1"
+}

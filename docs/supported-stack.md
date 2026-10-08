@@ -36,12 +36,15 @@ manifest/lock, current source/registry and the records linked below:
 | Published consumer proof, measured 2026-10-08                                                    | Seven selected families: Button, Accordion, Sheet, Switch, Input, Label and Card; eight copied files including `utils`; two Chromium cases at 390 and 1280px | A cold npm install, strict TypeScript/Vite build, source-byte comparison and those consumer journeys. It does not exercise all 21 published families.                                                                                                  |
 | Unreleased `next` candidate                                                                      | 35 families; 36 registry items including `utils`                                                                                                             | The source/registry inventory after batches 1–7. The fourteen additions are Select, Tabs, Dialog, AlertDialog, Popover, Tooltip, DropdownMenu, Slider, Combobox, Calendar, DatePicker, Table, DataTable and Chart.                                     |
 | Batch 7 packed candidate, source `15c266e3a47be44ad40c26db4d961ca31cd09a9f`, measured 2026-10-08 | 21 selected families; 22 copied files including `utils`; 99 Chromium cases at 390, 768 and 1280px                                                            | Fresh external packed-artifact install, strict TypeScript/Vite build and the recorded bounded compositions. This is reused Batch 7 evidence, not a fresh Batch 8 consumer run or public npm proof, and it does not exercise all 35 candidate families. |
+| Proposed UI 0.2.0 artifact, measured 2026-10-09                                                  | All 35 families installed and compiled; 37 exact copied files; 99 browser cases for 21 selected families at 390/768/1280                                     | Fresh external install of the proposed UI tarball with published tokens 0.1.0. It verifies package integrity, registry/source fidelity and the selected journeys; it is not public UI 0.2.0 installation or behavioral proof of all 35 families.       |
 
 Commands and provenance are retained in
 [CONSUMER-1](https://github.com/marquee-ui/marquee-ui/blob/next/docs/slices/CONSUMER-1.md),
 [Batch 7](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-7.md)
 and its
 [packed provenance](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-7-evidence/consumer-provenance.json).
+The fresh proposed-release proof is recorded in
+[RELEASE-READINESS-1](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/RELEASE-READINESS-1.md).
 The [Batch 8 audit record](https://github.com/marquee-ui/marquee-ui/blob/next/docs/slices/RECIPE-INSTALL-AUDIT-1.md)
 records the inventory check. [Recipe contracts](./recipe-contracts.md) define caller
 responsibilities and deferred behaviors; [common-name APIs](./common-name-api.md)
