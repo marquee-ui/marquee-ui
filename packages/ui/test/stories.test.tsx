@@ -1,13 +1,14 @@
 import { cleanup, render } from "@testing-library/react";
 import { composeStories } from "@storybook/react-vite";
+import { expect as storyExpect } from "storybook/test";
 import type { ReactElement } from "react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { STORY_SUITES, storySuiteNames } from "./helpers/story-suites.js";
 
 /**
- * Compose every story and run each declared play in jsdom. Vitest's assertion
- * requirement below is satisfied by the real storybook/test assertions, not by
+ * Compose every story and run each declared play in jsdom. The assertion delta
+ * below observes the real storybook/test assertions during each play, not
  * the invocation counters. Omitting a play call or replacing it with a no-op
  * must fail that story even when the counters still claim it ran.
  *
@@ -59,8 +60,10 @@ describe("every story renders, and every play function passes", () => {
       it(id, async () => {
         const { container } = render(<Story />);
         if (typeof Story.play !== "function") return;
-        expect.hasAssertions();
+        const before = storyExpect.getState().assertionCalls;
         await Story.play({ canvasElement: container });
+        const assertions = storyExpect.getState().assertionCalls - before;
+        expect(assertions, `${id}: play executed no assertions`).toBeGreaterThan(0);
         ran.push(id);
       });
     }
