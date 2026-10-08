@@ -9,9 +9,9 @@ The original families have their own [common-name API guide](./common-name-api.m
 This source audit was checked on **2026-10-09** against the official references linked
 below. Radix wrappers expose the supported primitive props on their corresponding
 parts, including host refs, `asChild` where the primitive supports it, controlled or
-uncontrolled state and cancelable callbacks. Root and Provider state APIs are not
-DOM hosts. A custom slotted component must forward props, events and refs to the
-appropriate accessible host. This describes source-supported API exposure; it does
+uncontrolled state and cancelable callbacks. State-only roots and Providers do not
+supply DOM hosts; other roots expose the hosts named below. A custom slotted component
+must forward props, events and refs to the appropriate accessible host. This describes source-supported API exposure; it does
 not mean that every upstream prop combination has independent browser proof.
 Caller composition still owns labels, responsive layout, focus order and the 44px
 target when a custom host becomes interactive.

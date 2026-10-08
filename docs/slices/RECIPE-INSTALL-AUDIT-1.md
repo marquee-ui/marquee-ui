@@ -1,6 +1,6 @@
 # RECIPE-INSTALL-AUDIT-1 — recipe and install contract audit
 
-Batch: BATCH-PARITY-8. Date: 2026-10-09. Status: draft; independent review pending.
+Batch: BATCH-PARITY-8. Date: 2026-10-09. Status: complete; merged gate coordinator-owned.
 Base: `6cd97f2`. Product source remains the Batch 7 source at `15c266e`.
 
 ## Scope and ownership
@@ -75,6 +75,25 @@ At the committed draft, 2026-10-09:
 registry.json packages/ui/r examples/consumer`: exit 0; product, registry and
   starter contents equal the retained proof source.
 
-A fresh independent reviewer audits the committed draft in its own detached tree
-before closure. The coordinator owns the full merged gate and rendered-site
-validation. No product build or fresh consumer/browser run is claimed by this stream.
+- A static `react-markdown`/GFM render using the docs app's installed dependencies
+  exits 0 and renders all fourteen family headings. Evidence: `s2/markdown-render.json`
+  and `s2/recipe-contracts.rendered.html`. An initial root-package resolver could not
+  find React; using the docs app package context resolves its declared dependencies.
+
+## Independent review and closure
+
+One fresh independent default reviewer read the committed draft `cb552d0` in the
+detached tree `/home/ankit/Code/marquee-parity8-recipes-review` on 2026-10-09.
+Verdict: bounded green, no blocking factual/API/install-evidence finding. It
+independently checked fourteen families / 131 source exports, 74 links (the three
+known common-name-guide links await sibling integration), inventory/proof metadata
+and contemporary primary references. Four-file Prettier and whitespace pass;
+product, registry, starter, docs-example and token sources equal `15c266e`.
+Report and command verdicts:
+`/home/ankit/.marquee-scratch/BATCH-PARITY-8/s2/review/report.md`.
+
+The sole P3 clarification is closed: the introduction now distinguishes state-only
+roots/Providers from roots that expose DOM hosts, rather than allowing the reader
+to generalize the absence of a host to Tabs or Slider. No behavior or API changed.
+The coordinator owns the full merged gate and rendered-site validation. No product
+build or fresh consumer/browser run is claimed by this stream.
