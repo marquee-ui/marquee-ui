@@ -25,7 +25,7 @@ branch, which can change independently of those npm versions.
 
 ## Unreleased preview components
 
-The local review site also includes Select, Tabs, Dialog, AlertDialog, Popover, Tooltip, DropdownMenu, Slider, Combobox and Calendar from the component-parity program.
+The local review site also includes Select, Tabs, Dialog, AlertDialog, Popover, Tooltip, DropdownMenu, Slider, Combobox, Calendar, DatePicker and Table from the component-parity program.
 They are not in published UI 0.1.10 or the main-branch registry yet. The starter above
 continues to demonstrate that published release.
 
@@ -33,7 +33,7 @@ To try the candidate source after setting up the app below, change only the regi
 mapping's branch from `main` to `next`, then run:
 
 ```sh
-npx shadcn@4.21.4 add @marquee/select @marquee/tabs @marquee/dialog @marquee/alert-dialog @marquee/popover @marquee/tooltip @marquee/dropdown-menu @marquee/slider @marquee/combobox @marquee/calendar
+npx shadcn@4.21.4 add @marquee/select @marquee/tabs @marquee/dialog @marquee/alert-dialog @marquee/popover @marquee/tooltip @marquee/dropdown-menu @marquee/slider @marquee/combobox @marquee/calendar @marquee/date-picker @marquee/table
 ```
 
 If the app already uses a Sheet from an earlier Marquee release, update its Dialog
@@ -57,7 +57,8 @@ records scope and limits. Local packed-artifact proof for these additions is rec
 [BATCH-PARITY-2](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-2.md)
 [BATCH-PARITY-3](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-3.md)
 [BATCH-PARITY-4](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-4.md)
-and [BATCH-PARITY-5](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-5.md).
+[BATCH-PARITY-5](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-5.md)
+and [BATCH-PARITY-6](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-6.md).
 
 Combobox is a composed **single-select searchable popup** using cmdk and Radix Popover.
 It is not a drop-in copy of the current shadcn Base UI Combobox API. Editable inline
@@ -71,9 +72,8 @@ wrapper types. Their children remain caller-composed. Its live example shows the
 
 Calendar uses DayPicker 10 selection and replaceable component slots, with role-based
 styles and full-size day/navigation targets. Single, multiple and range selection are
-supported; caller-owned selection, labels, locale and formatting stay explicit. DatePicker
-popup/input composition is the next batch. Time selection, alternate calendars and exhaustive
-timezone/locale validation are not included in the current proof.
+supported; caller-owned selection, labels, locale and formatting stay explicit. Time selection,
+alternate calendars and exhaustive timezone/locale validation are not included in the current proof.
 
 The default Calendar needs **at least 328px of inner host width** for seven 44px day
 columns, padding and borders. Week numbers and custom slots may need more. Keep this
@@ -81,6 +81,22 @@ space available instead of clipping the grid or shrinking day targets. For the d
 390px mobile overlay examples, `DialogContent className="p-3"` provides 330px inside
 its frame; `PopoverContent className="w-auto p-2"` sizes to the calendar. Calendar's
 intrinsic minimum stays in force even when its caller is narrower.
+
+DatePicker provides **namespaced Calendar and Popover parts** with a panel sized for
+that standard Calendar frame. Compose the trigger, portal, content and calendar explicitly.
+Its examples cover single dates and date ranges; callers own selection, formatting,
+close-on-selection policy, hidden form values and reset. The aliases retain Calendar's
+selection types and Popover's slots and dismissal behavior. Current shadcn provides a
+Date Picker recipe rather than a separate root; these names are Marquee conveniences.
+Text entry, date parsing, natural-language input and time selection remain deferred.
+
+Table provides **native table parts**. Compose `TableContainer` explicitly when horizontal
+scrolling is needed; supply a meaningful accessible name with `aria-label` or
+`aria-labelledby`. Its native keyboard scrolling keeps a wide table inside its caller.
+Compose captions, header scopes, spans and genuine controls in cells; keep native table
+hosts when using `asChild`. Selected row paint does not supply selection logic.
+Sorting, filtering, pagination and data engines belong to the next DataTable batch.
+Unlike shadcn's implicit wrapper, `Table` itself remains a bare table here.
 
 DropdownMenu composes action items, checkbox/radio choices and directional submenus.
 Portals, indicators, arrows and chevrons are explicit parts. Selection closes by default;
