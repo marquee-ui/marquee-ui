@@ -389,6 +389,7 @@ describe("the invariant, over every part rather than a hand-written table", () =
     expect(sites.map((site) => `${site.file} (${site.variant})`).sort()).toEqual([
       "accordion.tsx (focus-visible)",
       "checkbox.tsx (has-focus-visible)",
+      "dialog.tsx (focus-visible)",
       "radio-group.tsx (has-focus-visible)",
       "select.tsx (focus-visible)",
       "switch.tsx (focus-visible)",
