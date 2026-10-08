@@ -201,3 +201,17 @@ export {
   type CalendarRootProps,
   type CalendarDayButtonProps,
 } from "./calendar.js";
+
+export {
+  Combobox,
+  ComboboxPortal,
+  ComboboxTrigger,
+  ComboboxContent,
+  ComboboxCommand,
+  ComboboxInput,
+  ComboboxList,
+  ComboboxItem,
+  ComboboxGroup,
+  ComboboxEmpty,
+  ComboboxSeparator,
+} from "./combobox.js";

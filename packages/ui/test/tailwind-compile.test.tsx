@@ -206,6 +206,7 @@ describe("every interactive element clears the 44px tap floor", () => {
   const offenders: string[] = [];
   const checked: string[] = [];
   const sliderTransports: string[] = [];
+  const nativeHiddenTransports: string[] = [];
 
   beforeAll(() => {
     const suites = STORY_SUITES;
@@ -216,6 +217,12 @@ describe("every interactive element clears the 44px tap floor", () => {
           'button, a[href], input, select, textarea, [role="button"], [role="slider"]',
         );
         for (const element of interactive) {
+          // Native hidden form values have no interactive host. The type check
+          // must not exempt ordinary inputs hidden by CSS or aria-hidden.
+          if (element instanceof HTMLInputElement && element.type === "hidden") {
+            nativeHiddenTransports.push(element.name);
+            continue;
+          }
           // Radix Select submits through a visually hidden native select. Its
           // accessible trigger is the tap target; still measure ordinary selects
           // and every button, including an incorrectly aria-hidden button.
@@ -283,6 +290,7 @@ describe("every interactive element clears the 44px tap floor", () => {
     expect(checked.length).toBeGreaterThan(20);
     expect(checked.some((id) => id.includes("[data-slot=slider-thumb]"))).toBe(true);
     expect(sliderTransports).toEqual(["volume"]);
+    expect(nativeHiddenTransports).toEqual(["fruit"]);
     expect(sheet.rootVars().get("--hit-min")).toBe("44px");
     expect(sheet.lengthPx("var(--hit-min)")).toBe(TAP_FLOOR_PX);
     expect(sheet.lengthPx("2.75rem")).toBe(TAP_FLOOR_PX);

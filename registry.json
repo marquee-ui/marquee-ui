@@ -456,6 +456,21 @@
       ]
     },
     {
+      "name": "combobox",
+      "type": "registry:ui",
+      "title": "Combobox",
+      "description": "Unreleased candidate. Caller-composed single-select searchable popup with keyboard navigation, filtering and explicit committed choice.",
+      "dependencies": ["@radix-ui/react-popover@^1.2.0", "cmdk@^1.1.1"],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/combobox.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/combobox.tsx"
+        }
+      ]
+    },
+    {
       "name": "calendar",
       "type": "registry:ui",
       "title": "Calendar",
