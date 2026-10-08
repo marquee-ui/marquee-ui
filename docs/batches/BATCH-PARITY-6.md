@@ -23,5 +23,9 @@ Current-shadcn common names do not imply interchangeable APIs.
 
 ## Evidence
 
-Pending. Scratch: `/home/ankit/.marquee-scratch/BATCH-PARITY-6/`.
+Baseline `DOCS_PORT=4182 pnpm verify` at `a4be556758fd82807177ddc014a7260227182fc8`
+passed on 2026-10-08: exit 0, 316s, 916 library / 39 docs / 5 consumer /
+258 browser cases. This proves the starting tree only.
+
+Scratch: `/home/ankit/.marquee-scratch/BATCH-PARITY-6/`.
 Preserve the verified Batch 5 snapshot on localhost:4174 until replacement proof.
