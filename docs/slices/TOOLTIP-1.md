@@ -1,6 +1,6 @@
 # TOOLTIP-1 — composed Tooltip
 
-Batch: BATCH-PARITY-3. Status: active; unreleased. Stream port 4192; reviewer 4196.
+Batch: BATCH-PARITY-3. Status: complete; unreleased. Stream port 4192; reviewer 4196.
 
 ## Scope
 
@@ -79,8 +79,7 @@ Content's former clipping was removed before these measurements.
 Final focused browser run on 2026-10-08 after rebuilding the final source: exit 0,
 24 passed (20.1s), all three viewport projects. Logs and demo/isolated/collision
 screenshots are under `~/.marquee-scratch/BATCH-PARITY-3/tooltip/browser-final/`.
-Root lint and typecheck also pass. Independent review is closed below; one full
-stream gate remains pending.
+Root lint and typecheck also pass. Independent review and the stream gate are closed below.
 
 ## Consumers
 
@@ -150,8 +149,7 @@ was found. The three honest Content-collapse survivors above test trigger/touch
 or module-inventory scope and require no behavioral change. The overflow-hidden
 GREEN control is ineffective because the Arrow positions against the fixed Popper
 ancestor outside the static Content box; it is not evidence of a missed clipping
-regression. The named corrected controls close all three findings, as recorded below. The full
-gate remains pending.
+regression. The named corrected controls close all three findings, as recorded below. The stream gate is recorded below.
 
 ## Closure at committed 60a202a3ae7594c70f5e957773b402f0a8533fa4
 
@@ -166,3 +164,40 @@ Author committed test-only corrections. The detached reviewer switched to that e
 The corrected ground control uses the preceding root build; only the test's runtime background fixture changes between the two browser controls, while focus source is unchanged. Author supplied positive corrected checks before requesting these controls; the reviewer deliberately ran no new viewport matrix or full gate. All mutations restored to 60a202a. Reviewer source tree is clean and reviewer port 4196 is free. The initial report's pending sentence is superseded by this closure. Worktree cleanup follows the report relay; durable logs/report remain in scratch.
 
 Cleanup completed: `git worktree remove /home/ankit/Code/marquee-tooltip-reviewer-1` exited 0. No author/sibling worktree changed by reviewer probes.
+
+## Stream gate — 2026-10-08
+
+Gate artifact: committed `00fe6d0a2e177b226e010a204cb49a49a5ec5a2a`, whose source/tests
+are the independently reviewed corrections at `60a202a`. No source, test or docs
+changed between the two full runs. Command: Node 22.18.0 on PATH, `DOCS_PORT=4192`
+and a scratch-specific `DOCS_BROWSER_OUTPUT`, then `pnpm verify`; both detached
+runs wrote their own exit sentinels and start/end epoch files.
+
+First full run: exit 1, wall 166 seconds. Library 796 passed in 46 files; docs 39
+passed in four files; consumer five passed/zero failed; browser 146 passed/one
+failed (2.3m). The inherited tablet Dialog-inside-Sheet check failed at
+`apps/docs/browser/dialog.spec.ts:208`: one Escape removed both child Dialog and
+Parent sheet. The trace showed the parent inert assertion passing before that
+Escape; it cannot establish the cause. All 24 Tooltip checks passed. The original
+red is preserved in `~/.marquee-scratch/BATCH-PARITY-3/tooltip/verify.log`, with
+trace/error context in `gate-browser/`.
+
+At the orchestrator's direction, the exact inherited tablet test was repeated
+three times against the first gate's existing build, without rebuilding or
+changing a spec: three passed (3.1s), exit 0. The first grep attempt selected zero
+tests because it anchored the partial test title; it is preserved separately and
+is not counted as proof. The valid discriminator uses the unique full test phrase
+without those anchors. This is an inherited intermittent failure; cause unproved.
+
+One explicitly admitted full same-source repeat then passed: sentinel exit 0,
+wall **159 seconds (2m39s)**. Runner summaries: **796 library tests/46 files; 39
+docs tests/four files; five consumer tests/zero failed; 147 browser checks passed
+(2.2m)** across 390/768/1280, including the inherited tablet case and all 24 Tooltip
+checks. No tolerance, expectation, source or sibling test changed. The passing
+record is `verify-repeat.log`/`verify-repeat.exit`; the passing browser artifacts
+are in `gate-repeat-browser/`, beside the original red and discriminator. Port
+4192 is free and generated registry output matches the committed source.
+
+Final changes after this gate are this documentation-only record. Publication,
+version changes, main merge and deployment remain held; the orchestrator owns
+merged review, gate, packed-consumer acceptance and batch reconciliation.
