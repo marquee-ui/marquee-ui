@@ -125,8 +125,92 @@ describe("the emitted stylesheet compiles", () => {
  * identical to one that works, in jsdom and in a screenshot of a component that
  * happened not to need it.
  */
+/**
+ * Exact structural markers observed in Recharts 3.10.1's rendered Bar story,
+ * source inspected 2026-10-08 (CartesianAxis/Bar/Layer/ZIndexPortal). They use
+ * SVG attributes or library inline styles rather than Tailwind declarations.
+ * Limit exceptions to chart descendants; caller/container classes and unknown
+ * names still owe a compiled utility. The collected marker set below must
+ * equal this list, so a stale exception cannot accumulate silently.
+ */
+const RECHARTS_MARKERS: ReadonlySet<string> = new Set([
+  "recharts-bar",
+  "recharts-bar-rectangle",
+  "recharts-bar-rectangles",
+  "recharts-cartesian-axis",
+  "recharts-cartesian-axis-tick",
+  "recharts-cartesian-axis-tick-label",
+  "recharts-cartesian-axis-tick-labels",
+  "recharts-cartesian-axis-tick-lines",
+  "recharts-cartesian-axis-tick-value",
+  "recharts-cartesian-axis-ticks",
+  "recharts-cartesian-grid",
+  "recharts-cartesian-grid-horizontal",
+  "recharts-inactive-bar",
+  "recharts-layer",
+  "recharts-legend-wrapper",
+  "recharts-rectangle",
+  "recharts-responsive-container",
+  "recharts-text",
+  "recharts-tooltip-wrapper",
+  "recharts-wrapper",
+  "recharts-xAxis",
+  "recharts-xAxis-tick-labels",
+  "recharts-xAxis-tick-lines",
+  "recharts-xAxis-ticks",
+  "recharts-yAxis",
+  "recharts-yAxis-tick-labels",
+  "recharts-yAxis-tick-lines",
+  "recharts-yAxis-ticks",
+  "recharts-zIndex-layer_-100",
+  "recharts-zIndex-layer_-50",
+  "recharts-zIndex-layer_100",
+  "recharts-zIndex-layer_1000",
+  "recharts-zIndex-layer_1100",
+  "recharts-zIndex-layer_1200",
+  "recharts-zIndex-layer_200",
+  "recharts-zIndex-layer_2000",
+  "recharts-zIndex-layer_300",
+  "recharts-zIndex-layer_400",
+  "recharts-zIndex-layer_500",
+  "recharts-zIndex-layer_600",
+  "xAxis",
+  "yAxis",
+]);
+
+function requiresUtility(token: string, element: Element): boolean {
+  return !(
+    RECHARTS_MARKERS.has(token) && element.parentElement?.closest('[data-slot="chart-container"]')
+  );
+}
+
+describe("renderer marker classification", () => {
+  it.each([
+    ["recharts-bar", true, false],
+    ["xAxis", true, false],
+    ["recharts-zIndex-layer_1000", true, false],
+    ["recharts-bar", false, true],
+    ["recharts-not-a-marker", true, true],
+    ["bg-not-a-role", true, true],
+    ["text-foreground", true, true],
+  ])("requires a utility for %s with chart ancestry %s: %s", (token, inside, expected) => {
+    const parent = document.createElement("div");
+    if (inside) parent.dataset.slot = "chart-container";
+    const element = document.createElement("div");
+    parent.append(element);
+    expect(requiresUtility(token, element)).toBe(expected);
+  });
+
+  it("requires a utility on the caller's chart container itself", () => {
+    const element = document.createElement("div");
+    element.dataset.slot = "chart-container";
+    expect(requiresUtility("recharts-bar", element)).toBe(true);
+  });
+});
+
 describe("every class the parts render is a utility that compiles", () => {
   const rendered = new Set<string>();
+  const markers = new Set<string>();
 
   beforeAll(() => {
     const suites = STORY_SUITES;
@@ -137,7 +221,9 @@ describe("every class the parts render is a utility that compiles", () => {
         // document is walked rather than just the mount point.
         for (const element of document.querySelectorAll<HTMLElement>("[class]")) {
           for (const token of element.getAttribute("class")!.split(/\s+/)) {
-            if (token) rendered.add(token);
+            if (!token) continue;
+            if (requiresUtility(token, element)) rendered.add(token);
+            else markers.add(token);
           }
         }
         cleanup();
@@ -152,6 +238,7 @@ describe("every class the parts render is a utility that compiles", () => {
     expect(rendered.size).toBeGreaterThan(60);
     expect(rendered.has("bg-primary")).toBe(true);
     expect(rendered.has("mq-marquee")).toBe(true);
+    expect([...markers].sort()).toEqual([...RECHARTS_MARKERS].sort());
   });
 
   it("compiles every one of them", () => {
