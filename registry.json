@@ -484,6 +484,21 @@
           "target": "components/ui/calendar.tsx"
         }
       ]
+    },
+    {
+      "name": "date-picker",
+      "type": "registry:ui",
+      "title": "DatePicker",
+      "description": "Caller-composed Calendar and Popover parts for date selection.",
+      "dependencies": [],
+      "registryDependencies": ["@marquee/calendar", "@marquee/popover", "@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/date-picker.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/date-picker.tsx"
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "date-picker",
+  "title": "DatePicker",
+  "description": "Caller-composed Calendar and Popover parts for date selection.",
+  "dependencies": [],
+  "registryDependencies": [
+    "@marquee/calendar",
+    "@marquee/popover",
+    "@marquee/utils"
+  ],
+  "files": [
+    {
+      "path": "packages/ui/src/date-picker.tsx",
+      "content": "\"use client\";\n\nimport type { ComponentProps } from \"react\";\nimport { Calendar, type CalendarProps } from \"./calendar\";\nimport {\n  Popover,\n  PopoverAnchor,\n  PopoverArrow,\n  PopoverClose,\n  PopoverContent,\n  PopoverDescription,\n  PopoverHeader,\n  PopoverPortal,\n  PopoverTitle,\n  PopoverTrigger,\n} from \"./popover\";\nimport { cn } from \"@/lib/utils\";\n\n/**\n * Namespaced conveniences for an explicit Calendar + Popover composition.\n * shadcn's Date Picker is a recipe, not a separate primitive root. These aliases\n * retain the existing parts' props, refs, asChild slots and accessible contracts.\n * Selection, formatting, form values, reset and close-on-selection belong to the\n * caller. Nothing renders a calendar, portal, title or close control implicitly.\n */\nexport const DatePicker = Popover;\nexport const DatePickerTrigger = PopoverTrigger;\nexport const DatePickerPortal = PopoverPortal;\nexport const DatePickerAnchor = PopoverAnchor;\nexport const DatePickerArrow = PopoverArrow;\nexport const DatePickerClose = PopoverClose;\nexport const DatePickerHeader = PopoverHeader;\nexport const DatePickerTitle = PopoverTitle;\nexport const DatePickerDescription = PopoverDescription;\nexport const DatePickerCalendar = Calendar;\nexport type DatePickerCalendarProps = CalendarProps;\n\n/**\n * Grant the standard 328px Calendar its full frame: auto width and 8px padding\n * fit one month in a 390px viewport with 16px collision clearance. Week numbers,\n * extra months and replacement parts can need more room; the caller composes it.\n * All positioning, dismissal and focus callbacks remain cancelable and explicit.\n */\nexport function DatePickerContent({\n  className,\n  align = \"start\",\n  sideOffset = 8,\n  collisionPadding = 16,\n  ...props\n}: ComponentProps<typeof PopoverContent>) {\n  return (\n    <PopoverContent\n      data-slot=\"date-picker-content\"\n      align={align}\n      sideOffset={sideOffset}\n      collisionPadding={collisionPadding}\n      className={cn(\"w-auto gap-2 p-2\", className)}\n      {...props}\n    />\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/date-picker.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}

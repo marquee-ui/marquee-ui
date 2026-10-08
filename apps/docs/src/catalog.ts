@@ -1,3 +1,5 @@
+import Previewdatepicker from "./examples/date-picker";
+import codedatepicker from "./examples/date-picker?raw";
 import Previewcombobox from "./examples/combobox";
 import codecombobox from "./examples/combobox?raw";
 import Previewcalendar from "./examples/calendar";
@@ -64,6 +66,15 @@ import PreviewTabs from "./examples/tabs";
 import codeTabs from "./examples/tabs?raw";
 
 export const catalog = [
+  {
+    id: "date-picker",
+    name: "DatePicker",
+    description:
+      "Unreleased candidate. Explicit Calendar and Popover composition for single dates and ranges, with caller-owned state, formatting and form values.",
+    story: "default",
+    Preview: Previewdatepicker,
+    code: codedatepicker,
+  },
   {
     id: "combobox",
     name: "Combobox",

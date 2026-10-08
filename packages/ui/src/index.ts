@@ -215,3 +215,18 @@ export {
   ComboboxEmpty,
   ComboboxSeparator,
 } from "./combobox.js";
+
+export {
+  DatePicker,
+  DatePickerTrigger,
+  DatePickerPortal,
+  DatePickerAnchor,
+  DatePickerArrow,
+  DatePickerClose,
+  DatePickerHeader,
+  DatePickerTitle,
+  DatePickerDescription,
+  DatePickerCalendar,
+  type DatePickerCalendarProps,
+  DatePickerContent,
+} from "./date-picker.js";
