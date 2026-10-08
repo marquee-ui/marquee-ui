@@ -25,6 +25,14 @@ async function target(control: Locator) {
 async function paintedArrow(panel: Locator) {
   const arrow = panel.locator('[data-slot="popover-arrow"]');
   await expect(arrow).toBeVisible();
+  const opacity = await arrow.evaluate((el) => {
+    let paint = Number(getComputedStyle(el).fillOpacity);
+    for (let host: Element | null = el; host; host = host.parentElement) {
+      paint *= Number(getComputedStyle(host).opacity);
+    }
+    return paint;
+  });
+  expect(opacity, "explicit Arrow paint opacity").toBeGreaterThan(0);
   expect(
     await arrow.evaluate((el) => {
       const box = el.getBoundingClientRect();
