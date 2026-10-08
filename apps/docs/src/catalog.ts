@@ -1,3 +1,5 @@
+import Previewcalendar from "./examples/calendar";
+import codecalendar from "./examples/calendar?raw";
 import Previewdropdownmenu from "./examples/dropdown-menu";
 import codedropdownmenu from "./examples/dropdown-menu?raw";
 import Previewslider from "./examples/slider";
@@ -60,6 +62,15 @@ import PreviewTabs from "./examples/tabs";
 import codeTabs from "./examples/tabs?raw";
 
 export const catalog = [
+  {
+    id: "calendar",
+    name: "Calendar",
+    description:
+      "Unreleased candidate. Inline single, multiple-date and range selection with caller-owned state and replaceable calendar slots.",
+    story: "default",
+    Preview: Previewcalendar,
+    code: codecalendar,
+  },
   {
     id: "button",
     name: "Button",

@@ -191,3 +191,13 @@ export {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from "./dropdown-menu.js";
+
+export {
+  Calendar,
+  CalendarRoot,
+  CalendarDayButton,
+  CalendarNavigationButton,
+  type CalendarProps,
+  type CalendarRootProps,
+  type CalendarDayButtonProps,
+} from "./calendar.js";
