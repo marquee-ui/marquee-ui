@@ -187,15 +187,20 @@ test("gives prose clear hierarchy, readable inline code and a contained table", 
   expect(await inline.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe(
     await paragraph.evaluate((el) => getComputedStyle(el).backgroundColor),
   );
-  const table = page.locator("#supported-stack table");
-  const header = table.locator("th").first();
-  const cell = table.locator("td").first();
-  expect(await header.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe(
-    await cell.evaluate((el) => getComputedStyle(el).backgroundColor),
-  );
-  expect(await header.evaluate((el) => Number(getComputedStyle(el).fontWeight))).toBeGreaterThan(
-    await cell.evaluate((el) => Number(getComputedStyle(el).fontWeight)),
-  );
+  const tables = page.locator("#supported-stack table");
+  await expect(tables).toHaveCount(2);
+  for (const [index, table] of (await tables.all()).entries()) {
+    const header = table.locator("th").first();
+    const cell = table.locator("td").first();
+    expect(
+      await header.evaluate((el) => getComputedStyle(el).backgroundColor),
+      `supported table ${index + 1} header fill differs from its body`,
+    ).not.toBe(await cell.evaluate((el) => getComputedStyle(el).backgroundColor));
+    expect(
+      await header.evaluate((el) => Number(getComputedStyle(el).fontWeight)),
+      `supported table ${index + 1} header weight exceeds its body`,
+    ).toBeGreaterThan(await cell.evaluate((el) => Number(getComputedStyle(el).fontWeight)));
+  }
   const list = page.locator("#supported-stack ul");
   expect(await list.evaluate((el) => getComputedStyle(el).listStyleType)).toBe("disc");
   expect(
@@ -212,6 +217,8 @@ test("gives prose clear hierarchy, readable inline code and a contained table", 
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
     page.viewportSize()!.width,
   );
-  await table.scrollIntoViewIfNeeded();
-  await page.screenshot({ path: test.info().outputPath("guide-prose.png") });
+  for (const [index, table] of (await tables.all()).entries()) {
+    await table.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: test.info().outputPath(`guide-prose-${index + 1}.png`) });
+  }
 });

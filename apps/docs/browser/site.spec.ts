@@ -171,7 +171,9 @@ test("renders every family and sends each workbench link to a real story", async
   ] as const;
   for (const [name, selector] of expectedParts) {
     await page.getByRole("button", { name: `Preview ${name}`, exact: true }).click();
-    await expect(page.getByRole("heading", { name, exact: true, level: 3 })).toBeFocused();
+    await expect(
+      page.locator(".family-detail").getByRole("heading", { name, exact: true, level: 3 }),
+    ).toBeFocused();
     const canvas = page.locator(".family-canvas");
     await expect(
       canvas.locator(selector).first(),

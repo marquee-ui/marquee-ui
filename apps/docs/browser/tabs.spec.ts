@@ -6,7 +6,9 @@ const example = readFileSync(new URL("../src/examples/tabs.tsx", import.meta.url
 async function openTabs(page: Page) {
   await page.goto("./#components");
   await page.getByRole("button", { name: "Preview Tabs", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Tabs", exact: true })).toBeVisible();
+  await expect(
+    page.locator(".family-detail").getByRole("heading", { name: "Tabs", exact: true }),
+  ).toBeFocused();
 }
 
 test("live Tabs selects by keyboard, contains 44px controls and copies highlighted source", async ({
