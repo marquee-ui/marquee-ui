@@ -136,7 +136,7 @@ export function ComboboxSeparator({
   return (
     <Command.Separator
       data-slot="combobox-separator"
-      className={cn("my-1 h-px bg-border", className)}
+      className={cn("my-1 h-px border-t border-border", className)}
       {...props}
     />
   );
