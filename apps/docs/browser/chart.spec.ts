@@ -71,6 +71,49 @@ async function paint(host: Locator) {
   });
 }
 
+async function seriesGeometry(chart: Locator, kind: "bars" | "lines") {
+  const marks = chart.locator(
+    kind === "bars" ? ".recharts-bar-rectangle path" : ".recharts-line-curve",
+  );
+  await expect(marks).toHaveCount(kind === "bars" ? 8 : 2);
+  for (const mark of await marks.all()) {
+    const geometry = (await mark.boundingBox())!;
+    expect(geometry.width, "rendered series width").toBeGreaterThan(0);
+    expect(geometry.height, "rendered series height").toBeGreaterThan(0);
+  }
+  await expect(marks.nth(kind === "bars" ? 4 : 1)).toHaveAttribute("stroke-dasharray", "4 3");
+  if (kind === "bars") {
+    for (const [index, ratio] of [18 / 12, 24 / 20, 28 / 16, 32 / 24].entries()) {
+      await expect
+        .poll(
+          () =>
+            marks.evaluateAll(
+              (nodes, month) =>
+                nodes[month]!.getBoundingClientRect().height /
+                nodes[month + 4]!.getBoundingClientRect().height,
+              index,
+            ),
+          { message: `month ${index + 1} bar heights represent the declared two-series data` },
+        )
+        .toBeCloseTo(ratio, 1);
+    }
+  } else {
+    const dots = chart.locator(".recharts-line-dots circle");
+    await expect(dots).toHaveCount(8);
+    const ys = await dots.evaluateAll((nodes) =>
+      nodes.map((node) => Number(node.getAttribute("cy"))),
+    );
+    const unit = (ys[0]! - ys[3]!) / (32 - 18);
+    expect(unit, "line values increase upward").toBeGreaterThan(0);
+    for (const [index, delta] of [6, 4, 12, 8].entries())
+      expect(
+        (ys[index + 4]! - ys[index]!) / unit,
+        `month ${index + 1} line positions represent both declared values`,
+      ).toBeCloseTo(delta, 1);
+  }
+  return marks;
+}
+
 async function namedPoint(chart: Locator, live: Locator) {
   await chart.focus();
   await expect(chart).toBeFocused();
@@ -104,7 +147,7 @@ test("Chart renders measured bar/line geometry, keyboard and pointer data plus a
     "Apr3224",
   ]);
   await expect(table.getByRole("rowheader", { name: "Apr" })).toHaveAttribute("scope", "row");
-  for (const kind of ["bars", "lines"]) {
+  for (const kind of ["bars", "lines"] as const) {
     const chart = canvas.getByRole("application", { name: `Monthly volume ${kind}` });
     await chart.scrollIntoViewIfNeeded();
     await expect(chart).toBeVisible();
@@ -119,45 +162,25 @@ test("Chart renders measured bar/line geometry, keyboard and pointer data plus a
     const box = (await chart.boundingBox())!;
     expect(box.width, `${kind} real width`).toBeGreaterThan(200);
     expect(box.height, `${kind} real height`).toBe(256);
-    const marks = chart.locator(
-      kind === "bars" ? ".recharts-bar-rectangle path" : ".recharts-line-curve",
-    );
-    await expect(marks).toHaveCount(kind === "bars" ? 8 : 2);
-    for (const mark of await marks.all()) {
-      const geometry = (await mark.boundingBox())!;
-      expect(geometry.width, "rendered series width").toBeGreaterThan(0);
-      expect(geometry.height, "rendered series height").toBeGreaterThan(0);
-    }
-    await expect(marks.nth(kind === "bars" ? 4 : 1)).toHaveAttribute("stroke-dasharray", "4 3");
-    if (kind === "bars") {
-      for (const [index, ratio] of [18 / 12, 24 / 20, 28 / 16, 32 / 24].entries()) {
-        await expect
-          .poll(
-            () =>
-              marks.evaluateAll(
-                (nodes, month) =>
-                  nodes[month]!.getBoundingClientRect().height /
-                  nodes[month + 4]!.getBoundingClientRect().height,
-                index,
-              ),
-            { message: `month ${index + 1} bar heights represent the declared two-series data` },
-          )
-          .toBeCloseTo(ratio, 1);
-      }
-    } else {
-      const dots = chart.locator(".recharts-line-dots circle");
-      await expect(dots).toHaveCount(8);
-      const ys = await dots.evaluateAll((nodes) =>
-        nodes.map((node) => Number(node.getAttribute("cy"))),
-      );
-      const unit = (ys[0]! - ys[3]!) / (32 - 18);
-      expect(unit, "line values increase upward").toBeGreaterThan(0);
-      for (const [index, delta] of [6, 4, 12, 8].entries())
-        expect(
-          (ys[index + 4]! - ys[index]!) / unit,
-          `month ${index + 1} line positions represent both declared values`,
-        ).toBeCloseTo(delta, 1);
-    }
+    const labels = chart.locator(".recharts-xAxis-tick-labels text");
+    await expect(labels).toHaveText(["Jan", "Feb", "Mar", "Apr"]);
+    await expect
+      .poll(
+        () =>
+          labels.evaluateAll((nodes) =>
+            Math.max(
+              0,
+              ...nodes.flatMap((node) => {
+                const text = node.getBoundingClientRect();
+                const svg = node.closest("svg")!.getBoundingClientRect();
+                return [svg.left - text.left, text.right - svg.right];
+              }),
+            ),
+          ),
+        { message: `${kind} all month labels fit the actual SVG without clipping` },
+      )
+      .toBeLessThanOrEqual(1);
+    const marks = await seriesGeometry(chart, kind);
     const live = host.getByRole("status");
     // Move the pointer outside the resized graph before switching to keyboard
     // modality; an active hover can otherwise continue to display its point.
@@ -195,67 +218,92 @@ test("Chart renders measured bar/line geometry, keyboard and pointer data plus a
 test("Chart SVG focus, live tooltip and labeled legend paint in isolated dark/light/forced colors", async ({
   page,
 }) => {
-  for (const [preset, forced] of [
-    ["arcade", false],
-    ["light", false],
-    ["light", true],
-  ] as const) {
-    await page.emulateMedia({ forcedColors: forced ? "active" : "none" });
-    await page.goto(
-      `storybook/iframe.html?id=parts-chart--default&viewMode=story&embed=true&globals=preset:${preset}`,
-    );
-    const chart = page.getByRole("application", { name: "Monthly volume bars" });
-    await expect(chart).toBeVisible();
-    if (preset === "light")
-      await expect
-        .poll(() =>
-          page
-            .locator("link#marquee-light-preset")
-            .evaluate((el) => Boolean((el as HTMLLinkElement).sheet)),
-        )
-        .toBe(true);
-    await page.keyboard.press("Tab");
-    await chart.focus();
-    await expect(chart).toBeFocused();
-    const focus = await paint(chart);
-    expect(focus.visible, "actual focused SVG is visible").toBe(true);
-    expect(focus.opacity, "actual focused SVG is opaque").toBe(1);
-    expect(focus.outlineStyle, "actual focused SVG ring").toBe("solid");
-    expect(focus.outlineWidth, "actual focused SVG ring width").toBeGreaterThanOrEqual(2);
-    expect(focus.outlineOffset, "inset ring avoids SVG clipping").toBeLessThanOrEqual(0);
-    expect(focus.outlineAlpha, "actual SVG outline visible alpha").toBeGreaterThan(0);
-    expect(
-      focus.focusContrast,
-      "actual SVG ring contrasts with exterior paint",
-    ).toBeGreaterThanOrEqual(3);
-    const live = page.getByRole("status");
-    await chart.press("ArrowRight");
-    await expect(live).toHaveText("Feb. North 24. South 20.");
-    const tooltip = await paint(live);
-    expect(tooltip.visible).toBe(true);
-    expect(tooltip.opacity).toBe(1);
-    expect(tooltip.backgroundAlpha, "tooltip has an opaque ground").toBe(1);
-    expect(tooltip.textContrast, "live data contrasts with tooltip ground").toBeGreaterThanOrEqual(
-      4.5,
-    );
-    const legend = page.getByRole("list", { name: "Volume series" });
-    for (const item of await legend.getByRole("listitem").all())
-      expect((await paint(item)).textContrast, "legend remains readable").toBeGreaterThanOrEqual(
-        4.5,
+  for (const kind of ["bars", "lines"] as const) {
+    for (const [preset, forced] of [
+      ["arcade", false],
+      ["light", false],
+      ["light", true],
+    ] as const) {
+      await page.emulateMedia({ forcedColors: forced ? "active" : "none" });
+      await page.goto(
+        `storybook/iframe.html?id=parts-chart--${kind === "bars" ? "default" : "line"}&viewMode=story&embed=true&globals=preset:${preset}`,
       );
-    const bars = chart.locator(".recharts-bar-rectangle path");
-    await expect(bars).toHaveCount(8);
-    await expect(bars.nth(4)).toHaveAttribute("stroke-dasharray", "4 3");
-    if (!forced) {
-      const fills = await bars.evaluateAll((marks) => [
-        getComputedStyle(marks[0]!).fill,
-        getComputedStyle(marks[4]!).fill,
-      ]);
-      expect(fills[0], "two role-token series paint distinctly").not.toBe(fills[1]);
+      const chart = page.getByRole("application", { name: `Monthly volume ${kind}` });
+      await expect(chart).toBeVisible();
+      if (preset === "light")
+        await expect
+          .poll(() =>
+            page
+              .locator("link#marquee-light-preset")
+              .evaluate((el) => Boolean((el as HTMLLinkElement).sheet)),
+          )
+          .toBe(true);
+      await page.evaluate(async () => {
+        await document.fonts.ready;
+      });
+      await page.mouse.move(0, 0);
+      await page.keyboard.press("Tab");
+      await chart.focus();
+      await expect(chart).toBeFocused();
+      const focus = await paint(chart);
+      expect(focus.visible, "actual focused SVG is visible").toBe(true);
+      expect(focus.opacity, "actual focused SVG is opaque").toBe(1);
+      expect(focus.outlineStyle, "actual focused SVG ring").toBe("solid");
+      expect(focus.outlineWidth, "actual focused SVG ring width").toBeGreaterThanOrEqual(2);
+      expect(focus.outlineOffset, "inset ring avoids SVG clipping").toBeLessThanOrEqual(0);
+      expect(focus.outlineAlpha, "actual SVG outline visible alpha").toBeGreaterThan(0);
+      expect(
+        focus.focusContrast,
+        "actual SVG ring contrasts with exterior paint",
+      ).toBeGreaterThanOrEqual(3);
+      const labelOverlap = await chart.evaluate((svg) => {
+        const bounds = svg.getBoundingClientRect();
+        const inset = Math.max(0, -parseFloat(getComputedStyle(svg).outlineOffset));
+        return Math.max(
+          0,
+          ...[...svg.querySelectorAll(".recharts-xAxis-tick-labels text")].flatMap((label) => {
+            const ink = label.getBoundingClientRect();
+            return [bounds.left + inset - ink.left, ink.right - (bounds.right - inset)];
+          }),
+        );
+      });
+      expect(
+        labelOverlap,
+        `${kind} month labels remain clear of the actual inward SVG focus ring`,
+      ).toBeLessThanOrEqual(0.1);
+      const marks = await seriesGeometry(chart, kind);
+      const live = page.getByRole("status");
+      await chart.press("ArrowRight");
+      await expect(live).toHaveText("Feb. North 24. South 20.");
+      const tooltip = await paint(live);
+      expect(tooltip.visible).toBe(true);
+      expect(tooltip.opacity).toBe(1);
+      expect(tooltip.backgroundAlpha, "tooltip has an opaque ground").toBe(1);
+      expect(
+        tooltip.textContrast,
+        "live data contrasts with tooltip ground",
+      ).toBeGreaterThanOrEqual(4.5);
+      const legend = page.getByRole("list", { name: "Volume series" });
+      for (const item of await legend.getByRole("listitem").all())
+        expect((await paint(item)).textContrast, "legend remains readable").toBeGreaterThanOrEqual(
+          4.5,
+        );
+      if (!forced) {
+        const colors = await marks.evaluateAll(
+          (nodes, type) => [
+            getComputedStyle(nodes[0]!)[type === "bars" ? "fill" : "stroke"],
+            getComputedStyle(nodes[type === "bars" ? 4 : 1]!)[type === "bars" ? "fill" : "stroke"],
+          ],
+          kind,
+        );
+        expect(colors[0], "two role-token series paint distinctly").not.toBe(colors[1]);
+      }
+      await page
+        .locator("#storybook-root")
+        .screenshot({
+          path: test.info().outputPath(`chart-paint-${kind}-${preset}-${forced}.png`),
+        });
     }
-    await page
-      .locator("#storybook-root")
-      .screenshot({ path: test.info().outputPath(`chart-paint-${preset}-${forced}.png`) });
   }
 });
 

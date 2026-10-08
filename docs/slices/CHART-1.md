@@ -94,4 +94,38 @@ mobile focus preserved active pointer hover at Feb, even during keyboard reads.
 The final modality setup moves the pointer outside the graph and uses real Left
 arrows to reach Jan. No product source changed for these probe corrections.
 
-Independent landed mutation review and the single full stream gate follow.
+## Independent review and corrections
+
+The fresh detached reviewer at `a9e050c` built its own source, passed 291 affected
+UI tests / 15 browser cases, and ran 14 landed mutations covering all ten touched
+test-bearing surfaces. Every mutation was confirmed in a diff before running,
+with predictions, runner exits, named assertions and git-restored green reruns in
+`r6/review-initial.md` and its adjacent logs. Native host/event and live content
+collapses, table fallback and registration omissions, docs series-data collapse,
+and actual SVG focus removal fail their relevant assertions.
+
+Two findings required closure:
+
+- The initial screenshot hypothesis of a clipped line month was narrowed by
+  measurement: raw viewport bounds pass at all widths (`s2/labels-before.log`,
+  three passed), with Apr ending 0.5px inside the SVG. The isolated Line's actual
+  2px inset focus ring overlaps its final 1.5px. The new focused-label assertion
+  fails all three widths at exactly that value (`s2/ring-before.log`); the
+  reviewer's independent `r6/focus-edge-probe.log` agrees. Caller Line right margin
+  moves from 12 to 16 on the existing 4px grid, in story and docs example. The
+  component's focus ring remains intact. This is an isolated focused-ring
+  overlap; docs' outward global ring did not show it.
+- Changing the story's South data key to North left the old native/keyboard and
+  paint-only probes green, while still announcing original South data. The
+  isolated Default and Line browser proof now reads actual bar-height ratios and
+  line-point positions against every declared value, in all three paint modes at
+  all widths. The same helper covers the docs graph; concise live text alone is
+  not evidence that rendered marks use those values.
+
+Two honest ceilings remain: the pre-existing global play-call no-op still passes
+247 story tests because the runner records reaching the call, and removing only
+the SVG descendant focus classes leaves the shared host-focus suite green. The
+isolated browser SVG test does reject that actual focus removal. Neither survivor
+is presented as a resolved instrument property.
+
+Exact correction review and the single full stream gate follow.

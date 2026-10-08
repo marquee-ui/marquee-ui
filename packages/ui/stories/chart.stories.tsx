@@ -126,7 +126,7 @@ function MonthlyPlot({ kind, fixed = false }: { kind: "bars" | "lines"; fixed?: 
             data={data}
             accessibilityLayer
             aria-label="Monthly volume lines"
-            margin={{ top: 12, right: 12, bottom: 8, left: 0 }}
+            margin={{ top: 12, right: 16, bottom: 8, left: 0 }}
           >
             {parts}
             <RechartsLine
