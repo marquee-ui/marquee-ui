@@ -96,8 +96,8 @@ HTML host or an example composition does not supply a separate family contract.
 
 Existing-family extensions remain deferred: controller-bound Form integration,
 tri-state Checkbox presentation, group-managed RadioGroup/Toggle APIs,
-four-side or draggable Sheet, toast queues/promise management, automatic Avatar
-fallback and additional form transports. The contract guides describe the current
+four-side or draggable Sheet, toast queues/promise management and automatic Avatar
+fallback. The contract guides describe the current
 caller responsibilities; their absence is not silently implemented by this audit.
 
 New-family extensions remain bounded by the candidate guide: editable/multiple
