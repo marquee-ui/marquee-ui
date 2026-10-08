@@ -66,8 +66,8 @@ afterEach(cleanup);
  * against being edited to lie about itself; what closes it is review of this
  * file's diff, which is why it is said here rather than left implied.
  */
-const DECLARED_PLAYS = 175;
-const DECLARED_STORIES = 205;
+const DECLARED_PLAYS = 181;
+const DECLARED_STORIES = 211;
 
 describe("every story renders, and every play function passes", () => {
   const seen: string[] = [];
@@ -100,7 +100,7 @@ describe("every story renders, and every play function passes", () => {
     // part that never entered the shared map reddens instead of vanishing
     // (layer 1 of the Switch, MED-2).
     expect(Object.keys(SUITES).sort()).toEqual(storySuiteNames());
-    expect(storySuiteNames()).toHaveLength(33);
+    expect(storySuiteNames()).toHaveLength(34);
     // Exact, not a floor: a floor of 35 tolerated seven stories vanishing.
     expect(seen).toHaveLength(DECLARED_STORIES);
   });

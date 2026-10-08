@@ -243,3 +243,12 @@ export {
   TableCell,
   TableCaption,
 } from "./table.js";
+
+export {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  ChartLegendItem,
+} from "./chart.js";
