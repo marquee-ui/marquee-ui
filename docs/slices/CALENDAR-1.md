@@ -1,6 +1,6 @@
 # CALENDAR-1 — composable Calendar
 
-Batch: BATCH-PARITY-5. Status: active; unreleased.
+Batch: BATCH-PARITY-5. Status: complete; unreleased.
 Stream port 4192; reviewer 4196.
 
 ## Scope
@@ -225,3 +225,26 @@ full normal/forced-color canvases and confirmed exact inclusive selection extent
 Review worktree removed; all original logs, landing proofs, screenshots, traces and
 476 unrelated surviving unit rows remain in
 `/home/ankit/.marquee-scratch/BATCH-PARITY-5/r6/report.md` and its adjacent artifacts.
+
+## Full stream gate
+
+One full stream `DOCS_PORT=4192 pnpm verify`, after independent review closure,
+exited **0** on `b857e0e1e00ac90e853900993662223a59ceca3d`. Command environment:
+`PATH=/home/ankit/.nvm/versions/node/v22.18.0/bin:$PATH`,
+`DOCS_BROWSER_OUTPUT=/home/ankit/.marquee-scratch/BATCH-PARITY-5/s2/gate-browser`.
+The detached runner held one of the two batch gate locks; its own exit sentinel
+and summaries were read. Started 2026-10-08 04:35:42 UTC, finished 04:40:44 UTC:
+302 seconds wall time. Runner: **897 library tests (53 files), 39 docs tests
+(four files), five consumer checks, 234 browser cases (4.5m)**, all passed.
+
+No full gate preceded review or was repeated. The final record commit changes only
+this Markdown file after the green source/artifact gate. The working tree was clean
+at completion and port 4192 was released. Stream branch is ready for coordinator
+reconciliation; publication hold remains in force. No database, Steam, shots,
+STATUS, PR, main merge, deployment, npm, Pages or domain operation was performed.
+
+Final decisions: preserve the maintained DayPicker v10 selection contract and
+replaceable slots; use muted action selection fill plus framed endpoints so the
+external focus ring contrasts with adjacent selected days; under forced colors,
+underline inclusive selected dates; keep announcements/reset/native date transport
+caller-owned. Context limits and original failures above remain part of the record.
