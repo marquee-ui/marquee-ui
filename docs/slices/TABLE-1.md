@@ -1,6 +1,6 @@
 # TABLE-1 — semantic composable tables
 
-Batch: BATCH-PARITY-6. Status: independent review and shared preview guard closed; repeat gate pending. Stream port 4192;
+Batch: BATCH-PARITY-6. Status: complete; independently reviewed and verified. Stream port 4192;
 reviewer port 4196.
 
 ## Scope and contracts
@@ -246,3 +246,26 @@ and table checksums were verified unchanged. No new finding or REQUEST was raise
 Total independently run controls: 20; fully GREEN controls: 1, closed by the per-host
 event-spy fix. The coordinator-authorized repeat is recorded separately below and
 preserves every original failure.
+
+## Final stream verification
+
+The coordinator-authorized repeat `DOCS_PORT=4192 pnpm verify` at committed
+`ad60662f96b52feeaae30db78898d5327dd37dcf` exited 0 on 2026-10-08,
+12:22:39–12:28:15 IST (5m36s). Runner summaries: 56 library files / 928 tests passed,
+4 docs files / 39 tests passed, 5 consumer tests passed, and all 270 browser cases
+passed across mobile/tablet/desktop (5.1m). Lint, typecheck and root build passed before
+those suites. The corrected shared inventory/actual-preview check passed on all three
+projects; the inherited nested Dialog/Sheet Escape issue did not recur in either run.
+Its upstream cause remains unproved.
+
+The immutable repeat artifact is recorded by `s2/verify-repeat.source`; logs, exit,
+start/end sentinels and complete captures/traces remain in `s2/verify-repeat.*` and
+`s2/full-browser-repeat/`. Original failed evidence is preserved separately. Complete
+mobile first/final-column captures and isolated light/forced-color focus captures
+were inspected; normal selected fill and forced-color selected boundary captures were
+also inspected. Paint claims are measurements at these presets/viewports and the
+sampled exterior surfaces, not a broader audit.
+
+This final commit adds only the gate record; implementation, examples, stories,
+tests, shared wiring and generated registry bytes match the verified artifact.
+No public operation, PR, merge, deployment, publication or Pile runtime operation ran.
