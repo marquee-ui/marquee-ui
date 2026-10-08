@@ -83,7 +83,22 @@ and exit sentinel: `integration/baseline.*`.
   close both required/wasteful verdicts. This finite guard does not certify Next
   integration; packed consumer support remains React 19/Tailwind 4/Vite.
 
-Merged review, merged gate, fresh pack and localhost proof follow.
+The first merged review at `9dc572f` found two P2 keyboard interactions across
+Chart, native DataTable scrolling and Dialog. Focused SVG arrows advanced data
+and also scrolled the ancestor, clipping the plot. ChartContainer now preserves
+caller events and cancels the browser default only for Left/Right on its own
+focused accessible SVG. Native region and descendant-control defaults stay intact.
+
+The second finding was native SVG Tab landing on the Dialog panel. Independent
+traces proved that Recharts removed active dots or tooltip nodes during blur while
+focus was briefly BODY; Radix's existing mutation observer then selected the panel.
+Removing Tooltip alone did not fix it, and an explicit synchronous focus adapter
+also failed. A bounded modal lifetime recipe passed all nine width/theme arms:
+Line active dots and Tooltip cursor are disabled, and the custom tooltip retains
+its host and one nonempty text node. Inactive content stays hidden; live values,
+Tab/Shift+Tab, Close and Escape remain correct. No general Dialog change or focus
+manager is introduced. Original HOLD report, controls and screenshots remain in
+`merged-review/`; corrected stream/merged review and gates follow.
 
 ## Finite deferred validation limits
 

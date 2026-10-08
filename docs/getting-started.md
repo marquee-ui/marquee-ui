@@ -125,6 +125,17 @@ legend content. Additional chart types, brush/zoom, animation controls and expor
 remain outside this bounded recipe. These parts do not promise a drop-in shadcn
 API or extend the verified React 19/Tailwind 4/Vite consumer stack.
 
+Left/Right on the focused accessible chart SVG keeps point navigation from
+scrolling an enclosing native table; arrows on the TableContainer still scroll
+it. Inside a modal, use the
+[InDialog composition](https://github.com/marquee-ui/marquee-ui/blob/next/packages/ui/stories/chart.stories.tsx):
+disable transient Line active dots and Tooltip cursor, and keep the custom tooltip
+host mounted with one nonempty text child. Recharts hides the inactive tooltip;
+the stable nodes let native Tab and Shift+Tab reach the surrounding controls.
+Conditional removal of active chart nodes during blur can make the modal focus
+scope select its panel before the next control. These are explicit caller recipe
+choices; Chart does not supply a modal focus manager.
+
 DropdownMenu composes action items, checkbox/radio choices and directional submenus.
 Portals, indicators, arrows and chevrons are explicit parts. Selection closes by default;
 prevent its default to keep a settings menu open. It is modal by default and supports
