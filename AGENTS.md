@@ -51,9 +51,11 @@ so a component copied out of the registry reads the same here as there.
 - `packages/ui` - the thirty-five part families, one file each, in shadcn's lowercase
   spelling (`button.tsx`). They import `cn` from `@/lib/utils`, which is the alias
   the registry ships them under; the CLI rewrites it to the consumer's own.
-- `packages/ui/stories` - one story per part and per variant. **Stories are the
-  tests** (D4): `packages/ui/test/stories.test.tsx` composes every one of them and
-  runs every `play`, so a story that stops working reddens `pnpm test`.
+- `packages/ui/stories` - one story per part and per variant. The corpus runner
+  (`packages/ui/test/stories.test.tsx`) composes stories and invokes their plays;
+  focused tests and browser journeys supplement it. The known invocation no-op
+  survivor is recorded in `docs/component-parity.md`'s finite validation limits.
+  Do not treat this corpus alone as proof of every part's behavior.
 - `registry.json` at the root, built into `packages/ui/r/` by `pnpm build`. That
   directory is COMMITTED build output: it needs a raw GitHub URL, and it needs to
   sit inside the package's `files` so a consumer with no network can install from
