@@ -28,6 +28,7 @@ function walk(dir: string, out: string[]): string[] {
  */
 export const PUBLISHED_SOURCE_FILES = [
   "packages/ui/src/table.tsx",
+  "packages/ui/src/date-picker.tsx",
   "packages/tokens/src/build.ts",
   "packages/tokens/src/checks/contrast.ts",
   "packages/tokens/src/checks/distinctness.ts",
@@ -90,6 +91,7 @@ export const PUBLISHED_SOURCE_FILES = [
  */
 export const STORY_FILES = [
   "packages/ui/stories/table.stories.tsx",
+  "packages/ui/stories/date-picker.stories.tsx",
   "packages/ui/stories/accordion.stories.tsx",
   "packages/ui/stories/alert.stories.tsx",
   "packages/ui/stories/avatar.stories.tsx",

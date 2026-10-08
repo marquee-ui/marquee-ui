@@ -1,4 +1,5 @@
 import * as table from "../../stories/table.stories.js";
+import * as datepicker from "../../stories/date-picker.stories.js";
 import * as combobox from "../../stories/combobox.stories.js";
 import * as calendar from "../../stories/calendar.stories.js";
 import * as dropdownmenu from "../../stories/dropdown-menu.stories.js";
@@ -51,6 +52,7 @@ import * as tooltip from "../../stories/tooltip.stories.js";
 
 export const STORY_SUITES = {
   table: table,
+  "date-picker": datepicker,
   combobox,
   calendar,
   "dropdown-menu": dropdownmenu,
