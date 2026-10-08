@@ -1,6 +1,6 @@
 # DATE-PICKER-1 — composed date selection
 
-Batch: BATCH-PARITY-6. Status: active. Stream port 4191; reviewer port 4195.
+Batch: BATCH-PARITY-6. Status: complete. Stream port 4191; reviewer port 4195.
 
 ## Scope and contracts
 
@@ -280,3 +280,21 @@ PROVED inventory closure: `apps/docs/browser/site.spec.ts` was absent from the o
 
 Proof/evidence: `site-collapse.landed.diff` shows the subject collapse; source grep observed the placeholder; catalog32/date-picker inclusion separately verified unchanged; `site-collapse.restored.diff` is empty after git restore. Frozen install, tokens build, one Storybook build, both docs builds and both assemblies exited0 (`site-*.exit`). No full gate, DB, external publication or node_modules mutation. Detached checkout cleaned after this appendix was written. The original eight-control table above is unchanged.
 ```
+
+## Full gate
+
+One full stream gate: `DOCS_PORT=4191 pnpm verify`, Node22.18.0/pnpm10.24.0,
+2026-10-08, exact source `74086b417989e3f17ac2e713c64edde1b91cb25d`. Sentinel **exit0**;
+runner **56 library files / 931 tests passed**, **4 docs files / 39 tests passed**,
+**5 consumer tests passed**, **273 browser cases passed** across all three projects
+(browser runner5.1m). Wall **336s**, `2026-10-08T12:23:50,064975343+05:30` to `2026-10-08T12:29:26,679087234+05:30`.
+Logs/source/time/exit proofs: `s1/verify.log`, `verify.source`, `verify.started`,
+`verify.finished`, `verify.exit` under the batch scratch directory. The prior
+inherited tablet Dialog-inside-Sheet Escape intermittent did not recur.
+
+The gate builds before its tests and used the final runtime source and corrected
+shared site inventory. Subsequent changes only record this gate in this document;
+no further product testing was needed. Layer1 closed one MEDIUM/one LOW, ran nine
+controls (eight original plus the shared inventory), and recorded all surviving
+GREEN tests' independent bounds. All source/registry mutations were restored.
+No public operations; the stream branch stays pushed for coordinator reconciliation.
