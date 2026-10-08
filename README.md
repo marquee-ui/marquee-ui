@@ -35,8 +35,10 @@ The documentation site is available for local review. Its planned publication UR
   has a raw GitHub URL, and included in the published UI package, so consumers
   can serve a version-pinned registry from their installed npm copy. The CLI and
   component dependencies may still need network access.
-- **Storybook**: the workbench, and the test suite. Every story runs under vitest
-  through `composeStories`, so a story that stops working reddens `pnpm test`.
+- **Storybook**: the workbench and story corpus used by the tests. Vitest composes
+  stories through `composeStories`; focused tests and browser journeys supplement
+  their plays. The [finite runner limits](docs/component-parity.md#finite-deferred-validation-limits)
+  record where that evidence does not establish behavior.
 
 ## Installing a component
 
