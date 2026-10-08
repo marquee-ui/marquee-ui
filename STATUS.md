@@ -7,7 +7,7 @@ The user authorized a finite component-parity program on 2026-10-08. Implement t
 batch just in time. The public-release hold is a separate lane and does not block
 local implementation or subsequent green batches.
 
-## Active batch
+## Next batch
 
 Next: **BATCH-PARITY-8 — Existing common-name API audit and documentation**.
 Expand its two audit streams just in time from the matrix; do not treat the audit as
@@ -42,16 +42,15 @@ This is library work; no Pile product backlog advances.
 
 ## Session log
 
-| Date       | Batch              | Result                                                                                                                         |
-| ---------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| 2026-10-08 | RELEASE-1          | Local release candidate verified; publication held for user review.                                                            |
-| 2026-10-08 | RELEASE-1-UX       | Requested live themes and highlighted source verified; publication held.                                                       |
-| 2026-10-08 | RELEASE-1-CONTROLS | Visual picker and independent accents verified; publication held.                                                              |
-| 2026-10-08 | BATCH-PARITY-1     | Select/Tabs and nested overlay compatibility verified; localhost refreshed; publication held.                                  |
-| 2026-10-08 | BATCH-PARITY-2     | Dialog/AlertDialog and four-family overlay lifecycle verified; localhost refreshed; publication held.                          |
-| 2026-10-08 | BATCH-PARITY-3     | Popover/Tooltip, six-family overlay lifecycle and fresh installed proof verified; localhost refreshed; publication held.       |
-| 2026-10-08 | BATCH-PARITY-4     | DropdownMenu/Slider, corrected vertical range geometry and fresh packed proof verified; localhost refreshed; publication held. |
-| 2026-10-08 | BATCH-PARITY-5     | Combobox/Calendar, intrinsic grid containment and packed overlay composition verified; localhost refreshed; publication held.  |
-| 2026-10-08 | BATCH-PARITY-6     | DatePicker/Table, nested fallback focus contrast and packed native scrolling verified; localhost refreshed; publication held.  |
-
-| 2026-10-08 | BATCH-PARITY-7 | DataTable/Chart bounded recipes, native scroll and modal focus corrections independently verified; fresh packed proof and localhost refreshed; publication held. |
+| Date       | Batch              | Result                                                                                                                                                           |
+| ---------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-08 | RELEASE-1          | Local release candidate verified; publication held for user review.                                                                                              |
+| 2026-10-08 | RELEASE-1-UX       | Requested live themes and highlighted source verified; publication held.                                                                                         |
+| 2026-10-08 | RELEASE-1-CONTROLS | Visual picker and independent accents verified; publication held.                                                                                                |
+| 2026-10-08 | BATCH-PARITY-1     | Select/Tabs and nested overlay compatibility verified; localhost refreshed; publication held.                                                                    |
+| 2026-10-08 | BATCH-PARITY-2     | Dialog/AlertDialog and four-family overlay lifecycle verified; localhost refreshed; publication held.                                                            |
+| 2026-10-08 | BATCH-PARITY-3     | Popover/Tooltip, six-family overlay lifecycle and fresh installed proof verified; localhost refreshed; publication held.                                         |
+| 2026-10-08 | BATCH-PARITY-4     | DropdownMenu/Slider, corrected vertical range geometry and fresh packed proof verified; localhost refreshed; publication held.                                   |
+| 2026-10-08 | BATCH-PARITY-5     | Combobox/Calendar, intrinsic grid containment and packed overlay composition verified; localhost refreshed; publication held.                                    |
+| 2026-10-08 | BATCH-PARITY-6     | DatePicker/Table, nested fallback focus contrast and packed native scrolling verified; localhost refreshed; publication held.                                    |
+| 2026-10-08 | BATCH-PARITY-7     | DataTable/Chart bounded recipes, native scroll and modal focus corrections independently verified; fresh packed proof and localhost refreshed; publication held. |
