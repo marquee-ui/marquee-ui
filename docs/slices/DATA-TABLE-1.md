@@ -1,6 +1,6 @@
 # DATA-TABLE-1 — composed client data table
 
-Batch: BATCH-PARITY-7. Status: reviewed; gate pending. Stream port 4191; reviewer 4195.
+Batch: BATCH-PARITY-7. Status: complete; integration/public operations held. Stream port 4191; reviewer 4195.
 
 ## Supported contract
 
@@ -110,4 +110,16 @@ the directive produced 1 failed / 12 passed at the exact wasteful-boundary asser
 then git restoration returned all 38 green and the detached tree clean. Commands:
 `pnpm exec vitest run --project ui packages/ui/test/client-boundary.test.ts packages/ui/test/data-table.test.tsx packages/ui/test/registry.test.ts`;
 control: `pnpm exec vitest run --project ui packages/ui/test/client-boundary.test.ts`.
-Evidence: `r5/review-supplement.json`. The corrected complete stream gate is pending.
+Evidence: `r5/review-supplement.json`.
+
+## Stream gate
+
+`DOCS_PORT=4191 pnpm verify` under Node 22.18.0 / pnpm 10.24.0 at
+`41af7dd38df63f142ee57d87798d559e79ca42cd`, 2026-10-08 21:33:02–21:39:11 IST
+(6m09s), sentinel exit 0: lint, format, typecheck, build, 956 library tests in 59
+files, 39 docs tests in 4 files, 5 consumer-script tests and 297 browser cases at
+390/768/1280 passed. The browser runner reported 5.6m. Source, start/end, runner log
+and exit are preserved in batch scratch `s1/verify.*`; final browser artifacts are
+`s1/gate-browser/`. Final focused action screenshots at all three widths were
+inspected, alongside the earlier isolated dark/light/forced sort, data, action and
+empty-state captures. This final record changes documentation only.
