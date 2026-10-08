@@ -9,15 +9,11 @@ local implementation or subsequent green batches.
 
 ## Active batch
 
-Next: BATCH-PARITY-4 — DropdownMenu and Slider. Expand only its two bounded slices
-from [the roadmap](docs/component-parity.md), preserving compatible overlay dependencies,
-actual painted focus/arrow checks and the candidate install/localhost workflow.
-
-[BATCH-PARITY-3](docs/batches/BATCH-PARITY-3.md) is complete locally: Popover and Tooltip,
-independent reviews, merged gate, fresh packed consumer and responsive inspection.
-The Tooltip stream recorded one inherited intermittent tablet Dialog failure; cause
-unproved, exact-build discriminator and unchanged full repeat green. No fix is claimed.
-Final-head hosted CI and handoff evidence are recorded at the path below.
+Active: [BATCH-PARITY-4](docs/batches/BATCH-PARITY-4.md) — DropdownMenu and Slider.
+Two isolated streams own [DropdownMenu](docs/slices/DROPDOWN-MENU-1.md) and
+[Slider](docs/slices/SLIDER-1.md). Shared registration and final proof are reconciler-owned.
+MID-SLICE: baseline gate and composition recorded / implement both families, review,
+merge, gate, prove packed consumer and refresh localhost before advancing.
 
 ## Release hold and current preview
 
