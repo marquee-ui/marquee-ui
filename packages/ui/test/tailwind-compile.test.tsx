@@ -179,6 +179,7 @@ const RECHARTS_MARKERS: ReadonlySet<string> = new Set([
 ]);
 
 function requiresUtility(token: string, element: Element): boolean {
+  if (element.matches('[data-slot="chart-container"]')) return true;
   return !(
     RECHARTS_MARKERS.has(token) && element.parentElement?.closest('[data-slot="chart-container"]')
   );
@@ -204,6 +205,9 @@ describe("renderer marker classification", () => {
   it("requires a utility on the caller's chart container itself", () => {
     const element = document.createElement("div");
     element.dataset.slot = "chart-container";
+    const outer = document.createElement("div");
+    outer.dataset.slot = "chart-container";
+    outer.append(element);
     expect(requiresUtility("recharts-bar", element)).toBe(true);
   });
 });
