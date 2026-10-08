@@ -454,6 +454,21 @@
           "target": "components/ui/slider.tsx"
         }
       ]
+    },
+    {
+      "name": "calendar",
+      "type": "registry:ui",
+      "title": "Calendar",
+      "description": "Unreleased candidate. Inline single, multiple-date and range selection with caller-owned state and replaceable calendar slots.",
+      "dependencies": ["@daypicker/react@^10.0.2"],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/calendar.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/calendar.tsx"
+        }
+      ]
     }
   ]
 }
