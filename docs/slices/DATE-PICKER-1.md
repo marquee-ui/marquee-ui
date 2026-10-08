@@ -378,3 +378,14 @@ READY — no remaining blocking finding in this narrow correction. Independent u
 Evidence: `inset-{baseline,old-source,content-null,restored}.{json,log,exit}`, old/Content-null `.landed.diff` and empty `.restored.diff`; browser `inset-{baseline,old,restored}-browser.{log,exit}`, immutable pixel records/screenshots in `inset-{baseline,old,restored}-pixels/`, fresh-package byte equality proofs and build logs/exit0 per case. Probe assertions copied unchanged from supplied script after its launcher-readiness correction, rewriting only runtime path/port/output. Browser used natural Tab/Enter; no focus() repair; own freshly unpacked npm package entry and declared source CSS, no docs CSS. Mutation was made in tracked detached source before packing; installed files never edited in place. No fullverify/DB/Pile/public operation. Original reports above unchanged; review checkout clean and removed after this appendix.
 
 ```
+
+Corrected full gate after this product fix: `DOCS_PORT=4191 pnpm verify`,
+Node22.18.0/pnpm10.24.0, 2026-10-08, source `11dea0acad9b3ad5667430b6efe89b8dd458b2c2`.
+Started `2026-10-08T13:06:26,936317863+05:30`, finished `2026-10-08T13:12:16,467368267+05:30`;
+350 seconds wall. Runner and sentinel both exit0: 56 library files / 933 tests,
+4 docs files / 39 tests, 5 consumer checks, all 273 browser cases across
+390/768/1280 passed (browser runner 5.3m). The inherited tablet Dialog-inside-Sheet
+Escape case passed. The original gate remains recorded above; this single
+corrected gate was required after the actual panel focus fix. No runtime source
+changed after it. Evidence: `s1/verify-panel-focus.log`, `.source`, `.exit`,
+`.started`, `.finished` and `s1/panel-focus-full-browser/`.
