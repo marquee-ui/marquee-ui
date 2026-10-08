@@ -243,3 +243,45 @@ it("preserves native day/nav refs, event props, disabled state and form-safe typ
   expect(click).toHaveBeenCalledOnce();
   expect(submit).not.toHaveBeenCalled();
 });
+
+it("retains required single selection and restarts an overlong range at its new endpoint", async () => {
+  const change = vi.fn();
+  const { rerender } = render(
+    <Calendar mode="single" required month={month} selected={date(12)} onSelect={change} />,
+  );
+  await userEvent.click(dayButton(12));
+  expect(change.mock.calls[0]![0]).toEqual(date(12));
+  expect(dayButton(12).closest("td")).toHaveAttribute("aria-selected", "true");
+  rerender(<Calendar mode="range" month={month} min={2} max={5} />);
+  await userEvent.click(dayButton(1));
+  await userEvent.click(dayButton(7));
+  expect(screen.getAllByRole("gridcell", { selected: true })).toHaveLength(1);
+  expect(dayButton(7).closest("td")).toHaveAttribute("aria-selected", "true");
+  await userEvent.click(dayButton(9));
+  expect(screen.getAllByRole("gridcell", { selected: true })).toHaveLength(3);
+  expect(dayButton(7)).toHaveAttribute("data-range-start", "true");
+  expect(dayButton(9)).toHaveAttribute("data-range-end", "true");
+});
+
+it("forwards both root refs and caller classes/styles to their actual hosts", () => {
+  const ref = createRef<HTMLDivElement>();
+  const animationRef = createRef<HTMLDivElement>();
+  const { rerender } = render(<CalendarRoot ref={ref} rootRef={animationRef} title="Root host" />);
+  expect(ref.current).toBe(screen.getByTitle("Root host"));
+  expect(animationRef.current).toBe(ref.current);
+  rerender(
+    <Calendar
+      mode="single"
+      month={month}
+      className="caller-root"
+      style={{ padding: "1rem" }}
+      classNames={{ day_button: "caller-day" }}
+      styles={{ day_button: { fontWeight: 700 } }}
+      components={{ Root: (props) => <CalendarRoot {...props} ref={ref} /> }}
+    />,
+  );
+  expect(ref.current).toHaveClass("caller-root");
+  expect(ref.current!.style.padding).toBe("1rem");
+  expect(dayButton(12)).toHaveClass("caller-day");
+  expect(dayButton(12)).toHaveStyle({ fontWeight: 700 });
+});
