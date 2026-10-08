@@ -25,7 +25,7 @@ branch, which can change independently of those npm versions.
 
 ## Unreleased preview components
 
-The local review site also includes Select, Tabs, Dialog, AlertDialog, Popover and Tooltip from the component-parity program.
+The local review site also includes Select, Tabs, Dialog, AlertDialog, Popover, Tooltip, DropdownMenu and Slider from the component-parity program.
 They are not in published UI 0.1.10 or the main-branch registry yet. The starter above
 continues to demonstrate that published release.
 
@@ -33,7 +33,7 @@ To try the candidate source after setting up the app below, change only the regi
 mapping's branch from `main` to `next`, then run:
 
 ```sh
-npx shadcn@4.21.4 add @marquee/select @marquee/tabs @marquee/dialog @marquee/alert-dialog @marquee/popover @marquee/tooltip
+npx shadcn@4.21.4 add @marquee/select @marquee/tabs @marquee/dialog @marquee/alert-dialog @marquee/popover @marquee/tooltip @marquee/dropdown-menu @marquee/slider
 ```
 
 If the app already uses a Sheet from an earlier Marquee release, update its Dialog
@@ -55,7 +55,20 @@ its declared primitive dependencies are installed by the CLI. The
 records scope and limits. Local packed-artifact proof for these additions is recorded in
 [BATCH-PARITY-1](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-1.md)
 [BATCH-PARITY-2](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-2.md)
-and [BATCH-PARITY-3](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-3.md).
+[BATCH-PARITY-3](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-3.md)
+and [BATCH-PARITY-4](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-4.md).
+
+DropdownMenu composes action items, checkbox/radio choices and directional submenus.
+Portals, indicators, arrows and chevrons are explicit parts. Selection closes by default;
+prevent its default to keep a settings menu open. It is modal by default and supports
+non-modal composition. Use Select for a form value rather than menu actions.
+
+Slider composes Root, Track, Range and each named Thumb explicitly. Values, range
+separation, keyboard/pointer input, orientation, direction and reset follow Radix.
+A controlled caller must accept reset changes. **Disabled Slider alone still submits
+named values in Radix 1.5.0.** Wrap it in a native disabled fieldset to exclude its form
+value, as the verified example does; this is not native-disabled submission parity.
+No wrapper form controller or implicit thumb factory is included.
 
 Dialog and AlertDialog expose explicit Portal, Overlay and Content parts. Compose their
 titles, descriptions and actions inside Content; no close icon or confirmation controls

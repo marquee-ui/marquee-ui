@@ -78,8 +78,8 @@ test("navigates on mobile and operates real examples with a keyboard", async ({
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("./");
   if (info.project.name === "mobile") {
-    await page.getByRole("button", { name: "Menu" }).click();
-    await expect(page.getByRole("button", { name: "Menu" })).toHaveAttribute(
+    await page.getByRole("button", { name: "Menu", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Menu", exact: true })).toHaveAttribute(
       "aria-expanded",
       "true",
     );
@@ -87,7 +87,7 @@ test("navigates on mobile and operates real examples with a keyboard", async ({
       .getByRole("navigation", { name: "Main navigation" })
       .getByRole("link", { name: "Components", exact: true })
       .click();
-    await expect(page.getByRole("button", { name: "Menu" })).toHaveAttribute(
+    await expect(page.getByRole("button", { name: "Menu", exact: true })).toHaveAttribute(
       "aria-expanded",
       "false",
     );
@@ -130,9 +130,10 @@ test("renders every family and sends each workbench link to a real story", async
   expect(index.status()).toBe(200);
   const storyIndex = (await index.json()) as { entries: Record<string, unknown> };
   const families = page.getByRole("button", { name: /^Preview / });
-  await expect(families).toHaveCount(28);
+  await expect(families).toHaveCount(29);
   // Independent of the production catalog: a nonempty placeholder is not a preview.
   const expectedParts = [
+    ["DropdownMenu", "[data-slot=dropdown-menu-trigger]"],
     ["Slider", "[data-slot=slider]"],
     ["Button", "button[data-slot=button]"],
     ["Accordion", "[data-slot=accordion-item]"],

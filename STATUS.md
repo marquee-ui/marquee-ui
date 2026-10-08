@@ -12,8 +12,8 @@ local implementation or subsequent green batches.
 Active: [BATCH-PARITY-4](docs/batches/BATCH-PARITY-4.md) — DropdownMenu and Slider.
 Two isolated streams own [DropdownMenu](docs/slices/DROPDOWN-MENU-1.md) and
 [Slider](docs/slices/SLIDER-1.md). Shared registration and final proof are reconciler-owned.
-MID-SLICE: baseline gate and composition recorded / implement both families, review,
-merge, gate, prove packed consumer and refresh localhost before advancing.
+MID-SLICE: both streams independently reviewed and gated; Slider integrated, DropdownMenu
+reconciled / finish merged review, gate, packed consumer, localhost refresh and exact-head CI.
 
 ## Release hold and current preview
 

@@ -1,3 +1,4 @@
+import * as dropdownmenu from "../../stories/dropdown-menu.stories.js";
 import * as slider from "../../stories/slider.stories.js";
 import { readdirSync } from "node:fs";
 import { resolve } from "node:path";
@@ -46,6 +47,7 @@ import * as popover from "../../stories/popover.stories.js";
 import * as tooltip from "../../stories/tooltip.stories.js";
 
 export const STORY_SUITES = {
+  "dropdown-menu": dropdownmenu,
   slider: slider,
   tooltip: tooltip,
   popover: popover,

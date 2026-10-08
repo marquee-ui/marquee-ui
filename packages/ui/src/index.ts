@@ -172,3 +172,22 @@ export {
 } from "./tooltip.js";
 
 export { Slider, SliderTrack, SliderRange, SliderThumb } from "./slider.js";
+
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuPortal,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuItemIndicator,
+  DropdownMenuSeparator,
+  DropdownMenuArrow,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+} from "./dropdown-menu.js";

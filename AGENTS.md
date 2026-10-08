@@ -48,7 +48,7 @@ so a component copied out of the registry reads the same here as there.
 
 - `packages/tokens` - the role contract, the two presets, the emitters, the build
   checks. Colour, type and depth are decided here and nowhere else.
-- `packages/ui` - the twenty-eight part families, one file each, in shadcn's lowercase
+- `packages/ui` - the twenty-nine part families, one file each, in shadcn's lowercase
   spelling (`button.tsx`). They import `cn` from `@/lib/utils`, which is the alias
   the registry ships them under; the CLI rewrites it to the consumer's own.
 - `packages/ui/stories` - one story per part and per variant. **Stories are the
@@ -116,7 +116,7 @@ compile. If you add a probe there, add it to a source directory, not to a string
 a test.
 
 **Interactive means 44px, measured.** `tailwind-compile.test.tsx` renders every
-story, takes every `button` / `a[href]` / `input` / `[role=button]`, looks its
+story, takes every `button` / `a[href]` / `input` / `[role=button]` / `[role=slider]`, looks its
 classes up in the COMPILED stylesheet and resolves the height in pixels. A part that
 is not a control (a `Badge`) carries no floor, so the moment `asChild` makes one a
 control the CALLER owes it `min-h-hit` - and the story is what gets copied.

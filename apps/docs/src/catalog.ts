@@ -1,3 +1,5 @@
+import Previewdropdownmenu from "./examples/dropdown-menu";
+import codedropdownmenu from "./examples/dropdown-menu?raw";
 import Previewslider from "./examples/slider";
 import codeslider from "./examples/slider?raw";
 import Previewtooltip from "./examples/tooltip";
@@ -289,5 +291,14 @@ export const catalog = [
     story: "default",
     Preview: Previewslider,
     code: codeslider,
+  },
+  {
+    id: "dropdown-menu",
+    name: "DropdownMenu",
+    description:
+      "Unreleased candidate. Explicit action menu parts with checkboxes, radio choices and directional submenus. Default modal; portals, indicators, arrows and chevrons belong to the caller.",
+    story: "default",
+    Preview: Previewdropdownmenu,
+    code: codedropdownmenu,
   },
 ] as const;
