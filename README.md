@@ -89,3 +89,5 @@ scope and deferred backlog. Read the [original family contracts](docs/common-nam
 and [candidate contracts](docs/recipe-contracts.md) before adapting shadcn examples:
 matching names do not imply drop-in APIs. Fourteen newer families remain unreleased;
 publication stays held as recorded in [STATUS.md](STATUS.md).
+The [UI 0.2.0 release proposal](docs/releases/0.2.0.md) records the prepared package,
+release notes and installation steps; published UI remains 0.1.10 until release.

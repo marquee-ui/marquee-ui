@@ -111,6 +111,13 @@ consumer evidence. No further batch is queued.
 
 ## Finite deferred validation limits
 
-Finite validation limits for DataTable/Chart are recorded in [Batch 7](batches/BATCH-PARITY-7.md#finite-deferred-validation-limits), including the existing global story-play no-op survivor and host-only focus inventory. Changing that runner is a separate scoped decision. Focused source controls and measured browser/packed journeys establish the behaviors they exercised; a green corpus does not establish every exported API, composition or SVG descendant.
+The two runner gaps recorded in [Batch 7](batches/BATCH-PARITY-7.md#finite-deferred-validation-limits)
+are addressed by the separately authorized [release-readiness batch](batches/RELEASE-READINESS-1.md):
+per-play Storybook assertion deltas reject the invocation no-op, and compiled
+selector checks reach the actual Chart SVG independently of the host outline.
+Both controls were proved by running the corresponding regressions. Focused
+source controls and measured browser/packed journeys establish only the behaviors
+they exercise; a green corpus does not establish every exported API, composition
+or SVG descendant.
 
 Chart in a wide table follows the [native-scroll boundary contract](slices/CHART-1.md#native-scroll-boundary): reveal the whole SVG through the named scroll region before chart traversal. Natural Tab alone does not promise whole-box reveal. The independent [contract supplement](batches/BATCH-PARITY-7-contract-review.md) retains the actual focused-clipping counterexample.

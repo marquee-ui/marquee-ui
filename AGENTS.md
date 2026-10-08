@@ -53,8 +53,10 @@ so a component copied out of the registry reads the same here as there.
   the registry ships them under; the CLI rewrites it to the consumer's own.
 - `packages/ui/stories` - one story per part and per variant. The corpus runner
   (`packages/ui/test/stories.test.tsx`) composes stories and invokes their plays;
-  focused tests and browser journeys supplement it. The known invocation no-op
-  survivor is recorded in `docs/component-parity.md`'s finite validation limits.
+  each play must increase Storybook's assertion count. Removing the invocation
+  or substituting a no-op must fail even if the inventory counters remain intact.
+  Compiled-style tests and browser journeys supplement it; the focus suite also
+  checks the actual Chart SVG descendant rather than only its container.
   Do not treat this corpus alone as proof of every part's behavior.
 - `registry.json` at the root, built into `packages/ui/r/` by `pnpm build`. That
   directory is COMMITTED build output: it needs a raw GitHub URL, and it needs to

@@ -29,6 +29,10 @@ The local review site also includes Select, Tabs, Dialog, AlertDialog, Popover, 
 They are not in published UI 0.1.10 or the main-branch registry yet. The starter above
 continues to demonstrate that published release.
 
+UI `0.2.0` is the proposed package for these 35 families. It is not published yet.
+The [release proposal](https://github.com/marquee-ui/marquee-ui/blob/next/docs/releases/0.2.0.md)
+describes installation from the prepared tarball with published tokens `0.1.0`.
+
 To try the candidate source after setting up the app below, change only the registry
 mapping's branch from `main` to `next`, then run:
 

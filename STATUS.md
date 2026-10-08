@@ -33,7 +33,8 @@ Current verified preview: **http://localhost:4174/marquee-ui/**, source
 `87f25c556a80536471476ff1911bd23155f1a684`, served from
 `/home/ankit/Code/marquee-integration-parity-8/apps/docs/dist`.
 New components are unreleased; published UI 0.1.10/main still have the original
-21 families. No version bump is implied. The contract guides distinguish source
+21 families. UI 0.2.0 is being prepared locally; publication is still held.
+The contract guides distinguish source
 support from measured consumer/browser evidence.
 
 ## Previous evidence and cold resume

@@ -3,8 +3,10 @@
 Marquee targets React 19 and Tailwind CSS 4. The published baseline is
 `@marquee-ui/ui@0.1.10` and `@marquee-ui/tokens@0.1.0`; the standalone
 consumer in `examples/consumer` pins those packages with an npm lockfile.
-The unreleased `next` candidate keeps the same source package version, so the
-version in this checkout does not establish what public npm contains.
+The unreleased `next` candidate prepares UI `0.2.0` with the existing published
+tokens `0.1.0`. A version in this checkout does not establish public npm availability.
+See the [release proposal](https://github.com/marquee-ui/marquee-ui/blob/next/docs/releases/0.2.0.md)
+for the artifact installation path and held publication steps.
 
 | Layer             | Consumer configuration                                          |
 | ----------------- | --------------------------------------------------------------- |
@@ -46,12 +48,13 @@ responsibilities and deferred behaviors; [common-name APIs](./common-name-api.md
 cover deliberate differences in the original families. A named family or a passing
 journey does not establish full shadcn catalog/API parity.
 
-The [finite Batch 7 validation limits](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-7.md#finite-deferred-validation-limits)
-remain: a global story-play invocation no-op survived the retained review, so the
-story runner alone does not prove every interaction ran. The shared host focus
-inventory does not certify every accessible SVG descendant. Dedicated chart SVG
-checks and recorded browser/packed journeys supplement those instruments; this
-documentation audit changes neither their scope nor their implementation.
+The [release-readiness batch](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/RELEASE-READINESS-1.md)
+closes the two runner gaps recorded in Batch 7. Each story play must increase the
+Storybook assertion count; omitted calls and a no-op play were proved to fail.
+The focus suite now follows compiled selectors to the actual Chart SVG and fails
+when its descendant rules or width disappear while the host outline remains.
+These checks supplement the isolated browser paint journeys. They do not certify
+every possible assertion, SVG descendant or caller composition.
 
 ## Boundaries
 
