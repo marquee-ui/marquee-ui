@@ -1,0 +1,46 @@
+{
+  "source": "d9f6204ee4bef56cb017039d9b045ac124c76c5f",
+  "checkedAt": "2026-10-08T22:35:35.053584+00:00",
+  "verdict": "cancelled; neither job is green",
+  "officialReason": "The job has exceeded the maximum execution time of 15m0s",
+  "correction": {
+    "file": ".github/workflows/verify.yml",
+    "oldMinutes": 15,
+    "newMinutes": 20,
+    "runnerCommandsUnchanged": true,
+    "assertionsUnchanged": true,
+    "browserCases": 312,
+    "localProductGateRerunRequired": false,
+    "productAndSiteInputsUnchanged": true
+  },
+  "runs": [
+    {
+      "event": "push",
+      "run": 37852508134,
+      "url": "https://github.com/marquee-ui/marquee-ui/actions/runs/37852508134",
+      "conclusion": "cancelled",
+      "jobCompletedAt": "2026-10-08T22:32:38Z",
+      "pnpmVerify": "cancelled",
+      "committedRegistry": "skipped",
+      "libraryPassed": 995,
+      "docsPassed": 39,
+      "consumerHarnessPassed": 5,
+      "lastCompletedBrowserCase": 312,
+      "browserSummary": "312 passed (13.0m)"
+    },
+    {
+      "event": "pr",
+      "run": 37852512230,
+      "url": "https://github.com/marquee-ui/marquee-ui/actions/runs/37852512230",
+      "conclusion": "cancelled",
+      "jobCompletedAt": "2026-10-08T22:32:42Z",
+      "pnpmVerify": "cancelled",
+      "committedRegistry": "skipped",
+      "libraryPassed": 995,
+      "docsPassed": 39,
+      "consumerHarnessPassed": 5,
+      "lastCompletedBrowserCase": 299,
+      "browserSummary": "no completed browser verdict"
+    }
+  ]
+}

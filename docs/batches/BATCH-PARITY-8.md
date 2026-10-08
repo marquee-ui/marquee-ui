@@ -85,6 +85,17 @@ No Pile backlog, database or screenshot operations apply.
   The five current consumer harness unit tests above are not a fresh installed
   package proof. Published baseline proof remains seven selected families/eight
   copied files/two Chromium cases at 390/1280.
+- Exact `d9f6204` CI attempts both **cancelled at the 15-minute job limit**:
+  [push](https://github.com/marquee-ui/marquee-ui/actions/runs/37852508134) and
+  [PR](https://github.com/marquee-ui/marquee-ui/actions/runs/37852512230).
+  Official annotations say the maximum execution time was exceeded. Both
+  995/39/5 stages passed; the push browser runner reported 312 passed (13.0m)
+  before cancellation, and the PR stopped after case 299. Neither is a green
+  job: `pnpm verify` was cancelled and the registry step skipped. The minimal
+  workflow correction raises the job budget to 20 minutes, preserving every
+  command, assertion and all 312 cases. The correction receives independent
+  review before push; final exact-head CI verdicts remain in the cold handoff.
+  Unchanged product/site inputs retain the successful local gate above.
 
 ## Rendered inspection and stable preview
 

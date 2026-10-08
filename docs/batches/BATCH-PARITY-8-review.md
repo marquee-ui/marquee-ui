@@ -82,6 +82,18 @@ rerun. The final full gate remains coordinator-owned.
 Full independent report and DECISIONS:
 `/home/ankit/.marquee-scratch/BATCH-PARITY-8/merged-review/report.md`.
 
+## CI time-budget closure
+
+The two exact `d9f6204` CI jobs reached the 15-minute limit. Official annotations
+and full cancelled logs are retained in `integration/ci-*-timeout.*`; neither
+cancelled job is counted as a successful gate. The push runner reported 312
+browser passes before cancellation and the PR reached case 299, with preceding
+995/39/5 checks green in both. A one-line workflow correction changes only
+`timeout-minutes: 15` to `20`; runner commands, assertions, corpus and product/site
+inputs remain unchanged. Bounded independent review and exact-new-head CI close
+this configuration change before final handoff; no duplicate local product gate
+or packed install is required for an unchanged product.
+
 ## DECISIONS
 
 1. Accept useful public-facing contract guides for the original 21 and candidate
