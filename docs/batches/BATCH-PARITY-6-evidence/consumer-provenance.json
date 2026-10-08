@@ -1,0 +1,51 @@
+{
+  "source": "78ef78e3573961418866c2cfd95a5197effdb25f",
+  "measuredAt": "2026-10-08T07:35:57.742Z",
+  "node": "v22.18.0",
+  "artifacts": [
+    {
+      "name": "@marquee-ui/tokens",
+      "file": "marquee-ui-tokens-0.1.0.tgz",
+      "sha256": "75b30268238e44074a54d923e596d1f6a1a931f2ae85f8a5da3271a7dadf55cd"
+    },
+    {
+      "name": "@marquee-ui/ui",
+      "file": "marquee-ui-ui-0.1.10.tgz",
+      "sha256": "9903582b003f05147acb7a48c08f925331e452f399ae14108144375545e7e0c9"
+    }
+  ],
+  "compared": 20,
+  "consumer": "/home/ankit/.marquee-scratch/BATCH-PARITY-6/consumer-final-corrected",
+  "strictBuild": "passed",
+  "browser": {
+    "startTime": "2026-10-08T07:33:57.202Z",
+    "duration": 87453.55900000001,
+    "expected": 81,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "sourceBytesMatch": true,
+  "workspaceLinks": false,
+  "coverage": [
+    "Natural all-disabled/no-navigation DatePicker panel fallback focus in Table/Dialog; inset solid paint and actual alpha-composited contrast across dark/light/forced colors",
+    "DatePicker single/range, caller forms/reset, initial focus, separate nested dismissal and true Calendar bounds",
+    "Table native keyboard scrolling before geometry helpers, semantic parts and real last-column actions",
+    "DatePicker in last Table cell within Dialog; atomic bounds after observed native scroll settlement",
+    "Combobox single-select search/empty/disabled/nested overlays and caller forms",
+    "Calendar single/multiple/range selection, keyboard and true grid geometry; real Dialog/Popover containment and Saturday hits/selections at all3 widths",
+    "DropdownMenu checked/radio/submenu and nested overlay lifecycle",
+    "Slider keyboard/pointer/native form/reset and disabled fieldset",
+    "Vertical normal/inverted/range bounds and selected proportion at 0/25/50/75/100",
+    "Dark/light/forced-colors paint without docs CSS"
+  ],
+  "instrumentCorrection": "Prior b059142 pack mixed geometry frames; atomic diagnostic and corrected78case run retained in consumer-final. This corrected-source pack initial78/81 run used an invalid opaque-only assertion for forced-color outlinealpha0.8. Final helper requires visiblealpha and retains actual alpha-composited contrast>=3, solidwidth and inset checks. Initial results/fulltraces retained under proof/initial-alpha-assertion.",
+  "limitations": [
+    "DatePicker aliases compose Calendar and Popover; nested selected-day initial focus needs caller onOpenAutoFocus recipe; formatting/forms/close policy remain caller-owned.",
+    "Table is native semantic anatomy; no sorting/filtering/pagination/selection engine or virtualization.",
+    "Combobox is a bounded searchable popup, not current-shadcn Base UI API parity; editable input/chips/multiselect/object collections and virtualization are deferred.",
+    "Calendar date-time, alternate calendars and exhaustive timezone/localization proof are excluded. Default seven-day anatomy requires328px host width; week numbers/custom slots may need more.",
+    "Disabled named Slider alone still serializes; disabled fieldset is the measured native workaround.",
+    "React19/Tailwind4/Vite/Chromium at390/768/1280 only. Unreleased candidate, not public installation."
+  ]
+}
