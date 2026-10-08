@@ -256,6 +256,12 @@ test("Chart SVG focus, live tooltip and labeled legend paint in isolated dark/li
         focus.focusContrast,
         "actual SVG ring contrasts with exterior paint",
       ).toBeGreaterThanOrEqual(3);
+      await expect(chart.locator(".recharts-xAxis-tick-labels text")).toHaveText([
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+      ]);
       const labelOverlap = await chart.evaluate((svg) => {
         const bounds = svg.getBoundingClientRect();
         const inset = Math.max(0, -parseFloat(getComputedStyle(svg).outlineOffset));
@@ -298,11 +304,9 @@ test("Chart SVG focus, live tooltip and labeled legend paint in isolated dark/li
         );
         expect(colors[0], "two role-token series paint distinctly").not.toBe(colors[1]);
       }
-      await page
-        .locator("#storybook-root")
-        .screenshot({
-          path: test.info().outputPath(`chart-paint-${kind}-${preset}-${forced}.png`),
-        });
+      await page.locator("#storybook-root").screenshot({
+        path: test.info().outputPath(`chart-paint-${kind}-${preset}-${forced}.png`),
+      });
     }
   }
 });
