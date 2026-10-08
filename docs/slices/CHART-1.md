@@ -1,6 +1,6 @@
 # CHART-1 — composed responsive charts
 
-Batch: BATCH-PARITY-7. Status: independently reviewed; full stream gate pending.
+Batch: BATCH-PARITY-7. Status: independently reviewed; full stream gate green.
 Stream port 4192; reviewer 4196.
 
 ## Supported contract
@@ -208,3 +208,16 @@ remain documented above. Reports and exact landed diffs, predictions, runner
 exits and restorations are retained in `r6/tailwind-marker-initial.md` and
 `r6/tailwind-marker-supplement.md`, with `t01`–`t07` logs. The corrected full gate uses
 separate `s2/verify-corrected.*` evidence so the original failure remains intact.
+
+The corrected `DOCS_PORT=4192 pnpm verify` at clean `4d4d773` runs
+2026-10-08 **21:55:04–22:01:18 IST**, total 6m14s, and exits **0**. The runner
+passes lint, typecheck and build, then reports **973 library tests in 59 files**,
+**39 docs tests in four files**, **five consumer tests / zero failed**, and
+**300 browser cases in 5.7m**. All 15 Chart cases pass at 390/768/1280.
+The gate's complete Chart examples were inspected at each width; representative
+isolated forced-color, light and dark captures show visible SVG focus, concise
+live data, distinct labeled marks, month labels clear of the ring, and complete
+native values. Earlier complete paint-mode inspection remains recorded above.
+Exact source SHA, start/end times, runner log and exit are preserved in
+`s2/verify-corrected.sha`, `.start`, `.end`, `.log` and `.exit`; browser evidence is
+in `s2/gate-corrected-browser/`. No family source changed during gate recovery.
