@@ -49,4 +49,75 @@ Own only `packages/ui/src/slider.tsx`, `packages/ui/stories/slider.stories.tsx`,
 
 ## Evidence
 
-Pending test-first implementation and independent review.
+Test-first on 2026-10-08: `pnpm exec vitest run --project ui
+packages/ui/test/slider.test.tsx` first failed resolving the not-yet-created
+Slider source. After implementation, the runner reports 16 passed. The focused
+Slider plus story suite reports 217 passed, and `pnpm typecheck` exits 0.
+
+The installed `@radix-ui/react-slider@1.5.0` restores initial mount values on
+form reset. Uncontrolled and external-form resets are observed in the component
+tests; controlled reset calls the owner and cannot override an unchanged `value`.
+Changing `defaultValue` after mount does not change the reset baseline. Keyboard
+Home targets the first range thumb and End the last; direction/inversion and
+`preserveThumbOrder` retain their primitive behavior.
+
+The disabled state blocks interaction but its hidden named inputs remain
+successful form controls. A native disabled fieldset excludes those values;
+both facts are tested. The docs example composes that fieldset, and its copy
+states the limitation rather than promising native-disabled parity.
+
+The targeted browser runner (`DOCS_PORT=4192 pnpm --filter @marquee-ui/docs exec
+playwright test browser/slider.spec.ts`, after `pnpm build`, 2026-10-08) reports
+15 passed in 18.0s across 390/768/1280. It observes the native disabled-input
+limitation by temporarily lifting only the native fieldset and reading FormData,
+then restoring the fieldset. It also measures dark/light/Violet focus style,
+width and contrast outside docs CSS; selected-range contrast and nonempty paint;
+forced-colors movement; orientation, direction and inversion movement; real
+pointer drag/commit; keyboard values; native reset; and highlighted exact copying.
+
+The first browser run found a real target defect: a 44px thumb with a circular
+host had corners whose `elementFromPoint` was Radix's wrapper, while its center
+was the thumb. Removing the host's rounding fixes all three measured points;
+the decorative 20px marker remains round. Browser iteration also corrected
+instrument assumptions: embedded stories do not auto-run plays, and a disabled
+control must be clicked with the real mouse rather than Locator's enabled wait.
+The focused source/focus/registry/compiled-floor runner reports 96 passed.
+
+## Consumers
+
+Before implementation, `rg -n 'Slider|slider.tsx|slider.stories' packages apps
+registry.json` produced no matches. No routes or pre-existing Slider roles
+changed. Planned exports: `Slider`, `SliderTrack`, `SliderRange`, `SliderThumb`.
+
+At the commit point, `rg -l '\b(Slider|SliderTrack|SliderRange|SliderThumb)\b'
+packages apps --glob '*.ts' --glob '*.tsx' --glob '*.json'` names:
+
+```text
+apps/docs/src/examples/slider.tsx
+apps/docs/browser/site.spec.ts
+apps/docs/src/catalog.ts
+apps/docs/browser/slider.spec.ts
+packages/ui/r/registry.json
+packages/ui/src/slider.tsx
+packages/ui/r/slider.json
+packages/ui/src/index.ts
+packages/ui/test/tailwind-compile.test.tsx
+packages/ui/test/slider.test.tsx
+packages/ui/stories/slider.stories.tsx
+```
+
+The path/basename scan additionally names the source inventory, story suites,
+registry tests and focus-outline inventory. The literal-class and ARIA scans
+name the new family tests and compiled-floor test. Shared consumers are CROSS
+to the orchestrator: catalog, site/explorer checks, package exports, source/story
+inventories, story counts, registry and focus/floor guards. Wiring requests were
+fulfilled in `77139aed` and the source-comment registry refresh in `da9029d1`.
+No other stream's behavior is consumed or changed; no unowned contract moved.
+
+## Decisions
+
+1. Expose four explicit parts and never synthesize thumbs from `value`.
+2. Use a 44px draggable host with a 20px decorative marker; keep the track narrow.
+3. Delegate reset and disabled behavior to Radix and state its observed limits.
+4. Demonstrate disabled-value exclusion through a native disabled fieldset.
+5. Keep publication held; no PR, release, merge or deployment from this stream.
