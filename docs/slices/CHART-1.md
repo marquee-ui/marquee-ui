@@ -145,3 +145,21 @@ UI tests** and the browser runner passes **15 cases** at all three widths in
 fresh build exits, git restorations and screenshots are recorded in
 `/home/ankit/.marquee-scratch/BATCH-PARITY-7/r6/review-final.md` and adjacent
 `c01`–`c04` logs. This is review evidence; the single full stream gate follows.
+
+The shared client-boundary guard initially rejected Chart's required directive
+because it could not see Recharts' client features. Coordinator commit `91f6a1`
+adds bounded AST classification of actual Recharts runtime imports, excluding
+whole-type and all-type named imports and comment/prose lookalikes. Both the
+required-boundary and wasteful-boundary verdicts use that classification. Nine
+test-first fixtures produce six predicted failures before the correction and
+22 passes afterward.
+
+The same independent reviewer proves five separate controls at that committed
+head: remove Chart's directive; collapse the runtime-library set; drop the
+whole-type exclusion; drop the inline-type exclusion; and remove the nonempty
+binding check so `import {}` is misclassified by vacuous `every`. Each lands,
+fails its predicted assertion, and git-restores to **22 passed**, with no
+survivors in this supplement. Evidence is `r6/client-boundary-supplement.md` and
+`b01`–`b05` logs. Total review evidence is **23 landed mutations**, now including
+the eleventh touched test-bearing surface, `client-boundary.test.ts`. This finite
+source guard is not a Next integration certification.
