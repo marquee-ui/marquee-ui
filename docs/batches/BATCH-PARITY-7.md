@@ -31,6 +31,11 @@ Virtualized/server grids, row editing, selection managers, column resizing/reord
 aggregation/export, chart brush/zoom, animation controls and additional chart types
 remain deferred. Matching names do not promise a drop-in shadcn API.
 
+Integrated inventory measured 2026-10-08 by the registry walk and checked story
+corpus: **35 families / 36 registry items / 215 stories / 185 plays**, 37 generated
+source files and 41 registry edges. Measurement command and JSON:
+`integration/measure-inventory.mjs`, `integration/inventory.json`.
+
 ## Ownership and execution
 
 Two isolated streams own their family source, stories, focused tests, live example,
@@ -55,4 +60,36 @@ publication, domain operation or Pile backlog/database/shots work is authorized.
 
 Baseline at base `eea61a3`: `DOCS_PORT=4182 pnpm verify`, exit 0, 360s,
 945 library / 39 docs / 5 consumer / 285 Chromium browser cases. Runner summaries
-and exit sentinel: `integration/baseline.*`. Further evidence pending.
+and exit sentinel: `integration/baseline.*`.
+
+- DataTable corrected full stream gate at `41af7dd`: exit 0, 369s,
+  **956 library / 39 docs / 5 consumer / 297 browser**. The first gate stopped on
+  a redundant client directive (955 passed, one failed); removed from static
+  DataTable presentation and independently proved at its named assertion.
+- Chart corrected full stream gate at `4d4d773`: exit 0, 374s,
+  **973 library / 39 docs / 5 consumer / 300 browser**. The first gate stopped on
+  42 Recharts structural markers classified as Tailwind utilities (964 passed,
+  one failed). The finite marker set now applies only to chart descendants,
+  preserves utility checks on nested caller roots and rejects stale exceptions,
+  unknown marker-like names and real missing utilities.
+- Each stream has an independent committed-source mutation review and restored
+  green runs. DataTable's natural keyboard cell action exposes its full hit area
+  and ring through caller reveal/scroll margin. Chart's Line caller margin leaves
+  labels clear of the actual inset ring; actual plot geometry guards duplicated
+  series keys, independently from tooltip/table text. Slice records link exact
+  predictions, landed diffs, runner verdicts and original retained failures.
+- The shared client-boundary guard recognizes runtime Recharts imports through
+  an AST, while excluding type-only imports and prose. Independent controls
+  close both required/wasteful verdicts. This finite guard does not certify Next
+  integration; packed consumer support remains React 19/Tailwind 4/Vite.
+
+Merged review, merged gate, fresh pack and localhost proof follow.
+
+## Finite deferred validation limits
+
+The existing global story-play invocation can be replaced with a no-op while its
+corpus remains green. This is recorded as one deferred runner item outside the
+approved two-family scope. Newly touched play bodies have independent collapse
+controls; real browser and fresh consumer journeys supplement the runner. The
+host-only unit focus inventory also cannot prove every SVG descendant; isolated
+actual SVG paint checks do. No broader guard project is started by this batch.

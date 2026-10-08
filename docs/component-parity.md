@@ -7,16 +7,16 @@ The catalog mixes primitives and recipes, so a percentage based on its entry cou
 
 ## Ordered batches
 
-| Batch          | Independent streams                              | Dependencies                                   | State    |
-| -------------- | ------------------------------------------------ | ---------------------------------------------- | -------- |
-| BATCH-PARITY-1 | Select; Tabs                                     | Existing tokens/composition                    | Complete |
-| BATCH-PARITY-2 | Dialog; AlertDialog                              | Existing Radix approach                        | Complete |
-| BATCH-PARITY-3 | Popover; Tooltip                                 | Overlay conventions from batch 2               | Complete |
-| BATCH-PARITY-4 | DropdownMenu; Slider                             | Overlay conventions from batches 2–3           | Complete |
-| BATCH-PARITY-5 | Combobox; Calendar                               | Popover; maintained DayPicker 10               | Complete |
-| BATCH-PARITY-6 | DatePicker; Table                                | Calendar + Popover; semantic table foundation  | Complete |
-| BATCH-PARITY-7 | DataTable; Chart                                 | Table; choose maintained data/chart primitives | Planned  |
-| BATCH-PARITY-8 | Existing common-name API audit and documentation | New families complete                          | Planned  |
+| Batch          | Independent streams                              | Dependencies                                  | State    |
+| -------------- | ------------------------------------------------ | --------------------------------------------- | -------- |
+| BATCH-PARITY-1 | Select; Tabs                                     | Existing tokens/composition                   | Complete |
+| BATCH-PARITY-2 | Dialog; AlertDialog                              | Existing Radix approach                       | Complete |
+| BATCH-PARITY-3 | Popover; Tooltip                                 | Overlay conventions from batch 2              | Complete |
+| BATCH-PARITY-4 | DropdownMenu; Slider                             | Overlay conventions from batches 2–3          | Complete |
+| BATCH-PARITY-5 | Combobox; Calendar                               | Popover; maintained DayPicker 10              | Complete |
+| BATCH-PARITY-6 | DatePicker; Table                                | Calendar + Popover; semantic table foundation | Complete |
+| BATCH-PARITY-7 | DataTable; Chart                                 | Table; TanStack React Table 9 / Recharts 3    | Active   |
+| BATCH-PARITY-8 | Existing common-name API audit and documentation | New families complete                         | Planned  |
 
 Each stream owns a bounded family and its tests, live example, copyable source and install
 contract. Expand slice records only for the active batch. DataTable/Chart are bounded
@@ -41,7 +41,7 @@ helper rather than a component family. Newly completed families are recorded by 
 | Calendar                       | [Batch 5 complete](batches/BATCH-PARITY-5.md): typed single/multiple/range selection, caller state and replaceable DayPicker 10 slots. Default seven-day anatomy requires 328px host width; custom slots/week numbers may need more. Time and alternate calendars remain deferred.                                |
 | DatePicker                     | [Batch 6 complete](batches/BATCH-PARITY-6.md): explicit Calendar/Popover composition; caller owns date state, formatting, forms/reset and closing. Nested selected-day autofocus uses the documented caller callback. Standard Calendar needs 328px; text parsing/time inputs are deferred.                       |
 | Table                          | [Batch 6 complete](batches/BATCH-PARITY-6.md): native semantic parts and a named keyboard-scroll container; caller owns data operations and cell controls. Sorting/filtering/pagination/virtualization are outside this family.                                                                                   |
-| Data recipes                   | Batch 7: bounded DataTable and Chart recipes.                                                                                                                                                                                                                                                                     |
+| Data recipes                   | [Batch 7 active](batches/BATCH-PARITY-7.md): composed TanStack Table 9 client sorting/filter/page and Recharts 3 bar/line keyboard data with explicit rendering, token series and native table alternatives. Server/virtual grids, advanced grid operations and additional chart types/controls remain deferred.  |
 | Form                           | Accessibility wiring; caller owns controller, validation and submission.                                                                                                                                                                                                                                          |
 | Toast                          | Controlled open/onDismiss/duration portal; no manager, queue or promise API.                                                                                                                                                                                                                                      |
 | Sheet                          | Radix Dialog with mobile-bottom/desktop-center presentation; no four-side or drag API.                                                                                                                                                                                                                            |
@@ -76,3 +76,5 @@ Require the predicted assertion to redden under mutation.
 
 Public operations stay held as recorded in [STATUS.md](../STATUS.md). Green implementation
 advances to the next batch while the accumulated release PR remains draft and unmerged.
+
+Finite validation limits for DataTable/Chart are recorded in [Batch 7](batches/BATCH-PARITY-7.md#finite-deferred-validation-limits), including the existing global story-play no-op survivor. Changing that runner is a separate scoped decision.
