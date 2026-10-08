@@ -1,6 +1,6 @@
 # SLIDER-1 — composed Slider
 
-Batch: BATCH-PARITY-4. Status: active; unreleased. Stream port 4192; reviewer 4196.
+Batch: BATCH-PARITY-4. Status: complete; unreleased. Stream port 4192; reviewer 4196.
 
 ## Scope
 
@@ -180,3 +180,33 @@ independently closed. Every GREEN survivor is named in the durable reviewer
 report at `/home/ankit/.marquee-scratch/BATCH-PARITY-4/r6/report.md`. The independent
 consumer scan found no missed consumer. No product source changed after the
 reviewed `2ad6824`; the naming-only guard fix was separately reviewed at `14e2224`.
+
+## Full stream gate
+
+On 2026-10-08, the one full stream gate ran with Node 22.18.0 / pnpm 10.24.0:
+
+```sh
+PATH=/home/ankit/.nvm/versions/node/v22.18.0/bin:$PATH DOCS_PORT=4192 \
+DOCS_BROWSER_OUTPUT=/home/ankit/.marquee-scratch/BATCH-PARITY-4/slider/gate-browser pnpm verify
+```
+
+Artifact: clean committed `9ee4c0727ff511fc503e738e9b964a57b03dd71a`.
+Sentinel exit **0**, wall **214s**. Runner summaries:
+
+```text
+Test Files 49 passed (49)
+Tests 848 passed (848)
+Test Files 4 passed (4)
+Tests 39 passed (39)
+# tests 5
+# pass 5
+# fail 0
+189 passed (3.0m)
+```
+
+This covers lint, typecheck, token/UI/docs/registry/Storybook/site builds, the
+library and docs suites, consumer checks, and all three Chromium browser widths.
+The final post-gate edit changes only this record. The reviewer worktree was
+verified clean at `14e2224` and removed; port 4196 is free. Gate logs, sentinel,
+source SHA and timing remain in the assigned stream scratch directory. No
+publication operation, PR, merge, release or deployment ran in this stream.
