@@ -183,6 +183,18 @@ test("Explicit custom hosts preserve placement, readable wrapping, collision bou
   ).toBe(true);
   const arrow = content.locator('[data-slot="tooltip-arrow"]');
   await expect(arrow).toBeVisible();
+  const arrowPaint = await arrow.evaluate((el) => {
+    let opacity = 1;
+    for (let current: Element | null = el; current; current = current.parentElement) {
+      opacity *= Number(getComputedStyle(current).opacity);
+    }
+    const drawing = el.querySelector("polygon") ?? el;
+    return { opacity, fillOpacity: Number(getComputedStyle(drawing).fillOpacity) };
+  });
+  expect(
+    arrowPaint.opacity * arrowPaint.fillOpacity,
+    "the explicit Arrow paints at full opacity",
+  ).toBe(1);
   expect(
     await arrow.evaluate((el) => {
       const box = el.getBoundingClientRect();
@@ -267,7 +279,7 @@ test("Isolated Tooltip paints visible focus and readable content in dark, light,
       `${mode} isolated focus outline width`,
     ).toBeGreaterThanOrEqual(2);
     expect(
-      await contrast(trigger, trigger, "outlineColor"),
+      await contrast(trigger, page.locator("body"), "outlineColor"),
       `${mode} isolated focus outline contrast`,
     ).toBeGreaterThanOrEqual(3);
     expect(
@@ -299,7 +311,7 @@ test("Isolated Tooltip paints visible focus and readable content in dark, light,
     "forced colors focus width",
   ).toBeGreaterThanOrEqual(2);
   expect(
-    await contrast(trigger, trigger, "outlineColor"),
+    await contrast(trigger, page.locator("body"), "outlineColor"),
     "forced colors focus contrast",
   ).toBeGreaterThanOrEqual(3);
   const content = page.locator(contentSelector);

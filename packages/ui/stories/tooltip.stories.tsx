@@ -151,11 +151,14 @@ export const ProviderDelays: Story = {
 export const HoverableContent: Story = {
   args: { children: <Parts text="Supplemental text stays visible while the pointer reads it." /> },
   play: async ({ canvasElement }) => {
+    const user = userEvent.setup();
     const trigger = within(canvasElement).getByRole("button", { name: "Save document" });
-    await userEvent.hover(trigger);
+    await user.hover(trigger);
     const hint = await within(document.body).findByRole("tooltip");
     const content = document.querySelector<HTMLElement>('[data-slot="tooltip-content"]')!;
-    await userEvent.hover(content);
+    await user.hover(content);
+    await expect(content).toBeInTheDocument();
+    await expect(content).toBeVisible();
     await expect(hint).toHaveTextContent(
       "Supplemental text stays visible while the pointer reads it.",
     );
