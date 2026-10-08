@@ -1,6 +1,6 @@
 # DIALOG-1 — composed Dialog
 
-Batch: BATCH-PARITY-2. Status: active. Publication remains held in STATUS.md.
+Batch: BATCH-PARITY-2. Status: complete (unreleased). Publication remains held in STATUS.md.
 
 ## Scope and ownership
 
@@ -179,3 +179,19 @@ expected 7; `focus-inventory.log`, 1 failed / 20 passed). The orchestrator's
 post-change focused run passed all 21 checks. This is a shared registration edit,
 owned by the orchestrator; the invariant's style/width checks are unchanged.
 The same independent reviewer read this one-line registration addition separately.
+
+## Stream gate
+
+`DOCS_PORT=4191 DOCS_BROWSER_OUTPUT=<stream-scratch>/browser-gate pnpm verify`
+passed on 2026-10-08 at committed 7aa6827bdaa311730091ab6462c5684b5d6ae28c.
+The detached sentinel reports exit 0; runner summaries are 42 library files /
+757 tests passed, four docs files / 39 tests passed, five consumer tests passed
+with zero failures, and 108 browser tests passed (1.6m) across the configured
+390/768/1280 projects. Start/end timestamps measure 124s wall time. Logs and the
+exit/timing sentinels are in stream scratch as `verify.log`, `verify.exit`,
+`verify.start`, and `verify.end`.
+
+This was the stream's one full gate, after independent review and shared focus
+registration closure. The final record commit changes only this slice document;
+source, shared registration and byte-current registry remain the gated versions.
+Publication, main merge and the stable 4174 preview remain held for the coordinator.
