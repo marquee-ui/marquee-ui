@@ -1,0 +1,46 @@
+{
+  "source": "6e5402c3f7626f9b971f8678c8ae656f8d950c4b",
+  "measuredAt": "2026-10-08T03:03:30.508Z",
+  "node": "v22.18.0",
+  "artifacts": [
+    {
+      "name": "@marquee-ui/tokens",
+      "file": "marquee-ui-tokens-0.1.0.tgz",
+      "sha256": "75b30268238e44074a54d923e596d1f6a1a931f2ae85f8a5da3271a7dadf55cd"
+    },
+    {
+      "name": "@marquee-ui/ui",
+      "file": "marquee-ui-ui-0.1.10.tgz",
+      "sha256": "b007bb35327cb3a2e18bb74c3c6c9ec94664746ae895a69c9b3cf2a0af1a19f7"
+    }
+  ],
+  "compared": 16,
+  "consumer": "/home/ankit/.marquee-scratch/BATCH-PARITY-4/consumer-final",
+  "strictBuild": "passed before browser; application and installed packages unchanged",
+  "initialBrowser": {
+    "passed": 33,
+    "failed": 9,
+    "artifacts": "proof/initial-results.json and proof/initial-results/"
+  },
+  "correctedBrowser": {
+    "passed": 42,
+    "failed": 0,
+    "seconds": 32.6,
+    "artifact": "integration/consumer-browser-corrected.log (original runner); proof/results.json (unchanged repeat)"
+  },
+  "corrections": [
+    "Use menu accessible name Open actions (Radix aria-labelledby takes precedence); fixes behavior and paint probe paths.",
+    "Prove and click exposed right edge of outside button; new composed Popover legitimately covered its center.",
+    "Await first-item focus before End on reopen, retain checked state across paint modes."
+  ],
+  "limitations": [
+    "Disabled named Slider alone serializes; a disabled fieldset suppresses native form entry.",
+    "Chromium React19 Tailwind4 Vite only; not public-release evidence."
+  ],
+  "unchangedRepeat": {
+    "passed": 42,
+    "failed": 0,
+    "seconds": 32.5,
+    "reason": "Re-record JSON after an unintended no-tests-selected diagnostic overwrote the reporter output; original33/9 failures and42-pass runner retained."
+  }
+}

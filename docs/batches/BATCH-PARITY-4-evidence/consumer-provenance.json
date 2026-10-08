@@ -1,0 +1,57 @@
+{
+  "source": "f7a9e5e326ea9dec887a4a876102dab559526e0d",
+  "measuredAt": "2026-10-08T03:39:26.046Z",
+  "node": "v22.18.0",
+  "artifacts": [
+    {
+      "name": "@marquee-ui/tokens",
+      "file": "marquee-ui-tokens-0.1.0.tgz",
+      "sha256": "75b30268238e44074a54d923e596d1f6a1a931f2ae85f8a5da3271a7dadf55cd"
+    },
+    {
+      "name": "@marquee-ui/ui",
+      "file": "marquee-ui-ui-0.1.10.tgz",
+      "sha256": "701585578fb5796617b449b0df37053efc82e6735727842edf93d756f52a33b5"
+    }
+  ],
+  "compared": 16,
+  "consumer": "/home/ankit/.marquee-scratch/BATCH-PARITY-4/consumer-corrected",
+  "sourceBytesMatch": true,
+  "workspaceLinks": false,
+  "freshNpmCache": "/home/ankit/.marquee-scratch/BATCH-PARITY-4/consumer-corrected/.npm-cache",
+  "strictBuild": "passed initial and after fixture placement correction; installed packages unchanged",
+  "browser": {
+    "passed": 45,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 39,
+    "artifact": "proof/results.json"
+  },
+  "initialBrowser": {
+    "passed": 42,
+    "failed": 3,
+    "artifacts": "proof/geometry-fixture-initial-results.json and proof/geometry-fixture-initial-results/"
+  },
+  "corrections": [
+    "Move added vertical geometry section after existing controls to preserve prior Tab order and viewport positions.",
+    "Scroll actual target into view and poll its exposed center before asserting hit readiness; retain 44px target checks."
+  ],
+  "retainedPriorProof": {
+    "source": "6e5402c3f7626f9b971f8678c8ae656f8d950c4b",
+    "passed": 33,
+    "failed": 9,
+    "correctedPassed": 42,
+    "path": "../consumer-final/proof/initial-results.json and initial-results/",
+    "accounting": "Six menu behavior/paint failures used an incorrect accessible name; three outside-click failures hit a center covered by the larger Popover. Corrected probes use live names and proven exposed coordinates."
+  },
+  "coverage": [
+    "Menu checked/radio/submenu and existing nested overlay lifecycle",
+    "Slider keyboard/pointer/native form/reset and disabled fieldset",
+    "Vertical normal/inverted/range bounds and selected proportion at0/25/50/75/100",
+    "Dark/light/forced-color actual paint outside docs CSS"
+  ],
+  "limitations": [
+    "Disabled named Slider alone still serializes; disabled fieldset is the measured native workaround.",
+    "React19/Tailwind4/Vite/Chromium at390/768/1280 only. Unreleased candidate, not public installation."
+  ]
+}
