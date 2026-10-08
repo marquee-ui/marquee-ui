@@ -145,3 +145,13 @@ catalog/explorer count are CROSS to the coordinator and wired by it. Calendar's
 existing docs forward reference remains consumed; no existing Calendar/Popover
 role or behavior was changed. No sibling-owned consumer or unowned contract.
 The twelve names are new; all implementation consumers are enumerated above.
+
+Review consumer correction: the independent scan also found
+`packages/ui/test/client-boundary.test.ts` and
+`packages/ui/test/entry-point.test.ts`, both consuming the coordinator-touched
+`src/index.ts`. Their first targeted run was **1 failed / 16 passed**: the boundary
+guard correctly rejected the pure DatePicker aliases/JSX wrapper's unnecessary
+`"use client"` directive. The wrapper imports only a React type and already-client
+local parts; the directive was removed, leaving the existing guard unchanged.
+These two consumers are now included in the final scan. The coordinator also
+corrected the shared story-test title from thirty-one families to thirty-two.

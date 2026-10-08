@@ -1,5 +1,3 @@
-"use client";
-
 import type { ComponentProps } from "react";
 import { Calendar, type CalendarProps } from "./calendar";
 import {
