@@ -9,7 +9,8 @@ local implementation or subsequent green batches.
 
 ## Active batch
 
-Next: BATCH-PARITY-7 — DataTable and Chart. Expand these bounded recipe slices just in time.
+Active: [BATCH-PARITY-7](docs/batches/BATCH-PARITY-7.md) — bounded composed DataTable and Chart recipes.
+The baseline gate is green; two isolated implementation streams and independent review are in progress.
 [Batch 6](docs/batches/BATCH-PARITY-6.md) is complete with independent review, merged
 gate, fresh packed-consumer proof and a verified localhost refresh.
 
