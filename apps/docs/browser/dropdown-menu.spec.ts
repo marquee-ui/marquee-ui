@@ -75,6 +75,14 @@ async function paintedFocus(control: Locator, ground: Locator, label: string) {
   await control.evaluate(async (el) => {
     await Promise.all(el.getAnimations().map((animation) => animation.finished));
   });
+  const opacity = await control.evaluate((el) => {
+    let paint = 1;
+    for (let host: Element | null = el; host; host = host.parentElement) {
+      paint *= Number(getComputedStyle(host).opacity);
+    }
+    return paint;
+  });
+  expect(opacity, `${label} focus paint opacity`).toBe(1);
   await expect(control, `${label} outline style`).toHaveCSS("outline-style", "solid");
   expect(
     await control.evaluate((el) => parseFloat(getComputedStyle(el).outlineWidth)),

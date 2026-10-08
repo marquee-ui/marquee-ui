@@ -109,8 +109,12 @@ our initial `Parts/Dropdown Menu` title emitted `parts-dropdown-menu--default`.
 The shared site family sweep failed at every width with `missing Storybook story
 parts-dropdownmenu--default`. The owned title is now `Parts/DropdownMenu` and
 owned iframe test URLs use that identity; the explorer's shared URL contract is
-preserved. The initial wiring request's story ID is withdrawn. Closure sweep
-and full gate follow.
+preserved. The initial wiring request's story ID is withdrawn. The reviewer also collapsed Trigger to `opacity-0`; the old focus checks stayed
+green on a same-built-artifact discriminator despite the invisible trigger. The
+browser focus helper now checks element and ancestor opacity with a named focus
+paint assertion, in addition to style, width and adjacent-ground contrast. That
+control's first unrelated missing-Share red is retained as cause-unproved rather
+than counted as paint proof. Closure controls and full gate follow.
 
 ## Consumers
 
