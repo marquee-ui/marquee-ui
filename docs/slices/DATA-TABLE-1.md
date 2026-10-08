@@ -1,6 +1,6 @@
 # DATA-TABLE-1 — composed client data table
 
-Batch: BATCH-PARITY-7. Status: implementation review. Stream port 4191; reviewer 4195.
+Batch: BATCH-PARITY-7. Status: reviewed; gate pending. Stream port 4191; reviewer 4195.
 
 ## Supported contract
 
@@ -70,4 +70,31 @@ original image remains at `s1/action-diagnostic.png` in batch scratch.
 Before/after consumer-source scan (`git grep` at base eea61a3; `rg -l` after changes,
 2026-10-08) found zero prior names and only the expected new source/story/example,
 barrel and catalog uses. Evidence: `s1/consumer-source-scan.json` in batch scratch.
-Independent review, mutation controls and the complete stream gate are pending.
+
+## Independent review
+
+Fresh detached review at `4e46611951d5a933dc25479349c34ed120756553`, 2026-10-08:
+no substantive findings. Build, typecheck and an independent generic inference probe
+passed. Healthy and restored focused runs passed 291 UI, 2 explorer and 24 browser
+cases. Reviewer inspected native scrolling/action focus at 390/768/1280 and isolated
+dark/light/forced-colors paint. All mutations landed, failed their predicted property
+where applicable, and were restored from git; the detached tree ended clean.
+
+| Touched test             | Landed control and actual verdict                                                                                                    | Surviving cases                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `data-table.test.tsx`    | Body collapsed: 4 failed / 2 passed                                                                                                  | Root composition and sort-control contracts                                                |
+| `stories.test.tsx`       | Body collapsed: 4 failed / 241 passed; Composed handler no-op: 1 failed / 4 passed / 240 skipped                                     | Composed survives body collapse; the other three plays survive the targeted Composed no-op |
+| `registry.test.ts`       | Stale content: 1 failed / 18 passed; absent TanStack dependency: 3 failed / 16 passed; absent Table dependency: 4 failed / 15 passed | Other metadata/source contracts                                                            |
+| `focus-outline.test.tsx` | Sort focus classes removed: 1 failed / 20 passed                                                                                     | Other focus contracts                                                                      |
+| `explorer.test.tsx`      | Preview collapsed: 2 passed; catalog entry removed: 1 failed / 1 passed                                                              | Preview behavior is covered in the browser; Switch interaction survives entry removal      |
+| `site.spec.ts`           | Preview collapsed: 3 failed / 9 passed                                                                                               | Other site checks at all three widths                                                      |
+| `data-table.spec.ts`     | Body collapsed: 9 failed / 3 passed; no action onFocus: 1 failed; no scroll margin: 1 failed                                         | Source-copy cases survive body collapse                                                    |
+
+The separate mobile controls reproduced the pointer-hit failure and the exterior
+outline failure (354.109375px beyond a 348px boundary). Both run
+`DOCS_PORT=4195 pnpm --filter @marquee-ui/docs exec playwright test browser/data-table.spec.ts --project=mobile -g 'client sorting'`
+after rebuilding docs/site. Focused runner commands, mutation diffs, assertion messages,
+case names and screenshots are recorded in batch scratch `r5/review.json` and
+`r5/mutation-survivors.json`. Healthy browser command:
+`DOCS_PORT=4195 pnpm --filter @marquee-ui/docs exec playwright test browser/data-table.spec.ts browser/site.spec.ts`.
+The complete stream gate remains pending.
