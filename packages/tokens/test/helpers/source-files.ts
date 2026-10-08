@@ -27,6 +27,7 @@ function walk(dir: string, out: string[]): string[] {
  * Adding a source file means adding it here, and that edit is the review.
  */
 export const PUBLISHED_SOURCE_FILES = [
+  "packages/ui/src/data-table.tsx",
   "packages/ui/src/table.tsx",
   "packages/ui/src/date-picker.tsx",
   "packages/tokens/src/build.ts",
@@ -90,6 +91,7 @@ export const PUBLISHED_SOURCE_FILES = [
  * arrive without anyone noticing.
  */
 export const STORY_FILES = [
+  "packages/ui/stories/data-table.stories.tsx",
   "packages/ui/stories/table.stories.tsx",
   "packages/ui/stories/date-picker.stories.tsx",
   "packages/ui/stories/accordion.stories.tsx",

@@ -514,6 +514,21 @@
           "target": "components/ui/table.tsx"
         }
       ]
+    },
+    {
+      "name": "data-table",
+      "type": "registry:ui",
+      "title": "DataTable",
+      "description": "Unreleased candidate. Composed TanStack Table 9 presentation with caller-owned data, columns and state, explicit header/row slots and client sorting/filter/page controls. Server grids and virtualization are deferred.",
+      "dependencies": ["@tanstack/react-table@^9.2.6"],
+      "registryDependencies": ["@marquee/button", "@marquee/table", "@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/data-table.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/data-table.tsx"
+        }
+      ]
     }
   ]
 }
