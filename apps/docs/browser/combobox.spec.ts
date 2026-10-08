@@ -26,9 +26,9 @@ async function target(control: Locator) {
 }
 
 /** Read paint against the actual exterior point, composite ancestor surfaces and opacity. */
-async function paint(control: Locator, label: string) {
+async function paint(control: Locator, label: string, kind: "outline" | "border" = "outline") {
   await expect(control).toBeVisible();
-  const evidence = await control.evaluate((el) => {
+  const evidence = await control.evaluate((el, kind) => {
     const rgba = (color: string) => {
       const canvas = document.createElement("canvas");
       canvas.width = canvas.height = 1;
@@ -55,15 +55,15 @@ async function paint(control: Locator, label: string) {
     const style = getComputedStyle(el);
     const rect = el.getBoundingClientRect();
     // Offset outlines extend outward; active descendant outlines are inset.
-    const inset = parseFloat(style.outlineOffset) < 0;
+    const width = parseFloat(kind === "border" ? style.borderTopWidth : style.outlineWidth);
+    const offset = kind === "border" ? 0 : parseFloat(style.outlineOffset);
+    const inset = offset < 0;
     const x = rect.left + Math.min(12, rect.width / 2);
-    const y = inset
-      ? rect.top + 5
-      : rect.top - parseFloat(style.outlineOffset) - parseFloat(style.outlineWidth) - 1;
+    const y = inset ? rect.top + 5 : rect.top - offset - width - 1;
     const exterior = document.elementFromPoint(x, y);
     if (!exterior) throw new Error("Combobox outline exterior is outside the canvas");
     const ground = background(exterior);
-    const ink = rgba(style.outlineColor);
+    const ink = rgba(kind === "border" ? style.borderTopColor : style.outlineColor);
     let opacity = 1;
     let visible = true;
     for (let host: Element | null = el; host; host = host.parentElement) {
@@ -83,8 +83,8 @@ async function paint(control: Locator, label: string) {
     const a = luminance(paintedInk),
       b = luminance(ground);
     return {
-      style: style.outlineStyle,
-      width: parseFloat(style.outlineWidth),
+      style: kind === "border" ? style.borderTopStyle : style.outlineStyle,
+      width,
       opacity,
       visible,
       contrast: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05),
@@ -92,14 +92,16 @@ async function paint(control: Locator, label: string) {
       ground,
       ink,
     };
-  });
+  }, kind);
   expect(evidence.visible, `${label} ancestor visibility`).toBe(true);
   expect(evidence.opacity, `${label} cumulative ancestor opacity`).toBeGreaterThan(0);
-  expect(evidence.style, `${label} outline style`).toBe("solid");
-  expect(evidence.width, `${label} outline width`).toBeGreaterThanOrEqual(2);
+  expect(evidence.style, `${label} ${kind} style`).toBe("solid");
+  expect(evidence.width, `${label} ${kind} width`).toBeGreaterThanOrEqual(
+    kind === "border" ? 1 : 2,
+  );
   expect(
     evidence.contrast,
-    `${label} painted outline contrast against actual exterior`,
+    `${label} painted ${kind} contrast against actual exterior`,
   ).toBeGreaterThanOrEqual(3);
   await test
     .info()
@@ -334,6 +336,11 @@ test("isolated trigger, input, content and active choice paint in dark/light/acc
     await panel.focus();
     await expect(panel).toBeFocused();
     await paint(panel, `${mode} content`);
+    if (mode === "forced") {
+      const separator = panel.getByRole("separator");
+      await expect(separator).toBeVisible();
+      await paint(separator, "forced separator", "border");
+    }
     await page.screenshot({
       path: test.info().outputPath(`combobox-isolated-${mode}.png`),
       fullPage: true,
