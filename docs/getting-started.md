@@ -75,6 +75,13 @@ supported; caller-owned selection, labels, locale and formatting stay explicit. 
 popup/input composition is the next batch. Time selection, alternate calendars and exhaustive
 timezone/locale validation are not included in the current proof.
 
+The default Calendar needs **at least 328px of inner host width** for seven 44px day
+columns, padding and borders. Week numbers and custom slots may need more. Keep this
+space available instead of clipping the grid or shrinking day targets. For the default
+390px mobile overlay examples, `DialogContent className="p-3"` provides 330px inside
+its frame; `PopoverContent className="w-auto p-2"` sizes to the calendar. Calendar's
+intrinsic minimum stays in force even when its caller is narrower.
+
 DropdownMenu composes action items, checkbox/radio choices and directional submenus.
 Portals, indicators, arrows and chevrons are explicit parts. Selection closes by default;
 prevent its default to keep a settings menu open. It is modal by default and supports
