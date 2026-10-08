@@ -231,6 +231,14 @@ describe("every interactive element clears the 44px tap floor", () => {
           const sliderThumb = element.previousElementSibling?.querySelector<HTMLElement>(
             '[data-slot="slider-thumb"][role="slider"][aria-valuenow]',
           );
+          const referencedSliderName = (sliderThumb?.getAttribute("aria-labelledby") ?? "")
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean)
+            .map((id) => document.getElementById(id)?.textContent ?? "")
+            .join(" ")
+            .trim();
+          const explicitSliderName = (sliderThumb?.getAttribute("aria-label") ?? "").trim();
           if (
             element instanceof HTMLInputElement &&
             element.style.display === "none" &&
@@ -239,8 +247,7 @@ describe("every interactive element clears the 44px tap floor", () => {
             element.parentElement?.matches('[data-slot="slider"]') &&
             sliderThumb !== undefined &&
             sliderThumb !== null &&
-            (sliderThumb.hasAttribute("aria-label") ||
-              sliderThumb.hasAttribute("aria-labelledby")) &&
+            (referencedSliderName !== "" || explicitSliderName !== "") &&
             sliderThumb.getAttribute("aria-valuenow") === element.value
           ) {
             sliderTransports.push(element.name);
