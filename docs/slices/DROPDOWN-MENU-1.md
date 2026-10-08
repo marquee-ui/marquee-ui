@@ -94,8 +94,12 @@ Browser checks measure 44px heights/widths and center hits; real solid outlines
 at least 2px and contrast at least 3:1; text at least 4.5:1 in dark/light/accent;
 forced-colors boundaries and focus; Arrow fill, opacity and actual center hit.
 Mobile docs and all three isolated focus screenshots are retained in scratch.
-Full lint and typecheck passed before the review commit. Independent review and
-one full gate follow.
+Full lint and typecheck passed before the review commit. The reviewer proved an
+instrument blind spot: making the Storybook body background equal to primary-ink
+left all three isolated focus cases green because exterior outlines compared
+against their own fill. The browser checks now measure Trigger, Content and
+SubContent exterior outlines against the page body; inset item outlines keep the
+actual highlighted item background. A closure control and full gate follow.
 
 ## Consumers
 

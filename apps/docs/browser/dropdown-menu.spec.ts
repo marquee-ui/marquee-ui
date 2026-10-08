@@ -373,7 +373,7 @@ test("isolated DropdownMenu hosts paint readable focus in dark, light, accent an
     const trigger = page.getByRole("button", { name: "View options" });
     await page.keyboard.press("Tab");
     await target(trigger);
-    await paintedFocus(trigger, trigger, `${mode} Trigger`);
+    await paintedFocus(trigger, page.locator("body"), `${mode} Trigger`);
     expect(
       await contrast(trigger, trigger, "color"),
       `${mode} trigger text`,
@@ -426,7 +426,7 @@ test("isolated DropdownMenu hosts paint readable focus in dark, light, accent an
     await contentsTrigger.press("Enter");
     const focusedContent = page.getByRole("menu", { name: "No available actions" });
     await expect(focusedContent).toBeFocused();
-    await paintedFocus(focusedContent, focusedContent, `${mode} Content`);
+    await paintedFocus(focusedContent, page.locator("body"), `${mode} Content`);
     await page.keyboard.press("Escape");
     const sharesTrigger = page.getByRole("button", { name: "No available shares" });
     await sharesTrigger.focus();
@@ -437,14 +437,14 @@ test("isolated DropdownMenu hosts paint readable focus in dark, light, accent an
     await emptyShare.press("ArrowRight");
     const focusedSub = page.getByRole("menu", { name: "Share", exact: true });
     await expect(focusedSub).toBeFocused();
-    await paintedFocus(focusedSub, focusedSub, `${mode} SubContent`);
+    await paintedFocus(focusedSub, page.locator("body"), `${mode} SubContent`);
     await page.screenshot({
       path: test.info().outputPath(`dropdown-menu-isolated-${mode!.toLowerCase()}.png`),
     });
   }
   await page.emulateMedia({ forcedColors: "active" });
   const sub = page.getByRole("menu", { name: "Share", exact: true });
-  await paintedFocus(sub, sub, "Forced colors SubContent");
+  await paintedFocus(sub, page.locator("body"), "Forced colors SubContent");
   expect(
     await sub.evaluate((el) => getComputedStyle(el).borderTopColor),
     "forced-colors panel boundary",
