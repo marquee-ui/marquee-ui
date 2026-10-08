@@ -25,7 +25,7 @@ branch, which can change independently of those npm versions.
 
 ## Unreleased preview components
 
-The local review site also includes Select, Tabs, Dialog and AlertDialog from the component-parity program.
+The local review site also includes Select, Tabs, Dialog, AlertDialog, Popover and Tooltip from the component-parity program.
 They are not in published UI 0.1.10 or the main-branch registry yet. The starter above
 continues to demonstrate that published release.
 
@@ -33,11 +33,11 @@ To try the candidate source after setting up the app below, change only the regi
 mapping's branch from `main` to `next`, then run:
 
 ```sh
-npx shadcn@4.21.4 add @marquee/select @marquee/tabs @marquee/dialog @marquee/alert-dialog
+npx shadcn@4.21.4 add @marquee/select @marquee/tabs @marquee/dialog @marquee/alert-dialog @marquee/popover @marquee/tooltip
 ```
 
 If the app already uses a Sheet from an earlier Marquee release, update its Dialog
-primitive before combining it with the new Select. Older Dialog and newer Select
+primitive before combining it with the new overlays or Select. Older Dialog and newer primitives
 versions maintain separate focus stacks, which can break nested keyboard selection
 and leave pointer input blocked after closing:
 
@@ -54,7 +54,8 @@ its declared primitive dependencies are installed by the CLI. The
 [parity program](https://github.com/marquee-ui/marquee-ui/blob/next/docs/component-parity.md)
 records scope and limits. Local packed-artifact proof for these additions is recorded in
 [BATCH-PARITY-1](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-1.md)
-and [BATCH-PARITY-2](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-2.md).
+[BATCH-PARITY-2](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-2.md)
+and [BATCH-PARITY-3](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-3.md).
 
 Dialog and AlertDialog expose explicit Portal, Overlay and Content parts. Compose their
 titles, descriptions and actions inside Content; no close icon or confirmation controls
@@ -63,6 +64,16 @@ always a confirmation modal: Cancel receives initial focus, outside interaction 
 dismiss it, and Action/Cancel remain separate parts. Prevent Action's click default and
 use controlled open state when completion should wait for an asynchronous operation.
 Giving Sheet `role="alertdialog"` alone does not supply these confirmation semantics.
+
+Popover defaults to non-modal behavior and supports an explicit modal option. Compose
+Portal, Content, Arrow and Close separately; use accessible labels on Content. Its
+Header, Title and Description are optional presentation slots, so wire IDs and
+`aria-labelledby` / `aria-describedby` yourself when using them as the label.
+
+Tooltip has an explicit Provider, Portal and Arrow. Its text supplements an already
+named control; it must not contain interactive actions or carry essential instructions
+that touch users cannot otherwise reach. Provider delay and hover behavior remain
+configurable. Use Popover when the content needs interaction.
 
 ## Add Marquee to an existing app
 
