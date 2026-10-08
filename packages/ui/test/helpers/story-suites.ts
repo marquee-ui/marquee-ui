@@ -1,3 +1,4 @@
+import * as dropdownmenu from "../../stories/dropdown-menu.stories.js";
 import { readdirSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -45,6 +46,7 @@ import * as popover from "../../stories/popover.stories.js";
 import * as tooltip from "../../stories/tooltip.stories.js";
 
 export const STORY_SUITES = {
+  "dropdown-menu": dropdownmenu,
   tooltip: tooltip,
   popover: popover,
   "alert-dialog": alertdialog,

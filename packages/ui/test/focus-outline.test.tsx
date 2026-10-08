@@ -391,6 +391,7 @@ describe("the invariant, over every part rather than a hand-written table", () =
       "alert-dialog.tsx (focus-visible)",
       "checkbox.tsx (has-focus-visible)",
       "dialog.tsx (focus-visible)",
+      "dropdown-menu.tsx (focus-visible)",
       "popover.tsx (focus-visible)",
       "radio-group.tsx (has-focus-visible)",
       "select.tsx (focus-visible)",
