@@ -316,3 +316,65 @@ After the narrow fix, DatePicker composition, focus and the derived global focus
 inventory passed 33 tests. Logs: `s1/panel-focus-test-first.log` and
 `s1/panel-focus-fixed.log`. Independent controls and installed browser paint
 measurements follow below before the corrected gate.
+
+Installed no-docs paint proof at source `203ad356345d5ccba6a5a326d68a0aac66aa12c8`:
+`npm pack --ignore-scripts` copied the local UI package to a scratch consumer,
+whose real package entry imports a fully disabled Calendar inside Dialog. No
+docs stylesheet or recipe participates. The probe waits for launcher readiness
+and uses only Tab/Enter to open both scopes; it never focuses the trigger or
+panel itself. At 390, 768 and 1280px, nine Arcade/Light/forced-color cases passed.
+Four screenshot pixel pairs sample the actual straight outline sides and
+neighboring panel ground. Minimum ratios are 13.72 / 7.63 / 11.31 respectively;
+computed solid 2px outline, -4px inset, visible ancestors and focus-visible state
+also pass. Escape returns through both scopes, and caller offset8 is measured
+in the actual browser. Script, fresh tarball metadata, results and captures:
+`s1/panel-focus-installed.mjs`, `s1/panel-focus-pack.json`,
+`s1/panel-focus-installed/results.json` and its nine PNGs.
+
+The first scratch probe already measured all nine natural panel paints, but its
+separate caller-override reload sent Tab before React exposed the launcher. The
+original `s1/panel-focus-installed-first.log` and `.json` remain; explicit visible
+launcher readiness and focused-launcher assertions before Enter corrected the
+instrument. No product behavior or focus repair was added.
+
+Consumer supplement: DatePickerContent exports and role contracts are unchanged.
+The existing source/index, DatePicker composition/focus tests, four stories and
+docs example consume it; the registry consumes source bytes and was regenerated
+by the coordinator (`3dcd241adc17942283c8e93126f5a5208246cc1f`). The global direct
+focus scanner reads actual outline-style sites: the offset-only override adds no
+site, and its existing exact inventory remains green. Literal/source scans are
+recorded in `s1/panel-focus-consumers.txt` and
+`s1/panel-focus-literal-consumers.txt`. No sibling behavior, route, role or unowned
+contract moved. Root `pnpm lint` and `pnpm typecheck` passed before the corrected
+gate (`s1/panel-focus-pregate.log`).
+
+Independent closure (verbatim):
+
+```text
+## Layer 1 (reviewer, detached worktree of 203ad356345d5ccba6a5a326d68a0aac66aa12c8, slot 5)
+| file | test | mutation applied | red / GREEN | what it asserts now |
+| --- | --- | --- | --- | --- |
+| packages/ui/test/date-picker-focus.test.tsx | DatePicker trigger inherits a compiled solid focus outline and role ink | Remove focus-visible:-outline-offset-4 | GREEN | Trigger compiled outline/ink/44px target; independent of panel rendering and inset. |
+| packages/ui/test/date-picker-focus.test.tsx | DatePicker panel inherits a compiled solid focus outline and role ink | Remove focus-visible:-outline-offset-4 | red | AssertionError: panel focus offset: expected 2 to be -4 // Object.is equality |
+| packages/ui/test/date-picker-focus.test.tsx | DatePicker close inherits a compiled solid focus outline and role ink | Remove focus-visible:-outline-offset-4 | GREEN | Close compiled outline/ink/44px target; offset change touches only Content. |
+| packages/ui/test/date-picker-focus.test.tsx | naturally focuses an all-disabled Calendar panel on keyboard open inside Dialog, with inset focus paint | Remove focus-visible:-outline-offset-4 | red | AssertionError: panel ring sits inside its own overlay ground: expected 2 to be -4 // Object.is equality |
+| packages/ui/test/date-picker-focus.test.tsx | allows callers to replace the panel's inset offset and role ink | Remove focus-visible:-outline-offset-4 | GREEN | Caller offset8/foreground class merge; browser separately measures computed caller offset8. |
+| packages/ui/test/date-picker-focus.test.tsx | DatePicker's compiled panel sizing grants a complete Calendar with usable padding | Remove focus-visible:-outline-offset-4 | GREEN | Intrinsic panel width/padding/frame; does not assert the focus offset. |
+| packages/ui/test/date-picker-focus.test.tsx | DatePicker trigger inherits a compiled solid focus outline and role ink | DatePickerContent returns null | GREEN | Trigger compiled outline/ink/44px target; independent of panel rendering and inset. |
+| packages/ui/test/date-picker-focus.test.tsx | DatePicker panel inherits a compiled solid focus outline and role ink | DatePickerContent returns null | red | TestingLibraryElementError: Unable to find an accessible element with the role "dialog" and name "Date focus" |
+| packages/ui/test/date-picker-focus.test.tsx | DatePicker close inherits a compiled solid focus outline and role ink | DatePickerContent returns null | red | TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "Close date" |
+| packages/ui/test/date-picker-focus.test.tsx | naturally focuses an all-disabled Calendar panel on keyboard open inside Dialog, with inset focus paint | DatePickerContent returns null | red | Error: Unable to find role="dialog" and name "Unavailable dates" |
+| packages/ui/test/date-picker-focus.test.tsx | allows callers to replace the panel's inset offset and role ink | DatePickerContent returns null | red | TestingLibraryElementError: Unable to find an accessible element with the role "dialog" and name "Caller focus" |
+| packages/ui/test/date-picker-focus.test.tsx | DatePicker's compiled panel sizing grants a complete Calendar with usable padding | DatePickerContent returns null | red | TestingLibraryElementError: Unable to find an accessible element with the role "dialog" and name "Date sizing" |
+| r5/panel-inset-installed.mjs | 390-arcade, 768-arcade, 1280-arcade: natural fully-disabled Calendar panel opening | Remove inset, fresh npm tarball copy, rebuild own installed fixture | red | Contrast14.2270 passes; only expected offset2 vs-4 fails. Not a color-contrast red. |
+| r5/panel-inset-installed.mjs | 390-light, 768-light, 1280-light: natural fully-disabled Calendar panel opening | Remove inset, fresh npm tarball copy, rebuild own installed fixture | red | Actual screenshot ring/neighbor contrast1.4656 <3, before offset assertion. |
+| r5/panel-inset-installed.mjs | 390-forced, 768-forced, 1280-forced: natural fully-disabled Calendar panel opening | Remove inset, fresh npm tarball copy, rebuild own installed fixture | red | Contrast11.3098 passes; only expected offset2 vs-4 fails. Not a color-contrast red. |
+| r5/panel-inset-installed.mjs | 390-arcade, 768-arcade, 1280-arcade: natural opening, painted focus, Escape scopes and caller override | Restore source, fresh npm tarball copy and rebuild | GREEN (restored) | Actual4side pixel contrast13.7217, natural focused/focus-visible Content, solid2px inset-4, visible opaque ancestors, own-panel ground, two Escape returns, caller realoffset8. |
+| r5/panel-inset-installed.mjs | 390-light, 768-light, 1280-light: natural opening, painted focus, Escape scopes and caller override | Restore source, fresh npm tarball copy and rebuild | GREEN (restored) | Actual4side pixel contrast7.6263, natural focused/focus-visible Content, solid2px inset-4, visible opaque ancestors, own-panel ground, two Escape returns, caller realoffset8. |
+| r5/panel-inset-installed.mjs | 390-forced, 768-forced, 1280-forced: natural opening, painted focus, Escape scopes and caller override | Restore source, fresh npm tarball copy and rebuild | GREEN (restored) | Actual4side pixel contrast11.3098, natural focused/focus-visible Content, solid2px inset-4, visible opaque ancestors, own-panel ground, two Escape returns, caller realoffset8. |
+
+READY — no remaining blocking finding in this narrow correction. Independent unit baseline6passed; old source2failed/4passed (both expected2/-4 assertions); Content collapse5failed/1passed (Trigger-only independent coverage); restored6passed. Own Node probe baseline `PANEL FOCUS:9 passed /0failed` (exit0); old `0passed /9failed` (exit1): all3Light cases fail actual-ring screenshot contrast1.4656, the other6fail only offset2vs-4; restored `9passed /0failed` (exit0). All6focused unit test names and every survivingGREEN are enumerated above.
+
+Evidence: `inset-{baseline,old-source,content-null,restored}.{json,log,exit}`, old/Content-null `.landed.diff` and empty `.restored.diff`; browser `inset-{baseline,old,restored}-browser.{log,exit}`, immutable pixel records/screenshots in `inset-{baseline,old,restored}-pixels/`, fresh-package byte equality proofs and build logs/exit0 per case. Probe assertions copied unchanged from supplied script after its launcher-readiness correction, rewriting only runtime path/port/output. Browser used natural Tab/Enter; no focus() repair; own freshly unpacked npm package entry and declared source CSS, no docs CSS. Mutation was made in tracked detached source before packing; installed files never edited in place. No fullverify/DB/Pile/public operation. Original reports above unchanged; review checkout clean and removed after this appendix.
+
+```
