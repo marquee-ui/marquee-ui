@@ -50,4 +50,105 @@ Own only `packages/ui/src/dropdown-menu.tsx`, `packages/ui/stories/dropdown-menu
 
 ## Evidence
 
-Pending test-first implementation and independent review.
+Test-first import run failed because the owned source did not exist; implementation
+then passed 11 family tests. The compiled focus fixture adds 8 tests; all 10 stories
+have meaningful plays. Focus and target measurements use the emitted library CSS
+in unit tests and actual computed styles/hit testing in isolated Storybook pages.
+
+The first mobile browser iteration exposed a real submenu overflow: a fixed
+192px minimum defeated Radix's available-width max (right edge 407px against a
+374px collision bound). The minimum now clamps to the available width; the same
+assertion passed on all three projects. No tolerance was widened.
+
+Radix injects inline `outline: none` on Content/SubContent. The wrappers clear that
+default while preserving caller styles; the unit suite proves both cases. Normal
+keyboard entry roves to the first enabled item, so ContentFocus uses all-disabled actions to measure each content host's
+own outline when no enabled item can receive focus. Default menu keyboard
+behavior is proved separately. A pre-typecheck rejected `onEntryFocus` as a
+non-public prop; that attempt was removed before the committed review point.
+
+Installed `@radix-ui/react-menu@2.1.25/package.json` records dismissable-layer
+1.1.20 and focus-scope 1.2.0. Nested Dialog/Sheet/Popover interaction proves
+selection and Escape close the child only, restore parent focus, preserve parent
+locks, then release them when the parent closes.
+
+Focused command on 2026-10-08:
+`pnpm exec vitest run --project ui packages/ui/test/dropdown-menu.test.tsx packages/ui/test/dropdown-menu-focus.test.tsx packages/ui/test/stories.test.tsx`:
+3 files / 220 tests passed. Focused browser commands used `DOCS_PORT=4191`
+and scratch outputs under `/home/ankit/.marquee-scratch/BATCH-PARITY-4/dropdown-menu/`:
+`pnpm --filter @marquee-ui/docs exec playwright test browser/dropdown-menu.spec.ts`
+proved 24 cases; the docs-demo follow-up (`-g 'demo owns'`) proved the remaining
+3 after using `includeHidden` to observe the status Radix intentionally hides
+while the modal menu is open. The source-copy assertion still compares exact bytes.
+
+After the all-disabled ContentFocus story replaced the unsupported callback
+attempt, the isolated focus case passed mobile/tablet and failed once on desktop:
+the submenu disappeared before `toBeFocused` (`focus-browser-2.log`). The final
+instrument parks the mouse outside the controls and waits for actual target size,
+center hit and focused SubTrigger before sending its directional key. The same
+three-project command (`-g 'isolated DropdownMenu'`) then passed 3 cases in 15.2s
+(`focus-browser-3.log`). This is instrument setup; the disappearing submenu's cause
+remains unproved and no product fix is claimed. The original trace is retained.
+
+Browser checks measure 44px heights/widths and center hits; real solid outlines
+at least 2px and contrast at least 3:1; text at least 4.5:1 in dark/light/accent;
+forced-colors boundaries and focus; Arrow fill, opacity and actual center hit.
+Mobile docs and all three isolated focus screenshots are retained in scratch.
+Full lint and typecheck passed before the review commit. Independent review and
+one full gate follow.
+
+## Consumers
+
+Before implementation (base `62dc9d4`), exported-symbol, route, touched-path,
+role/ARIA and literal-class diff scans were empty: the owned files did not exist.
+`git grep -n -E 'DropdownMenu|dropdown-menu|menuitemcheckbox|menuitemradio' -- packages apps`
+printed only `packages/ui/package.json:26` (the coordinator's dependency).
+No existing DropdownMenu source or consumers were present.
+
+At the commit point, `rg -l` over each of the 16 source exports found only the new
+family source, stories, family tests, docs example, browser spec, shared index,
+catalog and site spec. Export names:
+
+```text
+DropdownMenu DropdownMenuPortal DropdownMenuSub DropdownMenuTrigger
+DropdownMenuContent DropdownMenuGroup DropdownMenuLabel DropdownMenuItem
+DropdownMenuCheckboxItem DropdownMenuRadioGroup DropdownMenuRadioItem
+DropdownMenuItemIndicator DropdownMenuSeparator DropdownMenuArrow
+DropdownMenuSubTrigger DropdownMenuSubContent
+```
+
+Named-path / role / family test consumers:
+
+```text
+apps/docs/browser/dropdown-menu.spec.ts
+packages/ui/test/dropdown-menu-focus.test.tsx
+packages/ui/test/focus-outline.test.tsx
+packages/ui/test/dropdown-menu.test.tsx
+packages/ui/test/registry.test.ts
+apps/docs/browser/site.spec.ts
+```
+
+Class-fragment scan output:
+
+```text
+data-[highlighted]:outline-solid: packages/ui/r/select.json, packages/ui/r/dropdown-menu.json
+min-w-[min(12rem,var(--radix-dropdown-menu-content-available-width))]: packages/ui/r/dropdown-menu.json
+fill-overlay: packages/ui/r/tooltip.json, packages/ui/r/dropdown-menu.json, packages/ui/r/select.json, packages/ui/r/popover.json
+```
+
+Routes: none. ARIA menu roles belong to Radix; existing Select/RadioGroup consumer
+contracts are untouched. CROSS consumers owned by the coordinator: exports,
+catalog, source/story maps, registry and count/focus inventories. Wiring was
+requested with the exact 16 exports and 10 stories/10 plays and completed in
+`98a6a75` and `b488fa8`. No sibling-owned consumer or unowned behavior was changed.
+
+## Decisions
+
+1. Keep Radix's default modal behavior; nonmodal is an explicit caller choice.
+2. Expose exactly 16 primitive parts. No Shortcut helper or injected glyphs.
+3. Highlighted actions paint a role-based solid inset outline; content/trigger
+   focus paints a solid outline outside their border.
+4. Clamp minimum width to Radix available width so narrow submenus fit the viewport.
+5. Compared with shadcn's bundled presentation recipe, portals, indicators,
+   submenu chevrons and arrows remain caller-owned anatomy. Select remains the
+   form-value primitive.
