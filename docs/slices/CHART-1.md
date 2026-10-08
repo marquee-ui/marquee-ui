@@ -1,6 +1,6 @@
 # CHART-1 — composed responsive charts
 
-Batch: BATCH-PARITY-7. Status: implemented; independent review and gate pending.
+Batch: BATCH-PARITY-7. Status: independently reviewed; full stream gate pending.
 Stream port 4192; reviewer 4196.
 
 ## Supported contract
@@ -128,4 +128,20 @@ the SVG descendant focus classes leaves the shared host-focus suite green. The
 isolated browser SVG test does reject that actual focus removal. Neither survivor
 is presented as a resolved instrument property.
 
-Exact correction review and the single full stream gate follow.
+Fresh correction review at `11b401e` closes both findings, with **18 landed
+mutations** across the ten test-bearing surfaces and every restoration green.
+The four closure controls are separate, so one failure cannot mask the next:
+
+| Committed-source counterexample               | Predicted assertion and observed red                       |
+| --------------------------------------------- | ---------------------------------------------------------- |
+| Story Line margin 16 → 12                     | Focused month-label overlap: 1.5px, expected ≤0.1.         |
+| Story Bar South key → North                   | Month 1 bar ratio: 1, expected 1.5.                        |
+| Story Line South key → North                  | Month 1 line position delta: 0, expected 6.                |
+| Story month ticks removed, axis data retained | Exact Jan/Feb/Mar/Apr label anchor receives an empty list. |
+
+At that exact committed head, the independent root runner passes **291 affected
+UI tests** and the browser runner passes **15 cases** at all three widths in
+18.8s. Commands, predicted/actual assertion messages, confirmed landed diffs,
+fresh build exits, git restorations and screenshots are recorded in
+`/home/ankit/.marquee-scratch/BATCH-PARITY-7/r6/review-final.md` and adjacent
+`c01`–`c04` logs. This is review evidence; the single full stream gate follows.
