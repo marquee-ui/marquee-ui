@@ -1,0 +1,446 @@
+[
+  {
+    "width": 390,
+    "settle": false,
+    "beforeTab": 4,
+    "baseline": 15,
+    "final": 160,
+    "keys": [
+      {
+        "key": "Enter",
+        "target": "BUTTON",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "Tab",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowRight",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowRight",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "settle": true,
+    "beforeTab": 160,
+    "baseline": 160,
+    "final": 160,
+    "keys": [
+      {
+        "key": "Enter",
+        "target": "BUTTON",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "Tab",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowRight",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowRight",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "settle": false,
+    "beforeTab": 7,
+    "baseline": 21,
+    "final": 160,
+    "keys": [
+      {
+        "key": "Enter",
+        "target": "BUTTON",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "Tab",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowRight",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowRight",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "settle": true,
+    "beforeTab": 160,
+    "baseline": 160,
+    "final": 160,
+    "keys": [
+      {
+        "key": "Enter",
+        "target": "BUTTON",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "Tab",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowRight",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowRight",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      }
+    ]
+  },
+  {
+    "width": 1280,
+    "settle": false,
+    "beforeTab": 0,
+    "baseline": 5,
+    "final": 160,
+    "keys": [
+      {
+        "key": "Enter",
+        "target": "BUTTON",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "Tab",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowRight",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowRight",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      }
+    ]
+  },
+  {
+    "width": 1280,
+    "settle": true,
+    "beforeTab": 160,
+    "baseline": 160,
+    "final": 160,
+    "keys": [
+      {
+        "key": "Enter",
+        "target": "BUTTON",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowRight",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "Tab",
+        "target": "DIV",
+        "defaultPrevented": false
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowRight",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowRight",
+        "target": "svg",
+        "defaultPrevented": true
+      },
+      {
+        "key": "ArrowLeft",
+        "target": "svg",
+        "defaultPrevented": true
+      }
+    ]
+  }
+]

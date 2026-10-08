@@ -1,0 +1,55 @@
+{
+  "status": "complete; no actionable findings",
+  "sourceSha": "bd0f6ca959546b0a506986c7d37209d49ce2fc02",
+  "previousReviewedSha": "4e46611951d5a933dc25479349c34ed120756553",
+  "worktree": "/home/ankit/Code/marquee-data-table-review-7",
+  "reviewedDelta": [
+    "packages/ui/src/data-table.tsx: removed unnecessary use client directive only",
+    "packages/ui/r/data-table.json: regenerated corresponding source bytes only",
+    "docs/slices/DATA-TABLE-1.md: previous independent review record"
+  ],
+  "findings": [],
+  "reasoning": "The part imports Fragment and React types, static composed parts, and TanStack types. It neither imports nor calls a client-only hook. The caller client recipe still owns useTable state, table instance and callbacks. Removing the redundant module directive changes no implementation logic or recipe behavior.",
+  "healthy": {
+    "exitCode": 0,
+    "filesPassed": 3,
+    "testsPassed": 38,
+    "boundaryPassed": 13,
+    "familyPassed": 6,
+    "registryPassed": 19,
+    "log": "supplement-healthy.log"
+  },
+  "mutation": {
+    "target": "packages/ui/src/data-table.tsx:1",
+    "change": "Reintroduce use client directive as first statement",
+    "landedProof": [
+      "head -n 4 source",
+      "rg first-statement directive",
+      "supplement-boundary-mutation.diff"
+    ],
+    "runner": "pnpm exec vitest run --project ui packages/ui/test/client-boundary.test.ts --reporter=verbose",
+    "exitCode": 1,
+    "failed": 1,
+    "passed": 12,
+    "predictedAndActualRed": "does not spend the boundary on a file that is entitled to none: wasteful expected [], received [data-table.tsx]",
+    "log": "supplement-boundary-red.log"
+  },
+  "restored": {
+    "command": "git restore packages/ui/src/data-table.tsx",
+    "exitCode": 0,
+    "testsPassed": 38,
+    "filesPassed": 3,
+    "log": "supplement-restored.log",
+    "gitStatusPorcelain": ""
+  },
+  "commands": [
+    "git switch --detach bd0f6ca959546b0a506986c7d37209d49ce2fc02",
+    "git diff 4e46611951d5a933dc25479349c34ed120756553..HEAD",
+    "PATH=/home/ankit/.nvm/versions/node/v22.18.0/bin:$PATH pnpm exec vitest run --project ui packages/ui/test/client-boundary.test.ts packages/ui/test/data-table.test.tsx packages/ui/test/registry.test.ts --reporter=verbose",
+    "PATH=/home/ankit/.nvm/versions/node/v22.18.0/bin:$PATH pnpm exec vitest run --project ui packages/ui/test/client-boundary.test.ts --reporter=verbose",
+    "git restore packages/ui/src/data-table.tsx"
+  ],
+  "priorEvidencePreserved": true,
+  "browserRebuild": "Not required for this directive-only correction; no behavior concern identified.",
+  "scope": "No main/source worktree edit, full verify, commit, push or public operation."
+}

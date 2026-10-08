@@ -1,0 +1,4302 @@
+{
+  "head": "15c266e3a47be44ad40c26db4d961ca31cd09a9f",
+  "started": "2026-10-08T17:41:42.056Z",
+  "cases": [
+    {
+      "name": "390-arcade-normal",
+      "width": 390,
+      "preset": "arcade",
+      "forced": false,
+      "bodyPaint": {
+        "background": "rgb(10, 11, 7)",
+        "color": "rgb(242, 245, 232)"
+      },
+      "region": {
+        "clientWidth": 342,
+        "scrollWidth": 800,
+        "initial": 0,
+        "afterNativeRight": 458
+      },
+      "inlineNaturalScroll": 340,
+      "inlineRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(228, 255, 58)",
+        "overlap": 0
+      },
+      "inlineGeometry": {
+        "bounds": {
+          "x": 51.25,
+          "y": 378.671875,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(228, 255, 58)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 100.75,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 160.75,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 220.75,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 281.75,
+            "y": 580.3150024414062,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 89.25,
+            "y": 492.80859375,
+            "width": 22,
+            "height": 83.56640625,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 149.25,
+            "y": 464.95318603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 209.25,
+            "y": 446.3827819824219,
+            "width": 22,
+            "height": 129.99221801757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 269.25,
+            "y": 427.8124694824219,
+            "width": 22,
+            "height": 148.56253051757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 115.25,
+            "y": 520.6640625,
+            "width": 22,
+            "height": 55.7109375,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 175.25,
+            "y": 483.5234680175781,
+            "width": 22,
+            "height": 92.85159301757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 235.25,
+            "y": 502.0937805175781,
+            "width": 22,
+            "height": 74.28128051757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 295.25,
+            "y": 464.95318603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "inlineBounds": {
+        "left": 24,
+        "right": 366,
+        "chartLeft": 51.25,
+        "chartRight": 339.25
+      },
+      "inlineLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "inlineAfterArrows": 340,
+      "inlineAfterBounds": {
+        "x": 51.25,
+        "y": 378.671875,
+        "width": 288,
+        "height": 256
+      },
+      "action": {
+        "width": 87,
+        "height": 44,
+        "left": 261.265625,
+        "right": 348.265625,
+        "regionLeft": 24,
+        "regionRight": 366,
+        "outline": 2,
+        "offset": 2,
+        "hits": [true, true, true]
+      },
+      "modalNativeScroll": {
+        "before": {
+          "scroll": 0,
+          "width": 306,
+          "full": 768
+        },
+        "scroll": 320,
+        "region": {
+          "x": 42,
+          "y": 264.1015625,
+          "width": 306,
+          "height": 324.296875
+        },
+        "svg": {
+          "x": 54,
+          "y": 276.1015625,
+          "width": 264,
+          "height": 256
+        }
+      },
+      "dialogRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(228, 255, 58)",
+        "overlap": 0
+      },
+      "dialogGeometry": {
+        "bounds": {
+          "x": 54,
+          "y": 276.1015625,
+          "width": 264,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(228, 255, 58)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 73.5,
+            "y": 477.74468994140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 145.5,
+            "y": 477.74468994140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 217.5,
+            "y": 477.74468994140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 290.5,
+            "y": 477.74468994140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 83,
+            "y": 387.23828125,
+            "width": 6,
+            "height": 6,
+            "cy": 114.13671875000001,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(228, 255, 58)"
+          },
+          {
+            "x": 155,
+            "y": 359.3828125,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(228, 255, 58)"
+          },
+          {
+            "x": 227,
+            "y": 340.8125,
+            "width": 6,
+            "height": 6,
+            "cy": 67.7109375,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(228, 255, 58)"
+          },
+          {
+            "x": 299,
+            "y": 322.2421875,
+            "width": 6,
+            "height": 6,
+            "cy": 49.14062499999999,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(228, 255, 58)"
+          },
+          {
+            "x": 83,
+            "y": 415.09375,
+            "width": 6,
+            "height": 6,
+            "cy": 141.99218749999997,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 229, 199)"
+          },
+          {
+            "x": 155,
+            "y": 377.953125,
+            "width": 6,
+            "height": 6,
+            "cy": 104.8515625,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 229, 199)"
+          },
+          {
+            "x": 227,
+            "y": 396.5234375,
+            "width": 6,
+            "height": 6,
+            "cy": 123.42187499999999,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 229, 199)"
+          },
+          {
+            "x": 299,
+            "y": 359.3828125,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 229, 199)"
+          }
+        ],
+        "dashed": [null, "4 3"]
+      },
+      "dialogLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "forwardTabTarget": {
+        "tag": "BUTTON",
+        "slot": "dialog-close"
+      },
+      "hiddenHost": {
+        "children": 1,
+        "type": 3,
+        "text": "Cedar: Focus chart and use arrows to read points.",
+        "visibility": "hidden"
+      },
+      "dialogBounds": {
+        "x": 16,
+        "y": 135.8203125,
+        "width": 358,
+        "height": 828.359375
+      },
+      "sortedAster": {
+        "bounds": {
+          "x": 389.546875,
+          "y": 378.671875,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "none",
+          "width": 3,
+          "offset": 0,
+          "color": "rgb(242, 245, 232)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 439.046875,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 499.046875,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 559.046875,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 620.046875,
+            "y": 580.3150024414062,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 427.546875,
+            "y": 520.6640625,
+            "width": 22,
+            "height": 55.7109375,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 487.546875,
+            "y": 492.80859375,
+            "width": 22,
+            "height": 83.56640625,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 547.546875,
+            "y": 464.95318603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 607.546875,
+            "y": 437.0976867675781,
+            "width": 22,
+            "height": 139.27731323242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 453.546875,
+            "y": 548.5195922851562,
+            "width": 22,
+            "height": 27.85546875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 513.546875,
+            "y": 520.6640625,
+            "width": 22,
+            "height": 55.7109375,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 573.546875,
+            "y": 492.80859375,
+            "width": 22,
+            "height": 83.56640625,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 633.546875,
+            "y": 464.95318603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "verdict": "pass"
+    },
+    {
+      "name": "390-light-normal",
+      "width": 390,
+      "preset": "light",
+      "forced": false,
+      "bodyPaint": {
+        "background": "rgb(242, 245, 232)",
+        "color": "rgb(20, 23, 12)"
+      },
+      "region": {
+        "clientWidth": 342,
+        "scrollWidth": 800,
+        "initial": 0,
+        "afterNativeRight": 458
+      },
+      "inlineNaturalScroll": 340,
+      "inlineRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(74, 90, 0)",
+        "overlap": 0
+      },
+      "inlineGeometry": {
+        "bounds": {
+          "x": 51.25,
+          "y": 378.671875,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(74, 90, 0)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 100.75,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 160.75,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 220.75,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 281.75,
+            "y": 580.3150024414062,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 89.25,
+            "y": 492.80859375,
+            "width": 22,
+            "height": 83.56640625,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 149.25,
+            "y": 464.95318603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 209.25,
+            "y": 446.3827819824219,
+            "width": 22,
+            "height": 129.99221801757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 269.25,
+            "y": 427.8124694824219,
+            "width": 22,
+            "height": 148.56253051757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 115.25,
+            "y": 520.6640625,
+            "width": 22,
+            "height": 55.7109375,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 175.25,
+            "y": 483.5234680175781,
+            "width": 22,
+            "height": 92.85159301757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 235.25,
+            "y": 502.0937805175781,
+            "width": 22,
+            "height": 74.28128051757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 295.25,
+            "y": 464.95318603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "inlineBounds": {
+        "left": 24,
+        "right": 366,
+        "chartLeft": 51.25,
+        "chartRight": 339.25
+      },
+      "inlineLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "inlineAfterArrows": 340,
+      "inlineAfterBounds": {
+        "x": 51.25,
+        "y": 378.671875,
+        "width": 288,
+        "height": 256
+      },
+      "action": {
+        "width": 87,
+        "height": 44,
+        "left": 261.265625,
+        "right": 348.265625,
+        "regionLeft": 24,
+        "regionRight": 366,
+        "outline": 2,
+        "offset": 2,
+        "hits": [true, true, true]
+      },
+      "modalNativeScroll": {
+        "before": {
+          "scroll": 0,
+          "width": 306,
+          "full": 768
+        },
+        "scroll": 320,
+        "region": {
+          "x": 42,
+          "y": 264.1015625,
+          "width": 306,
+          "height": 324.296875
+        },
+        "svg": {
+          "x": 54,
+          "y": 276.1015625,
+          "width": 264,
+          "height": 256
+        }
+      },
+      "dialogRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(74, 90, 0)",
+        "overlap": 0
+      },
+      "dialogGeometry": {
+        "bounds": {
+          "x": 54,
+          "y": 276.1015625,
+          "width": 264,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(74, 90, 0)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 73.5,
+            "y": 477.74468994140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 145.5,
+            "y": 477.74468994140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 217.5,
+            "y": 477.74468994140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 290.5,
+            "y": 477.74468994140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 83,
+            "y": 387.23828125,
+            "width": 6,
+            "height": 6,
+            "cy": 114.13671875000001,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 155,
+            "y": 359.3828125,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 227,
+            "y": 340.8125,
+            "width": 6,
+            "height": 6,
+            "cy": 67.7109375,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 299,
+            "y": 322.2421875,
+            "width": 6,
+            "height": 6,
+            "cy": 49.14062499999999,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 83,
+            "y": 415.09375,
+            "width": 6,
+            "height": 6,
+            "cy": 141.99218749999997,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 155,
+            "y": 377.953125,
+            "width": 6,
+            "height": 6,
+            "cy": 104.8515625,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 227,
+            "y": 396.5234375,
+            "width": 6,
+            "height": 6,
+            "cy": 123.42187499999999,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 299,
+            "y": 359.3828125,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          }
+        ],
+        "dashed": [null, "4 3"]
+      },
+      "dialogLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "forwardTabTarget": {
+        "tag": "BUTTON",
+        "slot": "dialog-close"
+      },
+      "hiddenHost": {
+        "children": 1,
+        "type": 3,
+        "text": "Cedar: Focus chart and use arrows to read points.",
+        "visibility": "hidden"
+      },
+      "dialogBounds": {
+        "x": 16,
+        "y": 135.8203125,
+        "width": 358,
+        "height": 828.359375
+      },
+      "sortedAster": {
+        "bounds": {
+          "x": 389.546875,
+          "y": 378.671875,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "none",
+          "width": 3,
+          "offset": 0,
+          "color": "rgb(20, 23, 12)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 439.046875,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 499.046875,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 559.046875,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 620.046875,
+            "y": 580.3150024414062,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 427.546875,
+            "y": 520.6640625,
+            "width": 22,
+            "height": 55.7109375,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 487.546875,
+            "y": 492.80859375,
+            "width": 22,
+            "height": 83.56640625,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 547.546875,
+            "y": 464.95318603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 607.546875,
+            "y": 437.0976867675781,
+            "width": 22,
+            "height": 139.27731323242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 453.546875,
+            "y": 548.5195922851562,
+            "width": 22,
+            "height": 27.85546875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 513.546875,
+            "y": 520.6640625,
+            "width": 22,
+            "height": 55.7109375,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 573.546875,
+            "y": 492.80859375,
+            "width": 22,
+            "height": 83.56640625,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 633.546875,
+            "y": 464.95318603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "verdict": "pass"
+    },
+    {
+      "name": "390-light-forced",
+      "width": 390,
+      "preset": "light",
+      "forced": true,
+      "bodyPaint": {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(0, 0, 0)"
+      },
+      "region": {
+        "clientWidth": 342,
+        "scrollWidth": 800,
+        "initial": 0,
+        "afterNativeRight": 458
+      },
+      "inlineNaturalScroll": 340,
+      "inlineRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(74, 90, 0)",
+        "overlap": 0
+      },
+      "inlineGeometry": {
+        "bounds": {
+          "x": 51.25,
+          "y": 378.671875,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(74, 90, 0)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 100.75,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 160.75,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 220.75,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 281.75,
+            "y": 580.3150024414062,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 89.25,
+            "y": 492.80859375,
+            "width": 22,
+            "height": 83.56640625,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 149.25,
+            "y": 464.95318603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 209.25,
+            "y": 446.3827819824219,
+            "width": 22,
+            "height": 129.99221801757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 269.25,
+            "y": 427.8124694824219,
+            "width": 22,
+            "height": 148.56253051757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 115.25,
+            "y": 520.6640625,
+            "width": 22,
+            "height": 55.7109375,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 175.25,
+            "y": 483.5234680175781,
+            "width": 22,
+            "height": 92.85159301757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 235.25,
+            "y": 502.0937805175781,
+            "width": 22,
+            "height": 74.28128051757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 295.25,
+            "y": 464.95318603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "inlineBounds": {
+        "left": 24,
+        "right": 366,
+        "chartLeft": 51.25,
+        "chartRight": 339.25
+      },
+      "inlineLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "inlineAfterArrows": 340,
+      "inlineAfterBounds": {
+        "x": 51.25,
+        "y": 378.671875,
+        "width": 288,
+        "height": 256
+      },
+      "action": {
+        "width": 87,
+        "height": 44,
+        "left": 261.265625,
+        "right": 348.265625,
+        "regionLeft": 24,
+        "regionRight": 366,
+        "outline": 2,
+        "offset": 2,
+        "hits": [true, true, true]
+      },
+      "modalNativeScroll": {
+        "before": {
+          "scroll": 0,
+          "width": 306,
+          "full": 768
+        },
+        "scroll": 320,
+        "region": {
+          "x": 42,
+          "y": 264.1015625,
+          "width": 306,
+          "height": 324.296875
+        },
+        "svg": {
+          "x": 54,
+          "y": 276.1015625,
+          "width": 264,
+          "height": 256
+        }
+      },
+      "dialogRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(74, 90, 0)",
+        "overlap": 0
+      },
+      "dialogGeometry": {
+        "bounds": {
+          "x": 54,
+          "y": 276.1015625,
+          "width": 264,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(74, 90, 0)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 73.5,
+            "y": 477.74468994140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 145.5,
+            "y": 477.74468994140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 217.5,
+            "y": 477.74468994140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 290.5,
+            "y": 477.74468994140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 83,
+            "y": 387.23828125,
+            "width": 6,
+            "height": 6,
+            "cy": 114.13671875000001,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 155,
+            "y": 359.3828125,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 227,
+            "y": 340.8125,
+            "width": 6,
+            "height": 6,
+            "cy": 67.7109375,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 299,
+            "y": 322.2421875,
+            "width": 6,
+            "height": 6,
+            "cy": 49.14062499999999,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 83,
+            "y": 415.09375,
+            "width": 6,
+            "height": 6,
+            "cy": 141.99218749999997,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 155,
+            "y": 377.953125,
+            "width": 6,
+            "height": 6,
+            "cy": 104.8515625,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 227,
+            "y": 396.5234375,
+            "width": 6,
+            "height": 6,
+            "cy": 123.42187499999999,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 299,
+            "y": 359.3828125,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          }
+        ],
+        "dashed": [null, "4 3"]
+      },
+      "dialogLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "forwardTabTarget": {
+        "tag": "BUTTON",
+        "slot": "dialog-close"
+      },
+      "hiddenHost": {
+        "children": 1,
+        "type": 3,
+        "text": "Cedar: Focus chart and use arrows to read points.",
+        "visibility": "hidden"
+      },
+      "dialogBounds": {
+        "x": 16,
+        "y": 135.8203125,
+        "width": 358,
+        "height": 828.359375
+      },
+      "sortedAster": {
+        "bounds": {
+          "x": 389.546875,
+          "y": 378.671875,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "none",
+          "width": 3,
+          "offset": 0,
+          "color": "rgb(0, 0, 0)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 439.046875,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 499.046875,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 559.046875,
+            "y": 580.3150024414062,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 620.046875,
+            "y": 580.3150024414062,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 427.546875,
+            "y": 520.6640625,
+            "width": 22,
+            "height": 55.7109375,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 487.546875,
+            "y": 492.80859375,
+            "width": 22,
+            "height": 83.56640625,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 547.546875,
+            "y": 464.95318603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 607.546875,
+            "y": 437.0976867675781,
+            "width": 22,
+            "height": 139.27731323242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 453.546875,
+            "y": 548.5195922851562,
+            "width": 22,
+            "height": 27.85546875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 513.546875,
+            "y": 520.6640625,
+            "width": 22,
+            "height": 55.7109375,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 573.546875,
+            "y": 492.80859375,
+            "width": 22,
+            "height": 83.56640625,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 633.546875,
+            "y": 464.95318603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "verdict": "pass"
+    },
+    {
+      "name": "768-arcade-normal",
+      "width": 768,
+      "preset": "arcade",
+      "forced": false,
+      "bodyPaint": {
+        "background": "rgb(10, 11, 7)",
+        "color": "rgb(242, 245, 232)"
+      },
+      "region": {
+        "clientWidth": 720,
+        "scrollWidth": 800,
+        "initial": 0,
+        "afterNativeRight": 80
+      },
+      "inlineNaturalScroll": 0,
+      "inlineRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(228, 255, 58)",
+        "overlap": 0
+      },
+      "inlineGeometry": {
+        "bounds": {
+          "x": 391.25,
+          "y": 287.484375,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(228, 255, 58)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 440.75,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 500.75,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 560.75,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 621.75,
+            "y": 489.12750244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 429.25,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 489.25,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 549.25,
+            "y": 355.1952819824219,
+            "width": 22,
+            "height": 129.9921875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 609.25,
+            "y": 336.6249694824219,
+            "width": 22,
+            "height": 148.5625,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 455.25,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 515.25,
+            "y": 392.3359680175781,
+            "width": 22,
+            "height": 92.85159301757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 575.25,
+            "y": 410.9062805175781,
+            "width": 22,
+            "height": 74.28128051757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 635.25,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "inlineBounds": {
+        "left": 24,
+        "right": 744,
+        "chartLeft": 391.25,
+        "chartRight": 679.25
+      },
+      "inlineLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "inlineAfterArrows": 0,
+      "inlineAfterBounds": {
+        "x": 391.25,
+        "y": 287.484375,
+        "width": 288,
+        "height": 256
+      },
+      "action": {
+        "width": 87,
+        "height": 44,
+        "left": 645.265625,
+        "right": 732.265625,
+        "regionLeft": 24,
+        "regionRight": 744,
+        "outline": 2,
+        "offset": 2,
+        "hits": [true, true, true]
+      },
+      "modalNativeScroll": {
+        "before": {
+          "scroll": 0,
+          "width": 460,
+          "full": 768
+        },
+        "scroll": 160,
+        "region": {
+          "x": 154,
+          "y": 253.953125,
+          "width": 460,
+          "height": 324.296875
+        },
+        "svg": {
+          "x": 326,
+          "y": 265.953125,
+          "width": 264,
+          "height": 256
+        }
+      },
+      "dialogRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(228, 255, 58)",
+        "overlap": 0
+      },
+      "dialogGeometry": {
+        "bounds": {
+          "x": 326,
+          "y": 265.953125,
+          "width": 264,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(228, 255, 58)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 345.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 417.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 489.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 562.5,
+            "y": 467.59625244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 355,
+            "y": 377.08984375,
+            "width": 6,
+            "height": 6,
+            "cy": 114.13671875000001,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(228, 255, 58)"
+          },
+          {
+            "x": 427,
+            "y": 349.234375,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(228, 255, 58)"
+          },
+          {
+            "x": 499,
+            "y": 330.6640625,
+            "width": 6,
+            "height": 6,
+            "cy": 67.7109375,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(228, 255, 58)"
+          },
+          {
+            "x": 571,
+            "y": 312.09375,
+            "width": 6,
+            "height": 6,
+            "cy": 49.14062499999999,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(228, 255, 58)"
+          },
+          {
+            "x": 355,
+            "y": 404.9453125,
+            "width": 6,
+            "height": 6,
+            "cy": 141.99218749999997,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 229, 199)"
+          },
+          {
+            "x": 427,
+            "y": 367.8046875,
+            "width": 6,
+            "height": 6,
+            "cy": 104.8515625,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 229, 199)"
+          },
+          {
+            "x": 499,
+            "y": 386.375,
+            "width": 6,
+            "height": 6,
+            "cy": 123.42187499999999,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 229, 199)"
+          },
+          {
+            "x": 571,
+            "y": 349.234375,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 229, 199)"
+          }
+        ],
+        "dashed": [null, "4 3"]
+      },
+      "dialogLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "forwardTabTarget": {
+        "tag": "BUTTON",
+        "slot": "dialog-close"
+      },
+      "hiddenHost": {
+        "children": 1,
+        "type": 3,
+        "text": "Cedar: Focus chart and use arrows to read points.",
+        "visibility": "hidden"
+      },
+      "dialogBounds": {
+        "x": 128,
+        "y": 145.96875,
+        "width": 512,
+        "height": 808.0625
+      },
+      "sortedAster": {
+        "bounds": {
+          "x": 315.546875,
+          "y": 287.484375,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "none",
+          "width": 3,
+          "offset": 0,
+          "color": "rgb(242, 245, 232)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 365.046875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 425.046875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 485.046875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 546.046875,
+            "y": 489.12750244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 353.546875,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 413.546875,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 473.546875,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 533.546875,
+            "y": 345.9101867675781,
+            "width": 22,
+            "height": 139.27728271484375,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 379.546875,
+            "y": 457.33209228515625,
+            "width": 22,
+            "height": 27.85546875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 439.546875,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 499.546875,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 559.546875,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "verdict": "pass"
+    },
+    {
+      "name": "768-light-normal",
+      "width": 768,
+      "preset": "light",
+      "forced": false,
+      "bodyPaint": {
+        "background": "rgb(242, 245, 232)",
+        "color": "rgb(20, 23, 12)"
+      },
+      "region": {
+        "clientWidth": 720,
+        "scrollWidth": 800,
+        "initial": 0,
+        "afterNativeRight": 80
+      },
+      "inlineNaturalScroll": 0,
+      "inlineRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(74, 90, 0)",
+        "overlap": 0
+      },
+      "inlineGeometry": {
+        "bounds": {
+          "x": 391.25,
+          "y": 287.484375,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(74, 90, 0)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 440.75,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 500.75,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 560.75,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 621.75,
+            "y": 489.12750244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 429.25,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 489.25,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 549.25,
+            "y": 355.1952819824219,
+            "width": 22,
+            "height": 129.9921875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 609.25,
+            "y": 336.6249694824219,
+            "width": 22,
+            "height": 148.5625,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 455.25,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 515.25,
+            "y": 392.3359680175781,
+            "width": 22,
+            "height": 92.85159301757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 575.25,
+            "y": 410.9062805175781,
+            "width": 22,
+            "height": 74.28128051757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 635.25,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "inlineBounds": {
+        "left": 24,
+        "right": 744,
+        "chartLeft": 391.25,
+        "chartRight": 679.25
+      },
+      "inlineLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "inlineAfterArrows": 0,
+      "inlineAfterBounds": {
+        "x": 391.25,
+        "y": 287.484375,
+        "width": 288,
+        "height": 256
+      },
+      "action": {
+        "width": 87,
+        "height": 44,
+        "left": 645.265625,
+        "right": 732.265625,
+        "regionLeft": 24,
+        "regionRight": 744,
+        "outline": 2,
+        "offset": 2,
+        "hits": [true, true, true]
+      },
+      "modalNativeScroll": {
+        "before": {
+          "scroll": 0,
+          "width": 460,
+          "full": 768
+        },
+        "scroll": 160,
+        "region": {
+          "x": 154,
+          "y": 253.953125,
+          "width": 460,
+          "height": 324.296875
+        },
+        "svg": {
+          "x": 326,
+          "y": 265.953125,
+          "width": 264,
+          "height": 256
+        }
+      },
+      "dialogRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(74, 90, 0)",
+        "overlap": 0
+      },
+      "dialogGeometry": {
+        "bounds": {
+          "x": 326,
+          "y": 265.953125,
+          "width": 264,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(74, 90, 0)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 345.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 417.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 489.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 562.5,
+            "y": 467.59625244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 355,
+            "y": 377.08984375,
+            "width": 6,
+            "height": 6,
+            "cy": 114.13671875000001,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 427,
+            "y": 349.234375,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 499,
+            "y": 330.6640625,
+            "width": 6,
+            "height": 6,
+            "cy": 67.7109375,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 571,
+            "y": 312.09375,
+            "width": 6,
+            "height": 6,
+            "cy": 49.14062499999999,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 355,
+            "y": 404.9453125,
+            "width": 6,
+            "height": 6,
+            "cy": 141.99218749999997,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 427,
+            "y": 367.8046875,
+            "width": 6,
+            "height": 6,
+            "cy": 104.8515625,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 499,
+            "y": 386.375,
+            "width": 6,
+            "height": 6,
+            "cy": 123.42187499999999,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 571,
+            "y": 349.234375,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          }
+        ],
+        "dashed": [null, "4 3"]
+      },
+      "dialogLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "forwardTabTarget": {
+        "tag": "BUTTON",
+        "slot": "dialog-close"
+      },
+      "hiddenHost": {
+        "children": 1,
+        "type": 3,
+        "text": "Cedar: Focus chart and use arrows to read points.",
+        "visibility": "hidden"
+      },
+      "dialogBounds": {
+        "x": 128,
+        "y": 145.96875,
+        "width": 512,
+        "height": 808.0625
+      },
+      "sortedAster": {
+        "bounds": {
+          "x": 315.546875,
+          "y": 287.484375,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "none",
+          "width": 3,
+          "offset": 0,
+          "color": "rgb(20, 23, 12)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 365.046875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 425.046875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 485.046875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 546.046875,
+            "y": 489.12750244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 353.546875,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 413.546875,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 473.546875,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 533.546875,
+            "y": 345.9101867675781,
+            "width": 22,
+            "height": 139.27728271484375,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 379.546875,
+            "y": 457.33209228515625,
+            "width": 22,
+            "height": 27.85546875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 439.546875,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 499.546875,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 559.546875,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "verdict": "pass"
+    },
+    {
+      "name": "768-light-forced",
+      "width": 768,
+      "preset": "light",
+      "forced": true,
+      "bodyPaint": {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(0, 0, 0)"
+      },
+      "region": {
+        "clientWidth": 720,
+        "scrollWidth": 800,
+        "initial": 0,
+        "afterNativeRight": 80
+      },
+      "inlineNaturalScroll": 0,
+      "inlineRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(74, 90, 0)",
+        "overlap": 0
+      },
+      "inlineGeometry": {
+        "bounds": {
+          "x": 391.25,
+          "y": 287.484375,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(74, 90, 0)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 440.75,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 500.75,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 560.75,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 621.75,
+            "y": 489.12750244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 429.25,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 489.25,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 549.25,
+            "y": 355.1952819824219,
+            "width": 22,
+            "height": 129.9921875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 609.25,
+            "y": 336.6249694824219,
+            "width": 22,
+            "height": 148.5625,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 455.25,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 515.25,
+            "y": 392.3359680175781,
+            "width": 22,
+            "height": 92.85159301757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 575.25,
+            "y": 410.9062805175781,
+            "width": 22,
+            "height": 74.28128051757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 635.25,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "inlineBounds": {
+        "left": 24,
+        "right": 744,
+        "chartLeft": 391.25,
+        "chartRight": 679.25
+      },
+      "inlineLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "inlineAfterArrows": 0,
+      "inlineAfterBounds": {
+        "x": 391.25,
+        "y": 287.484375,
+        "width": 288,
+        "height": 256
+      },
+      "action": {
+        "width": 87,
+        "height": 44,
+        "left": 645.265625,
+        "right": 732.265625,
+        "regionLeft": 24,
+        "regionRight": 744,
+        "outline": 2,
+        "offset": 2,
+        "hits": [true, true, true]
+      },
+      "modalNativeScroll": {
+        "before": {
+          "scroll": 0,
+          "width": 460,
+          "full": 768
+        },
+        "scroll": 160,
+        "region": {
+          "x": 154,
+          "y": 253.953125,
+          "width": 460,
+          "height": 324.296875
+        },
+        "svg": {
+          "x": 326,
+          "y": 265.953125,
+          "width": 264,
+          "height": 256
+        }
+      },
+      "dialogRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(74, 90, 0)",
+        "overlap": 0
+      },
+      "dialogGeometry": {
+        "bounds": {
+          "x": 326,
+          "y": 265.953125,
+          "width": 264,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(74, 90, 0)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 345.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 417.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 489.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 562.5,
+            "y": 467.59625244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 355,
+            "y": 377.08984375,
+            "width": 6,
+            "height": 6,
+            "cy": 114.13671875000001,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 427,
+            "y": 349.234375,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 499,
+            "y": 330.6640625,
+            "width": 6,
+            "height": 6,
+            "cy": 67.7109375,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 571,
+            "y": 312.09375,
+            "width": 6,
+            "height": 6,
+            "cy": 49.14062499999999,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 355,
+            "y": 404.9453125,
+            "width": 6,
+            "height": 6,
+            "cy": 141.99218749999997,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 427,
+            "y": 367.8046875,
+            "width": 6,
+            "height": 6,
+            "cy": 104.8515625,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 499,
+            "y": 386.375,
+            "width": 6,
+            "height": 6,
+            "cy": 123.42187499999999,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 571,
+            "y": 349.234375,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          }
+        ],
+        "dashed": [null, "4 3"]
+      },
+      "dialogLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "forwardTabTarget": {
+        "tag": "BUTTON",
+        "slot": "dialog-close"
+      },
+      "hiddenHost": {
+        "children": 1,
+        "type": 3,
+        "text": "Cedar: Focus chart and use arrows to read points.",
+        "visibility": "hidden"
+      },
+      "dialogBounds": {
+        "x": 128,
+        "y": 145.96875,
+        "width": 512,
+        "height": 808.0625
+      },
+      "sortedAster": {
+        "bounds": {
+          "x": 315.546875,
+          "y": 287.484375,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "none",
+          "width": 3,
+          "offset": 0,
+          "color": "rgb(0, 0, 0)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 365.046875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 425.046875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 485.046875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 546.046875,
+            "y": 489.12750244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 353.546875,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 413.546875,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 473.546875,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 533.546875,
+            "y": 345.9101867675781,
+            "width": 22,
+            "height": 139.27728271484375,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 379.546875,
+            "y": 457.33209228515625,
+            "width": 22,
+            "height": 27.85546875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 439.546875,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 499.546875,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 559.546875,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "verdict": "pass"
+    },
+    {
+      "name": "1280-arcade-normal",
+      "width": 1280,
+      "preset": "arcade",
+      "forced": false,
+      "bodyPaint": {
+        "background": "rgb(10, 11, 7)",
+        "color": "rgb(242, 245, 232)"
+      },
+      "region": {
+        "clientWidth": 976,
+        "scrollWidth": 976,
+        "initial": 0,
+        "afterNativeRight": 0
+      },
+      "inlineNaturalScroll": 0,
+      "inlineRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(228, 255, 58)",
+        "overlap": 0
+      },
+      "inlineGeometry": {
+        "bounds": {
+          "x": 597.421875,
+          "y": 287.484375,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(228, 255, 58)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 646.921875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 706.921875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 766.921875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 827.921875,
+            "y": 489.12750244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 635.421875,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 695.421875,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 755.421875,
+            "y": 355.1952819824219,
+            "width": 22,
+            "height": 129.9921875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 815.421875,
+            "y": 336.6249694824219,
+            "width": 22,
+            "height": 148.5625,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 661.421875,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 721.421875,
+            "y": 392.3359680175781,
+            "width": 22,
+            "height": 92.85159301757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 781.421875,
+            "y": 410.9062805175781,
+            "width": 22,
+            "height": 74.28128051757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 841.421875,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "inlineBounds": {
+        "left": 152,
+        "right": 1128,
+        "chartLeft": 597.421875,
+        "chartRight": 885.421875
+      },
+      "inlineLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "inlineAfterArrows": 0,
+      "inlineAfterBounds": {
+        "x": 597.421875,
+        "y": 287.484375,
+        "width": 288,
+        "height": 256
+      },
+      "action": {
+        "width": 87,
+        "height": 44,
+        "left": 997.609375,
+        "right": 1084.609375,
+        "regionLeft": 152,
+        "regionRight": 1128,
+        "outline": 2,
+        "offset": 2,
+        "hits": [true, true, true]
+      },
+      "modalNativeScroll": {
+        "before": {
+          "scroll": 0,
+          "width": 460,
+          "full": 768
+        },
+        "scroll": 160,
+        "region": {
+          "x": 410,
+          "y": 253.953125,
+          "width": 460,
+          "height": 324.296875
+        },
+        "svg": {
+          "x": 582,
+          "y": 265.953125,
+          "width": 264,
+          "height": 256
+        }
+      },
+      "dialogRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(228, 255, 58)",
+        "overlap": 0
+      },
+      "dialogGeometry": {
+        "bounds": {
+          "x": 582,
+          "y": 265.953125,
+          "width": 264,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(228, 255, 58)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 601.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 673.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 745.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 818.5,
+            "y": 467.59625244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 611,
+            "y": 377.08984375,
+            "width": 6,
+            "height": 6,
+            "cy": 114.13671875000001,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(228, 255, 58)"
+          },
+          {
+            "x": 683,
+            "y": 349.234375,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(228, 255, 58)"
+          },
+          {
+            "x": 755,
+            "y": 330.6640625,
+            "width": 6,
+            "height": 6,
+            "cy": 67.7109375,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(228, 255, 58)"
+          },
+          {
+            "x": 827,
+            "y": 312.09375,
+            "width": 6,
+            "height": 6,
+            "cy": 49.14062499999999,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(228, 255, 58)"
+          },
+          {
+            "x": 611,
+            "y": 404.9453125,
+            "width": 6,
+            "height": 6,
+            "cy": 141.99218749999997,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 229, 199)"
+          },
+          {
+            "x": 683,
+            "y": 367.8046875,
+            "width": 6,
+            "height": 6,
+            "cy": 104.8515625,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 229, 199)"
+          },
+          {
+            "x": 755,
+            "y": 386.375,
+            "width": 6,
+            "height": 6,
+            "cy": 123.42187499999999,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 229, 199)"
+          },
+          {
+            "x": 827,
+            "y": 349.234375,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 229, 199)"
+          }
+        ],
+        "dashed": [null, "4 3"]
+      },
+      "dialogLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "forwardTabTarget": {
+        "tag": "BUTTON",
+        "slot": "dialog-close"
+      },
+      "hiddenHost": {
+        "children": 1,
+        "type": 3,
+        "text": "Cedar: Focus chart and use arrows to read points.",
+        "visibility": "hidden"
+      },
+      "dialogBounds": {
+        "x": 384,
+        "y": 145.96875,
+        "width": 512,
+        "height": 808.0625
+      },
+      "sortedAster": {
+        "bounds": {
+          "x": 595.328125,
+          "y": 287.484375,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "none",
+          "width": 3,
+          "offset": 0,
+          "color": "rgb(242, 245, 232)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 644.828125,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 704.828125,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 764.828125,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 825.828125,
+            "y": 489.12750244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 633.328125,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 693.328125,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 753.328125,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 813.328125,
+            "y": 345.9101867675781,
+            "width": 22,
+            "height": 139.27728271484375,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(228, 255, 58)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 659.328125,
+            "y": 457.33209228515625,
+            "width": 22,
+            "height": 27.85546875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 719.328125,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 779.328125,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          },
+          {
+            "x": 839.328125,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 229, 199)",
+            "stroke": "rgb(242, 245, 232)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "verdict": "pass"
+    },
+    {
+      "name": "1280-light-normal",
+      "width": 1280,
+      "preset": "light",
+      "forced": false,
+      "bodyPaint": {
+        "background": "rgb(242, 245, 232)",
+        "color": "rgb(20, 23, 12)"
+      },
+      "region": {
+        "clientWidth": 976,
+        "scrollWidth": 976,
+        "initial": 0,
+        "afterNativeRight": 0
+      },
+      "inlineNaturalScroll": 0,
+      "inlineRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(74, 90, 0)",
+        "overlap": 0
+      },
+      "inlineGeometry": {
+        "bounds": {
+          "x": 597.421875,
+          "y": 287.484375,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(74, 90, 0)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 646.921875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 706.921875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 766.921875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 827.921875,
+            "y": 489.12750244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 635.421875,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 695.421875,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 755.421875,
+            "y": 355.1952819824219,
+            "width": 22,
+            "height": 129.9921875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 815.421875,
+            "y": 336.6249694824219,
+            "width": 22,
+            "height": 148.5625,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 661.421875,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 721.421875,
+            "y": 392.3359680175781,
+            "width": 22,
+            "height": 92.85159301757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 781.421875,
+            "y": 410.9062805175781,
+            "width": 22,
+            "height": 74.28128051757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 841.421875,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "inlineBounds": {
+        "left": 152,
+        "right": 1128,
+        "chartLeft": 597.421875,
+        "chartRight": 885.421875
+      },
+      "inlineLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "inlineAfterArrows": 0,
+      "inlineAfterBounds": {
+        "x": 597.421875,
+        "y": 287.484375,
+        "width": 288,
+        "height": 256
+      },
+      "action": {
+        "width": 87,
+        "height": 44,
+        "left": 997.609375,
+        "right": 1084.609375,
+        "regionLeft": 152,
+        "regionRight": 1128,
+        "outline": 2,
+        "offset": 2,
+        "hits": [true, true, true]
+      },
+      "modalNativeScroll": {
+        "before": {
+          "scroll": 0,
+          "width": 460,
+          "full": 768
+        },
+        "scroll": 160,
+        "region": {
+          "x": 410,
+          "y": 253.953125,
+          "width": 460,
+          "height": 324.296875
+        },
+        "svg": {
+          "x": 582,
+          "y": 265.953125,
+          "width": 264,
+          "height": 256
+        }
+      },
+      "dialogRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(74, 90, 0)",
+        "overlap": 0
+      },
+      "dialogGeometry": {
+        "bounds": {
+          "x": 582,
+          "y": 265.953125,
+          "width": 264,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(74, 90, 0)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 601.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 673.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 745.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 818.5,
+            "y": 467.59625244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 611,
+            "y": 377.08984375,
+            "width": 6,
+            "height": 6,
+            "cy": 114.13671875000001,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 683,
+            "y": 349.234375,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 755,
+            "y": 330.6640625,
+            "width": 6,
+            "height": 6,
+            "cy": 67.7109375,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 827,
+            "y": 312.09375,
+            "width": 6,
+            "height": 6,
+            "cy": 49.14062499999999,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 611,
+            "y": 404.9453125,
+            "width": 6,
+            "height": 6,
+            "cy": 141.99218749999997,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 683,
+            "y": 367.8046875,
+            "width": 6,
+            "height": 6,
+            "cy": 104.8515625,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 755,
+            "y": 386.375,
+            "width": 6,
+            "height": 6,
+            "cy": 123.42187499999999,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 827,
+            "y": 349.234375,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          }
+        ],
+        "dashed": [null, "4 3"]
+      },
+      "dialogLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "forwardTabTarget": {
+        "tag": "BUTTON",
+        "slot": "dialog-close"
+      },
+      "hiddenHost": {
+        "children": 1,
+        "type": 3,
+        "text": "Cedar: Focus chart and use arrows to read points.",
+        "visibility": "hidden"
+      },
+      "dialogBounds": {
+        "x": 384,
+        "y": 145.96875,
+        "width": 512,
+        "height": 808.0625
+      },
+      "sortedAster": {
+        "bounds": {
+          "x": 595.328125,
+          "y": 287.484375,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "none",
+          "width": 3,
+          "offset": 0,
+          "color": "rgb(20, 23, 12)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 644.828125,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 704.828125,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 764.828125,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 825.828125,
+            "y": 489.12750244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 633.328125,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 693.328125,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 753.328125,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 813.328125,
+            "y": 345.9101867675781,
+            "width": 22,
+            "height": 139.27728271484375,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 659.328125,
+            "y": 457.33209228515625,
+            "width": 22,
+            "height": 27.85546875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 719.328125,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 779.328125,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 839.328125,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "verdict": "pass"
+    },
+    {
+      "name": "1280-light-forced",
+      "width": 1280,
+      "preset": "light",
+      "forced": true,
+      "bodyPaint": {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(0, 0, 0)"
+      },
+      "region": {
+        "clientWidth": 976,
+        "scrollWidth": 976,
+        "initial": 0,
+        "afterNativeRight": 0
+      },
+      "inlineNaturalScroll": 0,
+      "inlineRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(74, 90, 0)",
+        "overlap": 0
+      },
+      "inlineGeometry": {
+        "bounds": {
+          "x": 597.421875,
+          "y": 287.484375,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(74, 90, 0)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 646.921875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 706.921875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 766.921875,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 827.921875,
+            "y": 489.12750244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 635.421875,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 695.421875,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 755.421875,
+            "y": 355.1952819824219,
+            "width": 22,
+            "height": 129.9921875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 815.421875,
+            "y": 336.6249694824219,
+            "width": 22,
+            "height": 148.5625,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 661.421875,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 721.421875,
+            "y": 392.3359680175781,
+            "width": 22,
+            "height": 92.85159301757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 781.421875,
+            "y": 410.9062805175781,
+            "width": 22,
+            "height": 74.28128051757812,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 841.421875,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "inlineBounds": {
+        "left": 152,
+        "right": 1128,
+        "chartLeft": 597.421875,
+        "chartRight": 885.421875
+      },
+      "inlineLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "inlineAfterArrows": 0,
+      "inlineAfterBounds": {
+        "x": 597.421875,
+        "y": 287.484375,
+        "width": 288,
+        "height": 256
+      },
+      "action": {
+        "width": 87,
+        "height": 44,
+        "left": 997.609375,
+        "right": 1084.609375,
+        "regionLeft": 152,
+        "regionRight": 1128,
+        "outline": 2,
+        "offset": 2,
+        "hits": [true, true, true]
+      },
+      "modalNativeScroll": {
+        "before": {
+          "scroll": 0,
+          "width": 460,
+          "full": 768
+        },
+        "scroll": 160,
+        "region": {
+          "x": 410,
+          "y": 253.953125,
+          "width": 460,
+          "height": 324.296875
+        },
+        "svg": {
+          "x": 582,
+          "y": 265.953125,
+          "width": 264,
+          "height": 256
+        }
+      },
+      "dialogRing": {
+        "width": 2,
+        "style": "solid",
+        "offset": -2,
+        "visible": true,
+        "color": "rgb(74, 90, 0)",
+        "overlap": 0
+      },
+      "dialogGeometry": {
+        "bounds": {
+          "x": 582,
+          "y": 265.953125,
+          "width": 264,
+          "height": 256
+        },
+        "outline": {
+          "style": "solid",
+          "width": 2,
+          "offset": -2,
+          "color": "rgb(74, 90, 0)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 601.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 673.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 745.5,
+            "y": 467.59625244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 818.5,
+            "y": 467.59625244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 611,
+            "y": 377.08984375,
+            "width": 6,
+            "height": 6,
+            "cy": 114.13671875000001,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 683,
+            "y": 349.234375,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 755,
+            "y": 330.6640625,
+            "width": 6,
+            "height": 6,
+            "cy": 67.7109375,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 827,
+            "y": 312.09375,
+            "width": 6,
+            "height": 6,
+            "cy": 49.14062499999999,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(74, 90, 0)"
+          },
+          {
+            "x": 611,
+            "y": 404.9453125,
+            "width": 6,
+            "height": 6,
+            "cy": 141.99218749999997,
+            "cx": 32,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 683,
+            "y": 367.8046875,
+            "width": 6,
+            "height": 6,
+            "cy": 104.8515625,
+            "cx": 104,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 755,
+            "y": 386.375,
+            "width": 6,
+            "height": 6,
+            "cy": 123.42187499999999,
+            "cx": 176,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          },
+          {
+            "x": 827,
+            "y": 349.234375,
+            "width": 6,
+            "height": 6,
+            "cy": 86.28125000000001,
+            "cx": 248,
+            "fill": "rgb(255, 255, 255)",
+            "stroke": "rgb(0, 101, 92)"
+          }
+        ],
+        "dashed": [null, "4 3"]
+      },
+      "dialogLastAnnouncement": "Cedar: Apr. North 32. South 24.",
+      "forwardTabTarget": {
+        "tag": "BUTTON",
+        "slot": "dialog-close"
+      },
+      "hiddenHost": {
+        "children": 1,
+        "type": 3,
+        "text": "Cedar: Focus chart and use arrows to read points.",
+        "visibility": "hidden"
+      },
+      "dialogBounds": {
+        "x": 384,
+        "y": 145.96875,
+        "width": 512,
+        "height": 808.0625
+      },
+      "sortedAster": {
+        "bounds": {
+          "x": 595.328125,
+          "y": 287.484375,
+          "width": 288,
+          "height": 256
+        },
+        "outline": {
+          "style": "none",
+          "width": 3,
+          "offset": 0,
+          "color": "rgb(0, 0, 0)"
+        },
+        "labels": [
+          {
+            "text": "Jan",
+            "x": 644.828125,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Feb",
+            "x": 704.828125,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Mar",
+            "x": 764.828125,
+            "y": 489.12750244140625,
+            "width": 25,
+            "height": 18
+          },
+          {
+            "text": "Apr",
+            "x": 825.828125,
+            "y": 489.12750244140625,
+            "width": 23,
+            "height": 18
+          }
+        ],
+        "marks": [
+          {
+            "x": 633.328125,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 693.328125,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 753.328125,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 813.328125,
+            "y": 345.9101867675781,
+            "width": 22,
+            "height": 139.27728271484375,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(74, 90, 0)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 659.328125,
+            "y": 457.33209228515625,
+            "width": 22,
+            "height": 27.85546875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 719.328125,
+            "y": 429.4765625,
+            "width": 22,
+            "height": 55.710906982421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 779.328125,
+            "y": 401.62109375,
+            "width": 22,
+            "height": 83.56637573242188,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          },
+          {
+            "x": 839.328125,
+            "y": 373.76568603515625,
+            "width": 22,
+            "height": 111.421875,
+            "cy": 0,
+            "cx": 0,
+            "fill": "rgb(0, 101, 92)",
+            "stroke": "rgb(20, 23, 12)"
+          }
+        ],
+        "dashed": [null, null, null, null, "4 3", "4 3", "4 3", "4 3"]
+      },
+      "verdict": "pass"
+    }
+  ],
+  "pageErrors": [],
+  "verdict": "pass; M1 and M2 closed at corrected head",
+  "finished": "2026-10-08T17:43:45.438Z"
+}

@@ -1,0 +1,49 @@
+{
+  "source": "15c266e3a47be44ad40c26db4d961ca31cd09a9f",
+  "measuredAt": "2026-10-08T18:05:58.533Z",
+  "node": "v22.18.0",
+  "artifacts": [
+    {
+      "name": "@marquee-ui/tokens",
+      "file": "marquee-ui-tokens-0.1.0.tgz",
+      "sha256": "75b30268238e44074a54d923e596d1f6a1a931f2ae85f8a5da3271a7dadf55cd"
+    },
+    {
+      "name": "@marquee-ui/ui",
+      "file": "marquee-ui-ui-0.1.10.tgz",
+      "sha256": "aa376bfcc6099e5c7a647e8c22638a7027ffcf87ae74404c005131d1bc5597af"
+    }
+  ],
+  "compared": 22,
+  "consumer": "/home/ankit/.marquee-scratch/BATCH-PARITY-7/consumer-final",
+  "strictBuild": "passed",
+  "browser": {
+    "startTime": "2026-10-08T18:04:04.604Z",
+    "duration": 113910.41200000001,
+    "expected": 99,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "sourceBytesMatch": true,
+  "workspaceLinks": false,
+  "coverage": [
+    "DataTable native semantics, sorting/filter/page/empty/cell actions and Chart role/keyboard/data alternative at all three widths",
+    "Natural DatePicker panel fallback focus from all-disabled/no-navigation Calendar inside Table/Dialog; inset ring paint in dark/light/forced colors",
+    "DatePicker caller single/range/reset/native form values, Dialog nesting and Table-cell popup geometry/focus recovery",
+    "Table semantic captions/header scopes/empty spans, native keyboard scrolling and real last-column actions",
+    "Combobox single-select search/empty/disabled/nested overlays and caller forms",
+    "Calendar single/multiple/range selection, keyboard and true grid geometry; real Dialog/Popover containment and Saturday hits/selections at all3 widths",
+    "DropdownMenu checked/radio/submenu and nested overlay lifecycle",
+    "Slider keyboard/pointer/native form/reset and disabled fieldset",
+    "Vertical normal/inverted/range bounds and selected proportion at 0/25/50/75/100",
+    "Dark/light/forced-colors paint without docs CSS"
+  ],
+  "limitations": [
+    "Bounded TanStack Table9 caller state/render slots and Recharts3 bar/line presentation; advanced data/chart behaviors deferred in Batch7 slices.",
+    "Combobox is a bounded searchable popup, not current-shadcn Base UI API parity; editable input/chips/multiselect/object collections and virtualization are deferred.",
+    "Calendar date-time, alternate calendars and exhaustive timezone/localization proof are excluded. Default seven-day anatomy requires328px host width; week numbers/custom slots may need more.",
+    "Disabled named Slider alone still serializes; disabled fieldset is the measured native workaround.",
+    "React19/Tailwind4/Vite/Chromium at390/768/1280 only. Unreleased candidate, not public installation."
+  ]
+}

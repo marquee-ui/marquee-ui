@@ -1,6 +1,6 @@
 # Marquee implementation status
 
-CURSOR: BATCH-PARITY-7 — DataTable and Chart
+CURSOR: BATCH-PARITY-8 — Existing common-name API audit and documentation
 
 The user authorized a finite component-parity program on 2026-10-08. Implement the
 [batch roadmap and parity matrix](docs/component-parity.md) in order; expand each next
@@ -9,8 +9,13 @@ local implementation or subsequent green batches.
 
 ## Active batch
 
-Active: [BATCH-PARITY-7](docs/batches/BATCH-PARITY-7.md) — bounded composed DataTable and Chart recipes.
-The baseline gate is green; two isolated implementation streams and independent review are in progress.
+Next: **BATCH-PARITY-8 — Existing common-name API audit and documentation**.
+Expand its two audit streams just in time from the matrix; do not treat the audit as
+implementation of remaining catalog/API gaps.
+[Batch 7](docs/batches/BATCH-PARITY-7.md) is complete: bounded DataTable/Chart recipes,
+independent stream and merged reviews, merged gate, fresh packed consumer and a
+verified immutable localhost refresh. Its native-scroll prerequisite and finite
+validation limits are explicit in the slice/review records.
 [Batch 6](docs/batches/BATCH-PARITY-6.md) is complete with independent review, merged
 gate, fresh packed-consumer proof and a verified localhost refresh.
 
@@ -21,8 +26,8 @@ publish npm until the user directs publication. Continue accumulating reviewed c
 in draft [PR #2](https://github.com/marquee-ui/marquee-ui/pull/2), unmerged.
 
 Current verified preview: **http://localhost:4174/marquee-ui/**, source
-`78ef78e3573961418866c2cfd95a5197effdb25f`, served from
-`/home/ankit/Code/marquee-integration-parity-6/apps/docs/dist`.
+`15c266e3a47be44ad40c26db4d961ca31cd09a9f`, served from
+`/home/ankit/Code/marquee-integration-parity-7/apps/docs/dist`.
 Preserve it until the next batch's build is verified. New components are unreleased;
 no version bump is implied. Supported consumer evidence and parity limits live in the matrix.
 
@@ -31,7 +36,7 @@ no version bump is implied. Supported consumer evidence and parity limits live i
 [Release](docs/batches/RELEASE-1.md), [theme/code revision](docs/batches/RELEASE-1-UX.md),
 and [visual controls](docs/batches/RELEASE-1-CONTROLS.md) retain their evidence.
 Latest completed handoff:
-`/home/ankit/.marquee-scratch/BATCH-PARITY-6/integration/final-handoff.md`.
+`/home/ankit/.marquee-scratch/BATCH-PARITY-7/integration/final-handoff.md`.
 Inspect status/worktrees, this cursor, the matrix and current slice/batch records.
 This is library work; no Pile product backlog advances.
 
@@ -48,3 +53,5 @@ This is library work; no Pile product backlog advances.
 | 2026-10-08 | BATCH-PARITY-4     | DropdownMenu/Slider, corrected vertical range geometry and fresh packed proof verified; localhost refreshed; publication held. |
 | 2026-10-08 | BATCH-PARITY-5     | Combobox/Calendar, intrinsic grid containment and packed overlay composition verified; localhost refreshed; publication held.  |
 | 2026-10-08 | BATCH-PARITY-6     | DatePicker/Table, nested fallback focus contrast and packed native scrolling verified; localhost refreshed; publication held.  |
+
+| 2026-10-08 | BATCH-PARITY-7 | DataTable/Chart bounded recipes, native scroll and modal focus corrections independently verified; fresh packed proof and localhost refreshed; publication held. |

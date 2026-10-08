@@ -333,3 +333,19 @@ were inspected at every width. The new source and recipe remain frozen during
 the gate. Exact head, start/end times, full runner log and exit remain in
 `s2/verify-scroll.sha`, `.start`, `.end`, `.log` and `.exit`; browser captures are
 in `s2/gate-scroll-browser/`. Every earlier gate and probe artifact is preserved.
+
+## Native-scroll boundary
+
+In a wide native table, the caller reveals the complete chart through the named
+scroll region's keyboard controls before Tab enters it. Native Tab establishes
+SVG focus; it does not guarantee revealing the whole SVG box. Chart point arrows
+preserve the revealed scrolling boundary. The caller still owns layout, scrolling
+prerequisites and chart dimensions; there is no generic focus/reveal manager.
+
+The fresh packed mobile fixture's two native region Right keys moved 80px and
+left the focused SVG 70.609px beyond the right boundary in all ten atomic frames.
+Four native keys reveal that fixture, with all 30 frames across widths inside
+the original bounds; four is not a universal key count. The same merged reviewer
+confirmed this existing contract at `15c266e`. See the
+[contract supplement](../batches/BATCH-PARITY-7-contract-review.md) and the
+[batch install-proof record](../batches/BATCH-PARITY-7.md#packed-proof-corrections).

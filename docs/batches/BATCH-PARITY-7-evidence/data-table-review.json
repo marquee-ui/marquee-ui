@@ -1,0 +1,204 @@
+{
+  "status": "review complete; no substantive findings",
+  "sourceSha": "4e46611951d5a933dc25479349c34ed120756553",
+  "baseSha": "01bb985918522fa2d053c40525cfc3ce3dc2b85d",
+  "reviewWorktree": "/home/ankit/Code/marquee-data-table-review-7",
+  "findings": [],
+  "healthy": {
+    "buildExit": 0,
+    "typecheckExit": 0,
+    "typeProbeExit": 0,
+    "ui": {
+      "files": 4,
+      "passed": 291
+    },
+    "explorer": {
+      "passed": 2
+    },
+    "browser": {
+      "passed": 24,
+      "widths": [390, 768, 1280]
+    }
+  },
+  "mutationMatrix": [
+    {
+      "file": "packages/ui/test/data-table.test.tsx",
+      "control": "DataTableBody children -> null",
+      "failed": 4,
+      "passed": 2,
+      "expectedRed": "Missing initial Cedar/Aster rows, filtered Elm, explicit empty cell, grouped Cedar row",
+      "survivors": [
+        "native/root slot ref-event-content test",
+        "sort control props/ref/announcement test"
+      ],
+      "log": "body-collapse-ui.log",
+      "diff": "body-collapse.diff"
+    },
+    {
+      "file": "packages/ui/test/stories.test.tsx",
+      "control": "DataTableBody children -> null",
+      "failed": 4,
+      "passed": 241,
+      "expectedRed": "Default rowheader, Empty matching cell, HeaderGroups Cedar cell, completed-play counter",
+      "survivors": [
+        "DataTable Composed",
+        "DataTable has stories",
+        "all unrelated stories and surviving count guard"
+      ],
+      "log": "body-collapse-ui.log",
+      "diff": "body-collapse.diff"
+    },
+    {
+      "file": "packages/ui/test/stories.test.tsx",
+      "control": "Composed caller sort handler -> no-op; -t data-table",
+      "failed": 1,
+      "passed": 4,
+      "skipped": 240,
+      "expectedRed": "Composed columnheader aria-sort expected ascending, received none",
+      "survivors": ["DataTable has stories", "Default", "Empty", "HeaderGroups"],
+      "log": "composed-noop.log",
+      "diff": "composed-noop.diff"
+    },
+    {
+      "file": "packages/ui/test/registry.test.ts",
+      "control": "Shipped data-table file.content -> stale comment",
+      "failed": 1,
+      "passed": 18,
+      "expectedRed": "CURRENT source bytes guard names data-table source as stale",
+      "log": "registry-stale-content.log",
+      "diff": "registry-stale-content.diff"
+    },
+    {
+      "file": "packages/ui/test/registry.test.ts",
+      "control": "Root data-table npm dependencies -> []",
+      "failed": 3,
+      "passed": 16,
+      "expectedRed": "Per-item source import dependency mismatch; built index equality; built metadata dependency equality",
+      "log": "registry-no-dependency.log",
+      "diff": "registry-no-dependency.diff"
+    },
+    {
+      "file": "packages/ui/test/registry.test.ts",
+      "control": "Remove root data-table @marquee/table registry dependency",
+      "failed": 4,
+      "passed": 15,
+      "expectedRed": "Registry dependency count 39 vs 40; imported table missing declaration; built index and metadata mismatch",
+      "log": "registry-no-table-dependency.log",
+      "diff": "registry-no-table-dependency.diff"
+    },
+    {
+      "file": "packages/ui/test/focus-outline.test.tsx",
+      "control": "Remove DataTableSortButton focus utility declaration",
+      "failed": 1,
+      "passed": 20,
+      "expectedRed": "Exact ring-site set loses data-table.tsx (focus-visible)",
+      "log": "focus-class-collapse.log",
+      "diff": "focus-class-collapse.diff"
+    },
+    {
+      "file": "apps/docs/test/explorer.test.tsx",
+      "control": "DataTable catalog Preview -> null",
+      "failed": 0,
+      "passed": 2,
+      "survivors": [
+        "selects a family (Switch) and exposes its composition",
+        "every family discoverable/reset Button state"
+      ],
+      "log": "catalog-preview-explorer.log",
+      "diff": "catalog-preview-collapse.diff"
+    },
+    {
+      "file": "apps/docs/test/explorer.test.tsx",
+      "control": "Remove DataTable catalog item",
+      "failed": 1,
+      "passed": 1,
+      "expectedRed": "Discoverable Preview count expected 34, received 33",
+      "survivors": ["Switch preview/composition test"],
+      "log": "catalog-entry-explorer.log",
+      "diff": "catalog-entry-collapse.diff"
+    },
+    {
+      "file": "apps/docs/browser/site.spec.ts",
+      "control": "DataTable catalog Preview -> null; rebuilt docs/site",
+      "failed": 3,
+      "passed": 9,
+      "expectedRed": "DataTable must render its actual parts; table[data-slot=data-table] absent at every width",
+      "survivors": [
+        "fonts/hero/viewport x3",
+        "navigation/examples x3",
+        "Storybook fonts/presets x3"
+      ],
+      "log": "catalog-preview-browser.log",
+      "diff": "catalog-preview-collapse.diff"
+    },
+    {
+      "file": "apps/docs/browser/data-table.spec.ts",
+      "control": "DataTableBody children -> null; rebuilt docs/storybook/site",
+      "failed": 9,
+      "passed": 3,
+      "expectedRed": "Client Cedar row scope absent; isolated sorted Aster/Birch absent; grouped Monthly service cell absent at every width",
+      "survivors": ["byte-for-byte example highlight/copy x3"],
+      "log": "browser-body-collapse.log",
+      "diff": "body-collapse.diff"
+    },
+    {
+      "file": "apps/docs/browser/data-table.spec.ts",
+      "control": "Remove owned docs action onFocus only; rebuilt docs/site; mobile -g client sorting",
+      "failed": 1,
+      "passed": 0,
+      "expectedRed": "data table control receives pointer hits across its target without scroll repair; expected true received false",
+      "log": "action-no-focus.log",
+      "diff": "action-no-focus.diff"
+    },
+    {
+      "file": "apps/docs/browser/data-table.spec.ts",
+      "control": "Remove owned docs action scroll-mx-3 only; retain onFocus; rebuilt docs/site; mobile -g client sorting",
+      "failed": 1,
+      "passed": 0,
+      "expectedRed": "action focus outline fits the scroll region trailing edge; received 354.109375 > 348",
+      "log": "action-no-margin.log",
+      "diff": "action-no-margin.diff"
+    }
+  ],
+  "commands": [
+    "PATH=/home/ankit/.nvm/versions/node/v22.18.0/bin:$PATH pnpm install --frozen-lockfile",
+    "pnpm build",
+    "pnpm typecheck",
+    "pnpm exec tsc -p /home/ankit/.marquee-scratch/BATCH-PARITY-7/r5/type-probe.json --noEmit",
+    "pnpm exec vitest run --project ui packages/ui/test/data-table.test.tsx packages/ui/test/stories.test.tsx packages/ui/test/registry.test.ts packages/ui/test/focus-outline.test.tsx --reporter=verbose",
+    "pnpm --filter @marquee-ui/docs test test/explorer.test.tsx --reporter=verbose",
+    "DOCS_PORT=4195 DOCS_BROWSER_OUTPUT=<r5/browser-surface> pnpm --filter @marquee-ui/docs test:browser browser/data-table.spec.ts browser/site.spec.ts",
+    "pnpm exec vitest run --project ui packages/ui/test/data-table.test.tsx packages/ui/test/stories.test.tsx --reporter=verbose",
+    "pnpm exec vitest run --project ui packages/ui/test/stories.test.tsx --reporter=verbose -t data-table",
+    "pnpm exec vitest run --project ui packages/ui/test/registry.test.ts --reporter=verbose",
+    "pnpm exec vitest run --project ui packages/ui/test/focus-outline.test.tsx --reporter=verbose",
+    "pnpm --filter @marquee-ui/docs build && pnpm build:storybook && pnpm build:site",
+    "pnpm --filter @marquee-ui/docs build && pnpm build:site",
+    "DOCS_PORT=4195 DOCS_BROWSER_OUTPUT=<r5/browser-surface> pnpm --filter @marquee-ui/docs test:browser browser/data-table.spec.ts --project=mobile -g \"client sorting\"",
+    "git restore <each mutated owned review file after its control>"
+  ],
+  "evidenceRoot": "/home/ankit/.marquee-scratch/BATCH-PARITY-7/r5",
+  "allSurvivingCaseNames": "mutation-survivors.json",
+  "screenshotInspection": [
+    "healthy live recovered at 390/768/1280",
+    "healthy isolated focused action arcade/light/forced at 390"
+  ],
+  "notes": [
+    "No tests edited to induce red; no full verify, commit, push, publication or Pile operation.",
+    "Source and main integration copies stayed untouched.",
+    "Only test-file scope was claimed for targeted runs.",
+    "Type probe checks exact generic row fields, nonexistent accessor rejection, mandatory render/empty slots, numeric counts and bounded sort directions.",
+    "useTable default full-state reactivity confirmed in installed 9.2.6 dist/useTable.js."
+  ],
+  "restoredHealthy": {
+    "buildExit": 0,
+    "uiPassed": 291,
+    "explorerPassed": 2,
+    "browserPassed": 24
+  },
+  "restoration": {
+    "gitStatusPorcelain": "",
+    "head": "4e46611951d5a933dc25479349c34ed120756553",
+    "allMutationsRestored": true
+  }
+}
