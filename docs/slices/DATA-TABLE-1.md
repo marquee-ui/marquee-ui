@@ -97,4 +97,17 @@ after rebuilding docs/site. Focused runner commands, mutation diffs, assertion m
 case names and screenshots are recorded in batch scratch `r5/review.json` and
 `r5/mutation-survivors.json`. Healthy browser command:
 `DOCS_PORT=4195 pnpm --filter @marquee-ui/docs exec playwright test browser/data-table.spec.ts browser/site.spec.ts`.
-The complete stream gate remains pending.
+The initial `DOCS_PORT=4191 pnpm verify` at `1223c305324b8c8045d6596f1892bbc6c7997dab`
+on 2026-10-08 exited 1 after lint/typecheck/build passed: the boundary guard caught
+an unnecessary `"use client"` on these static helpers (1 failed / 955 passed library
+tests). The caller owns the hooks; this file imports only Fragment, types and existing
+presentation parts, so the directive was removed and registry bytes regenerated.
+Original gate evidence remains in batch scratch `s1/verify.first.*`.
+
+Supplemental independent review at `bd0f6ca959546b0a506986c7d37209d49ce2fc02`
+found no actionable issue. Boundary/family/registry runs passed 38 tests; restoring
+the directive produced 1 failed / 12 passed at the exact wasteful-boundary assertion,
+then git restoration returned all 38 green and the detached tree clean. Commands:
+`pnpm exec vitest run --project ui packages/ui/test/client-boundary.test.ts packages/ui/test/data-table.test.tsx packages/ui/test/registry.test.ts`;
+control: `pnpm exec vitest run --project ui packages/ui/test/client-boundary.test.ts`.
+Evidence: `r5/review-supplement.json`. The corrected complete stream gate is pending.
