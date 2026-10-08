@@ -394,6 +394,21 @@
           "target": "components/ui/alert-dialog.tsx"
         }
       ]
+    },
+    {
+      "name": "popover",
+      "type": "registry:ui",
+      "title": "Popover",
+      "description": "An anchored panel with explicit parts, caller-owned labels and optional modal focus.",
+      "dependencies": ["@radix-ui/react-popover@^1.2.0", "@radix-ui/react-slot@^1.3.3"],
+      "registryDependencies": ["@marquee/utils"],
+      "files": [
+        {
+          "path": "packages/ui/src/popover.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/popover.tsx"
+        }
+      ]
     }
   ]
 }

@@ -40,7 +40,10 @@ import * as dialog from "../../stories/dialog.stories.js";
 
 import * as alertdialog from "../../stories/alert-dialog.stories.js";
 
+import * as popover from "../../stories/popover.stories.js";
+
 export const STORY_SUITES = {
+  popover: popover,
   "alert-dialog": alertdialog,
   dialog: dialog,
   accordion,

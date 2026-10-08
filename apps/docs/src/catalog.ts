@@ -1,3 +1,5 @@
+import Previewpopover from "./examples/popover";
+import codepopover from "./examples/popover?raw";
 import Previewalertdialog from "./examples/alert-dialog";
 import codealertdialog from "./examples/alert-dialog?raw";
 import Previewdialog from "./examples/dialog";
@@ -256,5 +258,14 @@ export const catalog = [
     story: "default",
     Preview: Previewalertdialog,
     code: codealertdialog,
+  },
+  {
+    id: "popover",
+    name: "Popover",
+    description:
+      "Unreleased candidate. An anchored panel with explicit parts, caller-owned labels and optional modal focus.",
+    story: "default",
+    Preview: Previewpopover,
+    code: codepopover,
   },
 ] as const;
