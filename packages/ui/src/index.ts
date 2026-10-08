@@ -215,3 +215,16 @@ export {
   ComboboxEmpty,
   ComboboxSeparator,
 } from "./combobox.js";
+
+export {
+  type TableContainerProps,
+  TableContainer,
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableCaption,
+} from "./table.js";

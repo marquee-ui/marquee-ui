@@ -400,6 +400,7 @@ describe("the invariant, over every part rather than a hand-written table", () =
       "slider.tsx (focus-visible)",
       "switch.tsx (focus-visible)",
       "switch.tsx (has-focus-visible)",
+      "table.tsx (focus-visible)",
       "tabs.tsx (focus-visible)",
       "tooltip.tsx (focus-visible)",
     ]);
