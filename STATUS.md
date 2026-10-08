@@ -42,12 +42,11 @@ This is library work; no Pile product backlog advances.
 
 ## Session log
 
-| Date       | Batch              | Result                                                                                                |
-| ---------- | ------------------ | ----------------------------------------------------------------------------------------------------- |
-| 2026-10-08 | RELEASE-1          | Local release candidate verified; publication held for user review.                                   |
-| 2026-10-08 | RELEASE-1-UX       | Requested live themes and highlighted source verified; publication held.                              |
-| 2026-10-08 | RELEASE-1-CONTROLS | Visual picker and independent accents verified; publication held.                                     |
-| 2026-10-08 | BATCH-PARITY-1     | Select/Tabs and nested overlay compatibility verified; localhost refreshed; publication held.         |
-| 2026-10-08 | BATCH-PARITY-2     | Dialog/AlertDialog and four-family overlay lifecycle verified; localhost refreshed; publication held. |
-
-| 2026-10-08 | BATCH-PARITY-3 | Popover/Tooltip, six-family overlay lifecycle and fresh installed proof verified; localhost refreshed; publication held. |
+| Date       | Batch              | Result                                                                                                                   |
+| ---------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| 2026-10-08 | RELEASE-1          | Local release candidate verified; publication held for user review.                                                      |
+| 2026-10-08 | RELEASE-1-UX       | Requested live themes and highlighted source verified; publication held.                                                 |
+| 2026-10-08 | RELEASE-1-CONTROLS | Visual picker and independent accents verified; publication held.                                                        |
+| 2026-10-08 | BATCH-PARITY-1     | Select/Tabs and nested overlay compatibility verified; localhost refreshed; publication held.                            |
+| 2026-10-08 | BATCH-PARITY-2     | Dialog/AlertDialog and four-family overlay lifecycle verified; localhost refreshed; publication held.                    |
+| 2026-10-08 | BATCH-PARITY-3     | Popover/Tooltip, six-family overlay lifecycle and fresh installed proof verified; localhost refreshed; publication held. |
