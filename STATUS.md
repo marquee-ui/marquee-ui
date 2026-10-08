@@ -1,6 +1,6 @@
 # Marquee implementation status
 
-CURSOR: COMPLETE — Finite component-parity batches 1–8
+CURSOR: RELEASE-READINESS-1 — test gaps and proposed release artifacts
 
 The user authorized a finite component-parity program on 2026-10-08. All eight
 [ordered batches](docs/component-parity.md) are complete. No batch 9 is queued.
@@ -10,8 +10,11 @@ and validation limits are explicitly deferred in the matrix.
 
 ## Next work
 
-Next: **none in this finite queue**. A new implementation scope or public release
-requires user direction. [Batch 8](docs/batches/BATCH-PARITY-8.md) completes the
+Next: **RELEASE-READINESS-1**, authorized on 2026-10-09: close the documented
+test gaps and prepare verified release artifacts. See its
+[bounded scope](docs/batches/RELEASE-READINESS-1.md). Public release remains held;
+this is a separate preparation batch, not a ninth parity batch.
+[Batch 8](docs/batches/BATCH-PARITY-8.md) completes the
 35-family source/current-primary-document audit, visible published/candidate
 installation guidance, independent stream/merged reviews, corrected full merged
 gate and verified immutable localhost refresh. Installed evidence is reused from
