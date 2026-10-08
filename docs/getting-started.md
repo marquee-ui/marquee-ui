@@ -25,7 +25,7 @@ branch, which can change independently of those npm versions.
 
 ## Unreleased preview components
 
-The local review site also includes Select, Tabs, Dialog, AlertDialog, Popover, Tooltip, DropdownMenu and Slider from the component-parity program.
+The local review site also includes Select, Tabs, Dialog, AlertDialog, Popover, Tooltip, DropdownMenu, Slider, Combobox and Calendar from the component-parity program.
 They are not in published UI 0.1.10 or the main-branch registry yet. The starter above
 continues to demonstrate that published release.
 
@@ -33,7 +33,7 @@ To try the candidate source after setting up the app below, change only the regi
 mapping's branch from `main` to `next`, then run:
 
 ```sh
-npx shadcn@4.21.4 add @marquee/select @marquee/tabs @marquee/dialog @marquee/alert-dialog @marquee/popover @marquee/tooltip @marquee/dropdown-menu @marquee/slider
+npx shadcn@4.21.4 add @marquee/select @marquee/tabs @marquee/dialog @marquee/alert-dialog @marquee/popover @marquee/tooltip @marquee/dropdown-menu @marquee/slider @marquee/combobox @marquee/calendar
 ```
 
 If the app already uses a Sheet from an earlier Marquee release, update its Dialog
@@ -56,7 +56,20 @@ records scope and limits. Local packed-artifact proof for these additions is rec
 [BATCH-PARITY-1](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-1.md)
 [BATCH-PARITY-2](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-2.md)
 [BATCH-PARITY-3](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-3.md)
-and [BATCH-PARITY-4](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-4.md).
+[BATCH-PARITY-4](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-4.md)
+and [BATCH-PARITY-5](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-5.md).
+
+Combobox is a composed **single-select searchable popup** using cmdk and Radix Popover.
+It is not a drop-in copy of the current shadcn Base UI Combobox API. Editable inline
+inputs, chips/multiple selection, object collections and virtualization remain outside
+this contract. The caller owns the committed value, its displayed label and form transport;
+search navigation is separate from selection. Its live example documents the supported parts.
+
+Calendar uses DayPicker 10 selection and replaceable component slots, with role-based
+styles and full-size day/navigation targets. Single, multiple and range selection are
+supported; caller-owned selection, labels, locale and formatting stay explicit. DatePicker
+popup/input composition is the next batch. Time selection, alternate calendars and exhaustive
+timezone/locale validation are not included in the current proof.
 
 DropdownMenu composes action items, checkbox/radio choices and directional submenus.
 Portals, indicators, arrows and chevrons are explicit parts. Selection closes by default;
