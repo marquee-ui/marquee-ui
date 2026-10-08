@@ -38,7 +38,10 @@ import * as toggle from "../../stories/toggle.stories.js";
  */
 import * as dialog from "../../stories/dialog.stories.js";
 
+import * as alertdialog from "../../stories/alert-dialog.stories.js";
+
 export const STORY_SUITES = {
+  "alert-dialog": alertdialog,
   dialog: dialog,
   accordion,
   alert,

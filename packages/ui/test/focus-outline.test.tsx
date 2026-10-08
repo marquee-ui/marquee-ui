@@ -388,6 +388,7 @@ describe("the invariant, over every part rather than a hand-written table", () =
     // list - which is the review the derived sweep exists to force.
     expect(sites.map((site) => `${site.file} (${site.variant})`).sort()).toEqual([
       "accordion.tsx (focus-visible)",
+      "alert-dialog.tsx (focus-visible)",
       "checkbox.tsx (has-focus-visible)",
       "dialog.tsx (focus-visible)",
       "radio-group.tsx (has-focus-visible)",

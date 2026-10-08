@@ -25,7 +25,7 @@ branch, which can change independently of those npm versions.
 
 ## Unreleased preview components
 
-The local review site also includes Select and Tabs from the component-parity program.
+The local review site also includes Select, Tabs, Dialog and AlertDialog from the component-parity program.
 They are not in published UI 0.1.10 or the main-branch registry yet. The starter above
 continues to demonstrate that published release.
 
@@ -33,7 +33,7 @@ To try the candidate source after setting up the app below, change only the regi
 mapping's branch from `main` to `next`, then run:
 
 ```sh
-npx shadcn@4.21.4 add @marquee/select @marquee/tabs
+npx shadcn@4.21.4 add @marquee/select @marquee/tabs @marquee/dialog @marquee/alert-dialog
 ```
 
 If the app already uses a Sheet from an earlier Marquee release, update its Dialog
@@ -53,7 +53,16 @@ commit SHA for repeatable source installs. It uses the same token roles and alia
 its declared primitive dependencies are installed by the CLI. The
 [parity program](https://github.com/marquee-ui/marquee-ui/blob/next/docs/component-parity.md)
 records scope and limits. Local packed-artifact proof for these additions is recorded in
-[BATCH-PARITY-1](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-1.md).
+[BATCH-PARITY-1](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-1.md)
+and [BATCH-PARITY-2](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-2.md).
+
+Dialog and AlertDialog expose explicit Portal, Overlay and Content parts. Compose their
+titles, descriptions and actions inside Content; no close icon or confirmation controls
+are inserted for you. Dialog supports modal and non-modal interactions. AlertDialog is
+always a confirmation modal: Cancel receives initial focus, outside interaction cannot
+dismiss it, and Action/Cancel remain separate parts. Prevent Action's click default and
+use controlled open state when completion should wait for an asynchronous operation.
+Giving Sheet `role="alertdialog"` alone does not supply these confirmation semantics.
 
 ## Add Marquee to an existing app
 
