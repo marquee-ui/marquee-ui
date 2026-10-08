@@ -1,6 +1,6 @@
 # ALERT-DIALOG-1 — composed AlertDialog
 
-Batch: BATCH-PARITY-2. Status: active. Publication remains held in STATUS.md.
+Batch: BATCH-PARITY-2. Status: complete. Publication remains held in STATUS.md.
 
 ## Scope and ownership
 
@@ -77,7 +77,7 @@ Tailwind compile, registry, literal/brand and source-inventory guards. The exist
 story export. Path consumers are the shared source inventory, story suite map, docs
 catalog and registry, all wired by the orchestrator. ARIA consumers are the existing
 Sheet story and the new family contract/story/browser assertions. New focus class
-literals have no pre-existing tests pinning their byte strings. CROSS: four shared
+literals have no pre-existing tests pinning their byte strings. CROSS: shared
 registration surfaces, owned and wired by the orchestrator. No unowned behavior changed.
 
 ## Verification notes
@@ -158,3 +158,30 @@ exit 0. Layer 1 found 0 HIGH, 1 MEDIUM and 1 LOW; both findings are closed. Seve
 bounded mutation runs cover every touched test file; the two original force-primary
 runs stayed GREEN and the added compiled assertion closes that gap. Reviewer preview
 and detached worktree were removed before the full gate.
+
+## Full gate and handoff
+
+The first `DOCS_PORT=4192 pnpm verify` at committed
+`0734196138c90e1690ee54384ab23a4bdbc06b87`, 2026-10-08, exited **1** in 22s:
+**751 passed / 1 failed (752)** library tests. The build was fresh; later stages
+were not reached. The sole failure was the shared focus-site inventory discovering
+`alert-dialog.tsx (focus-visible)` while its pinned list still named the old set.
+The orchestrator corrected the inventory in `2cda91e811b98c44145520e4aba440d32097785d`
+and measured **21 focused tests passed**. The same reviewer confirmed that the
+one-line addition acknowledges the discovered source site, weakens no assertion
+and adds no exemption. Source and previous review closure remained unchanged.
+
+The orchestrator authorized the necessary fresh full gate at that fixed committed
+head. `DOCS_PORT=4192 pnpm verify`, 2026-10-08, exited **0** in **123s**:
+**42 library files / 752 passed**, **4 docs files / 39 passed**, **5 consumer checks
+passed / 0 failed**, and **99 responsive browser cases passed (1.7m)**. Logs and
+exit sentinels for both verdicts are preserved in
+`/home/ankit/.marquee-scratch/BATCH-PARITY-2/alert-dialog/verify.*` and
+`verify-fixed.*`; the final commit changes this record only.
+
+Retro: shared registration must include dynamically derived focus-site inventory
+pins as well as export/source/story/registry/catalog maps. Visual variant coverage
+must observe compiled roles; closing alone cannot protect a visual axis. Browser
+focus measurements must enter keyboard modality, and assertions must follow the
+primitive's documented behavior rather than assume a scrim click retains the
+previously focused control. No unresolved review finding or source defect remains.
