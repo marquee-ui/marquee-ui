@@ -19,6 +19,7 @@ const focus =
 export function ChartContainer({
   className,
   asChild = false,
+  onKeyDown,
   ...props
 }: ComponentProps<"div"> & Slotted) {
   const Host = asChild ? Slot : "div";
@@ -31,6 +32,23 @@ export function ChartContainer({
         className,
       )}
       {...props}
+      onKeyDown={(event) => {
+        onKeyDown?.(event);
+        const target = event.target;
+        if (
+          !event.defaultPrevented &&
+          (event.key === "ArrowLeft" || event.key === "ArrowRight") &&
+          target instanceof Element &&
+          target.matches('svg.recharts-surface[role="application"]') &&
+          target.ownerDocument.activeElement === target &&
+          target.closest('[data-slot="chart-container"]') === event.currentTarget
+        ) {
+          // Recharts already dispatched point navigation. Cancel only the
+          // browser's additional scroll of a native ancestor, without stopping
+          // renderer or caller propagation or claiming descendant input keys.
+          event.preventDefault();
+        }
+      }}
     />
   );
 }

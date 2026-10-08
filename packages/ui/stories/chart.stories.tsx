@@ -35,6 +35,7 @@ import {
   TableBody,
   TableCaption,
   TableCell,
+  TableContainer,
   TableHead,
   TableHeader,
   TableRow,
@@ -332,7 +333,21 @@ export const InDialog: Story = {
           <DialogDescription>
             Use the chart or read its native table without leaving this dialog.
           </DialogDescription>
-          <MonthlyDemo />
+          <TableContainer aria-label="Scrollable monthly chart">
+            <Table className="w-[48rem] table-fixed">
+              <TableCaption>Monthly chart comparison</TableCaption>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="w-80">Monthly volume summary</TableCell>
+                  <TableCell className="w-72">
+                    <MonthlyPlot kind="bars" />
+                  </TableCell>
+                  <TableCell className="w-40">North and South</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <NativeData />
           <DialogClose>Done inspecting</DialogClose>
         </DialogContent>
       </DialogPortal>

@@ -348,13 +348,92 @@ test("Chart keyboard tooltip stays inside existing dialog and dismissal restores
   const trigger = page.getByRole("button", { name: "Inspect monthly chart" });
   await trigger.click();
   const dialog = page.getByRole("dialog", { name: "Monthly chart details" });
+  const region = dialog.getByRole("region", { name: "Scrollable monthly chart" });
   const chart = dialog.getByRole("application", { name: "Monthly volume bars" });
   const close = dialog.getByRole("button", { name: "Done inspecting" });
-  await expect(close).toBeFocused();
+  await expect(region).toBeFocused();
+  await expect(chart).toBeVisible();
+  expect(
+    await region.evaluate((el) => el.scrollWidth - el.clientWidth),
+    "native table is wider than its region",
+  ).toBeGreaterThan(0);
+  const nativeStart = await region.evaluate((el) => el.scrollLeft);
+  await region.press("ArrowRight");
+  await expect
+    .poll(() => region.evaluate((el) => el.scrollLeft), {
+      message: "native region keeps its ArrowRight scroll default before chart Tab",
+    })
+    .toBeGreaterThan(nativeStart);
+  // Native arrow scrolling animates after key dispatch. Let the real default
+  // settle before Tab; later point arrows receive the same observation window.
+  await page.waitForTimeout(200);
+  const horizontalClipping = () =>
+    chart.evaluate((svg) => {
+      const plot = svg.getBoundingClientRect();
+      const bounds = svg.closest('[data-slot="table-container"]')!.getBoundingClientRect();
+      return Math.max(0, bounds.left - plot.left, plot.right - bounds.right);
+    });
+  // Navigate the region itself until its chart cell is in view. SVG Tab focus
+  // does not promise automatic ancestor scrolling; no focus/scroll repair runs.
+  for (let step = 0; step < 8 && (await horizontalClipping()) > 0.5; step++) {
+    await region.press("ArrowRight");
+    await page.waitForTimeout(200);
+  }
+  expect(
+    await horizontalClipping(),
+    "native arrows bring the whole chart cell into view before Tab",
+  ).toBeLessThanOrEqual(0.5);
+  await region.press("Tab");
+  await expect(chart).toBeFocused();
+  await page.waitForTimeout(200);
+  const chartScroll = await region.evaluate((el) => el.scrollLeft);
+  expect(chartScroll, "native region has scrolled before natural chart Tab").toBeGreaterThan(0);
+  const live = dialog.getByRole("status");
+  await expect(live).toHaveText("Jan. North 18. South 12.");
+  for (const [key, point] of [
+    ["ArrowRight", "Feb. North 24. South 20."],
+    ["ArrowRight", "Mar. North 28. South 16."],
+    ["ArrowRight", "Apr. North 32. South 24."],
+    ["ArrowLeft", "Mar. North 28. South 16."],
+    ["ArrowLeft", "Feb. North 24. South 20."],
+    ["ArrowLeft", "Jan. North 18. South 12."],
+  ]) {
+    await chart.press(key!);
+    await expect(live).toHaveText(point!);
+    await page.waitForTimeout(200);
+    await expect(chart).toBeFocused();
+    expect(
+      await region.evaluate((el) => el.scrollLeft),
+      `${key} navigates points without scrolling the native ancestor`,
+    ).toBeCloseTo(chartScroll, 1);
+    const clipping = await chart.evaluate((svg) => {
+      const plot = svg.getBoundingClientRect();
+      const region = svg.closest('[data-slot="table-container"]')!.getBoundingClientRect();
+      const dialog = svg.closest('[role="dialog"]')!.getBoundingClientRect();
+      return Math.max(
+        0,
+        region.left - plot.left,
+        plot.right - region.right,
+        dialog.top - plot.top,
+        plot.bottom - dialog.bottom,
+        -plot.top,
+        plot.bottom - innerHeight,
+      );
+    });
+    expect(
+      clipping,
+      `${key} keeps the whole focused SVG and inset ring visible`,
+    ).toBeLessThanOrEqual(0.5);
+  }
+  expect(
+    (await paint(chart)).outlineWidth,
+    "real SVG owns its visible ring in the scroll region",
+  ).toBeGreaterThanOrEqual(2);
+  await dialog.screenshot({ path: test.info().outputPath("chart-dialog-native-scroll.png") });
+  await chart.press("Tab");
+  await expect(close, "forward Tab leaves the chart for the real Close control").toBeFocused();
   await close.press("Shift+Tab");
   await expect(chart).toBeFocused();
-  await chart.press("ArrowRight");
-  await expect(dialog.getByRole("status")).toHaveText("Feb. North 24. South 20.");
   await expect(dialog.getByRole("table", { name: "Monthly volume data" })).toBeVisible();
   await expect(dialog).toBeVisible();
   await chart.press("Escape");

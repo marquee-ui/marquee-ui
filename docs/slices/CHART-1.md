@@ -1,6 +1,6 @@
 # CHART-1 — composed responsive charts
 
-Batch: BATCH-PARITY-7. Status: independently reviewed; full stream gate green.
+Batch: BATCH-PARITY-7. Status: original stream gate green; merged scroll closure pending.
 Stream port 4192; reviewer 4196.
 
 ## Supported contract
@@ -221,3 +221,42 @@ native values. Earlier complete paint-mode inspection remains recorded above.
 Exact source SHA, start/end times, runner log and exit are preserved in
 `s2/verify-corrected.sha`, `.start`, `.end`, `.log` and `.exit`; browser evidence is
 in `s2/gate-corrected-browser/`. No family source changed during gate recovery.
+
+## Merged review arrow-scroll closure
+
+Fresh merged review at `9dc572f` exposes a real composition failure: point arrows
+on the focused Recharts SVG also invoke native ancestor scrolling. In the merged
+DataTable/TableContainer/Dialog fixture at 390px, Right advances Jan through Apr
+while scrollLeft moves 340 → 458 and clips 90.75px of the chart. Independent
+evidence is retained in `merged-review/scroll-diagnostic.json`, its runner log/exit
+and `390-natural-arrow-diagnostic.png`.
+
+`ChartContainer` now invokes its caller's onKeyDown first, then prevents the
+browser default only for uncanceled Left/Right whose target itself is the focused
+`svg.recharts-surface[role="application"]` owned by that nearest ChartContainer.
+It does not stop propagation, intercept custom descendant input arrows, dispatch
+data navigation or change the exported API. Existing InDialog now composes a wide
+native Table/TableContainer around the chart cell, with the complete data table
+below. Story/play and browser declaration counts remain unchanged.
+
+Test-first unit evidence is **three predicted failures / ten passed** at the old
+source, then **13 passed** with the narrow handler. Real Recharts still dispatches
+Feb/Jan point data; native event defaults, callback order/propagation, slotted
+cancellation, nonnavigation keys, direct targets, actual focus and nearest nested
+ownership are checked. Root typecheck and focused ESLint pass.
+
+The strengthened browser proof first uses real native region arrows to bring the
+chart cell fully into view, then natural Tab focuses its SVG. There is no scripted
+focus or scroll repair. At the old policy, the predicted stable-scroll assertion
+fails all widths: **320 → 360** at 390, **160 → 200** at 768/1280. Original
+`scroll-browser-first.*` and the readiness-strengthened `scroll-browser-old-ready.*`
+logs/traces remain intact. With the handler, all six paced Left/Right steps retain
+the same scroll position and whole SVG/ring bounds while actual concise data moves
+Jan/Feb/Mar/Apr and back.
+
+That run then independently exposes the merged review's separate forward-Tab
+finding at all three widths: SVG Tab does not reach Close. Its original failure
+is retained in `scroll-browser-fixed.*`. Coordinator and merged reviewer are
+tracing and proving a bounded caller recipe for that focus transition; no
+speculative global focus correction has been added. Review, registry refresh and
+the new `verify-scroll.*` full gate follow closure of that recipe.
