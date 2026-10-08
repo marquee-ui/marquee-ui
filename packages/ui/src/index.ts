@@ -148,3 +148,12 @@ export {
   AlertDialogAction,
   AlertDialogCancel,
 } from "./alert-dialog.js";
+
+export {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipPortal,
+  TooltipContent,
+  TooltipArrow,
+} from "./tooltip.js";

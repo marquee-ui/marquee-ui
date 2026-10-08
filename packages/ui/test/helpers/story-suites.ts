@@ -40,7 +40,10 @@ import * as dialog from "../../stories/dialog.stories.js";
 
 import * as alertdialog from "../../stories/alert-dialog.stories.js";
 
+import * as tooltip from "../../stories/tooltip.stories.js";
+
 export const STORY_SUITES = {
+  tooltip: tooltip,
   "alert-dialog": alertdialog,
   dialog: dialog,
   accordion,

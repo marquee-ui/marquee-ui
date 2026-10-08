@@ -396,6 +396,7 @@ describe("the invariant, over every part rather than a hand-written table", () =
       "switch.tsx (focus-visible)",
       "switch.tsx (has-focus-visible)",
       "tabs.tsx (focus-visible)",
+      "tooltip.tsx (focus-visible)",
     ]);
   });
 

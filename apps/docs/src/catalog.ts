@@ -1,3 +1,5 @@
+import Previewtooltip from "./examples/tooltip";
+import codetooltip from "./examples/tooltip?raw";
 import Previewalertdialog from "./examples/alert-dialog";
 import codealertdialog from "./examples/alert-dialog?raw";
 import Previewdialog from "./examples/dialog";
@@ -256,5 +258,14 @@ export const catalog = [
     story: "default",
     Preview: Previewalertdialog,
     code: codealertdialog,
+  },
+  {
+    id: "tooltip",
+    name: "Tooltip",
+    description:
+      "Unreleased candidate. Supplemental noninteractive text with explicit provider, portal and arrow. Radix owns focus, hover and collision placement; actions retain independent accessible names.",
+    story: "default",
+    Preview: Previewtooltip,
+    code: codetooltip,
   },
 ] as const;
