@@ -1,6 +1,7 @@
 # SLIDER-1 — composed Slider
 
-Batch: BATCH-PARITY-4. Status: complete; unreleased. Stream port 4192; reviewer 4196.
+Batch: BATCH-PARITY-4. Status: reopened for vertical range geometry; unreleased.
+Stream port 4192; reviewer 4196.
 
 ## Scope
 
@@ -210,3 +211,56 @@ The final post-gate edit changes only this record. The reviewer worktree was
 verified clean at `14e2224` and removed; port 4196 is free. Gate logs, sentinel,
 source SHA and timing remain in the assigned stream scratch directory. No
 publication operation, PR, merge, release or deployment ran in this stream.
+
+## Vertical range geometry correction
+
+The full-canvas integration screenshots at 390/768/1280 exposed a real source
+defect after the original green gate: `SliderRange` used `h-full` vertically,
+overriding Radix's opposing top/bottom offsets. At value 40 its track and range
+both measured 192px; the selected length should have been 76.8px. The range
+extended 115.1875px below the track and into the following paragraph. Independent
+layer 2 also measured inverted value 40 and a vertical range of 20–80: their
+selected lengths stayed 192px instead of 76.8px and 115.2px respectively, and a
+point below the normal/range tracks actually hit the range element.
+
+The original browser cases observed movement and nonempty selected paint but
+did not constrain the range bounds or proportional length. The original green
+stream gate above, the orchestrator's green merged gate and packed-consumer run
+at `6e5402c3`, and the overflowing complete-canvas screenshots remain preserved;
+they did not prove this property. The new geometry evidence supersedes them for
+the vertical selected-range contract. Original integration images are
+`/home/ankit/.marquee-scratch/BATCH-PARITY-4/integration/images/slider-canvas-*.png`;
+independent measurements and 9 predicted reds are in the batch's `layer2/`
+directory (`vertical-red-measurements.json`, `browser-3.log`, `results-3.json`).
+
+Test first on 2026-10-08, against the original build from `9c224cac`:
+
+```sh
+DOCS_PORT=4192 pnpm --filter @marquee-ui/docs exec playwright test \
+  browser/slider.spec.ts --grep 'selected range stays within'
+```
+
+The runner exited 1 with **3 failed**, one at every width, on the predicted
+`Vertical level selected range bottom stays inside track` assertion. Desktop
+measured bottom 701.90625px against a track bottom of 586.71875px (the assertion
+allows only 0.5px rounding). This was an actual geometric failure, not a collector
+or build error. Log: assigned stream scratch `geometry-red.log`.
+
+The bounded fix adds `data-[orientation=vertical]:h-auto` to Range so Radix's
+offsets determine selected height; horizontal cross-axis height remains full.
+The new family case measures actual Range/Track padding-box bounds, selected
+length and physical starting edge against live aria values. It covers vertical,
+horizontal, RTL and inverted singles at 0/25/50/75/100, horizontal two-thumb spans,
+forced colors and the isolated vertical story. It adds one case, three width runs.
+After a fresh build, the focused runner exited 0 with **3 passed (11.6s)**.
+All three complete canvases were inspected; the vertical half-range terminates
+inside its 192px track and leaves the following paragraph clear. Corrected images
+are the `slider-complete-canvas.png` files under stream scratch `geometry-green/`.
+
+The reopened consumer scan uses the existing four exports without adding or
+changing an API, role, route, story or native form contract. The changed Range
+class is consumed by generated `packages/ui/r/slider.json` (CROSS: orchestrator).
+The family unit test, stories, docs example, browser case, compiled-floor and
+focus inventories remain consumers; their existing contracts are retained.
+Only source, this browser regression and this record belong to the stream's
+reopened fence. Registry refresh and shared counts remain with the orchestrator.

@@ -47,7 +47,7 @@ export function SliderRange({ className, ...props }: ComponentProps<typeof Slide
     <SliderPrimitive.Range
       data-slot="slider-range"
       className={cn(
-        "absolute h-full rounded-full bg-primary-ink data-[orientation=vertical]:w-full forced-colors:border-2 forced-colors:border-current",
+        "absolute h-full rounded-full bg-primary-ink data-[orientation=vertical]:h-auto data-[orientation=vertical]:w-full forced-colors:border-2 forced-colors:border-current",
         className,
       )}
       {...props}

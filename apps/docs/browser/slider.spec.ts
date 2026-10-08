@@ -50,6 +50,149 @@ async function paintContrast(thumb: Locator, property: "outlineColor" | "borderC
   }, property);
 }
 
+async function selectedRangeGeometry(
+  thumb: Locator,
+  name: string,
+  orientation: "horizontal" | "vertical",
+  fromEnd: boolean,
+) {
+  const root = thumb.locator('xpath=ancestor::*[@data-slot="slider"]');
+  const geometry = await root.evaluate((el) => {
+    const track = el.querySelector('[data-slot="slider-track"]')!;
+    const range = el.querySelector('[data-slot="slider-range"]')!;
+    const rect = track.getBoundingClientRect();
+    const style = getComputedStyle(track);
+    // Absolute offsets use the track's padding box. Account for the real
+    // system-color borders when measuring forced colors as well.
+    const left = rect.left + parseFloat(style.borderLeftWidth);
+    const right = rect.right - parseFloat(style.borderRightWidth);
+    const top = rect.top + parseFloat(style.borderTopWidth);
+    const bottom = rect.bottom - parseFloat(style.borderBottomWidth);
+    const thumbs = [...el.querySelectorAll('[role="slider"]')];
+    const min = Number(thumbs[0]!.getAttribute("aria-valuemin"));
+    const max = Number(thumbs[0]!.getAttribute("aria-valuemax"));
+    const values = thumbs.map((node) => Number(node.getAttribute("aria-valuenow")));
+    return {
+      track: { left, right, top, bottom, width: right - left, height: bottom - top },
+      range: range.getBoundingClientRect().toJSON() as {
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        width: number;
+        height: number;
+      },
+      low: thumbs.length === 1 ? 0 : (Math.min(...values) - min) / (max - min),
+      high: (Math.max(...values) - min) / (max - min),
+      orientation: thumbs[0]!.getAttribute("aria-orientation"),
+    };
+  });
+  expect(geometry.orientation, `${name} orientation`).toBe(orientation);
+  expect(
+    geometry.range.left,
+    `${name} selected range left stays inside track`,
+  ).toBeGreaterThanOrEqual(geometry.track.left - 0.5);
+  expect(
+    geometry.range.right,
+    `${name} selected range right stays inside track`,
+  ).toBeLessThanOrEqual(geometry.track.right + 0.5);
+  expect(
+    geometry.range.top,
+    `${name} selected range top stays inside track`,
+  ).toBeGreaterThanOrEqual(geometry.track.top - 0.5);
+  expect(
+    geometry.range.bottom,
+    `${name} selected range bottom stays inside track`,
+  ).toBeLessThanOrEqual(geometry.track.bottom + 0.5);
+  const axis = orientation === "vertical" ? "height" : "width";
+  const edge = orientation === "vertical" ? "top" : "left";
+  expect(
+    Math.abs(geometry.range[axis] - geometry.track[axis] * (geometry.high - geometry.low)),
+    `${name} selected range length matches live values`,
+  ).toBeLessThanOrEqual(0.5);
+  expect(
+    Math.abs(
+      geometry.range[edge] -
+        (geometry.track[edge] +
+          geometry.track[axis] * (fromEnd ? 1 - geometry.high : geometry.low)),
+    ),
+    `${name} selected range starts at the live value in its physical direction`,
+  ).toBeLessThanOrEqual(0.5);
+}
+
+test("Slider selected range stays within its track and scales to live values in every orientation", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await page.getByRole("button", { name: "Preview Slider", exact: true }).click();
+  const canvas = page.locator(".family-canvas");
+  for (const [name, orientation, fromEnd] of [
+    ["Vertical level", "vertical", true],
+    ["Volume", "horizontal", false],
+    ["Right-to-left balance", "horizontal", true],
+    ["Inverted balance", "horizontal", true],
+  ] as const) {
+    const thumb = canvas.getByRole("slider", { name, exact: true });
+    await target(thumb);
+    await selectedRangeGeometry(thumb, name, orientation, fromEnd);
+    for (const value of [0, 25, 50, 75, 100]) {
+      await thumb.focus();
+      await expect(thumb).toBeFocused();
+      await thumb.press("Home");
+      if (value === 100) await thumb.press("End");
+      else {
+        if (value >= 50) await thumb.press("PageUp");
+        if (value % 50 !== 0) for (let step = 0; step < 5; step++) await thumb.press("ArrowUp");
+      }
+      await expect(thumb).toHaveAttribute("aria-valuenow", String(value));
+      await selectedRangeGeometry(thumb, `${name} at ${value}`, orientation, fromEnd);
+    }
+    await thumb.press("Home");
+    await thumb.press("PageUp");
+    await selectedRangeGeometry(thumb, `${name} at midpoint`, orientation, fromEnd);
+  }
+  const low = canvas.getByRole("slider", { name: "Start time" });
+  const high = canvas.getByRole("slider", { name: "End time" });
+  await selectedRangeGeometry(low, "Playback window", "horizontal", false);
+  await low.focus();
+  await low.press("Home");
+  await high.focus();
+  await high.press("End");
+  await selectedRangeGeometry(low, "Playback window full span", "horizontal", false);
+  await high.press("PageDown");
+  await expect(high).toHaveAttribute("aria-valuenow", "50");
+  await selectedRangeGeometry(low, "Playback window half span", "horizontal", false);
+  for (let step = 0; step < 5; step++) await high.press("ArrowDown");
+  await expect(high).toHaveAttribute("aria-valuenow", "25");
+  await selectedRangeGeometry(low, "Playback window quarter span", "horizontal", false);
+  await high.press("ArrowUp");
+  await high.press("ArrowUp");
+  await selectedRangeGeometry(low, "Playback window changed span", "horizontal", false);
+  await canvas.screenshot({ path: test.info().outputPath("slider-complete-canvas.png") });
+  await page.emulateMedia({ forcedColors: "active" });
+  for (const [name, orientation, fromEnd] of [
+    ["Vertical level", "vertical", true],
+    ["Volume", "horizontal", false],
+    ["Right-to-left balance", "horizontal", true],
+    ["Inverted balance", "horizontal", true],
+    ["Start time", "horizontal", false],
+  ] as const)
+    await selectedRangeGeometry(
+      canvas.getByRole("slider", { name, exact: true }),
+      `${name} forced colors`,
+      orientation,
+      fromEnd,
+    );
+  await page.emulateMedia({ forcedColors: "none" });
+  await page.goto("storybook/iframe.html?id=parts-slider--vertical&viewMode=story&embed=true");
+  await selectedRangeGeometry(
+    page.getByRole("slider", { name: "Volume", exact: true }),
+    "Isolated vertical",
+    "vertical",
+    true,
+  );
+});
+
 test("Slider keys step, constrain independently named range values, commit, submit and reset", async ({
   page,
 }) => {
