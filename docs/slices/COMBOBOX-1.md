@@ -1,6 +1,6 @@
 # COMBOBOX-1 — composed searchable popup
 
-Batch: BATCH-PARITY-5. Status: active; unreleased.
+Batch: BATCH-PARITY-5. Status: complete; unreleased.
 Stream port 4191; reviewer 4195.
 
 ## Scope
@@ -293,3 +293,22 @@ Every surviving old-fill guard test is separate from the at-rest separator invar
 - found the hosts drawn at rest, and tells a fill alone from a drawing the mode keeps
 
 All old r5 broad-review evidence remains untouched. Only this bounded followup was run; no full verify, author/sibling write, node_modules mutation, publication, or push occurred. All mutations were in the new detached reviewer checkout and restored from git. Own port 4195 was used. The clean detached worktree is ready for preauthorized removal after this report is durable.
+
+## Stream result
+
+The justified second full gate is green: `DOCS_PORT=4191 pnpm verify`, source
+`2b19857d3351bd97e85bb7d11aaed5c77c968c2c`, 2026-10-08 10:20:43–10:25:07 IST
+(4m24s), sentinel exit 0. Runner summaries: 52 library files / 897 tests; four docs
+files / 39 tests; five consumer checks; 240 browser cases across mobile, tablet
+and desktop (3.9m browser phase). Lint, typecheck and build also passed. Artifacts
+are `s1/verify.{sha,started,finished,exit,log,initial-status}` under the batch scratch.
+The first failed gate remains unmodified under `s1/gate-1/`.
+
+All commits after the gated source change only this slice record. The product,
+registry, stories, examples and test files are byte-identical to the green gate's
+source. Both independent reviewer checkouts were restored clean and removed;
+all r5 reports, control diffs, logs, traces and screenshots remain durable. The
+bounded shared file-level focus-inventory limitation is recorded, with independent
+per-host browser proof. No remaining product finding blocks this stream. Shared
+integration, combined review/gate, draft PR2 and public operations remain with the
+orchestrator; no STATUS, main merge, deployment or package release was performed.
