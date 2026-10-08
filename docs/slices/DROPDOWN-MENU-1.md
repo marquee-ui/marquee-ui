@@ -1,6 +1,6 @@
 # DROPDOWN-MENU-1 — composed DropdownMenu
 
-Batch: BATCH-PARITY-4. Status: active; unreleased. Stream port 4191; reviewer 4195.
+Batch: BATCH-PARITY-4. Status: complete; unreleased. Stream port 4191; reviewer 4195.
 
 ## Scope
 
@@ -273,6 +273,14 @@ both expanded-state assertions. The failed mobile case then passed against the
 gate's unchanged built site: 1 passed (1.8s), exit 0. Logs and sentinels are
 `dropdown-menu/verify.*` and `dropdown-menu/menu-discriminator.*` under the batch
 scratch directory. The coordinator authorized a full gate rerun after this
-discriminator; its result is pending. The independent reviewer inspected the
+discriminator. The independent reviewer inspected the
 three-locator correction without a build or rerun and confirmed that all navigation
 actions and assertions remain intact, then removed its clean detached checkout.
+
+The authorized rerun on 2026-10-08 at
+`9d484ad84afc48e3e41b776caf8dedee7d42d46f` exited 0 after 216s. The runner reported
+library 851 tests / 50 files, docs 39 / 4, consumer 5 passed / 0 failed, and browser
+201 passed (3.2m), including all 27 owned DropdownMenu cases and all three shared
+family/workbench link sweeps. Command: `DOCS_PORT=4191 pnpm verify`;
+`dropdown-menu/verify-rerun.{log,exit,wall,sha}` retains the artifact and verdict.
+Ports 4191 and 4195 are released; reviewer scratch evidence remains retained.
