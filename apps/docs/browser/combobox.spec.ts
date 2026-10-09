@@ -111,7 +111,7 @@ async function paint(control: Locator, label: string, kind: "outline" | "border"
 test("demo searches without submitting, commits only on selection and uses caller native form state", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Combobox", exact: true }).click();
   const canvas = page.locator("[data-combobox-demo]");
   const trigger = canvas.getByRole("button", { name: "Language", exact: true });
@@ -284,7 +284,7 @@ test("bounded list scrolls to its last selectable row with real hit readiness", 
 test("isolated trigger, input, content and active choice paint in dark/light/accent/forced colors", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Light", exact: true }).click();
   await page.getByRole("button", { name: /^Customize theme:/ }).click();
   await page.getByRole("radio", { name: /^Violet\b/ }).click();
@@ -354,7 +354,7 @@ test("copyable composition uses local registry aliases and preserves exact sourc
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Combobox", exact: true }).click();
   const block = page.locator(".family-detail .code-block");
   await expect(block.locator("pre code")).toHaveText(example);

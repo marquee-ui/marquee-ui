@@ -204,7 +204,7 @@ async function focusPaint(control: Locator, label: string) {
 test("DatePicker docs preserve selection, disabled dates, keyboard, range completion, caller forms and reset", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview DatePicker", exact: true }).click();
   const canvas = page.locator(".family-canvas");
   const trigger = canvas.getByRole("button", { name: "Choose date" });
@@ -305,7 +305,7 @@ test("DatePicker isolated panel contains the full frame and every Saturday witho
 test("DatePicker fits inside Dialog and Escape dismisses one scope with correct focus return", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview DatePicker", exact: true }).click();
   const outer = page.getByRole("button", { name: "Open schedule dialog" });
   await outer.click();
@@ -404,7 +404,7 @@ test("DatePicker example source is highlighted and copied byte for byte", async 
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview DatePicker", exact: true }).click();
   const block = page.locator(".family-detail .code-block");
   expect(await block.locator("pre code").textContent()).toBe(example);

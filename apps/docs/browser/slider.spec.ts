@@ -123,7 +123,7 @@ async function selectedRangeGeometry(
 test("Slider selected range stays within its track and scales to live values in every orientation", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Slider", exact: true }).click();
   const canvas = page.locator(".family-canvas");
   for (const [name, orientation, fromEnd] of [
@@ -198,7 +198,7 @@ test("Slider keys step, constrain independently named range values, commit, subm
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Slider", exact: true }).click();
   const canvas = page.locator(".family-canvas");
   const volume = canvas.getByRole("slider", { name: "Volume", exact: true });
@@ -265,7 +265,7 @@ test("Slider keys step, constrain independently named range values, commit, subm
 test("Slider pointer drag updates before committing and the narrow track accepts a click", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Slider", exact: true }).click();
   const canvas = page.locator(".family-canvas");
   const thumb = canvas.getByRole("slider", { name: "Volume", exact: true });
@@ -292,7 +292,7 @@ test("Slider pointer drag updates before committing and the narrow track accepts
 test("orientation, direction, inverted and disabled states move actual visible paint", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Slider", exact: true }).click();
   const canvas = page.locator(".family-canvas");
   for (const [name, key, expected, axis, sign] of [
@@ -348,7 +348,7 @@ test("Slider focus and markers paint without docs CSS in dark, light, accent and
     ["Light", "Automatic"],
     ["Light", "Violet"],
   ] as const) {
-    await page.goto("./");
+    await page.goto("components/");
     await page.getByRole("button", { name: mode, exact: true }).click();
     if (accent === "Violet") {
       await page.getByRole("button", { name: /^Customize theme:/ }).click();
@@ -459,7 +459,7 @@ test("Slider example is highlighted and copied exactly; uncontrolled native form
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Slider", exact: true }).click();
   const section = page.locator(".family-detail .code-block");
   expect(await section.locator("pre code").textContent()).toBe(example);

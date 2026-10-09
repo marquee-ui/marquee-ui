@@ -101,7 +101,7 @@ async function paint(control: Locator) {
 test("Table preserves native semantics and keyboard scrolls to a real last-column action without page overflow", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Table", exact: true }).click();
   const canvas = page.locator(".family-canvas");
   const region = canvas.getByRole("region", { name: "Recent invoices" });
@@ -303,7 +303,7 @@ test("Table hosts paint isolated focus and selected rows in dark, light and forc
 
 test("Table example source is highlighted and copied byte for byte", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Table", exact: true }).click();
   const section = page.locator(".family-detail .code-block");
   expect(await section.locator("pre code").textContent()).toBe(example);

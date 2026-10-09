@@ -21,6 +21,10 @@ The [quickstart](docs/getting-started.md) includes a standalone React 19 + Tailw
 starter; [supported stack](docs/supported-stack.md) records its scope and limitations.
 The documentation site is available for local review. Its planned publication URL is
 [marquee-ui.github.io/marquee-ui](https://marquee-ui.github.io/marquee-ui/).
+The site has separate Get started, Components, Themes and Guides pages; nested
+guide URLs are built as static documents so direct links and refreshes work.
+[Tide PNGs for GitHub](brand/README.md) reuse the website's `m.` mark for the
+organization avatar and repository social preview.
 
 - **`packages/tokens`**: the typed role contract, two presets (`arcade`, the dark
   default, and `light`), the generated stylesheet and W3C DTCG JSON, the three

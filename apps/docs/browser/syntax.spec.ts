@@ -50,7 +50,7 @@ test("paints TSX semantics, repaints from roles and copies the original example"
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("./");
+  await page.goto("components/");
   const block = page.locator(".family-detail .code-block");
   const code = block.locator("pre code");
   expect(await code.textContent()).toBe(example);
@@ -88,7 +88,7 @@ test("keeps painted source readable under the emitted dark and light token fixtu
   page,
   request,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   const block = page.locator(".family-detail .code-block");
   const code = block.locator("pre code");
   await block.evaluate((el) => el.classList.add("syntax-mode-fixture"));
@@ -125,7 +125,7 @@ test("highlights each canonical fence, copies its source and keeps scrolling loc
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("./#getting-started");
+  await page.goto("getting-started/");
   const blocks = page.locator("#getting-started .canonical-guide .code-block");
   await expect(blocks).toHaveCount(fences.length);
   for (const [index, fence] of fences.entries()) {
@@ -175,7 +175,7 @@ test("highlights each canonical fence, copies its source and keeps scrolling loc
 test("gives prose clear hierarchy, readable inline code and a contained table", async ({
   page,
 }) => {
-  await page.goto("./#supported-stack");
+  await page.goto("getting-started/");
   const guide = page.locator("#getting-started .canonical-guide");
   const heading = guide.getByRole("heading", { name: "Run the starter" });
   const paragraph = guide.locator("p").first();
@@ -187,6 +187,7 @@ test("gives prose clear hierarchy, readable inline code and a contained table", 
   expect(await inline.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe(
     await paragraph.evaluate((el) => getComputedStyle(el).backgroundColor),
   );
+  await page.goto("guides/");
   const tables = page.locator("#supported-stack table");
   await expect(tables).toHaveCount(2);
   for (const [index, table] of (await tables.all()).entries()) {

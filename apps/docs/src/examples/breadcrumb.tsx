@@ -12,7 +12,9 @@ export default function BreadcrumbExample() {
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
-          <BreadcrumbLink href="#getting-started">Get started</BreadcrumbLink>
+          <BreadcrumbLink href={`${import.meta.env.BASE_URL}getting-started/`}>
+            Get started
+          </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbPageItem>
           <BreadcrumbSeparator />

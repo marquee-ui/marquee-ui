@@ -52,7 +52,7 @@ test("Select demo selects with the keyboard, skips disabled, restores focus and 
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Select", exact: true }).click();
   const canvas = page.locator(".family-canvas");
   const trigger = canvas.getByRole("combobox", { name: "Project priority" });
@@ -123,7 +123,7 @@ test("Select popup fits, exposes 44px choices and stays readable through dark, l
     3,
   );
   expect(isolatedItemOutline, "isolated Light item outline contrast").toBeGreaterThanOrEqual(3);
-  await page.goto("./");
+  await page.goto("components/");
   for (const [mode, accent] of [
     ["Dark", "Automatic"],
     ["Light", "Automatic"],
@@ -203,7 +203,7 @@ test("Select source is highlighted, copies exact bytes and contains its scrollin
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Select", exact: true }).click();
   const block = page.locator(".family-detail .code-block");
   const code = block.locator("pre code");

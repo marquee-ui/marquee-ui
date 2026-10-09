@@ -14,16 +14,19 @@ it("keeps canonical guide links on the docs site and external citations intact",
     />,
   );
   expect(screen.queryByRole("heading", { name: "Getting started" })).not.toBeInTheDocument();
-  expect(screen.getByRole("heading", { name: "Setup", level: 3 })).toBeVisible();
-  expect(screen.getByRole("link", { name: "Limits" })).toHaveAttribute("href", "#supported-stack");
-  expect(screen.getByRole("link", { name: "install" })).toHaveAttribute("href", "#getting-started");
+  expect(screen.getByRole("heading", { name: "Setup", level: 2 })).toBeVisible();
+  expect(screen.getByRole("link", { name: "Limits" })).toHaveAttribute("href", "/guides/");
+  expect(screen.getByRole("link", { name: "install" })).toHaveAttribute(
+    "href",
+    "/getting-started/",
+  );
   expect(screen.getByRole("link", { name: "Original contracts" })).toHaveAttribute(
     "href",
-    "#common-name-api",
+    "/guides/contracts/",
   );
   expect(screen.getByRole("link", { name: "candidate contracts" })).toHaveAttribute(
     "href",
-    "#recipe-contracts",
+    "/guides/recipes/",
   );
   expect(screen.getByRole("link", { name: "Reference" })).toHaveAttribute(
     "href",

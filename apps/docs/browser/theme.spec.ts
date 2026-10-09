@@ -62,8 +62,6 @@ async function pageAppearance(page: Page) {
       heading: css("h1 span").color,
       action: css(".hero-actions a").backgroundColor,
       preview: css(".studio-card").backgroundColor,
-      composed: css(".composition-preview").backgroundColor,
-      family: css(".family-preview").backgroundColor,
       brandFill: css(".principle-band").backgroundColor,
     };
   });
@@ -113,6 +111,7 @@ test("theme studio offers separate mode and palette choices", async ({ page }) =
   ).toBeGreaterThanOrEqual(4);
   for (const button of await page.locator(".theme-mode button").all())
     await expect(button.locator("svg")).toBeVisible();
+  await page.locator(".canonical-guide h2").last().scrollIntoViewIfNeeded();
   const studio = page.getByRole("region", { name: "Theme studio", exact: true });
   const box = await studio.boundingBox();
   expect(box!.y).toBeGreaterThanOrEqual(0);
@@ -142,7 +141,11 @@ test("every mode/palette repaints the page and actual previews with readable rol
   await page.goto("./");
   let navigationCount = 0;
   page.on("framenavigated", () => navigationCount++);
-  const states: Awaited<ReturnType<typeof pageAppearance>>[] = [];
+  const states: (Awaited<ReturnType<typeof pageAppearance>> & {
+    family: string;
+    composed: string;
+  })[] = [];
+  const comparisonPage = await page.context().newPage();
   for (const palette of palettes) {
     await choosePalette(page, palette);
     for (const mode of ["light", "dark"]) {
@@ -212,7 +215,15 @@ test("every mode/palette repaints the page and actual previews with readable rol
       expect(contrast(band.ink, band.fill), `${palette}/${mode} brand fill`).toBeGreaterThanOrEqual(
         4.5,
       );
-      const appearance = await pageAppearance(page);
+      await comparisonPage.goto(new URL("components/", page.url()).href);
+      const family = await comparisonPage
+        .locator(".family-preview")
+        .evaluate((el) => getComputedStyle(el).backgroundColor);
+      await comparisonPage.goto(new URL("guides/composition/", page.url()).href);
+      const composed = await comparisonPage
+        .locator(".composition-preview")
+        .evaluate((el) => getComputedStyle(el).backgroundColor);
+      const appearance = { ...(await pageAppearance(page)), family, composed };
       expect(contrast(appearance.ink, appearance.ground)).toBeGreaterThanOrEqual(4.5);
       expect(contrast(appearance.heading, appearance.ground)).toBeGreaterThanOrEqual(4.5);
       expect(appearance.preview).toBe(appearance.family);
@@ -244,6 +255,7 @@ test("every mode/palette repaints the page and actual previews with readable rol
       `four distinct palette ${property} colors`,
     ).toBe(4);
   }
+  await comparisonPage.close();
   expect(navigationCount, "theme changes happen without a reload").toBe(0);
 });
 
@@ -271,6 +283,7 @@ test("persists palette, mode and composition across refresh and copies the selec
     "false",
   );
   expect(await pageAppearance(page)).toEqual(chosen);
+  await page.goto("themes/");
   await page.getByRole("button", { name: "Copy Selected theme recipe" }).click();
   const recipe = await page.locator("#theme-recipe pre code").innerText();
   expect(recipe).toContain("electric / light");
@@ -332,7 +345,7 @@ test("blocked storage still allows live themes and keyboard controls under reduc
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
-  await page.getByRole("link", { name: "Start building", exact: true }).click();
+  await page.getByRole("link", { name: "Try the theme studio" }).click();
   const light = page.getByRole("button", { name: "Light", exact: true });
   await page.keyboard.press("Tab");
   await light.focus();
@@ -463,7 +476,7 @@ for (const mode of ["dark", "light"] as const) {
   test(`${mode} curated accents repaint actions, links, focus and syntax independently of the base`, async ({
     page,
   }) => {
-    await page.goto("./");
+    await page.goto("themes/");
     if (mode === "light") await page.getByRole("button", { name: "Light", exact: true }).click();
     const styles = async () => {
       const primary = page.getByRole("link", { name: "Start building", exact: true });

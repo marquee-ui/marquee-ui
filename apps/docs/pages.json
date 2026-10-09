@@ -1,0 +1,50 @@
+[
+  {
+    "id": "home",
+    "path": "",
+    "title": "Marquee UI \u2014 Compose it your way",
+    "label": "Home"
+  },
+  {
+    "id": "getting-started",
+    "path": "getting-started/",
+    "title": "Get started \u2014 Marquee UI",
+    "label": "Get started"
+  },
+  {
+    "id": "components",
+    "path": "components/",
+    "title": "Components \u2014 Marquee UI",
+    "label": "Components"
+  },
+  {
+    "id": "themes",
+    "path": "themes/",
+    "title": "Themes \u2014 Marquee UI",
+    "label": "Themes"
+  },
+  {
+    "id": "supported-stack",
+    "path": "guides/",
+    "title": "Supported stack \u2014 Marquee UI",
+    "label": "Supported stack"
+  },
+  {
+    "id": "composition",
+    "path": "guides/composition/",
+    "title": "Composition \u2014 Marquee UI",
+    "label": "Composition"
+  },
+  {
+    "id": "common-name-api",
+    "path": "guides/contracts/",
+    "title": "Component contracts \u2014 Marquee UI",
+    "label": "Component contracts"
+  },
+  {
+    "id": "recipe-contracts",
+    "path": "guides/recipes/",
+    "title": "Recipe contracts \u2014 Marquee UI",
+    "label": "Recipe contracts"
+  }
+]

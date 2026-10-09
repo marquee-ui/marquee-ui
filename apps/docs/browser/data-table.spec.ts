@@ -125,7 +125,7 @@ async function focusContained(control: Locator) {
 test("DataTable client sorting, filter recovery, finite pages, and cell menu work after native keyboard scroll", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview DataTable", exact: true }).click();
   const canvas = page.locator(".family-canvas");
   const region = canvas.getByRole("region", { name: "Client entries" });
@@ -361,7 +361,7 @@ test("DataTable example source is highlighted and copied byte for byte", async (
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview DataTable", exact: true }).click();
   const section = page.locator(".family-detail .code-block");
   expect(await section.locator("pre code").textContent()).toBe(example);

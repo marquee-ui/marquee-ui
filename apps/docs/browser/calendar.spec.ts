@@ -236,7 +236,7 @@ async function containedCalendar(root: Locator) {
 test("Calendar docs preserve controlled day, keyboard movement, multiple dates, range bounds and reset", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Calendar", exact: true }).click();
   const canvas = page.locator(".family-canvas");
   const single = canvas.getByRole("region", { name: "Single day" });
@@ -276,7 +276,7 @@ test("Calendar docs preserve controlled day, keyboard movement, multiple dates, 
 test("Calendar grids fit every viewport and every enabled day/navigation control is a real 44px target", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Calendar", exact: true }).click();
   test.setTimeout(90_000);
   const canvas = page.locator(".family-canvas");
@@ -378,7 +378,7 @@ test("Calendar selected text and focus paint outside docs CSS in dark, light, ac
     ["Light", "Violet", true],
   ] as const) {
     await page.emulateMedia({ forcedColors: forced ? "active" : "none" });
-    await page.goto("./");
+    await page.goto("components/");
     await page.getByRole("button", { name: mode, exact: true }).click();
     if (accent === "Violet") {
       await page.getByRole("button", { name: /^Customize theme:/ }).click();
@@ -461,7 +461,7 @@ test("Calendar example source is highlighted and copied byte for byte", async ({
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Calendar", exact: true }).click();
   const section = page.locator(".family-detail .code-block");
   expect(await section.locator("pre code").textContent()).toBe(example);

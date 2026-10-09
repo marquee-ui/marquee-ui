@@ -40,10 +40,6 @@ test("loads real fonts, readable primary actions and a page that fits the viewpo
   await page.screenshot({ path: test.info().outputPath("skip-link.png") });
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/#main$/);
-  await expect(page.getByRole("heading", { name: "Run the starter", level: 3 })).toBeVisible();
-  await expect(
-    page.locator("#getting-started").getByRole("link", { name: "supported stack and limitations" }),
-  ).toHaveAttribute("href", "#supported-stack");
   await page.evaluate(() => document.fonts.ready);
   expect(
     await page.evaluate(() =>
@@ -68,6 +64,12 @@ test("loads real fonts, readable primary actions and a page that fits the viewpo
   await primary.focus();
   expect(await primary.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe("solid");
   await page.screenshot({ path: test.info().outputPath("hero.png") });
+  await primary.click();
+  await expect(page).toHaveURL(/\/getting-started\/$/);
+  await expect(page.getByRole("heading", { name: "Run the starter", level: 2 })).toBeVisible();
+  await expect(
+    page.locator("#getting-started").getByRole("link", { name: "supported stack and limitations" }),
+  ).toHaveAttribute("href", "/marquee-ui/guides/");
   expect(failures).toEqual([]);
 });
 
@@ -83,10 +85,12 @@ test("navigates on mobile and operates real examples with a keyboard", async ({
       "aria-expanded",
       "true",
     );
-    await page
-      .getByRole("navigation", { name: "Main navigation" })
-      .getByRole("link", { name: "Components", exact: true })
-      .click();
+  }
+  await page
+    .getByRole("navigation", { name: "Main navigation" })
+    .getByRole("link", { name: "Components", exact: true })
+    .click();
+  if (info.project.name === "mobile") {
     await expect(page.getByRole("button", { name: "Menu", exact: true })).toHaveAttribute(
       "aria-expanded",
       "false",
@@ -105,6 +109,7 @@ test("navigates on mobile and operates real examples with a keyboard", async ({
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(trigger).toBeFocused();
+  await page.goto("guides/composition/");
   await page.getByRole("button", { name: "Behind the build" }).focus();
   await page.keyboard.press("Enter");
   await expect(
@@ -125,7 +130,7 @@ test("renders every family and sends each workbench link to a real story", async
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("./");
+  await page.goto("components/");
   const index = await request.get("storybook/index.json");
   expect(index.status()).toBe(200);
   const storyIndex = (await index.json()) as { entries: Record<string, unknown> };

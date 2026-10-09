@@ -95,7 +95,7 @@ test("Popover demo keeps Cancel form-safe, saves caller state and restores focus
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Popover", exact: true }).click();
   const canvas = page.locator("[data-popover-demo]");
   const trigger = canvas.getByRole("button", { name: "Edit details", exact: true });
@@ -332,7 +332,7 @@ test("Independent Anchor positions bounded scrollable content and leaves the fin
 test("Popover hosts paint readable focus without docs CSS in dark, light, accent and forced colors", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Light", exact: true }).click();
   await page.getByRole("button", { name: /^Customize theme:/ }).click();
   await page.getByRole("radio", { name: /^Violet\b/ }).click();
@@ -403,7 +403,7 @@ test("Popover live composition is highlighted and copies exact local-alias sourc
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Popover", exact: true }).click();
   const block = page.locator(".family-detail .code-block");
   const code = block.locator("pre code");

@@ -1,6 +1,6 @@
 # Marquee implementation status
 
-CURSOR: READY — UI 0.2.0 prepared; public release held
+CURSOR: DOCS-PAGES-1 — verify separate pages and Tide branding; public release held
 
 The user authorized a finite component-parity program on 2026-10-08. All eight
 [ordered batches](docs/component-parity.md) are complete. No batch 9 is queued.
@@ -10,7 +10,9 @@ and validation limits are explicitly deferred in the matrix.
 
 ## Next work
 
-Next: **await explicit public release direction**. The separately authorized
+Current work: the user requested [separate docs pages and Tide PNGs](docs/batches/DOCS-PAGES-1.md). Implementation and focused checks are complete; full verification and preview refresh are next. The finite parity queue remains complete.
+
+After this request, **await explicit public release direction**. The separately authorized
 [release-readiness batch](docs/batches/RELEASE-READINESS-1.md) is complete locally:
 the two test gaps have proved regression controls, UI 0.2.0 is packed, and a fresh
 external consumer verified all 35 family installs plus 99 selected browser cases.

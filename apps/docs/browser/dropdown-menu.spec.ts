@@ -107,7 +107,7 @@ test("DropdownMenu demo owns checked and radio state, selects a submenu action a
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview DropdownMenu", exact: true }).click();
   const canvas = page.locator("[data-dropdown-menu-demo]");
   const trigger = canvas.getByRole("button", { name: "Project actions" });
@@ -343,7 +343,7 @@ test("menu inside Dialog, Sheet and Popover closes its own layer and preserves p
 test("isolated DropdownMenu hosts paint readable focus in dark, light, accent and forced colors", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Light", exact: true }).click();
   await page.getByRole("button", { name: /^Customize theme:/ }).click();
   await page.getByRole("radio", { name: /^Violet\b/ }).click();
@@ -460,7 +460,7 @@ test("DropdownMenu composition is highlighted and copies exact registry-alias so
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview DropdownMenu", exact: true }).click();
   const block = page.locator(".family-detail .code-block");
   const code = block.locator("pre code");

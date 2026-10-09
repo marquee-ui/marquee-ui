@@ -55,7 +55,7 @@ test("Tooltip demo links supplemental text, preserves focus after Escape and act
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Tooltip", exact: true }).click();
   const canvas = page.locator(".family-canvas");
   const trigger = canvas.locator('[data-slot="tooltip-trigger"]');
@@ -235,7 +235,7 @@ test("Tooltip in Dialog owns its Escape layer without trapping focus or dismissi
 test("Isolated Tooltip paints visible focus and readable content in dark, light, accent and forced colors", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Light", exact: true }).click();
   await page.getByRole("button", { name: /^Customize theme:/ }).click();
   await page.getByRole("radio", { name: /^Violet\b/ }).click();
@@ -336,7 +336,7 @@ test("Touch activates a named action without needing hover text or trapping focu
   });
   const page = await context.newPage();
   try {
-    await page.goto(baseURL!);
+    await page.goto(`${baseURL}components/`);
     await page.getByRole("button", { name: "Preview Tooltip", exact: true }).tap();
     const canvas = page.locator(".family-canvas");
     const trigger = canvas.getByRole("button", { name: "Save document" });
@@ -360,7 +360,7 @@ test("Tooltip composition is highlighted and copies the exact local-alias exampl
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Tooltip", exact: true }).click();
   const block = page.locator(".family-detail .code-block");
   const code = block.locator("pre code");

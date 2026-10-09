@@ -276,7 +276,8 @@ h1 span {
 .section-heading {
   margin-bottom: 2rem;
 }
-.section-heading h2 {
+.section-heading h2,
+.section-heading h1 {
   font: var(--text-xl) / var(--leading-display-wrap) var(--font-display);
   letter-spacing: var(--tracking-display);
   margin-top: 0.875rem;
@@ -488,11 +489,11 @@ pre {
   line-height: 1.8;
   margin: 1rem 0;
 }
-.canonical-guide h3 {
+.canonical-guide h2 {
   font-size: var(--text-lg);
   margin: 2rem 0 1rem;
 }
-.canonical-guide h4 {
+.canonical-guide h3 {
   font-size: var(--text-md);
   margin: 1.5rem 0 0.75rem;
 }
@@ -705,5 +706,87 @@ pre {
   .family-layout {
     grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
     align-items: start;
+  }
+}
+
+/* Each reference is its own document; navigation retains the current page. */
+.navigation a[aria-current="page"],
+.guide-navigation a[aria-current="page"] {
+  color: var(--primary-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.4em;
+}
+.guide-navigation {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+}
+.guide-navigation a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--hit-min);
+  font-size: var(--text-sm);
+  color: var(--foreground-2);
+}
+.home-next {
+  border-top: var(--border-width) solid var(--border);
+}
+.home-next h2 {
+  font-size: var(--text-lg);
+  margin-top: 1rem;
+}
+.docs-section .section-heading {
+  max-width: var(--content-max);
+}
+.docs-section .section-heading h1 {
+  margin-bottom: 1rem;
+  text-wrap: balance;
+}
+.support-section {
+  display: block;
+}
+.theme-preview-layout {
+  display: grid;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+.theme-preview-copy {
+  align-self: center;
+}
+.theme-preview-copy h2 {
+  font-size: var(--text-lg);
+  margin-bottom: 1rem;
+}
+.theme-preview-copy p {
+  color: var(--foreground-2);
+  line-height: 1.8;
+}
+.component-index {
+  max-height: 20rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+@media (min-width: 768px) {
+  .guide-navigation {
+    padding-inline: 2rem;
+  }
+  .theme-preview-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .navigation,
+  .navigation.is-open {
+    gap: 1rem;
+  }
+}
+@media (min-width: 1100px) {
+  .guide-navigation {
+    padding-inline: 3rem;
+  }
+  .section-heading h1 {
+    font-size: var(--text-2xl);
   }
 }

@@ -87,14 +87,14 @@
   background: var(--surface);
   color: var(--primary-ink);
 }
-.canonical-guide.guide-presentation h3 {
+.canonical-guide.guide-presentation h2 {
   color: var(--brand-ink);
   padding-top: 0.75rem;
   border-top: var(--border-width) solid var(--border);
   margin: 2.5rem 0 1rem;
   line-height: 1.5;
 }
-.canonical-guide.guide-presentation h4 {
+.canonical-guide.guide-presentation h3 {
   color: var(--foreground);
   margin: 1.5rem 0 0.75rem;
   line-height: 1.5;

@@ -2,12 +2,13 @@ import { isValidElement } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { CopyCode } from "./copy-code";
+import { pageUrl } from "./routes";
 
 const guideLinks: Record<string, string> = {
-  "./supported-stack.md": "#supported-stack",
-  "./getting-started.md": "#getting-started",
-  "./common-name-api.md": "#common-name-api",
-  "./recipe-contracts.md": "#recipe-contracts",
+  "./supported-stack.md": pageUrl("supported-stack"),
+  "./getting-started.md": pageUrl("getting-started"),
+  "./common-name-api.md": pageUrl("common-name-api"),
+  "./recipe-contracts.md": pageUrl("recipe-contracts"),
 };
 
 export function MarkdownGuide({
@@ -23,8 +24,6 @@ export function MarkdownGuide({
         remarkPlugins={[remarkGfm]}
         components={{
           h1: () => null,
-          h2: ({ children }) => <h3>{children}</h3>,
-          h3: ({ children }) => <h4>{children}</h4>,
           a: ({ href, children }) => <a href={guideLinks[href ?? ""] ?? href}>{children}</a>,
           pre: ({ children }) => {
             if (!isValidElement<{ children: string; className?: string }>(children))

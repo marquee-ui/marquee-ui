@@ -4,7 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 const example = readFileSync(new URL("../src/examples/tabs.tsx", import.meta.url), "utf8");
 
 async function openTabs(page: Page) {
-  await page.goto("./#components");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Tabs", exact: true }).click();
   await expect(
     page.locator(".family-detail").getByRole("heading", { name: "Tabs", exact: true }),

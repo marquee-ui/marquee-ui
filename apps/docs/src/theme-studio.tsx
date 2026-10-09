@@ -14,6 +14,7 @@ import {
 } from "@marquee-ui/ui";
 import { ACCENTS, PALETTES, themePreset, type ThemeSettings } from "./theme";
 import { resolveColors } from "../../../packages/tokens/src/resolve";
+import { pageUrl } from "./routes";
 
 function ModeIcon({ mode }: { mode: ThemeSettings["mode"] }) {
   return (
@@ -172,7 +173,7 @@ export function ThemeStudio({
             </SheetClose>
           </SheetContent>
         </Sheet>
-        <a className="theme-recipe-link" href="#theme-recipe">
+        <a className="theme-recipe-link" href={`${pageUrl("themes")}#theme-recipe`}>
           Get the CSS <span aria-hidden="true">↗</span>
         </a>
       </div>

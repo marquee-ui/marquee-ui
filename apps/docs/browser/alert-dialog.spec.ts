@@ -6,7 +6,7 @@ import { resolveColors } from "../../../packages/tokens/src/resolve";
 const example = readFileSync(new URL("../src/examples/alert-dialog.tsx", import.meta.url), "utf8");
 
 async function openExample(page: Page) {
-  await page.goto("./#components");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview AlertDialog", exact: true }).click();
 }
 

@@ -133,7 +133,7 @@ async function namedPoint(chart: Locator, live: Locator) {
 test("Chart renders measured bar/line geometry, keyboard and pointer data plus a complete native alternative", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Chart", exact: true }).click();
   const canvas = page.locator(".family-canvas");
   const table = canvas.getByRole("table", { name: "Monthly volume data" });
@@ -481,7 +481,7 @@ test("Chart keyboard tooltip stays inside existing dialog and dismissal restores
 
 test("Chart example source is highlighted and copied byte for byte", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Chart", exact: true }).click();
   const block = page.locator(".family-detail .code-block");
   expect(await block.locator("pre code").textContent()).toBe(example);

@@ -71,7 +71,7 @@ test("Dialog demo traps and restores keyboard focus, keeps Cancel form-safe and 
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Dialog", exact: true }).click();
   const canvas = page.locator(".family-canvas");
   const trigger = canvas.getByRole("button", { name: "Edit project", exact: true });
@@ -272,7 +272,7 @@ test("Tall Dialog stays centered within every viewport and scrolls to a hittable
 test("Dialog hosts paint readable focus in isolated dark, light, accent and forced colors", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Light", exact: true }).click();
   await page.getByRole("button", { name: /^Customize theme:/ }).click();
   await page.getByRole("radio", { name: /^Violet\b/ }).click();
@@ -353,7 +353,7 @@ test("Dialog live composition is highlighted and copies exact local-alias source
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("./");
+  await page.goto("components/");
   await page.getByRole("button", { name: "Preview Dialog", exact: true }).click();
   const block = page.locator(".family-detail .code-block");
   const code = block.locator("pre code");
