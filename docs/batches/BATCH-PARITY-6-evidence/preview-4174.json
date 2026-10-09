@@ -1,0 +1,241 @@
+{
+  "source": "78ef78e3573961418866c2cfd95a5197effdb25f",
+  "port": 4174,
+  "snapshot": "/home/ankit/Code/marquee-integration-parity-6/apps/docs/dist",
+  "checkedAt": "2026-10-08T07:36:26.857Z",
+  "indexSHA256": "bee24a0575f930708f2d9263c9b964d947f356d63f1f1f43a3e563b00c8d8bcc",
+  "errors": [],
+  "measurements": [
+    {
+      "width": 390,
+      "single": {
+        "panel": {
+          "left": 16,
+          "right": 374,
+          "client": 354,
+          "scroll": 354,
+          "innerLeft": 26,
+          "innerRight": 364
+        },
+        "root": {
+          "left": 26,
+          "right": 364,
+          "width": 338,
+          "innerLeft": 36,
+          "innerRight": 354
+        },
+        "grid": {
+          "left": 36,
+          "right": 344,
+          "width": 308
+        }
+      },
+      "range": {
+        "panel": {
+          "left": 16,
+          "right": 374,
+          "client": 354,
+          "scroll": 354,
+          "innerLeft": 26,
+          "innerRight": 364
+        },
+        "root": {
+          "left": 26,
+          "right": 364,
+          "width": 338,
+          "innerLeft": 36,
+          "innerRight": 354
+        },
+        "grid": {
+          "left": 36,
+          "right": 344,
+          "width": 308
+        }
+      },
+      "nested": {
+        "panel": {
+          "left": 16,
+          "right": 374,
+          "client": 354,
+          "scroll": 354,
+          "innerLeft": 26,
+          "innerRight": 364
+        },
+        "root": {
+          "left": 26,
+          "right": 364,
+          "width": 338,
+          "innerLeft": 36,
+          "innerRight": 354
+        },
+        "grid": {
+          "left": 36,
+          "right": 344,
+          "width": 308
+        }
+      },
+      "table": {
+        "before": {
+          "left": 0,
+          "client": 306,
+          "scroll": 640
+        },
+        "after": 334
+      }
+    },
+    {
+      "width": 768,
+      "single": {
+        "panel": {
+          "left": 54,
+          "right": 514,
+          "client": 456,
+          "scroll": 456,
+          "innerLeft": 64,
+          "innerRight": 504
+        },
+        "root": {
+          "left": 64,
+          "right": 504,
+          "width": 440,
+          "innerLeft": 74,
+          "innerRight": 494
+        },
+        "grid": {
+          "left": 74,
+          "right": 382,
+          "width": 308
+        }
+      },
+      "range": {
+        "panel": {
+          "left": 54,
+          "right": 514,
+          "client": 456,
+          "scroll": 456,
+          "innerLeft": 64,
+          "innerRight": 504
+        },
+        "root": {
+          "left": 64,
+          "right": 504,
+          "width": 440,
+          "innerLeft": 74,
+          "innerRight": 494
+        },
+        "grid": {
+          "left": 74,
+          "right": 382,
+          "width": 308
+        }
+      },
+      "nested": {
+        "panel": {
+          "left": 154,
+          "right": 614,
+          "client": 456,
+          "scroll": 456,
+          "innerLeft": 164,
+          "innerRight": 604
+        },
+        "root": {
+          "left": 164,
+          "right": 604,
+          "width": 440,
+          "innerLeft": 174,
+          "innerRight": 594
+        },
+        "grid": {
+          "left": 174,
+          "right": 482,
+          "width": 308
+        }
+      },
+      "table": {
+        "before": {
+          "left": 0,
+          "client": 660,
+          "scroll": 660
+        },
+        "after": 0
+      }
+    },
+    {
+      "width": 1280,
+      "single": {
+        "panel": {
+          "left": 70,
+          "right": 530,
+          "client": 456,
+          "scroll": 456,
+          "innerLeft": 80,
+          "innerRight": 520
+        },
+        "root": {
+          "left": 80,
+          "right": 520,
+          "width": 440,
+          "innerLeft": 90,
+          "innerRight": 510
+        },
+        "grid": {
+          "left": 90,
+          "right": 398,
+          "width": 308
+        }
+      },
+      "range": {
+        "panel": {
+          "left": 70,
+          "right": 530,
+          "client": 456,
+          "scroll": 456,
+          "innerLeft": 80,
+          "innerRight": 520
+        },
+        "root": {
+          "left": 80,
+          "right": 520,
+          "width": 440,
+          "innerLeft": 90,
+          "innerRight": 510
+        },
+        "grid": {
+          "left": 90,
+          "right": 398,
+          "width": 308
+        }
+      },
+      "nested": {
+        "panel": {
+          "left": 410,
+          "right": 870,
+          "client": 456,
+          "scroll": 456,
+          "innerLeft": 420,
+          "innerRight": 860
+        },
+        "root": {
+          "left": 420,
+          "right": 860,
+          "width": 440,
+          "innerLeft": 430,
+          "innerRight": 850
+        },
+        "grid": {
+          "left": 430,
+          "right": 738,
+          "width": 308
+        }
+      },
+      "table": {
+        "before": {
+          "left": 0,
+          "client": 420,
+          "scroll": 640
+        },
+        "after": 220
+      }
+    }
+  ]
+}

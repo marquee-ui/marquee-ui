@@ -8,7 +8,7 @@ import "./preview.css";
  * light sheet re-assigns the roles and every compiled utility follows. It is
  * served from `staticDirs` so its own `./fonts/*` urls stay correct.
  */
-const lightHref = "/tokens/light.css";
+const lightHref = "./tokens/light.css";
 
 const PRESETS = { arcade: "Arcade (dark)", light: "Light" } as const;
 

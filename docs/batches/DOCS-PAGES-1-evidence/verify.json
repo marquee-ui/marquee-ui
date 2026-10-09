@@ -1,0 +1,8 @@
+{
+  "source": "facb18a50e14556907866651e3ec1a55d7163710",
+  "exit": 0,
+  "startedAt": "2026-10-09T00:06:15.587086+00:00",
+  "completedAt": "2026-10-09T00:12:52.008991+00:00",
+  "seconds": 396.4,
+  "command": "DOCS_PORT=4182 pnpm verify"
+}

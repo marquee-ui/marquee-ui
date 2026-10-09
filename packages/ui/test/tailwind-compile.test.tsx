@@ -125,8 +125,96 @@ describe("the emitted stylesheet compiles", () => {
  * identical to one that works, in jsdom and in a screenshot of a component that
  * happened not to need it.
  */
+/**
+ * Exact structural markers observed in Recharts 3.10.1's rendered Bar story,
+ * source inspected 2026-10-08 (CartesianAxis/Bar/Layer/ZIndexPortal). They use
+ * SVG attributes or library inline styles rather than Tailwind declarations.
+ * Limit exceptions to chart descendants; caller/container classes and unknown
+ * names still owe a compiled utility. The collected marker set below must
+ * equal this list, so a stale exception cannot accumulate silently.
+ */
+const RECHARTS_MARKERS: ReadonlySet<string> = new Set([
+  "recharts-bar",
+  "recharts-bar-rectangle",
+  "recharts-bar-rectangles",
+  "recharts-cartesian-axis",
+  "recharts-cartesian-axis-tick",
+  "recharts-cartesian-axis-tick-label",
+  "recharts-cartesian-axis-tick-labels",
+  "recharts-cartesian-axis-tick-lines",
+  "recharts-cartesian-axis-tick-value",
+  "recharts-cartesian-axis-ticks",
+  "recharts-cartesian-grid",
+  "recharts-cartesian-grid-horizontal",
+  "recharts-inactive-bar",
+  "recharts-layer",
+  "recharts-legend-wrapper",
+  "recharts-rectangle",
+  "recharts-responsive-container",
+  "recharts-text",
+  "recharts-tooltip-wrapper",
+  "recharts-wrapper",
+  "recharts-xAxis",
+  "recharts-xAxis-tick-labels",
+  "recharts-xAxis-tick-lines",
+  "recharts-xAxis-ticks",
+  "recharts-yAxis",
+  "recharts-yAxis-tick-labels",
+  "recharts-yAxis-tick-lines",
+  "recharts-yAxis-ticks",
+  "recharts-zIndex-layer_-100",
+  "recharts-zIndex-layer_-50",
+  "recharts-zIndex-layer_100",
+  "recharts-zIndex-layer_1000",
+  "recharts-zIndex-layer_1100",
+  "recharts-zIndex-layer_1200",
+  "recharts-zIndex-layer_200",
+  "recharts-zIndex-layer_2000",
+  "recharts-zIndex-layer_300",
+  "recharts-zIndex-layer_400",
+  "recharts-zIndex-layer_500",
+  "recharts-zIndex-layer_600",
+  "xAxis",
+  "yAxis",
+]);
+
+function requiresUtility(token: string, element: Element): boolean {
+  if (element.matches('[data-slot="chart-container"]')) return true;
+  return !(
+    RECHARTS_MARKERS.has(token) && element.parentElement?.closest('[data-slot="chart-container"]')
+  );
+}
+
+describe("renderer marker classification", () => {
+  it.each([
+    ["recharts-bar", true, false],
+    ["xAxis", true, false],
+    ["recharts-zIndex-layer_1000", true, false],
+    ["recharts-bar", false, true],
+    ["recharts-not-a-marker", true, true],
+    ["bg-not-a-role", true, true],
+    ["text-foreground", true, true],
+  ])("requires a utility for %s with chart ancestry %s: %s", (token, inside, expected) => {
+    const parent = document.createElement("div");
+    if (inside) parent.dataset.slot = "chart-container";
+    const element = document.createElement("div");
+    parent.append(element);
+    expect(requiresUtility(token, element)).toBe(expected);
+  });
+
+  it("requires a utility on the caller's chart container itself", () => {
+    const element = document.createElement("div");
+    element.dataset.slot = "chart-container";
+    const outer = document.createElement("div");
+    outer.dataset.slot = "chart-container";
+    outer.append(element);
+    expect(requiresUtility("recharts-bar", element)).toBe(true);
+  });
+});
+
 describe("every class the parts render is a utility that compiles", () => {
   const rendered = new Set<string>();
+  const markers = new Set<string>();
 
   beforeAll(() => {
     const suites = STORY_SUITES;
@@ -137,7 +225,9 @@ describe("every class the parts render is a utility that compiles", () => {
         // document is walked rather than just the mount point.
         for (const element of document.querySelectorAll<HTMLElement>("[class]")) {
           for (const token of element.getAttribute("class")!.split(/\s+/)) {
-            if (token) rendered.add(token);
+            if (!token) continue;
+            if (requiresUtility(token, element)) rendered.add(token);
+            else markers.add(token);
           }
         }
         cleanup();
@@ -152,6 +242,7 @@ describe("every class the parts render is a utility that compiles", () => {
     expect(rendered.size).toBeGreaterThan(60);
     expect(rendered.has("bg-primary")).toBe(true);
     expect(rendered.has("mq-marquee")).toBe(true);
+    expect([...markers].sort()).toEqual([...RECHARTS_MARKERS].sort());
   });
 
   it("compiles every one of them", () => {
@@ -205,6 +296,8 @@ function slotTokens(module: object, storyName: string, selector: string): string
 describe("every interactive element clears the 44px tap floor", () => {
   const offenders: string[] = [];
   const checked: string[] = [];
+  const sliderTransports: string[] = [];
+  const nativeHiddenTransports: string[] = [];
 
   beforeAll(() => {
     const suites = STORY_SUITES;
@@ -212,9 +305,52 @@ describe("every interactive element clears the 44px tap floor", () => {
       for (const [, Story] of storiesOf(module)) {
         render(<Story />);
         const interactive = document.querySelectorAll<HTMLElement>(
-          'button, a[href], input, select, textarea, [role="button"]',
+          'button, a[href], input, select, textarea, [role="button"], [role="slider"]',
         );
         for (const element of interactive) {
+          // Native hidden form values have no interactive host. The type check
+          // must not exempt ordinary inputs hidden by CSS or aria-hidden.
+          if (element instanceof HTMLInputElement && element.type === "hidden") {
+            nativeHiddenTransports.push(element.name);
+            continue;
+          }
+          // Radix Select submits through a visually hidden native select. Its
+          // accessible trigger is the tap target; still measure ordinary selects
+          // and every button, including an incorrectly aria-hidden button.
+          if (
+            element.matches('select[aria-hidden="true"][tabindex="-1"]') &&
+            element.style.width === "1px" &&
+            element.style.height === "1px"
+          )
+            continue;
+          // Slider 1.5 submits a hidden input beside each thumb's position wrapper.
+          // Only that exact transport is exempt; the named, visible thumb below
+          // remains a measured control, as does any ordinary or visible input.
+          const sliderThumb = element.previousElementSibling?.querySelector<HTMLElement>(
+            '[data-slot="slider-thumb"][role="slider"][aria-valuenow]',
+          );
+          const referencedSliderName = (sliderThumb?.getAttribute("aria-labelledby") ?? "")
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean)
+            .map((id) => document.getElementById(id)?.textContent ?? "")
+            .join(" ")
+            .trim();
+          const explicitSliderName = (sliderThumb?.getAttribute("aria-label") ?? "").trim();
+          if (
+            element instanceof HTMLInputElement &&
+            element.style.display === "none" &&
+            !element.hasAttribute("data-slot") &&
+            element.name !== "" &&
+            element.parentElement?.matches('[data-slot="slider"]') &&
+            sliderThumb !== undefined &&
+            sliderThumb !== null &&
+            (referencedSliderName !== "" || explicitSliderName !== "") &&
+            sliderThumb.getAttribute("aria-valuenow") === element.value
+          ) {
+            sliderTransports.push(element.name);
+            continue;
+          }
           const tokens = (element.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
           let best = 0;
           for (const token of tokens) {
@@ -243,6 +379,9 @@ describe("every interactive element clears the 44px tap floor", () => {
     // Anchor: an empty candidate list, or a resolver that returns null for
     // everything, would make the assertion below vacuous.
     expect(checked.length).toBeGreaterThan(20);
+    expect(checked.some((id) => id.includes("[data-slot=slider-thumb]"))).toBe(true);
+    expect(sliderTransports).toEqual(["volume"]);
+    expect(nativeHiddenTransports).toEqual(["fruit"]);
     expect(sheet.rootVars().get("--hit-min")).toBe("44px");
     expect(sheet.lengthPx("var(--hit-min)")).toBe(TAP_FLOOR_PX);
     expect(sheet.lengthPx("2.75rem")).toBe(TAP_FLOOR_PX);

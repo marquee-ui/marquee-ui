@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -26,11 +27,11 @@ import { describe, expect, it } from "vitest";
  * loader does not flag it. A file whose only react import is `useId` stays a
  * server module, which is the whole point of `FormLabel`'s generated ids.
  *
- * ⚠️ AND THE BOUND IS STATED: this reads what a file imports FROM `react` - named
- * or as a namespace - so a client-only import from ANOTHER module (`react-dom`'s
- * `createPortal`, a third-party hook) is invisible to it. `toast.tsx` is exactly
- * that shape and carries the directive for its react hooks anyway. Widen the set,
- * not the mechanism, when one arrives.
+ * ⚠️ THE BOUND IS FINITE: React hook imports and CLIENT_ONLY_LIBRARIES are read.
+ * Client-only imports from other unclassified modules remain invisible. Recharts
+ * arrives in BATCH-PARITY-7 and joins that dependency set because its runtime
+ * Tooltip/Legend own effects, context and portals while its entry lacks a marker.
+ * Type-only imports stay outside the client requirement.
  *
  * The other bounds, each one exercised by the table at the foot of this file
  * rather than promised here: a multi-line import, braces with no spaces, an
@@ -100,8 +101,48 @@ function reactRuntimeImports(text: string): string[] {
   return names;
 }
 
-const needsBoundary = (text: string): string[] =>
-  reactRuntimeImports(text).filter((name) => (CLIENT_ONLY as readonly string[]).includes(name));
+/**
+ * Recharts 3's Tooltip/Legend use effects, context and portals without marking
+ * its root ESM entry. Its runtime import needs our boundary; a type import does
+ * not. Keep this finite dependency set separate from the marked-Radix resolver.
+ * https://nextjs.org/docs/app/getting-started/server-and-client-components#third-party-components
+ * Source inspected 2026-10-08: recharts 3.10.1 es6/component/Legend.js and Tooltip.js.
+ */
+const CLIENT_ONLY_LIBRARIES: ReadonlySet<string> = new Set(["recharts"]);
+
+function clientLibraryImports(text: string): string[] {
+  const source = ts.createSourceFile(
+    "part.tsx",
+    text,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const imports = source.statements.flatMap((statement) => {
+    if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier))
+      return [];
+    const specifier = statement.moduleSpecifier.text;
+    if (!CLIENT_ONLY_LIBRARIES.has(specifier)) return [];
+    const clause = statement.importClause;
+    if (clause?.isTypeOnly) return [];
+    const bindings = clause?.namedBindings;
+    if (
+      clause?.name === undefined &&
+      bindings !== undefined &&
+      ts.isNamedImports(bindings) &&
+      bindings.elements.length > 0 &&
+      bindings.elements.every((member) => member.isTypeOnly)
+    )
+      return [];
+    return [specifier];
+  });
+  return [...new Set(imports)];
+}
+
+const needsBoundary = (text: string): string[] => [
+  ...reactRuntimeImports(text).filter((name) => (CLIENT_ONLY as readonly string[]).includes(name)),
+  ...clientLibraryImports(text),
+];
 
 /** The directive as the FIRST statement, which is the only position it works in. */
 const opensWithDirective = (text: string): boolean => /^"use client";\r?\n/.test(text);
@@ -193,6 +234,23 @@ describe("every part that needs a client boundary declares one", () => {
     expect(reactRuntimeImports(source)).toEqual(expected);
   });
 
+  it.each([
+    ['import { Legend, Tooltip } from "recharts";', ["recharts"]],
+    ['import {\n Legend as PlotLegend, type TooltipProps,\n} from "recharts";', ["recharts"]],
+    ['import * as Charts from "recharts";', ["recharts"]],
+    ['import "recharts";', ["recharts"]],
+    ['import {} from "recharts";', ["recharts"]],
+    ['import type { TooltipProps } from "recharts";', []],
+    ['import { type TooltipProps } from "recharts";', []],
+    [
+      '// import { Legend } from "recharts";\nconst prose = \'import { Tooltip } from "recharts";\';',
+      [],
+    ],
+    ['import type { Table } from "@tanstack/react-table";\nimport { Fragment } from "react";', []],
+  ])("requires a boundary only for runtime client-library imports in %j", (source, expected) => {
+    expect(needsBoundary(source)).toEqual(expected);
+  });
+
   it("reads useId and then does NOT ask it for a boundary", () => {
     // The split the table above rests on, said once as a behaviour: the parser
     // reads every runtime name, and `CLIENT_ONLY` is what decides. React serves
@@ -207,7 +265,7 @@ describe("every part that needs a client boundary declares one", () => {
     ]);
   });
 
-  it('opens every hook-importing file with "use client"', () => {
+  it('opens every file importing client-only hooks or libraries with "use client"', () => {
     const offenders = PARTS.filter((name) => {
       const text = read(name);
       return needsBoundary(text).length > 0 && !opensWithDirective(text);

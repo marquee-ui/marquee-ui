@@ -1,26 +1,20 @@
 import { cleanup, render } from "@testing-library/react";
 import { composeStories } from "@storybook/react-vite";
+import { expect as storyExpect } from "storybook/test";
 import type { ReactElement } from "react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { STORY_SUITES, storySuiteNames } from "./helpers/story-suites.js";
 
 /**
- * D4: the stories ARE the tests. One render to maintain, not two.
+ * Compose every story and run each declared play in jsdom. The assertion delta
+ * below observes the real storybook/test assertions during each play, not
+ * the invocation counters. Omitting a play call or replacing it with a no-op
+ * must fail that story even when the counters still claim it ran.
  *
- * Every story in the package is composed and rendered here, and every `play`
- * function is run. A story that renders nothing, or whose interaction assertion
- * has rotted, reddens `pnpm test` rather than waiting for someone to open
- * Storybook.
- *
- * WHY jsdom and `composeStories` rather than Storybook's browser-mode runner:
- * the browser runner needs a Playwright chromium download in CI and on every
- * contributor's machine, for assertions that are all DOM-shaped (roles, focus,
- * attributes, portals). The one thing a browser would add that jsdom cannot is
- * COMPUTED STYLE - and that is proved directly and more cheaply by
- * `tailwind-compile.test.ts`, which compiles these very sources against the real
- * emitted stylesheet and reads the declarations the utilities produce. So the two
- * halves are split by instrument rather than merged into a slow one.
+ * This proves execution and the assertions each play contains. Compiled-style
+ * tests and isolated browser journeys separately cover geometry and paint;
+ * passing this corpus does not establish every API or composition.
  */
 
 const SUITES = STORY_SUITES;
@@ -43,31 +37,9 @@ const storiesOf = (module: object): [string, PlayableStory][] =>
 
 afterEach(cleanup);
 
-/**
- * Every story that HAS a play, and every play that actually RAN.
- *
- * `await Story.play?.(…)` optional-chains the one member carrying every interaction
- * assertion in this package, so a Storybook release that renames `play` - or a
- * `composeStories` that stops attaching it - would leave the whole suite green while
- * 25 interaction tests silently stopped existing. Measured: renaming the read to
- * `Story.runPlay` left the run at 226 passed. So the plays are COUNTED, from the
- * story objects before the run and from inside the run, and the two totals are
- * pinned to the number of `play:` functions in `stories/`.
- *
- * ⚠️ WHAT THAT BUYS, EXACTLY, BECAUSE THE SENTENCE ABOVE OVERSTATES IT (layer 1
- * of the Form family, MED-4, both cases run at `75c254d9`). The counters DO
- * catch `composeStories` no longer ATTACHING `play`: `withPlay` collapses, the
- * early `return` keeps `ran` empty, and both counter assertions fail - proved by
- * renaming the `typeof Story.play` read, which reddens
- * `runs all 54 play functions`. They do NOT catch the CALL below being renamed
- * or deleted while the reads stay: `ran.push(id)` records that the next line was
- * reached, not that the call did anything, so the suite stays green with every
- * play a no-op. No self-counting mechanism inside a file can defend that file
- * against being edited to lie about itself; what closes it is review of this
- * file's diff, which is why it is said here rather than left implied.
- */
-const DECLARED_PLAYS = 85;
-const DECLARED_STORIES = 115;
+/** Exact inventory catches stories or composed plays disappearing altogether. */
+const DECLARED_PLAYS = 185;
+const DECLARED_STORIES = 215;
 
 describe("every story renders, and every play function passes", () => {
   const seen: string[] = [];
@@ -88,19 +60,22 @@ describe("every story renders, and every play function passes", () => {
       it(id, async () => {
         const { container } = render(<Story />);
         if (typeof Story.play !== "function") return;
+        const before = storyExpect.getState().assertionCalls;
         await Story.play({ canvasElement: container });
+        const assertions = storyExpect.getState().assertionCalls - before;
+        expect(assertions, `${id}: play executed no assertions`).toBeGreaterThan(0);
         ran.push(id);
       });
     }
   }
 
-  it("covers all twenty-one part families, with every story counted", () => {
+  it("covers all thirty-five part families, with every story counted", () => {
     // The anchor: a loop that silently composed nothing would pass in silence.
     // Checked against the FILES rather than against a list retyped here, so a
     // part that never entered the shared map reddens instead of vanishing
     // (layer 1 of the Switch, MED-2).
     expect(Object.keys(SUITES).sort()).toEqual(storySuiteNames());
-    expect(storySuiteNames()).toHaveLength(21);
+    expect(storySuiteNames()).toHaveLength(35);
     // Exact, not a floor: a floor of 35 tolerated seven stories vanishing.
     expect(seen).toHaveLength(DECLARED_STORIES);
   });

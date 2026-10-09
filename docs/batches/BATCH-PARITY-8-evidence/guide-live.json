@@ -1,0 +1,182 @@
+{
+  "checkedAt": "2026-10-08T22:14:51.404Z",
+  "source": "87f25c556a80536471476ff1911bd23155f1a684",
+  "port": 4174,
+  "errors": [],
+  "results": [
+    {
+      "width": 390,
+      "initial": {
+        "page": 390,
+        "viewport": 390
+      },
+      "measurements": [
+        {
+          "id": "common-name-api",
+          "label": "Original family contracts",
+          "rows": 29,
+          "contractHeadings": [
+            "Choose the comparison before migrating",
+            "Inventory",
+            "Form: wire one field, keep the controller",
+            "Sheet: a responsive Dialog presentation",
+            "Toast: request dismissal, do not infer a manager",
+            "Native choices: move props onto the input",
+            "Switch, Toggle and Avatar: supply what the part does not own",
+            "Smaller migrations and Marquee additions",
+            "Evidence and validation limits"
+          ],
+          "families": 21,
+          "before": {
+            "left": 0,
+            "client": 346,
+            "scroll": 480,
+            "outline": "solid"
+          },
+          "after": 36
+        },
+        {
+          "id": "recipe-contracts",
+          "label": "Candidate family contracts",
+          "rows": 0,
+          "contractHeadings": [
+            "Select",
+            "Tabs",
+            "Dialog",
+            "AlertDialog",
+            "Popover",
+            "Tooltip",
+            "DropdownMenu",
+            "Slider",
+            "Combobox",
+            "Calendar",
+            "DatePicker",
+            "Table",
+            "DataTable",
+            "Chart"
+          ],
+          "families": 14,
+          "before": null,
+          "after": null
+        }
+      ],
+      "invalidLinks": []
+    },
+    {
+      "width": 768,
+      "initial": {
+        "page": 768,
+        "viewport": 768
+      },
+      "measurements": [
+        {
+          "id": "common-name-api",
+          "label": "Original family contracts",
+          "rows": 29,
+          "contractHeadings": [
+            "Choose the comparison before migrating",
+            "Inventory",
+            "Form: wire one field, keep the controller",
+            "Sheet: a responsive Dialog presentation",
+            "Toast: request dismissal, do not infer a manager",
+            "Native choices: move props onto the input",
+            "Switch, Toggle and Avatar: supply what the part does not own",
+            "Smaller migrations and Marquee additions",
+            "Evidence and validation limits"
+          ],
+          "families": 21,
+          "before": {
+            "left": 0,
+            "client": 700,
+            "scroll": 700,
+            "outline": "solid"
+          },
+          "after": 0
+        },
+        {
+          "id": "recipe-contracts",
+          "label": "Candidate family contracts",
+          "rows": 0,
+          "contractHeadings": [
+            "Select",
+            "Tabs",
+            "Dialog",
+            "AlertDialog",
+            "Popover",
+            "Tooltip",
+            "DropdownMenu",
+            "Slider",
+            "Combobox",
+            "Calendar",
+            "DatePicker",
+            "Table",
+            "DataTable",
+            "Chart"
+          ],
+          "families": 14,
+          "before": null,
+          "after": null
+        }
+      ],
+      "invalidLinks": []
+    },
+    {
+      "width": 1280,
+      "initial": {
+        "page": 1280,
+        "viewport": 1280
+      },
+      "measurements": [
+        {
+          "id": "common-name-api",
+          "label": "Original family contracts",
+          "rows": 29,
+          "contractHeadings": [
+            "Choose the comparison before migrating",
+            "Inventory",
+            "Form: wire one field, keep the controller",
+            "Sheet: a responsive Dialog presentation",
+            "Toast: request dismissal, do not infer a manager",
+            "Native choices: move props onto the input",
+            "Switch, Toggle and Avatar: supply what the part does not own",
+            "Smaller migrations and Marquee additions",
+            "Evidence and validation limits"
+          ],
+          "families": 21,
+          "before": {
+            "left": 0,
+            "client": 716,
+            "scroll": 716,
+            "outline": "solid"
+          },
+          "after": 0
+        },
+        {
+          "id": "recipe-contracts",
+          "label": "Candidate family contracts",
+          "rows": 0,
+          "contractHeadings": [
+            "Select",
+            "Tabs",
+            "Dialog",
+            "AlertDialog",
+            "Popover",
+            "Tooltip",
+            "DropdownMenu",
+            "Slider",
+            "Combobox",
+            "Calendar",
+            "DatePicker",
+            "Table",
+            "DataTable",
+            "Chart"
+          ],
+          "families": 14,
+          "before": null,
+          "after": null
+        }
+      ],
+      "invalidLinks": []
+    }
+  ]
+}

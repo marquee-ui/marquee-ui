@@ -1,0 +1,20 @@
+{
+  "previous": {
+    "height": 65072,
+    "sections": [
+      "hero section-shell",
+      "section-shell approach",
+      "getting-started",
+      "components",
+      "composition",
+      "tokens",
+      "supported-stack",
+      "common-name-api",
+      "recipe-contracts"
+    ]
+  },
+  "split": {
+    "height": 2730,
+    "sections": ["hero section-shell", "section-shell approach"]
+  }
+}

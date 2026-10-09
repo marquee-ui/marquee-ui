@@ -1,0 +1,174 @@
+{
+  "source": "facb18a50e14556907866651e3ec1a55d7163710",
+  "results": [
+    {
+      "page": "home",
+      "viewport": 390,
+      "title": "Marquee UI — Compose it your way",
+      "h1": ["Compose ityour way."],
+      "width": 390
+    },
+    {
+      "page": "getting-started",
+      "viewport": 390,
+      "title": "Get started — Marquee UI",
+      "h1": ["From empty project to your first composition."],
+      "width": 390
+    },
+    {
+      "page": "components",
+      "viewport": 390,
+      "title": "Components — Marquee UI",
+      "h1": ["A kit of possibilities."],
+      "width": 390
+    },
+    {
+      "page": "themes",
+      "viewport": 390,
+      "title": "Themes — Marquee UI",
+      "h1": ["A role for every detail."],
+      "width": 390
+    },
+    {
+      "page": "supported-stack",
+      "viewport": 390,
+      "title": "Supported stack — Marquee UI",
+      "h1": ["Know the contract."],
+      "width": 390
+    },
+    {
+      "page": "composition",
+      "viewport": 390,
+      "title": "Composition — Marquee UI",
+      "h1": ["Put the parts together."],
+      "width": 390
+    },
+    {
+      "page": "common-name-api",
+      "viewport": 390,
+      "title": "Component contracts — Marquee UI",
+      "h1": ["Familiar names. Explicit contracts."],
+      "width": 390
+    },
+    {
+      "page": "recipe-contracts",
+      "viewport": 390,
+      "title": "Recipe contracts — Marquee UI",
+      "h1": ["Compose the newer families."],
+      "width": 390
+    },
+    {
+      "page": "home",
+      "viewport": 768,
+      "title": "Marquee UI — Compose it your way",
+      "h1": ["Compose ityour way."],
+      "width": 768
+    },
+    {
+      "page": "getting-started",
+      "viewport": 768,
+      "title": "Get started — Marquee UI",
+      "h1": ["From empty project to your first composition."],
+      "width": 768
+    },
+    {
+      "page": "components",
+      "viewport": 768,
+      "title": "Components — Marquee UI",
+      "h1": ["A kit of possibilities."],
+      "width": 768
+    },
+    {
+      "page": "themes",
+      "viewport": 768,
+      "title": "Themes — Marquee UI",
+      "h1": ["A role for every detail."],
+      "width": 768
+    },
+    {
+      "page": "supported-stack",
+      "viewport": 768,
+      "title": "Supported stack — Marquee UI",
+      "h1": ["Know the contract."],
+      "width": 768
+    },
+    {
+      "page": "composition",
+      "viewport": 768,
+      "title": "Composition — Marquee UI",
+      "h1": ["Put the parts together."],
+      "width": 768
+    },
+    {
+      "page": "common-name-api",
+      "viewport": 768,
+      "title": "Component contracts — Marquee UI",
+      "h1": ["Familiar names. Explicit contracts."],
+      "width": 768
+    },
+    {
+      "page": "recipe-contracts",
+      "viewport": 768,
+      "title": "Recipe contracts — Marquee UI",
+      "h1": ["Compose the newer families."],
+      "width": 768
+    },
+    {
+      "page": "home",
+      "viewport": 1280,
+      "title": "Marquee UI — Compose it your way",
+      "h1": ["Compose ityour way."],
+      "width": 1280
+    },
+    {
+      "page": "getting-started",
+      "viewport": 1280,
+      "title": "Get started — Marquee UI",
+      "h1": ["From empty project to your first composition."],
+      "width": 1280
+    },
+    {
+      "page": "components",
+      "viewport": 1280,
+      "title": "Components — Marquee UI",
+      "h1": ["A kit of possibilities."],
+      "width": 1280
+    },
+    {
+      "page": "themes",
+      "viewport": 1280,
+      "title": "Themes — Marquee UI",
+      "h1": ["A role for every detail."],
+      "width": 1280
+    },
+    {
+      "page": "supported-stack",
+      "viewport": 1280,
+      "title": "Supported stack — Marquee UI",
+      "h1": ["Know the contract."],
+      "width": 1280
+    },
+    {
+      "page": "composition",
+      "viewport": 1280,
+      "title": "Composition — Marquee UI",
+      "h1": ["Put the parts together."],
+      "width": 1280
+    },
+    {
+      "page": "common-name-api",
+      "viewport": 1280,
+      "title": "Component contracts — Marquee UI",
+      "h1": ["Familiar names. Explicit contracts."],
+      "width": 1280
+    },
+    {
+      "page": "recipe-contracts",
+      "viewport": 1280,
+      "title": "Recipe contracts — Marquee UI",
+      "h1": ["Compose the newer families."],
+      "width": 1280
+    }
+  ],
+  "errors": []
+}

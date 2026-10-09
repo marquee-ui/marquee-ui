@@ -223,30 +223,44 @@ const dependencyDrift = (
 };
 
 describe("registry.json", () => {
-  it("declares the twenty-one part families plus the one shared lib", () => {
+  it("declares the thirty-five part families plus the one shared lib", () => {
     // Anchor: every loop below is vacuous against an empty item list.
     expect(registry.items.map((item) => item.name).sort()).toEqual([
       "accordion",
       "alert",
+      "alert-dialog",
       "avatar",
       "badge",
       "breadcrumb",
       "button",
+      "calendar",
       "card",
+      "chart",
       "checkbox",
+      "combobox",
+      "data-table",
+      "date-picker",
       "description-list",
+      "dialog",
+      "dropdown-menu",
       "form",
       "input",
       "label",
       "pagination",
+      "popover",
       "radio-group",
       "ribbon",
+      "select",
       "separator",
       "sheet",
+      "slider",
       "switch",
+      "table",
+      "tabs",
       "textarea",
       "toast",
       "toggle",
+      "tooltip",
       "utils",
     ]);
   });
@@ -332,7 +346,7 @@ describe("registry.json", () => {
         checked++;
       }
     }
-    expect(checked).toBe(23);
+    expect(checked).toBe(41);
   });
 
   it("declares exactly the registry dependencies its sources import", () => {
@@ -360,7 +374,7 @@ describe("registry.json", () => {
     // Anchor: the same total the count above holds, reached from the imports. And the
     // rule, holding on the tree: `ribbon` imports `./ribbon.css`, its own file, and
     // declares `@marquee/utils` alone, so a reader without the rule reddens `ribbon`.
-    expect(derived).toBe(23);
+    expect(derived).toBe(41);
   });
 
   it("reads a source's registry dependencies as the items that ship the files it imports", () => {
@@ -592,7 +606,7 @@ describe("the built registry in packages/ui/r", () => {
         compared++;
       }
     }
-    expect(compared).toBe(23);
+    expect(compared).toBe(37);
   });
 
   it("carries the title, description and both dependency lists into the item file", () => {

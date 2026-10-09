@@ -12,7 +12,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
 
@@ -30,9 +30,9 @@ jobs:
       # lint + typecheck + BUILD + test, in that order: the component tests read
       # the emitted token stylesheet and the built registry, so the artefacts have
       # to exist and be current before the tests can judge them.
-      # No browser download: the stories run under jsdom through `composeStories`,
-      # and the one thing a browser would add - computed style - is covered by the
-      # real Tailwind compile in `packages/ui/test/tailwind-compile.test.tsx`.
+      # The docs journeys run against the built site and its nested Storybook.
+      - run: pnpm --filter @marquee-ui/docs exec playwright install --with-deps chromium
+
       - run: pnpm verify
 
       # The registry is a COMMITTED build artefact (it needs a raw URL and a copy

@@ -27,6 +27,10 @@ function walk(dir: string, out: string[]): string[] {
  * Adding a source file means adding it here, and that edit is the review.
  */
 export const PUBLISHED_SOURCE_FILES = [
+  "packages/ui/src/chart.tsx",
+  "packages/ui/src/data-table.tsx",
+  "packages/ui/src/table.tsx",
+  "packages/ui/src/date-picker.tsx",
   "packages/tokens/src/build.ts",
   "packages/tokens/src/checks/contrast.ts",
   "packages/tokens/src/checks/distinctness.ts",
@@ -37,6 +41,7 @@ export const PUBLISHED_SOURCE_FILES = [
   "packages/tokens/src/font-metrics.ts",
   "packages/tokens/src/index.ts",
   "packages/tokens/src/presets/arcade.ts",
+  "packages/tokens/src/presets/docs-themes.ts",
   "packages/tokens/src/presets/light.ts",
   "packages/tokens/src/resolve.ts",
   "packages/tokens/src/roles.ts",
@@ -65,7 +70,17 @@ export const PUBLISHED_SOURCE_FILES = [
   "packages/ui/src/switch.tsx",
   "packages/ui/src/textarea.tsx",
   "packages/ui/src/toast.tsx",
+  "packages/ui/src/select.tsx",
+  "packages/ui/src/tabs.tsx",
+  "packages/ui/src/tooltip.tsx",
+  "packages/ui/src/popover.tsx",
+  "packages/ui/src/alert-dialog.tsx",
+  "packages/ui/src/dialog.tsx",
   "packages/ui/src/toggle.tsx",
+  "packages/ui/src/slider.tsx",
+  "packages/ui/src/calendar.tsx",
+  "packages/ui/src/combobox.tsx",
+  "packages/ui/src/dropdown-menu.tsx",
 ] as const;
 
 /**
@@ -77,6 +92,10 @@ export const PUBLISHED_SOURCE_FILES = [
  * arrive without anyone noticing.
  */
 export const STORY_FILES = [
+  "packages/ui/stories/chart.stories.tsx",
+  "packages/ui/stories/data-table.stories.tsx",
+  "packages/ui/stories/table.stories.tsx",
+  "packages/ui/stories/date-picker.stories.tsx",
   "packages/ui/stories/accordion.stories.tsx",
   "packages/ui/stories/alert.stories.tsx",
   "packages/ui/stories/avatar.stories.tsx",
@@ -97,7 +116,17 @@ export const STORY_FILES = [
   "packages/ui/stories/switch.stories.tsx",
   "packages/ui/stories/textarea.stories.tsx",
   "packages/ui/stories/toast.stories.tsx",
+  "packages/ui/stories/select.stories.tsx",
+  "packages/ui/stories/tabs.stories.tsx",
+  "packages/ui/stories/tooltip.stories.tsx",
+  "packages/ui/stories/popover.stories.tsx",
+  "packages/ui/stories/alert-dialog.stories.tsx",
+  "packages/ui/stories/dialog.stories.tsx",
   "packages/ui/stories/toggle.stories.tsx",
+  "packages/ui/stories/slider.stories.tsx",
+  "packages/ui/stories/calendar.stories.tsx",
+  "packages/ui/stories/combobox.stories.tsx",
+  "packages/ui/stories/dropdown-menu.stories.tsx",
 ] as const;
 
 /**

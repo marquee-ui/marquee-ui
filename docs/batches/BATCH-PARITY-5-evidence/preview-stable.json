@@ -1,0 +1,249 @@
+{
+  "url": "http://127.0.0.1:4174/marquee-ui/",
+  "source": "4123edc5db43e891e207369ad2d52db753bb8b25",
+  "indexSha256": "4fda33c0258cefe2d77720883f87d3f035f32c9946a85b32a25676b92e919c64",
+  "families": 31,
+  "viewports": [390, 768, 1280],
+  "comboboxSearchCommitForm": true,
+  "calendarSingleMultipleRangeReset": true,
+  "gridBounds": true,
+  "rootCanvasContainment": true,
+  "saturdayHitAndSelection": true,
+  "geometry": [
+    {
+      "width": 330,
+      "index": 0,
+      "host": {
+        "left": 30,
+        "right": 360,
+        "client": 330,
+        "scroll": 330
+      },
+      "left": 30,
+      "right": 360,
+      "innerLeft": 40,
+      "innerRight": 350,
+      "client": 326,
+      "scroll": 326,
+      "grids": [
+        {
+          "left": 40,
+          "right": 348,
+          "width": 308
+        }
+      ],
+      "saturdayHit": true
+    },
+    {
+      "width": 330,
+      "index": 1,
+      "host": {
+        "left": 30,
+        "right": 360,
+        "client": 330,
+        "scroll": 330
+      },
+      "left": 30,
+      "right": 360,
+      "innerLeft": 40,
+      "innerRight": 350,
+      "client": 326,
+      "scroll": 326,
+      "grids": [
+        {
+          "left": 40,
+          "right": 348,
+          "width": 308
+        }
+      ],
+      "saturdayHit": true
+    },
+    {
+      "width": 330,
+      "index": 2,
+      "host": {
+        "left": 30,
+        "right": 360,
+        "client": 330,
+        "scroll": 330
+      },
+      "left": 30,
+      "right": 360,
+      "innerLeft": 40,
+      "innerRight": 350,
+      "client": 326,
+      "scroll": 326,
+      "grids": [
+        {
+          "left": 40,
+          "right": 348,
+          "width": 308
+        },
+        {
+          "left": 40,
+          "right": 348,
+          "width": 308
+        }
+      ],
+      "saturdayHit": true
+    },
+    {
+      "width": 440,
+      "index": 0,
+      "host": {
+        "left": 54,
+        "right": 714,
+        "client": 660,
+        "scroll": 660
+      },
+      "left": 54,
+      "right": 494,
+      "innerLeft": 64,
+      "innerRight": 484,
+      "client": 436,
+      "scroll": 436,
+      "grids": [
+        {
+          "left": 64,
+          "right": 372,
+          "width": 308
+        }
+      ],
+      "saturdayHit": true
+    },
+    {
+      "width": 440,
+      "index": 1,
+      "host": {
+        "left": 54,
+        "right": 714,
+        "client": 660,
+        "scroll": 660
+      },
+      "left": 54,
+      "right": 494,
+      "innerLeft": 64,
+      "innerRight": 484,
+      "client": 436,
+      "scroll": 436,
+      "grids": [
+        {
+          "left": 64,
+          "right": 372,
+          "width": 308
+        }
+      ],
+      "saturdayHit": true
+    },
+    {
+      "width": 660,
+      "index": 2,
+      "host": {
+        "left": 54,
+        "right": 714,
+        "client": 660,
+        "scroll": 660
+      },
+      "left": 54,
+      "right": 714,
+      "innerLeft": 64,
+      "innerRight": 704,
+      "client": 656,
+      "scroll": 656,
+      "grids": [
+        {
+          "left": 64,
+          "right": 372,
+          "width": 308
+        },
+        {
+          "left": 388,
+          "right": 696,
+          "width": 308
+        }
+      ],
+      "saturdayHit": true
+    },
+    {
+      "width": 420,
+      "index": 0,
+      "host": {
+        "left": 70,
+        "right": 490,
+        "client": 420,
+        "scroll": 420
+      },
+      "left": 70,
+      "right": 490,
+      "innerLeft": 80,
+      "innerRight": 480,
+      "client": 416,
+      "scroll": 416,
+      "grids": [
+        {
+          "left": 80,
+          "right": 388,
+          "width": 308
+        }
+      ],
+      "saturdayHit": true
+    },
+    {
+      "width": 420,
+      "index": 1,
+      "host": {
+        "left": 70,
+        "right": 490,
+        "client": 420,
+        "scroll": 420
+      },
+      "left": 70,
+      "right": 490,
+      "innerLeft": 80,
+      "innerRight": 480,
+      "client": 416,
+      "scroll": 416,
+      "grids": [
+        {
+          "left": 80,
+          "right": 388,
+          "width": 308
+        }
+      ],
+      "saturdayHit": true
+    },
+    {
+      "width": 420,
+      "index": 2,
+      "host": {
+        "left": 70,
+        "right": 490,
+        "client": 420,
+        "scroll": 420
+      },
+      "left": 70,
+      "right": 490,
+      "innerLeft": 80,
+      "innerRight": 480,
+      "client": 416,
+      "scroll": 416,
+      "grids": [
+        {
+          "left": 80,
+          "right": 388,
+          "width": 308
+        },
+        {
+          "left": 80,
+          "right": 388,
+          "width": 308
+        }
+      ],
+      "saturdayHit": true
+    }
+  ],
+  "focusRestored": true,
+  "highlighting": true,
+  "errors": [],
+  "checkedAt": "2026-10-08T05:37:51.549Z"
+}

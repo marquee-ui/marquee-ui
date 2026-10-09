@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-10-08T22:07:29.972Z",
+  "source": "87f25c556a80536471476ff1911bd23155f1a684",
+  "port": 4188,
+  "errors": [],
+  "results": [
+    {
+      "width": 390,
+      "before": {
+        "left": 0,
+        "client": 346,
+        "scroll": 480
+      },
+      "after": 134
+    },
+    {
+      "width": 768,
+      "before": {
+        "left": 0,
+        "client": 324,
+        "scroll": 480
+      },
+      "after": 156
+    },
+    {
+      "width": 1280,
+      "before": {
+        "left": 0,
+        "client": 564,
+        "scroll": 564
+      },
+      "after": 0
+    }
+  ]
+}

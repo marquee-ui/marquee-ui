@@ -1,0 +1,53 @@
+[
+  {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "before": {
+      "scrollTop": 0,
+      "scrollHeight": 504,
+      "clientHeight": 380
+    },
+    "measured": {
+      "width": 338,
+      "height": 44,
+      "hit": [true, true, true, true, true]
+    },
+    "status": "PASS"
+  },
+  {
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "before": {
+      "scrollTop": 0,
+      "scrollHeight": 504,
+      "clientHeight": 470
+    },
+    "measured": {
+      "width": 440,
+      "height": 44,
+      "hit": [true, true, true, true, true]
+    },
+    "status": "PASS"
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "before": {
+      "scrollTop": 0,
+      "scrollHeight": 504,
+      "clientHeight": 408
+    },
+    "measured": {
+      "width": 440,
+      "height": 44,
+      "hit": [true, true, true, true, true]
+    },
+    "status": "PASS"
+  }
+]

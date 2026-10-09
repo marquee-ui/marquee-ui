@@ -1,3 +1,11 @@
+import * as chart from "../../stories/chart.stories.js";
+import * as datatable from "../../stories/data-table.stories.js";
+import * as table from "../../stories/table.stories.js";
+import * as datepicker from "../../stories/date-picker.stories.js";
+import * as combobox from "../../stories/combobox.stories.js";
+import * as calendar from "../../stories/calendar.stories.js";
+import * as dropdownmenu from "../../stories/dropdown-menu.stories.js";
+import * as slider from "../../stories/slider.stories.js";
 import { readdirSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -21,6 +29,8 @@ import * as sheet from "../../stories/sheet.stories.js";
 import * as switchPart from "../../stories/switch.stories.js";
 import * as textarea from "../../stories/textarea.stories.js";
 import * as toast from "../../stories/toast.stories.js";
+import * as select from "../../stories/select.stories.js";
+import * as tabs from "../../stories/tabs.stories.js";
 import * as toggle from "../../stories/toggle.stories.js";
 
 /**
@@ -34,7 +44,27 @@ import * as toggle from "../../stories/toggle.stories.js";
  * `storySuiteNames()` reads the directory so the map cannot fall behind the files
  * either.
  */
+import * as dialog from "../../stories/dialog.stories.js";
+
+import * as alertdialog from "../../stories/alert-dialog.stories.js";
+
+import * as popover from "../../stories/popover.stories.js";
+
+import * as tooltip from "../../stories/tooltip.stories.js";
+
 export const STORY_SUITES = {
+  chart: chart,
+  "data-table": datatable,
+  table: table,
+  "date-picker": datepicker,
+  combobox,
+  calendar,
+  "dropdown-menu": dropdownmenu,
+  slider: slider,
+  tooltip: tooltip,
+  popover: popover,
+  "alert-dialog": alertdialog,
+  dialog: dialog,
   accordion,
   alert,
   avatar,
@@ -55,6 +85,8 @@ export const STORY_SUITES = {
   switch: switchPart,
   textarea,
   toast,
+  select,
+  tabs,
   toggle,
 };
 

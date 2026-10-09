@@ -1,0 +1,19 @@
+{
+  "source": "11c0dcf5ebdef812a054962d85d320a68e630c57",
+  "measuredAt": "2026-10-08T00:12:42.259Z",
+  "node": "v22.18.0",
+  "artifacts": [
+    {
+      "name": "@marquee-ui/tokens",
+      "file": "marquee-ui-tokens-0.1.0.tgz",
+      "sha256": "75b30268238e44074a54d923e596d1f6a1a931f2ae85f8a5da3271a7dadf55cd"
+    },
+    {
+      "name": "@marquee-ui/ui",
+      "file": "marquee-ui-ui-0.1.10.tgz",
+      "sha256": "33e5b9a75da077edfbeba466382ad014034c4693ca8363be491db950bc606c39"
+    }
+  ],
+  "compared": 12,
+  "consumer": "/home/ankit/.marquee-scratch/BATCH-PARITY-2/consumer-final"
+}

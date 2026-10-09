@@ -100,3 +100,166 @@ export { Textarea, textareaClass } from "./textarea.js";
 export { Toast, ToastAction, ToastMessage, type ToastProps } from "./toast.js";
 export { Toggle, toggleClass } from "./toggle.js";
 export { cn } from "./lib/utils.js";
+
+export {
+  Select,
+  SelectPortal,
+  SelectTrigger,
+  SelectValue,
+  SelectIcon,
+  SelectContent,
+  SelectViewport,
+  SelectGroup,
+  SelectLabel,
+  SelectItem,
+  SelectItemText,
+  SelectItemIndicator,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+  SelectArrow,
+} from "./select.js";
+
+export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs.js";
+
+export {
+  Dialog,
+  DialogTrigger,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+  DialogHeader,
+  DialogFooter,
+} from "./dialog.js";
+
+export {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogPortal,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "./alert-dialog.js";
+
+export {
+  Popover,
+  PopoverTrigger,
+  PopoverAnchor,
+  PopoverPortal,
+  PopoverContent,
+  PopoverClose,
+  PopoverArrow,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverDescription,
+} from "./popover.js";
+
+export {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipPortal,
+  TooltipContent,
+  TooltipArrow,
+} from "./tooltip.js";
+
+export { Slider, SliderTrack, SliderRange, SliderThumb } from "./slider.js";
+
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuPortal,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuItemIndicator,
+  DropdownMenuSeparator,
+  DropdownMenuArrow,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+} from "./dropdown-menu.js";
+
+export {
+  Calendar,
+  CalendarRoot,
+  CalendarDayButton,
+  CalendarNavigationButton,
+  type CalendarProps,
+  type CalendarRootProps,
+  type CalendarDayButtonProps,
+} from "./calendar.js";
+
+export {
+  Combobox,
+  ComboboxPortal,
+  ComboboxTrigger,
+  ComboboxContent,
+  ComboboxCommand,
+  ComboboxInput,
+  ComboboxList,
+  ComboboxItem,
+  ComboboxGroup,
+  ComboboxEmpty,
+  ComboboxSeparator,
+} from "./combobox.js";
+
+export {
+  DatePicker,
+  DatePickerTrigger,
+  DatePickerPortal,
+  DatePickerAnchor,
+  DatePickerArrow,
+  DatePickerClose,
+  DatePickerHeader,
+  DatePickerTitle,
+  DatePickerDescription,
+  DatePickerCalendar,
+  type DatePickerCalendarProps,
+  DatePickerContent,
+} from "./date-picker.js";
+
+export {
+  type TableContainerProps,
+  TableContainer,
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableCaption,
+} from "./table.js";
+
+export {
+  DataTable,
+  DataTableHeader,
+  DataTableBody,
+  DataTableEmpty,
+  DataTableSortButton,
+  type DataTableHeaderProps,
+  type DataTableBodyProps,
+  type DataTableSortButtonProps,
+} from "./data-table.js";
+
+export {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  ChartLegendItem,
+} from "./chart.js";

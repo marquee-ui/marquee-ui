@@ -1,0 +1,23 @@
+[
+  {
+    "file": "brand/marquee-github-social.png",
+    "width": 1280,
+    "height": 640,
+    "bytes": 26217,
+    "sha256": "1f548c7f7d41559e4a71bbfebae2480262b6dea2afcaaf20f9d742d9bc9e3c30"
+  },
+  {
+    "file": "brand/marquee-tide-1024.png",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 14175,
+    "sha256": "9d0d8b8982ef92bcd661b516e21912550a492870412050e8f747b0742502bfa6"
+  },
+  {
+    "file": "brand/marquee-tide-512.png",
+    "width": 512,
+    "height": 512,
+    "bytes": 6437,
+    "sha256": "872093a71172ee4d3575dea6521b664ed4080c7c7a639e2953ac8a650bab8be5"
+  }
+]

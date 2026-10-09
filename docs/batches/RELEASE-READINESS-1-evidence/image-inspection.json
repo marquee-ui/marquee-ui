@@ -1,0 +1,55 @@
+{
+  "inspectedOn": "2026-10-09",
+  "scratch": "/home/ankit/.marquee-scratch/RELEASE-READINESS-1",
+  "files": [
+    {
+      "path": "consumer/proof/chart-dark-phone.png",
+      "sha256": "527d9c71b79c97481f9efa0737af7a927fbf041dc14d962727b678f644c1f9fe"
+    },
+    {
+      "path": "consumer/proof/chart-light-tablet.png",
+      "sha256": "ca288a175443c7c1a9b3d66910e592e5581363958f4cb03b032b0c08a1b5a3b9"
+    },
+    {
+      "path": "consumer/proof/chart-forced-desktop.png",
+      "sha256": "e9f689ada54f28805b19964a49fb6a8f05c8e5229b7baa936dbffad9e253f729"
+    },
+    {
+      "path": "consumer/proof/data-table-forced-phone.png",
+      "sha256": "9eaee2a4bc6d205a6e5bf2392f222163a84baa98abbccef408e032bbbafc3071"
+    },
+    {
+      "path": "consumer/proof/data-table-dark-tablet.png",
+      "sha256": "ef1dfa54d8f4da64b99c171ef6a1583e71ed90f9ebbe59da0aa8007a9ebe1796"
+    },
+    {
+      "path": "consumer/proof/data-table-light-desktop.png",
+      "sha256": "c81a8ffcad68e9d8df6ffa6757803959558f52c71b06fa387300aaf8312e4a63"
+    },
+    {
+      "path": "guide-images/release-evidence-390.png",
+      "sha256": "587cbfe53b738550d7f50f43de8015db151eb02036be44253dcf478bb2e48ca5"
+    },
+    {
+      "path": "guide-images/release-evidence-768.png",
+      "sha256": "da5c39629213c76437261235e0984795c92aafc673dc5ac1566e32e1cb879d52"
+    },
+    {
+      "path": "guide-images/release-evidence-1280.png",
+      "sha256": "6a021e27103f48de17006e4a82ce7f6c41408fc5071cbcbf9efd9df7e4bdfd2f"
+    },
+    {
+      "path": "guide-images/release-copy-390.png",
+      "sha256": "c41fcae300455e8eee36774d50f69e2abbe0e47ca6e0e97bd53a575cb8ef79b6"
+    },
+    {
+      "path": "guide-images/release-copy-768.png",
+      "sha256": "050c64333741ef6ed50db85e33a4b1108587af7750778d30a59fde0d9354c4f7"
+    },
+    {
+      "path": "guide-images/release-copy-1280.png",
+      "sha256": "e001ab2a07db573dc6e8a9af7388400ac1be4f4385851e8ca2b8d02dcef2be84"
+    }
+  ],
+  "scope": "Six fresh external Chart/DataTable captures and six changed guide/evidence captures across 390/768/1280. Other generated captures were not manually inspected in this batch."
+}

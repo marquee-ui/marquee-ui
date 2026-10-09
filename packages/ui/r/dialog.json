@@ -1,0 +1,22 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "dialog",
+  "title": "Dialog",
+  "description": "A centered, scrollable dialog with explicit portal, overlay and close parts. Radix owns modal focus and dismissal; the caller owns content and saving.",
+  "dependencies": [
+    "@radix-ui/react-dialog@^1.2.0",
+    "@radix-ui/react-slot@^1.3.3"
+  ],
+  "registryDependencies": [
+    "@marquee/utils"
+  ],
+  "files": [
+    {
+      "path": "packages/ui/src/dialog.tsx",
+      "content": "\"use client\";\n\nimport * as DialogPrimitive from \"@radix-ui/react-dialog\";\nimport { Slot } from \"@radix-ui/react-slot\";\nimport type { ComponentProps } from \"react\";\nimport { cn } from \"@/lib/utils\";\n\n/**\n * A centered dialog at every width. Radix owns state, modality, focus and\n * cancelable dismissal. Portal, Overlay and Close are explicit compositions;\n * Content never injects another part. All primitive props and refs pass through.\n * The panel owns bounded scrolling; Header and Footer are optional layout slots.\n */\nexport const Dialog = DialogPrimitive.Root;\nexport const DialogPortal = DialogPrimitive.Portal;\n\nconst controlClasses =\n  \"inline-flex min-h-hit min-w-hit items-center justify-center rounded-md border-2 border-border bg-surface px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-border-strong focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-ink disabled:cursor-not-allowed disabled:text-foreground-faint\";\n\nexport function DialogTrigger({\n  className,\n  ...props\n}: ComponentProps<typeof DialogPrimitive.Trigger>) {\n  return (\n    <DialogPrimitive.Trigger\n      data-slot=\"dialog-trigger\"\n      className={cn(controlClasses, className)}\n      {...props}\n    />\n  );\n}\n\nexport function DialogClose({ className, ...props }: ComponentProps<typeof DialogPrimitive.Close>) {\n  return (\n    <DialogPrimitive.Close\n      data-slot=\"dialog-close\"\n      className={cn(controlClasses, className)}\n      {...props}\n    />\n  );\n}\n\nexport function DialogOverlay({\n  className,\n  ...props\n}: ComponentProps<typeof DialogPrimitive.Overlay>) {\n  return (\n    <DialogPrimitive.Overlay\n      data-slot=\"dialog-overlay\"\n      className={cn(\"fixed inset-0 z-50 bg-scrim backdrop-blur-sm\", className)}\n      {...props}\n    />\n  );\n}\n\nexport function DialogContent({\n  className,\n  ...props\n}: ComponentProps<typeof DialogPrimitive.Content>) {\n  return (\n    <DialogPrimitive.Content\n      data-slot=\"dialog-content\"\n      className={cn(\n        \"fixed left-1/2 top-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto overscroll-contain rounded-lg border-2 border-border bg-overlay p-6 text-foreground shadow-lg focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-ink\",\n        className,\n      )}\n      {...props}\n    />\n  );\n}\n\nexport function DialogTitle({ className, ...props }: ComponentProps<typeof DialogPrimitive.Title>) {\n  return (\n    <DialogPrimitive.Title\n      data-slot=\"dialog-title\"\n      className={cn(\"font-display text-lg text-foreground\", className)}\n      {...props}\n    />\n  );\n}\n\nexport function DialogDescription({\n  className,\n  ...props\n}: ComponentProps<typeof DialogPrimitive.Description>) {\n  return (\n    <DialogPrimitive.Description\n      data-slot=\"dialog-description\"\n      className={cn(\"text-sm text-foreground-2\", className)}\n      {...props}\n    />\n  );\n}\n\nexport function DialogHeader({\n  className,\n  asChild = false,\n  ...props\n}: ComponentProps<\"div\"> & { asChild?: boolean }) {\n  const Host = asChild ? Slot : \"div\";\n  return (\n    <Host data-slot=\"dialog-header\" className={cn(\"flex flex-col gap-1\", className)} {...props} />\n  );\n}\n\nexport function DialogFooter({\n  className,\n  asChild = false,\n  ...props\n}: ComponentProps<\"div\"> & { asChild?: boolean }) {\n  const Host = asChild ? Slot : \"div\";\n  return (\n    <Host\n      data-slot=\"dialog-footer\"\n      className={cn(\"flex flex-wrap items-center justify-end gap-3\", className)}\n      {...props}\n    />\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/dialog.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}

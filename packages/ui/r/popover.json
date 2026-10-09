@@ -1,0 +1,22 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "popover",
+  "title": "Popover",
+  "description": "An anchored panel with explicit parts, caller-owned labels and optional modal focus.",
+  "dependencies": [
+    "@radix-ui/react-popover@^1.2.0",
+    "@radix-ui/react-slot@^1.3.3"
+  ],
+  "registryDependencies": [
+    "@marquee/utils"
+  ],
+  "files": [
+    {
+      "path": "packages/ui/src/popover.tsx",
+      "content": "\"use client\";\n\nimport * as PopoverPrimitive from \"@radix-ui/react-popover\";\nimport { Slot } from \"@radix-ui/react-slot\";\nimport type { ComponentProps } from \"react\";\nimport { cn } from \"@/lib/utils\";\n\n/**\n * Radix owns state, positioning, focus and cancelable dismissal. Nonmodal by\n * default; opt into modal focus and pointer isolation with modal. Portal, Arrow,\n * Close and accessible labels are explicit caller compositions. Title and\n * Description are presentation slots: associate their IDs on Content yourself.\n * All supported primitive props, refs and asChild hosts pass through.\n */\nexport const Popover = PopoverPrimitive.Root;\nexport const PopoverPortal = PopoverPrimitive.Portal;\n\nconst controlClasses =\n  \"inline-flex min-h-hit min-w-hit items-center justify-center rounded-md border-2 border-border bg-surface px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-border-strong focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-ink disabled:cursor-not-allowed disabled:text-foreground-faint\";\n\nexport function PopoverTrigger({\n  className,\n  ...props\n}: ComponentProps<typeof PopoverPrimitive.Trigger>) {\n  return (\n    <PopoverPrimitive.Trigger\n      data-slot=\"popover-trigger\"\n      className={cn(controlClasses, className)}\n      {...props}\n    />\n  );\n}\n\nexport function PopoverAnchor(props: ComponentProps<typeof PopoverPrimitive.Anchor>) {\n  return <PopoverPrimitive.Anchor data-slot=\"popover-anchor\" {...props} />;\n}\n\nexport function PopoverContent({\n  className,\n  ...props\n}: ComponentProps<typeof PopoverPrimitive.Content>) {\n  return (\n    <PopoverPrimitive.Content\n      data-slot=\"popover-content\"\n      className={cn(\n        \"z-50 grid w-72 max-w-[var(--radix-popover-content-available-width)] max-h-[var(--radix-popover-content-available-height)] gap-4 overflow-y-auto overscroll-contain rounded-lg border-2 border-border bg-overlay p-4 text-foreground shadow-lg focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-ink\",\n        className,\n      )}\n      {...props}\n    />\n  );\n}\n\nexport function PopoverClose({\n  className,\n  ...props\n}: ComponentProps<typeof PopoverPrimitive.Close>) {\n  return (\n    <PopoverPrimitive.Close\n      data-slot=\"popover-close\"\n      className={cn(controlClasses, className)}\n      {...props}\n    />\n  );\n}\n\nexport function PopoverArrow({\n  className,\n  ...props\n}: ComponentProps<typeof PopoverPrimitive.Arrow>) {\n  return (\n    <PopoverPrimitive.Arrow\n      data-slot=\"popover-arrow\"\n      className={cn(\"fill-overlay\", className)}\n      {...props}\n    />\n  );\n}\n\nexport function PopoverHeader({\n  className,\n  asChild = false,\n  ...props\n}: ComponentProps<\"div\"> & { asChild?: boolean }) {\n  const Host = asChild ? Slot : \"div\";\n  return (\n    <Host data-slot=\"popover-header\" className={cn(\"flex flex-col gap-1\", className)} {...props} />\n  );\n}\n\nexport function PopoverTitle({\n  className,\n  asChild = false,\n  ...props\n}: ComponentProps<\"h3\"> & { asChild?: boolean }) {\n  const Host = asChild ? Slot : \"h3\";\n  return (\n    <Host\n      data-slot=\"popover-title\"\n      className={cn(\"font-display text-base text-foreground\", className)}\n      {...props}\n    />\n  );\n}\n\nexport function PopoverDescription({\n  className,\n  asChild = false,\n  ...props\n}: ComponentProps<\"p\"> & { asChild?: boolean }) {\n  const Host = asChild ? Slot : \"p\";\n  return (\n    <Host\n      data-slot=\"popover-description\"\n      className={cn(\"text-sm text-foreground-2\", className)}\n      {...props}\n    />\n  );\n}\n",
+      "type": "registry:ui",
+      "target": "components/ui/popover.tsx"
+    }
+  ],
+  "type": "registry:ui"
+}

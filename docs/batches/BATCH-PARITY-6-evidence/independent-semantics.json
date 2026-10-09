@@ -1,0 +1,45 @@
+{
+  "tag": "TABLE",
+  "parent": "SECTION",
+  "parentRole": "region",
+  "labelledby": "schedule-caption",
+  "children": ["CAPTION", "THEAD", "TBODY", "TFOOT"],
+  "caption": "schedule-caption",
+  "headers": [
+    {
+      "tag": "TH",
+      "scope": "col"
+    },
+    {
+      "tag": "TH",
+      "scope": "col"
+    },
+    {
+      "tag": "TH",
+      "scope": "col"
+    },
+    {
+      "tag": "TH",
+      "scope": "col"
+    },
+    {
+      "tag": "TH",
+      "scope": "col"
+    }
+  ],
+  "rowHeader": {
+    "tag": "TH",
+    "scope": "row",
+    "id": "row-one"
+  },
+  "lastCell": {
+    "tag": "TD",
+    "headers": "row-one"
+  },
+  "footer": {
+    "tag": "TD",
+    "colSpan": 5
+  },
+  "form": "Row scheduling",
+  "triggerType": "button"
+}

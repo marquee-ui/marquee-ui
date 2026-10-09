@@ -1,0 +1,113 @@
+{
+  "source": "87f25c556a80536471476ff1911bd23155f1a684",
+  "previewPort": 4188,
+  "checkedAt": "2026-10-08T22:08:35.160038+00:00",
+  "inspected": 25,
+  "method": "All 25 files opened with view_image and visually inspected at 390/768/1280; guide prose/table/link token styling, published/candidate availability and original packed-source/scope distinctions readable. Whole page fits; intentionally wide named tables retain native horizontal scrolling. Captures are viewport excerpts under the existing sticky theme studio, not whole-guide visibility claims.",
+  "files": [
+    {
+      "file": "candidate-availability-1280.png",
+      "sha256": "753b1903e88e9a4ced8d7aa529eab909544eff2ca77a46ae27d39f9498ab0aef"
+    },
+    {
+      "file": "candidate-availability-390.png",
+      "sha256": "a184ac229465595247ca9dcac3b45d3bc37bbbc74780ccf947efe8312a930b30"
+    },
+    {
+      "file": "candidate-availability-768.png",
+      "sha256": "eb780eae70c07c6bdb9317649f98d451ce1b940fb3be6737078feadb300ae350"
+    },
+    {
+      "file": "common-name-api-1280.png",
+      "sha256": "4032e7deeae1868a4ed9a2b2223aea0cfa9af14adad756960f4c0db627fce98a"
+    },
+    {
+      "file": "common-name-api-390.png",
+      "sha256": "72466f45a490a0abc522da5665c3736ae6443ab3f019ded9fac490c05444d112"
+    },
+    {
+      "file": "common-name-api-768.png",
+      "sha256": "631c2db9aae46a6af8effb9f31cca526f338e915b7e650545d49dc1b9465f4ca"
+    },
+    {
+      "file": "getting-started-1280.png",
+      "sha256": "8de72345393982ea1f00f9208a4fd7f03f65b310ccca205016718c8963493478"
+    },
+    {
+      "file": "getting-started-390.png",
+      "sha256": "3b5597b73b99f58da2576ef2a0179756a69ddb1c1b09a58ab0fff29b8fcdfa38"
+    },
+    {
+      "file": "getting-started-768.png",
+      "sha256": "520e11b5a14d00f5789d4f2db03e7bb8c4ed2a9f8cc417e802fbd297ee921c30"
+    },
+    {
+      "file": "packed-evidence-scope-390.png",
+      "sha256": "0f27ecc2a62b10ef6bebb0dd3f657f4964f810001c46ff082fbf05f27c3ef54f"
+    },
+    {
+      "file": "packed-evidence-scope-768.png",
+      "sha256": "098db98547af5ceb360e2cec7aed12dc3fd1e4f6ebe6800b8307fe3f557668ff"
+    },
+    {
+      "file": "packed-evidence-source-1280.png",
+      "sha256": "da28499432e2bc87b4eef3693a5227dad5e2c58af19bd033b6c61c3147d0d88a"
+    },
+    {
+      "file": "packed-evidence-source-390.png",
+      "sha256": "4075f53604b65252b923e4cb638096821dd655090ef294de86caaf5c40f84380"
+    },
+    {
+      "file": "packed-evidence-source-768.png",
+      "sha256": "34582d7f7fdb5f9bd4a41e01993044d615c6b9b8dae53a71a23402e9dc135b15"
+    },
+    {
+      "file": "recipe-contracts-1280.png",
+      "sha256": "1e8877eefba2ae21c4af59a6a1eee36dc7ce9870140b137e0b8bf2b65a294bda"
+    },
+    {
+      "file": "recipe-contracts-390.png",
+      "sha256": "3da80ab340cebd99a127d43d3f780d1574bee65b15387642e9f602669fe2d907"
+    },
+    {
+      "file": "recipe-contracts-768.png",
+      "sha256": "d6c6a0e70911dbbb582733640904435e37a002852a8e547df6ada2462c6a0f7e"
+    },
+    {
+      "file": "supported-evidence-1280.png",
+      "sha256": "0a76efe1cdbed4393876ff5dfbe86d07673311eee36f500b4f8d87b752125045"
+    },
+    {
+      "file": "supported-evidence-390.png",
+      "sha256": "7e3be183c8982c88c38d136910cd68254cc81d840fb9ea2991fd9434aa6b8606"
+    },
+    {
+      "file": "supported-evidence-768.png",
+      "sha256": "7071b932c00d1b23b3a9b8c27248af50c443d2809e619c26086e4185087346e8"
+    },
+    {
+      "file": "supported-evidence-scrolled-390.png",
+      "sha256": "6980524e2b7971d554cef093c806a547f3b6d2a114458f949af42a3741a392a1"
+    },
+    {
+      "file": "supported-evidence-scrolled-768.png",
+      "sha256": "66a400cbd5af2c3a59e443d43c24b3449b76d6c86ec99a150247da9c3e595afc"
+    },
+    {
+      "file": "supported-stack-1280.png",
+      "sha256": "8049a28512722c547d735c49b9fd592e7598362c3323a29f31a6c1ac4fdb9ebb"
+    },
+    {
+      "file": "supported-stack-390.png",
+      "sha256": "b7c4ffad667948d393d57042ccf2b22787f288c2bbfcc13ad398d8360decf1ea"
+    },
+    {
+      "file": "supported-stack-768.png",
+      "sha256": "a5b0a04af1a3bb49bba362668fa307d5003a590858ddeab029509ae27741e889"
+    }
+  ],
+  "stagingBuildSource": "d25539d76de23ffe9a5e016c24c7c9449f18b3e1",
+  "snapshotCommit": "87f25c556a80536471476ff1911bd23155f1a684",
+  "finalRenderInputsMatch": true,
+  "comparison": "staging-final-build-comparison.json: all 120 render/input files identical; sole differing file storybook/project.json differs only by generatedAt timestamp, to be refreshed from successful final gate before preview certification."
+}

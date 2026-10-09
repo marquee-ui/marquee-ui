@@ -1,0 +1,314 @@
+[
+  {
+    "width": 390,
+    "paint": {
+      "label": "natural-disabled-calendar-panel",
+      "active": true,
+      "focusVisible": true,
+      "style": "solid",
+      "width": 2,
+      "offset": "-4px",
+      "color": "rgb(74, 90, 0)",
+      "rgba": [74, 90, 0, 1],
+      "ancestors": [
+        {
+          "host": "date-picker-content",
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "grid",
+          "overflowX": "auto",
+          "overflowY": "auto"
+        },
+        {
+          "host": "DIV",
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "block",
+          "overflowX": "visible",
+          "overflowY": "visible"
+        },
+        {
+          "host": "BODY",
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "block",
+          "overflowX": "hidden",
+          "overflowY": "hidden"
+        },
+        {
+          "host": "HTML",
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "block",
+          "overflowX": "visible",
+          "overflowY": "visible"
+        }
+      ],
+      "propagatedBody": true,
+      "exteriors": [
+        {
+          "x": 30,
+          "y": 581.546875,
+          "color": [255, 255, 255, 1],
+          "stack": ["HTML", "dialog-overlay", "dialog-content", "date-picker-content"],
+          "ratio": 7.626283275390092
+        },
+        {
+          "x": 200,
+          "y": 383,
+          "color": [255, 255, 255, 1],
+          "stack": [
+            "HTML",
+            "dialog-overlay",
+            "dialog-content",
+            "FORM",
+            "table-container",
+            "table",
+            "table-cell",
+            "table-cell",
+            "date-picker-content"
+          ],
+          "ratio": 7.626283275390092
+        }
+      ]
+    },
+    "pixels": [
+      {
+        "x": 30,
+        "y": 581.546875,
+        "color": [255, 255, 255, 1],
+        "stack": ["HTML", "dialog-overlay", "dialog-content", "date-picker-content"],
+        "ratio": 7.626283275390092,
+        "pixel": [255, 255, 255, 255],
+        "pixelRatio": 7.626283275390092
+      },
+      {
+        "x": 200,
+        "y": 383,
+        "color": [255, 255, 255, 1],
+        "stack": [
+          "HTML",
+          "dialog-overlay",
+          "dialog-content",
+          "FORM",
+          "table-container",
+          "table",
+          "table-cell",
+          "table-cell",
+          "date-picker-content"
+        ],
+        "ratio": 7.626283275390092,
+        "pixel": [255, 255, 255, 255],
+        "pixelRatio": 7.626283275390092
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "paint": {
+      "label": "natural-disabled-calendar-panel",
+      "active": true,
+      "focusVisible": true,
+      "style": "solid",
+      "width": 2,
+      "offset": "-4px",
+      "color": "rgb(74, 90, 0)",
+      "rgba": [74, 90, 0, 1],
+      "ancestors": [
+        {
+          "host": "date-picker-content",
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "grid",
+          "overflowX": "auto",
+          "overflowY": "auto"
+        },
+        {
+          "host": "DIV",
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "block",
+          "overflowX": "visible",
+          "overflowY": "visible"
+        },
+        {
+          "host": "BODY",
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "block",
+          "overflowX": "hidden",
+          "overflowY": "hidden"
+        },
+        {
+          "host": "HTML",
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "block",
+          "overflowX": "visible",
+          "overflowY": "visible"
+        }
+      ],
+      "propagatedBody": true,
+      "exteriors": [
+        {
+          "x": 398,
+          "y": 661.546875,
+          "color": [255, 255, 255, 1],
+          "stack": ["HTML", "dialog-overlay", "dialog-content", "FORM", "date-picker-content"],
+          "ratio": 7.626283275390092
+        },
+        {
+          "x": 568,
+          "y": 463,
+          "color": [255, 255, 255, 1],
+          "stack": [
+            "HTML",
+            "dialog-overlay",
+            "dialog-content",
+            "FORM",
+            "table-container",
+            "table",
+            "table-cell",
+            "table-cell",
+            "date-picker-content"
+          ],
+          "ratio": 7.626283275390092
+        }
+      ]
+    },
+    "pixels": [
+      {
+        "x": 398,
+        "y": 661.546875,
+        "color": [255, 255, 255, 1],
+        "stack": ["HTML", "dialog-overlay", "dialog-content", "FORM", "date-picker-content"],
+        "ratio": 7.626283275390092,
+        "pixel": [255, 255, 255, 255],
+        "pixelRatio": 7.626283275390092
+      },
+      {
+        "x": 568,
+        "y": 463,
+        "color": [255, 255, 255, 1],
+        "stack": [
+          "HTML",
+          "dialog-overlay",
+          "dialog-content",
+          "FORM",
+          "table-container",
+          "table",
+          "table-cell",
+          "table-cell",
+          "date-picker-content"
+        ],
+        "ratio": 7.626283275390092,
+        "pixel": [255, 255, 255, 255],
+        "pixelRatio": 7.626283275390092
+      }
+    ]
+  },
+  {
+    "width": 1280,
+    "paint": {
+      "label": "natural-disabled-calendar-panel",
+      "active": true,
+      "focusVisible": true,
+      "style": "solid",
+      "width": 2,
+      "offset": "-4px",
+      "color": "rgb(74, 90, 0)",
+      "rgba": [74, 90, 0, 1],
+      "ancestors": [
+        {
+          "host": "date-picker-content",
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "grid",
+          "overflowX": "auto",
+          "overflowY": "auto"
+        },
+        {
+          "host": "DIV",
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "block",
+          "overflowX": "visible",
+          "overflowY": "visible"
+        },
+        {
+          "host": "BODY",
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "block",
+          "overflowX": "hidden",
+          "overflowY": "hidden"
+        },
+        {
+          "host": "HTML",
+          "opacity": "1",
+          "visibility": "visible",
+          "display": "block",
+          "overflowX": "visible",
+          "overflowY": "visible"
+        }
+      ],
+      "propagatedBody": true,
+      "exteriors": [
+        {
+          "x": 654,
+          "y": 599.546875,
+          "color": [255, 255, 255, 1],
+          "stack": ["HTML", "dialog-overlay", "dialog-content", "FORM", "date-picker-content"],
+          "ratio": 7.626283275390092
+        },
+        {
+          "x": 824,
+          "y": 401,
+          "color": [255, 255, 255, 1],
+          "stack": [
+            "HTML",
+            "dialog-overlay",
+            "dialog-content",
+            "FORM",
+            "table-container",
+            "table",
+            "table-cell",
+            "table-cell",
+            "date-picker-content"
+          ],
+          "ratio": 7.626283275390092
+        }
+      ]
+    },
+    "pixels": [
+      {
+        "x": 654,
+        "y": 599.546875,
+        "color": [255, 255, 255, 1],
+        "stack": ["HTML", "dialog-overlay", "dialog-content", "FORM", "date-picker-content"],
+        "ratio": 7.626283275390092,
+        "pixel": [255, 255, 255, 255],
+        "pixelRatio": 7.626283275390092
+      },
+      {
+        "x": 824,
+        "y": 401,
+        "color": [255, 255, 255, 1],
+        "stack": [
+          "HTML",
+          "dialog-overlay",
+          "dialog-content",
+          "FORM",
+          "table-container",
+          "table",
+          "table-cell",
+          "table-cell",
+          "date-picker-content"
+        ],
+        "ratio": 7.626283275390092,
+        "pixel": [255, 255, 255, 255],
+        "pixelRatio": 7.626283275390092
+      }
+    ]
+  }
+]

@@ -48,12 +48,16 @@ so a component copied out of the registry reads the same here as there.
 
 - `packages/tokens` - the role contract, the two presets, the emitters, the build
   checks. Colour, type and depth are decided here and nowhere else.
-- `packages/ui` - the twenty-one part families, one file each, in shadcn's lowercase
+- `packages/ui` - the thirty-five part families, one file each, in shadcn's lowercase
   spelling (`button.tsx`). They import `cn` from `@/lib/utils`, which is the alias
   the registry ships them under; the CLI rewrites it to the consumer's own.
-- `packages/ui/stories` - one story per part and per variant. **Stories are the
-  tests** (D4): `packages/ui/test/stories.test.tsx` composes every one of them and
-  runs every `play`, so a story that stops working reddens `pnpm test`.
+- `packages/ui/stories` - one story per part and per variant. The corpus runner
+  (`packages/ui/test/stories.test.tsx`) composes stories and invokes their plays;
+  each play must increase Storybook's assertion count. Removing the invocation
+  or substituting a no-op must fail even if the inventory counters remain intact.
+  Compiled-style tests and browser journeys supplement it; the focus suite also
+  checks the actual Chart SVG descendant rather than only its container.
+  Do not treat this corpus alone as proof of every part's behavior.
 - `registry.json` at the root, built into `packages/ui/r/` by `pnpm build`. That
   directory is COMMITTED build output: it needs a raw GitHub URL, and it needs to
   sit inside the package's `files` so a consumer with no network can install from
@@ -116,7 +120,7 @@ compile. If you add a probe there, add it to a source directory, not to a string
 a test.
 
 **Interactive means 44px, measured.** `tailwind-compile.test.tsx` renders every
-story, takes every `button` / `a[href]` / `input` / `[role=button]`, looks its
+story, takes every `button` / `a[href]` / `input` / `[role=button]` / `[role=slider]`, looks its
 classes up in the COMPILED stylesheet and resolves the height in pixels. A part that
 is not a control (a `Badge`) carries no floor, so the moment `asChild` makes one a
 control the CALLER owes it `min-h-hit` - and the story is what gets copied.

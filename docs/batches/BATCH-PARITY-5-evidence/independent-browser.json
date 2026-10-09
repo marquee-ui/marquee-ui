@@ -1,0 +1,1891 @@
+{
+  "sourceSHA": "4123edc5db43e891e207369ad2d52db753bb8b25",
+  "candidateURL": "http://127.0.0.1:4198/",
+  "docsURL": "http://127.0.0.1:4188/marquee-ui/",
+  "results": [
+    {
+      "name": "390-dark",
+      "dialogGeometry": {
+        "host": {
+          "left": 16,
+          "right": 374,
+          "top": 16,
+          "bottom": 828,
+          "contentLeft": 30,
+          "contentRight": 360,
+          "client": 354,
+          "scroll": 354
+        },
+        "roots": [
+          {
+            "left": 30,
+            "right": 360,
+            "top": 335.984375,
+            "bottom": 764.28125,
+            "contentLeft": 40,
+            "contentRight": 350,
+            "client": 326,
+            "scroll": 326,
+            "grids": [
+              {
+                "left": 40,
+                "right": 348,
+                "top": 457.984375,
+                "bottom": 721.984375,
+                "contentLeft": 40,
+                "contentRight": 348,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "searchPaint": {
+        "width": 268,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.799403047525654,
+        "exteriorContrasts": [
+          13.721657431992917, 13.721657431992917, 13.721657431992917, 13.721657431992917
+        ],
+        "viewport": true
+      },
+      "triggerPaint": {
+        "width": 79,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.799403047525654,
+        "exteriorContrasts": [
+          13.969976089000674, 13.969976089000674, 13.969976089000674, 13.969976089000674
+        ],
+        "viewport": true
+      },
+      "dayPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 12.020935338253596,
+        "exteriorContrasts": [
+          16.500790854010294, 16.500790854010294, 16.500790854010294, 16.500790854010294
+        ],
+        "viewport": true
+      },
+      "saturday": {
+        "width": 44,
+        "height": 44,
+        "borderRadius": "0px",
+        "hit": [true, true, true, true, true, true, true, true, true]
+      },
+      "popoverGeometry": {
+        "host": {
+          "left": 16,
+          "right": 374,
+          "top": 16,
+          "bottom": 476.375,
+          "contentLeft": 26,
+          "contentRight": 364,
+          "client": 354,
+          "scroll": 354
+        },
+        "roots": [
+          {
+            "left": 26,
+            "right": 364,
+            "top": 26,
+            "bottom": 454.296875,
+            "contentLeft": 36,
+            "contentRight": 354,
+            "client": 334,
+            "scroll": 334,
+            "grids": [
+              {
+                "left": 36,
+                "right": 344,
+                "top": 148,
+                "bottom": 412,
+                "contentLeft": 36,
+                "contentRight": 344,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "navigationPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 15.64027109178114,
+        "exteriorContrasts": [
+          16.500790854010294, 16.500790854010294, 16.500790854010294, 16.500790854010294
+        ],
+        "viewport": true
+      },
+      "popoverPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 12.020935338253596,
+        "exteriorContrasts": [
+          16.500790854010294, 15.362262662274503, 16.500790854010294, 16.500790854010294
+        ],
+        "viewport": true
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "390-light",
+      "dialogGeometry": {
+        "host": {
+          "left": 16,
+          "right": 374,
+          "top": 16,
+          "bottom": 828,
+          "contentLeft": 30,
+          "contentRight": 360,
+          "client": 354,
+          "scroll": 354
+        },
+        "roots": [
+          {
+            "left": 30,
+            "right": 360,
+            "top": 335.984375,
+            "bottom": 764.28125,
+            "contentLeft": 40,
+            "contentRight": 350,
+            "client": 326,
+            "scroll": 326,
+            "grids": [
+              {
+                "left": 40,
+                "right": 348,
+                "top": 457.984375,
+                "bottom": 721.984375,
+                "contentLeft": 40,
+                "contentRight": 348,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "searchPaint": {
+        "width": 268,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.878536244391228,
+        "exteriorContrasts": [
+          7.600950521517389, 7.600950521517389, 7.600950521517389, 7.600950521517389
+        ],
+        "viewport": true
+      },
+      "triggerPaint": {
+        "width": 79,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.878536244391228,
+        "exteriorContrasts": [
+          18.068391138927797, 18.068391138927797, 18.068391138927797, 18.068391138927797
+        ],
+        "viewport": true
+      },
+      "dayPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.018088265660204,
+        "exteriorContrasts": [
+          7.1004063329607945, 7.1004063329607945, 7.1004063329607945, 7.1004063329607945
+        ],
+        "viewport": true
+      },
+      "saturday": {
+        "width": 44,
+        "height": 44,
+        "borderRadius": "0px",
+        "hit": [true, true, true, true, true, true, true, true, true]
+      },
+      "popoverGeometry": {
+        "host": {
+          "left": 16,
+          "right": 374,
+          "top": 16,
+          "bottom": 476.375,
+          "contentLeft": 26,
+          "contentRight": 364,
+          "client": 354,
+          "scroll": 354
+        },
+        "roots": [
+          {
+            "left": 26,
+            "right": 364,
+            "top": 26,
+            "bottom": 454.296875,
+            "contentLeft": 36,
+            "contentRight": 354,
+            "client": 334,
+            "scroll": 334,
+            "grids": [
+              {
+                "left": 36,
+                "right": 344,
+                "top": 148,
+                "bottom": 412,
+                "contentLeft": 36,
+                "contentRight": 344,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "navigationPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 17.54694784118478,
+        "exteriorContrasts": [
+          7.1004063329607945, 7.1004063329607945, 7.1004063329607945, 7.1004063329607945
+        ],
+        "viewport": true
+      },
+      "popoverPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.018088265660204,
+        "exteriorContrasts": [
+          7.1004063329607945, 7.381591494172538, 7.1004063329607945, 7.1004063329607945
+        ],
+        "viewport": true
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "390-accent",
+      "dialogGeometry": {
+        "host": {
+          "left": 16,
+          "right": 374,
+          "top": 16,
+          "bottom": 828,
+          "contentLeft": 30,
+          "contentRight": 360,
+          "client": 354,
+          "scroll": 354
+        },
+        "roots": [
+          {
+            "left": 30,
+            "right": 360,
+            "top": 335.984375,
+            "bottom": 764.28125,
+            "contentLeft": 40,
+            "contentRight": 350,
+            "client": 326,
+            "scroll": 326,
+            "grids": [
+              {
+                "left": 40,
+                "right": 348,
+                "top": 457.984375,
+                "bottom": 721.984375,
+                "contentLeft": 40,
+                "contentRight": 348,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "searchPaint": {
+        "width": 268,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.02628220132613,
+        "exteriorContrasts": [
+          7.066511677164326, 7.066511677164326, 7.066511677164326, 7.066511677164326
+        ],
+        "viewport": true
+      },
+      "triggerPaint": {
+        "width": 79,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.02628220132613,
+        "exteriorContrasts": [
+          13.670544837348622, 13.670544837348622, 13.670544837348622, 13.670544837348622
+        ],
+        "viewport": true
+      },
+      "dayPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 13.628037200659449,
+        "exteriorContrasts": [
+          8.284228000028016, 8.284228000028016, 8.284228000028016, 8.284228000028016
+        ],
+        "viewport": true
+      },
+      "saturday": {
+        "width": 44,
+        "height": 44,
+        "borderRadius": "0px",
+        "hit": [true, true, true, true, true, true, true, true, true]
+      },
+      "popoverGeometry": {
+        "host": {
+          "left": 16,
+          "right": 374,
+          "top": 16,
+          "bottom": 476.375,
+          "contentLeft": 26,
+          "contentRight": 364,
+          "client": 354,
+          "scroll": 354
+        },
+        "roots": [
+          {
+            "left": 26,
+            "right": 364,
+            "top": 26,
+            "bottom": 454.296875,
+            "contentLeft": 36,
+            "contentRight": 354,
+            "client": 334,
+            "scroll": 334,
+            "grids": [
+              {
+                "left": 36,
+                "right": 344,
+                "top": 148,
+                "bottom": 412,
+                "contentLeft": 36,
+                "contentRight": 344,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "navigationPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 14.803203893577544,
+        "exteriorContrasts": [
+          8.284228000028016, 8.284228000028016, 8.284228000028016, 8.284228000028016
+        ],
+        "viewport": true
+      },
+      "popoverPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 13.628037200659449,
+        "exteriorContrasts": [
+          8.284228000028016, 7.6520002983069455, 8.284228000028016, 8.284228000028016
+        ],
+        "viewport": true
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "390-forced",
+      "dialogGeometry": {
+        "host": {
+          "left": 16,
+          "right": 374,
+          "top": 16,
+          "bottom": 828,
+          "contentLeft": 30,
+          "contentRight": 360,
+          "client": 354,
+          "scroll": 354
+        },
+        "roots": [
+          {
+            "left": 30,
+            "right": 360,
+            "top": 335.984375,
+            "bottom": 764.28125,
+            "contentLeft": 40,
+            "contentRight": 350,
+            "client": 326,
+            "scroll": 326,
+            "grids": [
+              {
+                "left": 40,
+                "right": 348,
+                "top": 457.984375,
+                "bottom": 721.984375,
+                "contentLeft": 40,
+                "contentRight": 348,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "searchPaint": {
+        "width": 268,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 0.8,
+        "textContrast": 21,
+        "exteriorContrasts": [
+          11.32025621138092, 11.32025621138092, 11.32025621138092, 11.32025621138092
+        ],
+        "viewport": true
+      },
+      "triggerPaint": {
+        "width": 79,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 0.8,
+        "textContrast": 21,
+        "exteriorContrasts": [
+          11.32025621138092, 11.32025621138092, 11.32025621138092, 11.32025621138092
+        ],
+        "viewport": true
+      },
+      "dayPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 0.8,
+        "textContrast": 21,
+        "exteriorContrasts": [
+          11.32025621138092, 11.32025621138092, 11.32025621138092, 11.32025621138092
+        ],
+        "viewport": true
+      },
+      "saturday": {
+        "width": 44,
+        "height": 44,
+        "borderRadius": "0px",
+        "hit": [true, true, true, true, true, true, true, true, true]
+      },
+      "popoverGeometry": {
+        "host": {
+          "left": 16,
+          "right": 374,
+          "top": 16,
+          "bottom": 476.375,
+          "contentLeft": 26,
+          "contentRight": 364,
+          "client": 354,
+          "scroll": 354
+        },
+        "roots": [
+          {
+            "left": 26,
+            "right": 364,
+            "top": 26,
+            "bottom": 454.296875,
+            "contentLeft": 36,
+            "contentRight": 354,
+            "client": 334,
+            "scroll": 334,
+            "grids": [
+              {
+                "left": 36,
+                "right": 344,
+                "top": 148,
+                "bottom": 412,
+                "contentLeft": 36,
+                "contentRight": 344,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "navigationPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 0.8,
+        "textContrast": 21,
+        "exteriorContrasts": [
+          11.32025621138092, 11.32025621138092, 11.32025621138092, 11.32025621138092
+        ],
+        "viewport": true
+      },
+      "popoverPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 0.8,
+        "textContrast": 21,
+        "exteriorContrasts": [
+          11.32025621138092, 11.32025621138092, 11.32025621138092, 11.32025621138092
+        ],
+        "viewport": true
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "768-dark",
+      "dialogGeometry": {
+        "host": {
+          "left": 128,
+          "right": 640,
+          "top": 100.859375,
+          "bottom": 923.140625,
+          "contentLeft": 142,
+          "contentRight": 626,
+          "client": 508,
+          "scroll": 508
+        },
+        "roots": [
+          {
+            "left": 142,
+            "right": 582,
+            "top": 420.84375,
+            "bottom": 849.140625,
+            "contentLeft": 152,
+            "contentRight": 572,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 152,
+                "right": 460,
+                "top": 542.84375,
+                "bottom": 806.84375,
+                "contentLeft": 152,
+                "contentRight": 460,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "searchPaint": {
+        "width": 268,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.799403047525654,
+        "exteriorContrasts": [
+          13.721657431992917, 13.721657431992917, 13.721657431992917, 13.721657431992917
+        ],
+        "viewport": true
+      },
+      "triggerPaint": {
+        "width": 79,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.799403047525654,
+        "exteriorContrasts": [
+          13.969976089000674, 13.969976089000674, 13.969976089000674, 13.969976089000674
+        ],
+        "viewport": true
+      },
+      "dayPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 12.020935338253596,
+        "exteriorContrasts": [
+          16.500790854010294, 16.500790854010294, 16.500790854010294, 16.500790854010294
+        ],
+        "viewport": true
+      },
+      "saturday": {
+        "width": 44,
+        "height": 44,
+        "borderRadius": "0px",
+        "hit": [true, true, true, true, true, true, true, true, true]
+      },
+      "popoverGeometry": {
+        "host": {
+          "left": 16,
+          "right": 476,
+          "top": 58,
+          "bottom": 566.296875,
+          "contentLeft": 26,
+          "contentRight": 466,
+          "client": 456,
+          "scroll": 456
+        },
+        "roots": [
+          {
+            "left": 26,
+            "right": 466,
+            "top": 68,
+            "bottom": 496.296875,
+            "contentLeft": 36,
+            "contentRight": 456,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 36,
+                "right": 344,
+                "top": 190,
+                "bottom": 454,
+                "contentLeft": 36,
+                "contentRight": 344,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "navigationPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 15.64027109178114,
+        "exteriorContrasts": [
+          16.500790854010294, 16.500790854010294, 16.500790854010294, 16.500790854010294
+        ],
+        "viewport": true
+      },
+      "popoverPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 12.020935338253596,
+        "exteriorContrasts": [
+          16.500790854010294, 15.362262662274503, 16.500790854010294, 16.500790854010294
+        ],
+        "viewport": true
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "768-light",
+      "dialogGeometry": {
+        "host": {
+          "left": 128,
+          "right": 640,
+          "top": 100.859375,
+          "bottom": 923.140625,
+          "contentLeft": 142,
+          "contentRight": 626,
+          "client": 508,
+          "scroll": 508
+        },
+        "roots": [
+          {
+            "left": 142,
+            "right": 582,
+            "top": 420.84375,
+            "bottom": 849.140625,
+            "contentLeft": 152,
+            "contentRight": 572,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 152,
+                "right": 460,
+                "top": 542.84375,
+                "bottom": 806.84375,
+                "contentLeft": 152,
+                "contentRight": 460,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "searchPaint": {
+        "width": 268,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.878536244391228,
+        "exteriorContrasts": [
+          7.600950521517389, 7.600950521517389, 7.600950521517389, 7.600950521517389
+        ],
+        "viewport": true
+      },
+      "triggerPaint": {
+        "width": 79,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.878536244391228,
+        "exteriorContrasts": [
+          18.068391138927797, 18.068391138927797, 18.068391138927797, 18.068391138927797
+        ],
+        "viewport": true
+      },
+      "dayPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.018088265660204,
+        "exteriorContrasts": [
+          7.1004063329607945, 7.1004063329607945, 7.1004063329607945, 7.1004063329607945
+        ],
+        "viewport": true
+      },
+      "saturday": {
+        "width": 44,
+        "height": 44,
+        "borderRadius": "0px",
+        "hit": [true, true, true, true, true, true, true, true, true]
+      },
+      "popoverGeometry": {
+        "host": {
+          "left": 16,
+          "right": 476,
+          "top": 58,
+          "bottom": 566.296875,
+          "contentLeft": 26,
+          "contentRight": 466,
+          "client": 456,
+          "scroll": 456
+        },
+        "roots": [
+          {
+            "left": 26,
+            "right": 466,
+            "top": 68,
+            "bottom": 496.296875,
+            "contentLeft": 36,
+            "contentRight": 456,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 36,
+                "right": 344,
+                "top": 190,
+                "bottom": 454,
+                "contentLeft": 36,
+                "contentRight": 344,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "navigationPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 17.54694784118478,
+        "exteriorContrasts": [
+          7.1004063329607945, 7.1004063329607945, 7.1004063329607945, 7.1004063329607945
+        ],
+        "viewport": true
+      },
+      "popoverPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.018088265660204,
+        "exteriorContrasts": [
+          7.1004063329607945, 7.381591494172538, 7.1004063329607945, 7.1004063329607945
+        ],
+        "viewport": true
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "768-accent",
+      "dialogGeometry": {
+        "host": {
+          "left": 128,
+          "right": 640,
+          "top": 100.859375,
+          "bottom": 923.140625,
+          "contentLeft": 142,
+          "contentRight": 626,
+          "client": 508,
+          "scroll": 508
+        },
+        "roots": [
+          {
+            "left": 142,
+            "right": 582,
+            "top": 420.84375,
+            "bottom": 849.140625,
+            "contentLeft": 152,
+            "contentRight": 572,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 152,
+                "right": 460,
+                "top": 542.84375,
+                "bottom": 806.84375,
+                "contentLeft": 152,
+                "contentRight": 460,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "searchPaint": {
+        "width": 268,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.02628220132613,
+        "exteriorContrasts": [
+          7.066511677164326, 7.066511677164326, 7.066511677164326, 7.066511677164326
+        ],
+        "viewport": true
+      },
+      "triggerPaint": {
+        "width": 79,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.02628220132613,
+        "exteriorContrasts": [
+          13.670544837348622, 13.670544837348622, 13.670544837348622, 13.670544837348622
+        ],
+        "viewport": true
+      },
+      "dayPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 13.628037200659449,
+        "exteriorContrasts": [
+          8.284228000028016, 8.284228000028016, 8.284228000028016, 8.284228000028016
+        ],
+        "viewport": true
+      },
+      "saturday": {
+        "width": 44,
+        "height": 44,
+        "borderRadius": "0px",
+        "hit": [true, true, true, true, true, true, true, true, true]
+      },
+      "popoverGeometry": {
+        "host": {
+          "left": 16,
+          "right": 476,
+          "top": 58,
+          "bottom": 566.296875,
+          "contentLeft": 26,
+          "contentRight": 466,
+          "client": 456,
+          "scroll": 456
+        },
+        "roots": [
+          {
+            "left": 26,
+            "right": 466,
+            "top": 68,
+            "bottom": 496.296875,
+            "contentLeft": 36,
+            "contentRight": 456,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 36,
+                "right": 344,
+                "top": 190,
+                "bottom": 454,
+                "contentLeft": 36,
+                "contentRight": 344,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "navigationPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 14.803203893577544,
+        "exteriorContrasts": [
+          8.284228000028016, 8.284228000028016, 8.284228000028016, 8.284228000028016
+        ],
+        "viewport": true
+      },
+      "popoverPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 13.628037200659449,
+        "exteriorContrasts": [
+          8.284228000028016, 7.6520002983069455, 8.284228000028016, 8.284228000028016
+        ],
+        "viewport": true
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "768-forced",
+      "dialogGeometry": {
+        "host": {
+          "left": 128,
+          "right": 640,
+          "top": 100.859375,
+          "bottom": 923.140625,
+          "contentLeft": 142,
+          "contentRight": 626,
+          "client": 508,
+          "scroll": 508
+        },
+        "roots": [
+          {
+            "left": 142,
+            "right": 582,
+            "top": 420.84375,
+            "bottom": 849.140625,
+            "contentLeft": 152,
+            "contentRight": 572,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 152,
+                "right": 460,
+                "top": 542.84375,
+                "bottom": 806.84375,
+                "contentLeft": 152,
+                "contentRight": 460,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "searchPaint": {
+        "width": 268,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 0.8,
+        "textContrast": 21,
+        "exteriorContrasts": [
+          11.32025621138092, 11.32025621138092, 11.32025621138092, 11.32025621138092
+        ],
+        "viewport": true
+      },
+      "triggerPaint": {
+        "width": 79,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 0.8,
+        "textContrast": 21,
+        "exteriorContrasts": [
+          11.32025621138092, 11.32025621138092, 11.32025621138092, 11.32025621138092
+        ],
+        "viewport": true
+      },
+      "dayPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 0.8,
+        "textContrast": 21,
+        "exteriorContrasts": [
+          11.32025621138092, 11.32025621138092, 11.32025621138092, 11.32025621138092
+        ],
+        "viewport": true
+      },
+      "saturday": {
+        "width": 44,
+        "height": 44,
+        "borderRadius": "0px",
+        "hit": [true, true, true, true, true, true, true, true, true]
+      },
+      "popoverGeometry": {
+        "host": {
+          "left": 16,
+          "right": 476,
+          "top": 58,
+          "bottom": 566.296875,
+          "contentLeft": 26,
+          "contentRight": 466,
+          "client": 456,
+          "scroll": 456
+        },
+        "roots": [
+          {
+            "left": 26,
+            "right": 466,
+            "top": 68,
+            "bottom": 496.296875,
+            "contentLeft": 36,
+            "contentRight": 456,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 36,
+                "right": 344,
+                "top": 190,
+                "bottom": 454,
+                "contentLeft": 36,
+                "contentRight": 344,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "navigationPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 0.8,
+        "textContrast": 21,
+        "exteriorContrasts": [
+          11.32025621138092, 11.32025621138092, 11.32025621138092, 11.32025621138092
+        ],
+        "viewport": true
+      },
+      "popoverPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 0.8,
+        "textContrast": 21,
+        "exteriorContrasts": [
+          11.32025621138092, 11.32025621138092, 11.32025621138092, 11.32025621138092
+        ],
+        "viewport": true
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "1280-dark",
+      "dialogGeometry": {
+        "host": {
+          "left": 384,
+          "right": 896,
+          "top": 38.859375,
+          "bottom": 861.140625,
+          "contentLeft": 398,
+          "contentRight": 882,
+          "client": 508,
+          "scroll": 508
+        },
+        "roots": [
+          {
+            "left": 398,
+            "right": 838,
+            "top": 358.84375,
+            "bottom": 787.140625,
+            "contentLeft": 408,
+            "contentRight": 828,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 408,
+                "right": 716,
+                "top": 480.84375,
+                "bottom": 744.84375,
+                "contentLeft": 408,
+                "contentRight": 716,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "searchPaint": {
+        "width": 268,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.799403047525654,
+        "exteriorContrasts": [
+          13.721657431992917, 13.721657431992917, 13.721657431992917, 13.721657431992917
+        ],
+        "viewport": true
+      },
+      "triggerPaint": {
+        "width": 79,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.799403047525654,
+        "exteriorContrasts": [
+          13.969976089000674, 13.969976089000674, 13.969976089000674, 13.969976089000674
+        ],
+        "viewport": true
+      },
+      "dayPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 12.020935338253596,
+        "exteriorContrasts": [
+          16.500790854010294, 16.500790854010294, 16.500790854010294, 16.500790854010294
+        ],
+        "viewport": true
+      },
+      "saturday": {
+        "width": 44,
+        "height": 44,
+        "borderRadius": "0px",
+        "hit": [true, true, true, true, true, true, true, true, true]
+      },
+      "popoverGeometry": {
+        "host": {
+          "left": 16,
+          "right": 476,
+          "top": 16,
+          "bottom": 503.59375,
+          "contentLeft": 26,
+          "contentRight": 466,
+          "client": 456,
+          "scroll": 456
+        },
+        "roots": [
+          {
+            "left": 26,
+            "right": 466,
+            "top": 26,
+            "bottom": 454.296875,
+            "contentLeft": 36,
+            "contentRight": 456,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 36,
+                "right": 344,
+                "top": 148,
+                "bottom": 412,
+                "contentLeft": 36,
+                "contentRight": 344,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "navigationPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 15.64027109178114,
+        "exteriorContrasts": [
+          16.500790854010294, 16.500790854010294, 16.500790854010294, 16.500790854010294
+        ],
+        "viewport": true
+      },
+      "popoverPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 12.020935338253596,
+        "exteriorContrasts": [
+          16.500790854010294, 15.362262662274503, 16.500790854010294, 16.500790854010294
+        ],
+        "viewport": true
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "1280-light",
+      "dialogGeometry": {
+        "host": {
+          "left": 384,
+          "right": 896,
+          "top": 38.859375,
+          "bottom": 861.140625,
+          "contentLeft": 398,
+          "contentRight": 882,
+          "client": 508,
+          "scroll": 508
+        },
+        "roots": [
+          {
+            "left": 398,
+            "right": 838,
+            "top": 358.84375,
+            "bottom": 787.140625,
+            "contentLeft": 408,
+            "contentRight": 828,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 408,
+                "right": 716,
+                "top": 480.84375,
+                "bottom": 744.84375,
+                "contentLeft": 408,
+                "contentRight": 716,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "searchPaint": {
+        "width": 268,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.878536244391228,
+        "exteriorContrasts": [
+          7.600950521517389, 7.600950521517389, 7.600950521517389, 7.600950521517389
+        ],
+        "viewport": true
+      },
+      "triggerPaint": {
+        "width": 79,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.878536244391228,
+        "exteriorContrasts": [
+          18.068391138927797, 18.068391138927797, 18.068391138927797, 18.068391138927797
+        ],
+        "viewport": true
+      },
+      "dayPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.018088265660204,
+        "exteriorContrasts": [
+          7.1004063329607945, 7.1004063329607945, 7.1004063329607945, 7.1004063329607945
+        ],
+        "viewport": true
+      },
+      "saturday": {
+        "width": 44,
+        "height": 44,
+        "borderRadius": "0px",
+        "hit": [true, true, true, true, true, true, true, true, true]
+      },
+      "popoverGeometry": {
+        "host": {
+          "left": 16,
+          "right": 476,
+          "top": 16,
+          "bottom": 503.59375,
+          "contentLeft": 26,
+          "contentRight": 466,
+          "client": 456,
+          "scroll": 456
+        },
+        "roots": [
+          {
+            "left": 26,
+            "right": 466,
+            "top": 26,
+            "bottom": 454.296875,
+            "contentLeft": 36,
+            "contentRight": 456,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 36,
+                "right": 344,
+                "top": 148,
+                "bottom": 412,
+                "contentLeft": 36,
+                "contentRight": 344,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "navigationPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 17.54694784118478,
+        "exteriorContrasts": [
+          7.1004063329607945, 7.1004063329607945, 7.1004063329607945, 7.1004063329607945
+        ],
+        "viewport": true
+      },
+      "popoverPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.018088265660204,
+        "exteriorContrasts": [
+          7.1004063329607945, 7.381591494172538, 7.1004063329607945, 7.1004063329607945
+        ],
+        "viewport": true
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "1280-accent",
+      "dialogGeometry": {
+        "host": {
+          "left": 384,
+          "right": 896,
+          "top": 38.859375,
+          "bottom": 861.140625,
+          "contentLeft": 398,
+          "contentRight": 882,
+          "client": 508,
+          "scroll": 508
+        },
+        "roots": [
+          {
+            "left": 398,
+            "right": 838,
+            "top": 358.84375,
+            "bottom": 787.140625,
+            "contentLeft": 408,
+            "contentRight": 828,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 408,
+                "right": 716,
+                "top": 480.84375,
+                "bottom": 744.84375,
+                "contentLeft": 408,
+                "contentRight": 716,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "searchPaint": {
+        "width": 268,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.02628220132613,
+        "exteriorContrasts": [
+          7.066511677164326, 7.066511677164326, 7.066511677164326, 7.066511677164326
+        ],
+        "viewport": true
+      },
+      "triggerPaint": {
+        "width": 79,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 16.02628220132613,
+        "exteriorContrasts": [
+          13.670544837348622, 13.670544837348622, 13.670544837348622, 13.670544837348622
+        ],
+        "viewport": true
+      },
+      "dayPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 13.628037200659449,
+        "exteriorContrasts": [
+          8.284228000028016, 8.284228000028016, 8.284228000028016, 8.284228000028016
+        ],
+        "viewport": true
+      },
+      "saturday": {
+        "width": 44,
+        "height": 44,
+        "borderRadius": "0px",
+        "hit": [true, true, true, true, true, true, true, true, true]
+      },
+      "popoverGeometry": {
+        "host": {
+          "left": 16,
+          "right": 476,
+          "top": 16,
+          "bottom": 503.59375,
+          "contentLeft": 26,
+          "contentRight": 466,
+          "client": 456,
+          "scroll": 456
+        },
+        "roots": [
+          {
+            "left": 26,
+            "right": 466,
+            "top": 26,
+            "bottom": 454.296875,
+            "contentLeft": 36,
+            "contentRight": 456,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 36,
+                "right": 344,
+                "top": 148,
+                "bottom": 412,
+                "contentLeft": 36,
+                "contentRight": 344,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "navigationPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 14.803203893577544,
+        "exteriorContrasts": [
+          8.284228000028016, 8.284228000028016, 8.284228000028016, 8.284228000028016
+        ],
+        "viewport": true
+      },
+      "popoverPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 1,
+        "textContrast": 13.628037200659449,
+        "exteriorContrasts": [
+          8.284228000028016, 7.6520002983069455, 8.284228000028016, 8.284228000028016
+        ],
+        "viewport": true
+      },
+      "status": "PASS"
+    },
+    {
+      "name": "1280-forced",
+      "dialogGeometry": {
+        "host": {
+          "left": 384,
+          "right": 896,
+          "top": 38.859375,
+          "bottom": 861.140625,
+          "contentLeft": 398,
+          "contentRight": 882,
+          "client": 508,
+          "scroll": 508
+        },
+        "roots": [
+          {
+            "left": 398,
+            "right": 838,
+            "top": 358.84375,
+            "bottom": 787.140625,
+            "contentLeft": 408,
+            "contentRight": 828,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 408,
+                "right": 716,
+                "top": 480.84375,
+                "bottom": 744.84375,
+                "contentLeft": 408,
+                "contentRight": 716,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "searchPaint": {
+        "width": 268,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 0.8,
+        "textContrast": 21,
+        "exteriorContrasts": [
+          11.32025621138092, 11.32025621138092, 11.32025621138092, 11.32025621138092
+        ],
+        "viewport": true
+      },
+      "triggerPaint": {
+        "width": 79,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 0.8,
+        "textContrast": 21,
+        "exteriorContrasts": [
+          11.32025621138092, 11.32025621138092, 11.32025621138092, 11.32025621138092
+        ],
+        "viewport": true
+      },
+      "dayPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 0.8,
+        "textContrast": 21,
+        "exteriorContrasts": [
+          11.32025621138092, 11.32025621138092, 11.32025621138092, 11.32025621138092
+        ],
+        "viewport": true
+      },
+      "saturday": {
+        "width": 44,
+        "height": 44,
+        "borderRadius": "0px",
+        "hit": [true, true, true, true, true, true, true, true, true]
+      },
+      "popoverGeometry": {
+        "host": {
+          "left": 16,
+          "right": 476,
+          "top": 16,
+          "bottom": 503.59375,
+          "contentLeft": 26,
+          "contentRight": 466,
+          "client": 456,
+          "scroll": 456
+        },
+        "roots": [
+          {
+            "left": 26,
+            "right": 466,
+            "top": 26,
+            "bottom": 454.296875,
+            "contentLeft": 36,
+            "contentRight": 456,
+            "client": 436,
+            "scroll": 436,
+            "grids": [
+              {
+                "left": 36,
+                "right": 344,
+                "top": 148,
+                "bottom": 412,
+                "contentLeft": 36,
+                "contentRight": 344,
+                "client": 308,
+                "scroll": 308
+              }
+            ]
+          }
+        ]
+      },
+      "navigationPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 0.8,
+        "textContrast": 21,
+        "exteriorContrasts": [
+          11.32025621138092, 11.32025621138092, 11.32025621138092, 11.32025621138092
+        ],
+        "viewport": true
+      },
+      "popoverPaint": {
+        "width": 44,
+        "height": 44,
+        "visible": true,
+        "opacity": 1,
+        "clipped": false,
+        "outlineStyle": "solid",
+        "outlineWidth": 2,
+        "outlineAlpha": 0.8,
+        "textContrast": 21,
+        "exteriorContrasts": [
+          11.32025621138092, 11.32025621138092, 11.32025621138092, 11.32025621138092
+        ],
+        "viewport": true
+      },
+      "status": "PASS"
+    }
+  ]
+}

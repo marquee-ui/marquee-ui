@@ -1,0 +1,42 @@
+[
+  {
+    "path": "/home/ankit/Code/marquee-ui/brand/marquee-tide-512.png",
+    "sha256": "872093a71172ee4d3575dea6521b664ed4080c7c7a639e2953ac8a650bab8be5"
+  },
+  {
+    "path": "/home/ankit/Code/marquee-ui/brand/marquee-github-social.png",
+    "sha256": "1f548c7f7d41559e4a71bbfebae2480262b6dea2afcaaf20f9d742d9bc9e3c30"
+  },
+  {
+    "path": "/home/ankit/.marquee-scratch/DOCS-PAGES-1/home-390.png",
+    "sha256": "fcbc17bb390a9e5675e3174ea125a6b03f5a9a8fa2f52f416ffa48cb1c241162"
+  },
+  {
+    "path": "/home/ankit/.marquee-scratch/DOCS-PAGES-1/themes-1280.png",
+    "sha256": "e3771e59f789728057be49b13a4e79e66f83cdf537c1d49414477896f436b3a3"
+  },
+  {
+    "path": "/home/ankit/.marquee-scratch/DOCS-PAGES-1/guide-768.png",
+    "sha256": "41622fd96e61a437b0e8ce28b403507fe83f7d4336ab47786f27dac284de6dda"
+  },
+  {
+    "path": "/home/ankit/.marquee-scratch/DOCS-PAGES-1/components-390.png",
+    "sha256": "ec774c8fca420fc71d1da8b51e298671dd1f121e957c47f1647716d9dcb8749d"
+  },
+  {
+    "path": "/home/ankit/.marquee-scratch/DOCS-PAGES-1/components-1280.png",
+    "sha256": "c91ea92e1760da95d2ecf545d73436152965b818e63ac3d82a542ed374a47cdd"
+  },
+  {
+    "path": "/home/ankit/.marquee-scratch/DOCS-PAGES-1/home-1280.png",
+    "sha256": "a79304491cf1b82e8f3f11b9116fc395ba4f3d12aff7d3fa10706c6a209d5319"
+  },
+  {
+    "path": "/home/ankit/.marquee-scratch/DOCS-PAGES-1/install-dark-390.png",
+    "sha256": "afd151d792d02a531fcd601365fc47efb75906ed48bc511a357060957a733ff6"
+  },
+  {
+    "path": "/home/ankit/.marquee-scratch/DOCS-PAGES-1/install-light-390.png",
+    "sha256": "8d5c567d76ce166232fc9cce295baaa82a326017765f33ff42bef0f3d907636e"
+  }
+]
