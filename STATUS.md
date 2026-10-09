@@ -1,6 +1,6 @@
 # Marquee implementation status
 
-CURSOR: READY — preview fixes verified; review before merge; npm 0.2.0 held
+CURSOR: IN PROGRESS — nested modal Escape repair and fresh candidate proof; npm 0.2.0 held
 
 The user authorized a finite component-parity program on 2026-10-08. All eight
 [ordered batches](docs/component-parity.md) are complete. No batch 9 is queued.
@@ -10,11 +10,17 @@ and validation limits are explicitly deferred in the matrix.
 
 ## Next work
 
-The user paused the UI 0.2.0 npm release on 2026-10-09 to fix the Slider endpoint
-alignment, compact the Calendar and check other component previews. Those fixes
-and the text Toggle preview spacing are complete. The draft PR is recorded in
-`/home/ankit/.marquee-scratch/UI-FIXES-1/final-handoff.md`. Review before merge;
-no further roadmap batch is queued.
+PR #3 merged as `7e929d55e6a903dafb1671c3dca71a74d4b349b4` after green
+PR CI. Pages deployed the Slider/Calendar fixes and all nine targeted public
+checks passed. The separate main/next runs exposed an intermittent nested modal
+Escape failure: the background Sheet could close while its child registered.
+
+The user authorized continuing that repair and rebuilding the held candidate.
+[NESTED-ESCAPE-1](docs/batches/NESTED-ESCAPE-1.md) records the deterministic
+reproduction, background-modal guard and Sheet slot correction. Full verification
+and a fresh external package proof are in progress. No new roadmap batch is queued.
+
+The preceding preview fix was verified as follows:
 
 `DOCS_PORT=4182 pnpm verify` passed on 2026-10-09: 1,001 library tests, 39 docs
 tests, 5 consumer-harness tests and 333 Chromium cases at 390/768/1280. The new
@@ -49,7 +55,7 @@ served-page evidence is in the DOCS-PAGES-1 handoff below.
 Current verified local preview: **http://localhost:4174/marquee-ui/**, served from
 `/home/ankit/.marquee-scratch/UI-FIXES-1/preview-verified`. The handoff records the
 source commit, preview manifest, screenshots and before/after measurements.
-The public site still serves the previous merge until this fix PR is approved.
+The public site serves PR #3. The nested modal repair is not deployed yet.
 
 ## Previous evidence and cold resume
 

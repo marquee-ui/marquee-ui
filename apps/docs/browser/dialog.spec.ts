@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Locator } from "@playwright/test";
+import { modalOwnsEscape } from "./helpers/modal";
 
 const example = readFileSync(new URL("../src/examples/dialog.tsx", import.meta.url), "utf8");
 
@@ -203,6 +204,7 @@ test("Dialog inside Sheet restores focus through separate Escape and outside dis
     page.locator('[data-slot="sheet-content"]'),
     "the parent layer becomes inert while its child is active",
   ).toHaveCSS("pointer-events", "none");
+  await modalOwnsEscape(dialog, page.locator('[data-slot="sheet-content"]'));
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(sheet).toBeVisible();

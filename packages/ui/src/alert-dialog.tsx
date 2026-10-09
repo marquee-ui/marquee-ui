@@ -1,10 +1,11 @@
 "use client";
 
+import { useComposedRefs } from "@radix-ui/react-compose-refs";
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import type { ComponentProps } from "react";
-import { cn } from "@/lib/utils";
+import { useRef, type ComponentProps } from "react";
+import { cn, handleModalEscape } from "@/lib/utils";
 
 /** Radix owns confirmation semantics, state and focus. Every structural part is explicit. */
 export const AlertDialog = AlertDialogPrimitive.Root;
@@ -43,10 +44,16 @@ export function AlertDialogOverlay({
 /** Centered, bounded and scrollable. Supply Portal, Overlay, title and actions yourself. */
 export function AlertDialogContent({
   className,
+  ref,
+  onEscapeKeyDown,
   ...props
 }: ComponentProps<typeof AlertDialogPrimitive.Content>) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const composedRef = useComposedRefs(ref, contentRef);
   return (
     <AlertDialogPrimitive.Content
+      ref={composedRef}
+      onEscapeKeyDown={(event) => handleModalEscape(contentRef.current, event, onEscapeKeyDown)}
       data-slot="alert-dialog-content"
       className={cn(
         "fixed left-1/2 top-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto overscroll-contain rounded-lg border-2 border-border bg-overlay p-4 text-foreground shadow-lg focus:outline-none",
