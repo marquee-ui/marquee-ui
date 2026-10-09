@@ -23,18 +23,18 @@ Tailwind 4. Its package lock pins `@marquee-ui/ui@0.1.10` and
 `@marquee-ui/tokens@0.1.0`. The default component registry reads GitHub's `main`
 branch, which can change independently of those npm versions.
 
-## Unreleased preview components
+## Source registry and npm release
 
-The local review site also includes Select, Tabs, Dialog, AlertDialog, Popover, Tooltip, DropdownMenu, Slider, Combobox, Calendar, DatePicker, Table, DataTable and Chart from the component-parity program.
-They are not in published UI 0.1.10 or the main-branch registry yet. The starter above
-continues to demonstrate that published release.
+The documentation site also includes Select, Tabs, Dialog, AlertDialog, Popover, Tooltip, DropdownMenu, Slider, Combobox, Calendar, DatePicker, Table, DataTable and Chart from the component-parity program.
+They are available in the `main` source registry but are not in published UI 0.1.10.
+The starter installs from that moving source registry; use the pinned npm registry
+below when you need exactly the published package.
 
 UI `0.2.0` is the proposed package for these 35 families. It is not published yet.
-The [release proposal](https://github.com/marquee-ui/marquee-ui/blob/next/docs/releases/0.2.0.md)
-describes installation from the prepared tarball with published tokens `0.1.0`.
+Release is on hold while preview bugs are fixed. The previously prepared tarball
+predates these fixes and must be rebuilt and verified before publication.
 
-To try the candidate source after setting up the app below, change only the registry
-mapping's branch from `main` to `next`, then run:
+To try these components after setting up the app below, run:
 
 ```sh
 npx shadcn@4.21.4 add @marquee/select @marquee/tabs @marquee/dialog @marquee/alert-dialog @marquee/popover @marquee/tooltip @marquee/dropdown-menu @marquee/slider @marquee/combobox @marquee/calendar @marquee/date-picker @marquee/table @marquee/data-table @marquee/chart
@@ -49,11 +49,11 @@ and leave pointer input blocked after closing:
 npm install '@radix-ui/react-dialog@^1.2.0'
 ```
 
-The candidate Sheet registry declares this minimum automatically. Existing copied Sheet
+The source Sheet registry declares this minimum automatically. Existing copied Sheet
 source keeps its API; it needs the compatible dependency rather than a markup rewrite.
 
-The `next` registry is an unreleased, moving review branch. Pin its path to a reviewed
-commit SHA for repeatable source installs. It uses the same token roles and alias setup;
+The `main` registry moves with merged changes, independently of npm publication.
+Pin its path to a reviewed commit SHA for repeatable source installs. It uses the same token roles and alias setup;
 its declared primitive dependencies are installed by the CLI.
 
 Read [recipe contracts](./recipe-contracts.md) before composing these families. That

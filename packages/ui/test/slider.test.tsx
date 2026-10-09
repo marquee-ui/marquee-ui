@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createRef, useState } from "react";
+import { DirectionProvider } from "@radix-ui/react-direction";
 import { afterEach, expect, it, vi } from "vitest";
 import { Slider, SliderRange, SliderThumb, SliderTrack } from "../src/slider";
 
@@ -196,6 +197,33 @@ it.each([
     thumb.focus();
     fireEvent.keyDown(thumb, { key });
     expect(thumb).toHaveAttribute("aria-valuenow", String(value));
+  },
+);
+
+it.each([
+  ["horizontal", false, "50% 0", "-50% 0"],
+  ["horizontal", true, "-50% 0", "50% 0"],
+  ["vertical", false, "0 50%", "0 -50%"],
+  ["vertical", true, "0 -50%", "0 50%"],
+] as const)(
+  "aligns %s inverted=%s endpoints with inherited RTL and a nonzero minimum",
+  (orientation, inverted, atMin, atMax) => {
+    render(
+      <DirectionProvider dir="rtl">
+        <Slider orientation={orientation} inverted={inverted} min={10} max={90} defaultValue={[50]}>
+          <Parts />
+        </Slider>
+      </DirectionProvider>,
+    );
+    const thumb = screen.getByRole("slider", { name: "Volume" });
+    expect(thumb).toHaveStyle({ translate: orientation === "vertical" ? "0 0%" : "0% 0" });
+    thumb.focus();
+    fireEvent.keyDown(thumb, { key: "Home" });
+    expect(thumb).toHaveAttribute("aria-valuenow", "10");
+    expect(thumb).toHaveStyle({ translate: atMin });
+    fireEvent.keyDown(thumb, { key: "End" });
+    expect(thumb).toHaveAttribute("aria-valuenow", "90");
+    expect(thumb).toHaveStyle({ translate: atMax });
   },
 );
 

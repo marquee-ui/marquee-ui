@@ -99,9 +99,9 @@ export function Calendar({ className, classNames, components, ...props }: Calend
       classNames={{
         root: "",
         months: "relative flex flex-wrap items-start gap-4",
-        month: "w-fit max-w-full",
-        nav: "flex w-full justify-end gap-2 pb-2",
-        month_caption: "flex min-h-hit items-center justify-center pb-2 text-sm font-semibold",
+        month: "relative w-fit max-w-full",
+        nav: "absolute inset-x-0 top-0 h-11",
+        month_caption: "flex min-h-hit items-center justify-center px-11 text-sm font-semibold",
         caption_label: "text-foreground",
         month_grid: "table border-collapse border-spacing-0",
         weekdays: "",
@@ -120,8 +120,8 @@ export function Calendar({ className, classNames, components, ...props }: Calend
         hidden: "invisible",
         footer: "mt-3 max-w-full text-sm text-foreground-2",
         chevron: "size-4 fill-current",
-        button_previous: "",
-        button_next: "",
+        button_previous: "absolute start-0 top-0 z-10",
+        button_next: "absolute end-0 top-0 z-10",
         dropdowns: "flex flex-wrap items-center gap-2",
         dropdown_root: "relative",
         dropdown:

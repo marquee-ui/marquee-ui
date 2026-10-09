@@ -432,6 +432,10 @@ test("isolated DropdownMenu hosts paint readable focus in dark, light, accent an
     await expect(focusedContent).toBeFocused();
     await paintedFocus(focusedContent, page.locator("body"), `${mode} Content`);
     await page.keyboard.press("Escape");
+    // FocusScope restores focus asynchronously. Starting the next menu before
+    // that return can send Enter to the previous trigger and reopen its menu.
+    await expect(focusedContent).toHaveCount(0);
+    await expect(contentsTrigger).toBeFocused();
     const sharesTrigger = page.getByRole("button", { name: "No available shares" });
     await sharesTrigger.focus();
     await sharesTrigger.press("Enter");

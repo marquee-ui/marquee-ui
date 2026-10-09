@@ -183,7 +183,10 @@ the caller to accept that value through `onValueChange`.
 **Disabled Slider alone still submits named values in Radix 1.5.0.** Use a native
 disabled fieldset to exclude them, as the verified recipe does, or omit their names.
 This is a primitive submission limit; Marquee supplies no form controller. Each
-thumb's 44px target contains a smaller noninteractive painted marker.
+thumb's 44px target contains a smaller noninteractive painted marker. The marker
+center follows the value across the entire painted track, including both endpoints.
+Root end margins reserve half a default target at either end; callers overriding
+Root width/margins or enlarging a thumb must preserve that surrounding space.
 
 Sources: [Marquee Slider](https://github.com/marquee-ui/marquee-ui/blob/next/packages/ui/src/slider.tsx),
 [shadcn Slider](https://ui.shadcn.com/docs/components/radix/slider),

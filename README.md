@@ -19,7 +19,7 @@ parts and props instead of inventing one.
 Twenty-one component families and two token presets are published on npm.
 The [quickstart](docs/getting-started.md) includes a standalone React 19 + Tailwind 4
 starter; [supported stack](docs/supported-stack.md) records its scope and limitations.
-The documentation site is available for local review. Its planned publication URL is
+The documentation site is live at
 [marquee-ui.github.io/marquee-ui](https://marquee-ui.github.io/marquee-ui/).
 The site has separate Get started, Components, Themes and Guides pages; nested
 guide URLs are built as static documents so direct links and refreshes work.
