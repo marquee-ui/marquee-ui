@@ -72,5 +72,4 @@ advances.
 | 2026-10-08 | BATCH-PARITY-7      | DataTable/Chart bounded recipes, native scroll and modal focus corrections independently verified; fresh packed proof and localhost refreshed; publication held.                                              |
 | 2026-10-09 | BATCH-PARITY-8      | All 35 family contracts audited; published/candidate guidance, independent reviews, corrected merged gate and immutable preview verified; finite queue complete, remaining work deferred, publication held.   |
 | 2026-10-09 | RELEASE-READINESS-1 | Story-play and Chart SVG guards proved; UI 0.2.0 packed with published tokens 0.1.0; all 35 families installed/compiled, 99 selected consumer cases and full gate green; preview refreshed, publication held. |
-
-| 2026-10-09 | DOCS-PAGES-1 | Tide PNG exports; eight static docs pages with preserved themes/bookmarks; full local verification 996/39/5/324 green; immutable preview refreshed; publication held. |
+| 2026-10-09 | DOCS-PAGES-1        | Tide PNG exports; eight static docs pages with preserved themes/bookmarks; full local verification 996/39/5/324 green; immutable preview refreshed; publication held.                                         |
