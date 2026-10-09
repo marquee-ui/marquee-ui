@@ -23,6 +23,13 @@ geometry checks failed on the reported defects before the implementation. The
 Table/DataTable keep their intentional native horizontal scrolling. This is a
 bounded preview audit, not exhaustive visual/API or cross-browser coverage.
 
+The initial PR #3 CI run exposed two browser sequencing races: Tooltip focus
+preceded a pending scroll event, and the next DropdownMenu opened before the
+previous menu restored focus. Both were reproduced and the tests now wait for
+those transitions. The full command above passed again on 2026-10-09 with the
+same counts; 30 focused browser repetitions also passed. Diagnosis and repetition
+evidence: `/home/ankit/.marquee-scratch/UI-FIXES-1/ci-repair/diagnosis.md`.
+
 The retained [release-readiness artifact](docs/batches/RELEASE-READINESS-1.md)
 predates these source/dependency changes. Rebuild and verify a fresh packed
 consumer before any future npm publication; do not publish the old tarball.
@@ -74,3 +81,4 @@ advances.
 | 2026-10-09 | RELEASE-READINESS-1 | Story-play and Chart SVG guards proved; UI 0.2.0 packed with published tokens 0.1.0; all 35 families installed/compiled, 99 selected consumer cases and full gate green; preview refreshed, publication held. |
 | 2026-10-09 | DOCS-PAGES-1        | Tide PNG exports; eight static docs pages with preserved themes/bookmarks; full local verification 996/39/5/324 green; immutable preview refreshed; publication held.                                         |
 | 2026-10-09 | UI-FIXES-1          | Slider endpoints, compact Calendar and Toggle demo spacing fixed; full gate 1001/39/5/333 green; preview audit and immutable localhost refreshed; npm release held.                                           |
+| 2026-10-09 | UI-FIXES-1-CI       | Reproduced Tooltip scroll and DropdownMenu focus-return races; repaired browser sequencing; 30 focused repetitions and full gate 1001/39/5/333 passed; npm release held.                                      |

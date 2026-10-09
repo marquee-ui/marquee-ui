@@ -60,7 +60,18 @@ test("Tooltip demo links supplemental text, preserves focus after Escape and act
   const canvas = page.locator(".family-canvas");
   const trigger = canvas.locator('[data-slot="tooltip-trigger"]');
   await target(trigger);
+  // scrollIntoViewIfNeeded can return before the browser delivers its scroll
+  // event. Radix deliberately dismisses on ancestor scroll, so finish that
+  // rendering cycle before testing keyboard focus opening the tooltip.
+  await trigger.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }),
+  );
   await trigger.focus();
+  await expect(trigger).toBeFocused();
+  await expect(trigger).toHaveAttribute("data-state", "instant-open");
   const content = page.locator(contentSelector);
   await expect(content).toBeVisible();
   await expect(trigger).toHaveAccessibleName("Save document");
