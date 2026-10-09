@@ -233,6 +233,39 @@ async function containedCalendar(root: Locator) {
   return { root: geometry.root, required };
 }
 
+test("Calendar single-month frame hugs its grid and keeps navigation beside the month caption", async ({
+  page,
+}) => {
+  await page.goto("components/");
+  await page.getByRole("button", { name: "Preview Calendar", exact: true }).click();
+  const root = page.getByRole("region", { name: "Single day" }).locator('[data-slot="calendar"]');
+  const geometry = await containedCalendar(root);
+  expect(
+    geometry.root.width - geometry.required,
+    "single-month frame has no empty gutter beside its date grid",
+  ).toBeLessThanOrEqual(1);
+  const caption = root.getByText("October 2026", { exact: true });
+  const previous = root.getByRole("button", { name: "Go to the Previous Month" });
+  const next = root.getByRole("button", { name: "Go to the Next Month" });
+  const grid = (await root.getByRole("grid").boundingBox())!;
+  const label = (await caption.boundingBox())!;
+  for (const button of [previous, next]) {
+    await target(button);
+    const bounds = (await button.boundingBox())!;
+    // Read all boxes after target() scrolls this header into view.
+    const heading = (await caption.boundingBox())!;
+    expect(
+      Math.abs(bounds.y + bounds.height / 2 - (heading.y + heading.height / 2)),
+      "navigation and month label share one header row",
+    ).toBeLessThanOrEqual(1);
+    expect(bounds.x + bounds.width <= label.x || bounds.x >= label.x + label.width).toBe(true);
+  }
+  expect((await previous.boundingBox())!.x).toBeCloseTo(grid.x, 0);
+  const end = (await next.boundingBox())!;
+  expect(end.x + end.width).toBeCloseTo(grid.x + grid.width, 0);
+  await root.screenshot({ path: test.info().outputPath("calendar-compact-header.png") });
+});
+
 test("Calendar docs preserve controlled day, keyboard movement, multiple dates, range bounds and reset", async ({
   page,
 }) => {

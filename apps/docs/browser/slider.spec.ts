@@ -7,8 +7,9 @@ async function target(thumb: Locator) {
   await expect(thumb).toBeVisible();
   await thumb.scrollIntoViewIfNeeded();
   const bounds = await thumb.boundingBox();
-  expect(bounds!.width, "real slider thumb tap width").toBeGreaterThanOrEqual(44);
-  expect(bounds!.height, "real slider thumb tap height").toBeGreaterThanOrEqual(44);
+  // Transformed DOMRects can lose a few hundred-thousandths of a CSS pixel.
+  expect(bounds!.width, "real slider thumb tap width").toBeGreaterThanOrEqual(44 - 0.001);
+  expect(bounds!.height, "real slider thumb tap height").toBeGreaterThanOrEqual(44 - 0.001);
   await expect
     .poll(
       () =>
@@ -84,6 +85,14 @@ async function selectedRangeGeometry(
       },
       low: thumbs.length === 1 ? 0 : (Math.min(...values) - min) / (max - min),
       high: (Math.max(...values) - min) / (max - min),
+      markers: thumbs.map((node, index) => {
+        const box = node.getBoundingClientRect();
+        return {
+          x: box.left + box.width / 2,
+          y: box.top + box.height / 2,
+          value: (values[index]! - min) / (max - min),
+        };
+      }),
       orientation: thumbs[0]!.getAttribute("aria-orientation"),
     };
   });
@@ -106,6 +115,16 @@ async function selectedRangeGeometry(
   ).toBeLessThanOrEqual(geometry.track.bottom + 0.5);
   const axis = orientation === "vertical" ? "height" : "width";
   const edge = orientation === "vertical" ? "top" : "left";
+  for (const marker of geometry.markers) {
+    expect(
+      Math.abs(
+        marker[orientation === "vertical" ? "y" : "x"] -
+          (geometry.track[edge] +
+            geometry.track[axis] * (fromEnd ? 1 - marker.value : marker.value)),
+      ),
+      `${name} visible marker center matches its value on the painted track`,
+    ).toBeLessThanOrEqual(1);
+  }
   expect(
     Math.abs(geometry.range[axis] - geometry.track[axis] * (geometry.high - geometry.low)),
     `${name} selected range length matches live values`,
@@ -287,6 +306,69 @@ test("Slider pointer drag updates before committing and the narrow track accepts
   await track.click({ position: { x: trackBox.width * 0.25, y: trackBox.height / 2 } });
   await expect(thumb).toHaveAttribute("aria-valuenow", "25");
   await expect(canvas.getByRole("status").first()).toHaveText("Committed volume: 25%");
+});
+
+test("Slider painted endpoints accept pointer input and retain the whole thumb target", async ({
+  page,
+}) => {
+  await page.goto("components/");
+  await page.getByRole("button", { name: "Preview Slider", exact: true }).click();
+  for (const [name, orientation, fromEnd] of [
+    ["Volume", "horizontal", false],
+    ["Vertical level", "vertical", true],
+    ["Right-to-left balance", "horizontal", true],
+    ["Inverted balance", "horizontal", true],
+  ] as const) {
+    const thumb = page.getByRole("slider", { name, exact: true });
+    const track = thumb
+      .locator('xpath=ancestor::*[@data-slot="slider"]')
+      .locator('[data-slot="slider-track"]');
+    for (const value of [0, 100]) {
+      await track.scrollIntoViewIfNeeded();
+      const box = (await track.boundingBox())!;
+      const end = (value === 100) !== fromEnd;
+      await page.mouse.click(
+        box.x + (orientation === "horizontal" ? (end ? box.width - 0.1 : 0.1) : box.width / 2),
+        box.y + (orientation === "vertical" ? (end ? box.height - 0.1 : 0.1) : box.height / 2),
+      );
+      await expect(thumb).toHaveAttribute("aria-valuenow", String(value));
+      await target(thumb);
+      await selectedRangeGeometry(thumb, `${name} pointer at ${value}`, orientation, fromEnd);
+    }
+  }
+});
+
+test("Slider alignment follows inherited direction, reversed axes and resized asChild hosts", async ({
+  page,
+}) => {
+  await page.goto(
+    "storybook/iframe.html?id=parts-slider--endpoint-alignment&viewMode=story&embed=true",
+  );
+  for (const [name, orientation, fromEnd] of [
+    ["Inherited RTL", "horizontal", true],
+    ["Inverted RTL", "horizontal", false],
+    ["Inverted vertical", "vertical", false],
+  ] as const) {
+    const thumb = page.getByRole("slider", { name, exact: true });
+    for (const key of ["Home", "PageUp", "End"]) {
+      await thumb.press(key);
+      await selectedRangeGeometry(thumb, `${name} ${key}`, orientation, fromEnd);
+      await target(thumb);
+    }
+  }
+  const custom = page.getByRole("slider", { name: "Inherited RTL", exact: true });
+  await custom.evaluate((el) => {
+    el.style.width = "64px";
+    el.style.height = "64px";
+  });
+  // Radix measures a resized target asynchronously. Wait for the resulting
+  // alignment, not just the host width, which changes before its observer fires.
+  await custom.press("Home");
+  await expect(async () => {
+    await selectedRangeGeometry(custom, "Resized custom host at minimum", "horizontal", true);
+  }).toPass({ timeout: 2_000 });
+  await custom.press("End");
+  await selectedRangeGeometry(custom, "Resized custom host at maximum", "horizontal", true);
 });
 
 test("orientation, direction, inverted and disabled states move actual visible paint", async ({

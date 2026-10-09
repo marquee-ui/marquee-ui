@@ -38,8 +38,8 @@ const storiesOf = (module: object): [string, PlayableStory][] =>
 afterEach(cleanup);
 
 /** Exact inventory catches stories or composed plays disappearing altogether. */
-const DECLARED_PLAYS = 185;
-const DECLARED_STORIES = 215;
+const DECLARED_PLAYS = 186;
+const DECLARED_STORIES = 216;
 
 describe("every story renders, and every play function passes", () => {
   const seen: string[] = [];

@@ -3,7 +3,7 @@
 Marquee targets React 19 and Tailwind CSS 4. The published baseline is
 `@marquee-ui/ui@0.1.10` and `@marquee-ui/tokens@0.1.0`; the standalone
 consumer in `examples/consumer` pins those packages with an npm lockfile.
-The unreleased `next` candidate prepares UI `0.2.0` with the existing published
+The source registry prepares unpublished UI `0.2.0` with the existing published
 tokens `0.1.0`. A version in this checkout does not establish public npm availability.
 See the [release proposal](https://github.com/marquee-ui/marquee-ui/blob/next/docs/releases/0.2.0.md)
 for the artifact installation path and held publication steps.
@@ -34,19 +34,20 @@ manifest/lock, current source/registry and the records linked below:
 | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Published UI 0.1.10                                                                              | Original 21 families; 22 registry items including `utils`                                                                                                    | Release-pinned source in the installed npm package; the fourteen parity additions are absent.                                                                                                                                                          |
 | Published consumer proof, measured 2026-10-08                                                    | Seven selected families: Button, Accordion, Sheet, Switch, Input, Label and Card; eight copied files including `utils`; two Chromium cases at 390 and 1280px | A cold npm install, strict TypeScript/Vite build, source-byte comparison and those consumer journeys. It does not exercise all 21 published families.                                                                                                  |
-| Unreleased `next` candidate                                                                      | 35 families; 36 registry items including `utils`                                                                                                             | The source/registry inventory after batches 1–7. The fourteen additions are Select, Tabs, Dialog, AlertDialog, Popover, Tooltip, DropdownMenu, Slider, Combobox, Calendar, DatePicker, Table, DataTable and Chart.                                     |
+| Current source registry                                                                          | 35 families; 36 registry items including `utils`                                                                                                             | The source/registry inventory after batches 1–7. The fourteen additions are Select, Tabs, Dialog, AlertDialog, Popover, Tooltip, DropdownMenu, Slider, Combobox, Calendar, DatePicker, Table, DataTable and Chart.                                     |
 | Batch 7 packed candidate, source `15c266e3a47be44ad40c26db4d961ca31cd09a9f`, measured 2026-10-08 | 21 selected families; 22 copied files including `utils`; 99 Chromium cases at 390, 768 and 1280px                                                            | Fresh external packed-artifact install, strict TypeScript/Vite build and the recorded bounded compositions. This is reused Batch 7 evidence, not a fresh Batch 8 consumer run or public npm proof, and it does not exercise all 35 candidate families. |
-| Proposed UI 0.2.0 artifact, measured 2026-10-09                                                  | All 35 families installed and compiled; 37 exact copied files; 99 browser cases for 21 selected families at 390/768/1280                                     | Fresh external install of the proposed UI tarball with published tokens 0.1.0. It verifies package integrity, registry/source fidelity and the selected journeys; it is not public UI 0.2.0 installation or behavioral proof of all 35 families.       |
+| Historical UI 0.2.0 artifact, measured 2026-10-09                                                | All 35 families installed and compiled; 37 exact copied files; 99 browser cases for 21 selected families at 390/768/1280                                     | Fresh external install of the proposed UI tarball with published tokens 0.1.0. It verifies package integrity, registry/source fidelity and the selected journeys; it is not public UI 0.2.0 installation or behavioral proof of all 35 families.       |
 
 Commands and provenance are retained in
 [CONSUMER-1](https://github.com/marquee-ui/marquee-ui/blob/next/docs/slices/CONSUMER-1.md),
 [Batch 7](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-7.md)
 and its
 [packed provenance](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/BATCH-PARITY-7-evidence/consumer-provenance.json).
-The fresh proposed-release proof is recorded in
+The pre-fix proposed-release proof is recorded in
 [RELEASE-READINESS-1](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/RELEASE-READINESS-1.md).
 The [Batch 8 audit record](https://github.com/marquee-ui/marquee-ui/blob/next/docs/slices/RECIPE-INSTALL-AUDIT-1.md)
-records the inventory check. [Recipe contracts](./recipe-contracts.md) define caller
+records the inventory check. Slider/Calendar fixes after that artifact require a
+new packed consumer proof before npm publication. [Recipe contracts](./recipe-contracts.md) define caller
 responsibilities and deferred behaviors; [common-name APIs](./common-name-api.md)
 cover deliberate differences in the original families. A named family or a passing
 journey does not establish full shadcn catalog/API parity.
@@ -69,8 +70,8 @@ every possible assertion, SVG descendant or caller composition.
   the retained consumer proofs exercise Chromium at the widths above. Safari,
   Firefox and other browser/viewport consumer runs remain unvalidated.
 - GitHub registry URLs follow their named branch independently of npm versions.
-  `main` serves the published-era registry; `next` serves the moving unreleased
-  candidate. Use a reviewed commit SHA for repeatable candidate source or the
+  `main` includes all 35 source families; `next` is the integration branch.
+  Use a reviewed commit SHA for repeatable source installs or the
   installed-package registry server for a pinned published release.
 - Registry files are bundled for local serving. A cold CLI install still needs
   npm, the CLI, component dependencies and, for browser verification, a browser

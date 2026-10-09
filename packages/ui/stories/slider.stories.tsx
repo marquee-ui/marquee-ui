@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DirectionProvider } from "@radix-ui/react-direction";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, within } from "storybook/test";
 import { Button } from "@/button";
@@ -7,6 +8,44 @@ import { Slider, SliderRange, SliderThumb, SliderTrack } from "@/slider";
 const meta = { title: "Parts/Slider", component: Slider } satisfies Meta<typeof Slider>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+
+export const EndpointAlignment: Story = {
+  render: () => (
+    <DirectionProvider dir="rtl">
+      <div className="flex w-full flex-col gap-6">
+        <Slider min={10} max={90} defaultValue={[50]}>
+          <SliderTrack>
+            <SliderRange />
+          </SliderTrack>
+          <SliderThumb asChild aria-label="Inherited RTL">
+            <span />
+          </SliderThumb>
+        </Slider>
+        <Slider inverted min={10} max={90} defaultValue={[50]}>
+          <SliderTrack>
+            <SliderRange />
+          </SliderTrack>
+          <SliderThumb aria-label="Inverted RTL" />
+        </Slider>
+        <Slider orientation="vertical" inverted min={10} max={90} defaultValue={[50]}>
+          <SliderTrack>
+            <SliderRange />
+          </SliderTrack>
+          <SliderThumb aria-label="Inverted vertical" />
+        </Slider>
+      </div>
+    </DirectionProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    for (const thumb of within(canvasElement).getAllByRole("slider")) {
+      thumb.focus();
+      await userEvent.keyboard("{End}");
+      await expect(thumb).toHaveAttribute("aria-valuenow", "90");
+      await userEvent.keyboard("{Home}");
+      await expect(thumb).toHaveAttribute("aria-valuenow", "10");
+    }
+  },
+};
 
 function SingleParts() {
   return (

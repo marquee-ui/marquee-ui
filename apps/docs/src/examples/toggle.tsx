@@ -3,7 +3,7 @@ import { Toggle } from "@/components/ui/toggle";
 export default function ToggleExample() {
   const [pinned, setPinned] = useState(false);
   return (
-    <Toggle aria-pressed={pinned} onClick={() => setPinned(!pinned)}>
+    <Toggle className="px-3" aria-pressed={pinned} onClick={() => setPinned(!pinned)}>
       Pin project
     </Toggle>
   );

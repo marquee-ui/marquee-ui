@@ -1,6 +1,6 @@
 # Marquee implementation status
 
-CURSOR: READY — separate docs pages and Tide PNGs verified; public release held
+CURSOR: READY — preview fixes verified; review before merge; npm 0.2.0 held
 
 The user authorized a finite component-parity program on 2026-10-08. All eight
 [ordered batches](docs/component-parity.md) are complete. No batch 9 is queued.
@@ -10,47 +10,47 @@ and validation limits are explicitly deferred in the matrix.
 
 ## Next work
 
-The user-requested [separate docs pages and Tide PNGs](docs/batches/DOCS-PAGES-1.md)
-are complete: eight static page URLs, preserved old bookmarks and themes, square
-avatars and a repository social preview. Full local verification passed, and the
-stable preview below serves the verified build. Final PR-head CI verdicts are
-recorded in the latest handoff; check them before public release.
+The user paused the UI 0.2.0 npm release on 2026-10-09 to fix the Slider endpoint
+alignment, compact the Calendar and check other component previews. Those fixes
+and the text Toggle preview spacing are complete. The draft PR is recorded in
+`/home/ankit/.marquee-scratch/UI-FIXES-1/final-handoff.md`. Review before merge;
+no further roadmap batch is queued.
 
-Next: **await explicit public release direction**. The separately authorized
-[release-readiness batch](docs/batches/RELEASE-READINESS-1.md) is complete locally:
-the two test gaps have proved regression controls, UI 0.2.0 is packed, and a fresh
-external consumer verified all 35 family installs plus 99 selected browser cases.
-The [release proposal](docs/releases/0.2.0.md) lists the concrete artifacts and
-held production steps. Check the final PR head's CI before any publication.
-No further implementation batch is queued.
-[Batch 8](docs/batches/BATCH-PARITY-8.md) completes the
-35-family source/current-primary-document audit, visible published/candidate
-installation guidance, independent stream/merged reviews, corrected full merged
-gate and verified immutable localhost refresh. Installed evidence is reused from
-Batch 7 after proving unchanged product/registry/dependency/consumer inputs.
-[Batch 7](docs/batches/BATCH-PARITY-7.md) retains the bounded DataTable/Chart
-implementation and original fresh packed proof, including the native-scroll
-prerequisite and finite validation limits.
+`DOCS_PORT=4182 pnpm verify` passed on 2026-10-09: 1,001 library tests, 39 docs
+tests, 5 consumer-harness tests and 333 Chromium cases at 390/768/1280. The new
+geometry checks failed on the reported defects before the implementation. The
+35-family default-preview scan found no document overflow or page errors;
+Table/DataTable keep their intentional native horizontal scrolling. This is a
+bounded preview audit, not exhaustive visual/API or cross-browser coverage.
+
+The retained [release-readiness artifact](docs/batches/RELEASE-READINESS-1.md)
+predates these source/dependency changes. Rebuild and verify a fresh packed
+consumer before any future npm publication; do not publish the old tarball.
 
 ## Release hold and current preview
 
-Do not merge the release PR, activate Pages, deploy publicly, purchase a domain or
-publish npm until the user directs publication. Reviewed changes accumulate in
-draft [PR #2](https://github.com/marquee-ui/marquee-ui/pull/2), unmerged.
+**npm UI 0.2.0 is unpublished and held at the user's request.** The pending npm
+login was canceled; no publish command was run. The public UI package remains
+0.1.10. Resume publication only after renewed user direction.
 
-Current verified preview: **http://localhost:4174/marquee-ui/**, source
-`facb18a50e14556907866651e3ec1a55d7163710`, served from
-`/home/ankit/.marquee-scratch/DOCS-PAGES-1/preview`.
-New components are unreleased; published UI 0.1.10/main still have the original
-21 families. UI 0.2.0 is prepared locally; publication is still held.
-The contract guides distinguish source
-support from measured consumer/browser evidence.
+PR #2 merged as `23e8154ae2dcb155ca708d2a18df79335f82bd4a` on 2026-10-09.
+GitHub Pages is live at **https://marquee-ui.github.io/marquee-ui/**, configured
+for Actions with HTTPS. Its source registry contains all 35 families, independently
+of npm availability. Main/next verification and documentation deployment passed;
+served-page evidence is in the DOCS-PAGES-1 handoff below.
+
+Current verified local preview: **http://localhost:4174/marquee-ui/**, served from
+`/home/ankit/.marquee-scratch/UI-FIXES-1/preview-verified`. The handoff records the
+source commit, preview manifest, screenshots and before/after measurements.
+The public site still serves the previous merge until this fix PR is approved.
 
 ## Previous evidence and cold resume
 
 [Release](docs/batches/RELEASE-1.md), [theme/code revision](docs/batches/RELEASE-1-UX.md),
 and [visual controls](docs/batches/RELEASE-1-CONTROLS.md) retain their evidence.
 Latest completed handoff:
+`/home/ankit/.marquee-scratch/UI-FIXES-1/final-handoff.md`.
+The prior Pages deployment evidence remains in
 `/home/ankit/.marquee-scratch/DOCS-PAGES-1/final-handoff.md`.
 Inspect branch/CI/worktrees, this cursor, the matrix and final batch record before
 new work. The finite queue is finished; this is library work and no Pile backlog
@@ -73,3 +73,4 @@ advances.
 | 2026-10-09 | BATCH-PARITY-8      | All 35 family contracts audited; published/candidate guidance, independent reviews, corrected merged gate and immutable preview verified; finite queue complete, remaining work deferred, publication held.   |
 | 2026-10-09 | RELEASE-READINESS-1 | Story-play and Chart SVG guards proved; UI 0.2.0 packed with published tokens 0.1.0; all 35 families installed/compiled, 99 selected consumer cases and full gate green; preview refreshed, publication held. |
 | 2026-10-09 | DOCS-PAGES-1        | Tide PNG exports; eight static docs pages with preserved themes/bookmarks; full local verification 996/39/5/324 green; immutable preview refreshed; publication held.                                         |
+| 2026-10-09 | UI-FIXES-1          | Slider endpoints, compact Calendar and Toggle demo spacing fixed; full gate 1001/39/5/333 green; preview audit and immutable localhost refreshed; npm release held.                                           |

@@ -76,7 +76,7 @@ export const catalog = [
     id: "chart",
     name: "Chart",
     description:
-      "Unreleased candidate; absent from published UI 0.1.10 and the main registry. Composed Recharts 3 presentation with explicit chart children, live tooltip and legend parts, keyboard bar/line data access and a native data-table alternative. Additional chart types and advanced controls are deferred.",
+      "Available in the source registry; not yet included in published UI 0.1.10. Composed Recharts 3 presentation with explicit chart children, live tooltip and legend parts, keyboard bar/line data access and a native data-table alternative. Additional chart types and advanced controls are deferred.",
     story: "default",
     Preview: Previewchart,
     code: codechart,
@@ -85,7 +85,7 @@ export const catalog = [
     id: "data-table",
     name: "DataTable",
     description:
-      "Unreleased candidate; absent from published UI 0.1.10 and the main registry. Composed TanStack Table 9 presentation with caller-owned data, columns and state, explicit header/row slots and client sorting/filter/page controls. Server grids and virtualization are deferred.",
+      "Available in the source registry; not yet included in published UI 0.1.10. Composed TanStack Table 9 presentation with caller-owned data, columns and state, explicit header/row slots and client sorting/filter/page controls. Server grids and virtualization are deferred.",
     story: "default",
     Preview: Previewdatatable,
     code: codedatatable,
@@ -94,7 +94,7 @@ export const catalog = [
     id: "table",
     name: "Table",
     description:
-      "Unreleased candidate; absent from published UI 0.1.10 and the main registry. Native table parts with explicit captions, header scopes and a named keyboard-scroll container.",
+      "Available in the source registry; not yet included in published UI 0.1.10. Native table parts with explicit captions, header scopes and a named keyboard-scroll container.",
     story: "default",
     Preview: Previewtable,
     code: codetable,
@@ -103,7 +103,7 @@ export const catalog = [
     id: "date-picker",
     name: "DatePicker",
     description:
-      "Unreleased candidate; absent from published UI 0.1.10 and the main registry. Explicit Calendar and Popover composition for single dates and ranges, with caller-owned state, formatting and form values.",
+      "Available in the source registry; not yet included in published UI 0.1.10. Explicit Calendar and Popover composition for single dates and ranges, with caller-owned state, formatting and form values.",
     story: "default",
     Preview: Previewdatepicker,
     code: codedatepicker,
@@ -112,7 +112,7 @@ export const catalog = [
     id: "combobox",
     name: "Combobox",
     description:
-      "Unreleased candidate; absent from published UI 0.1.10 and the main registry. Caller-composed single-select searchable popup with keyboard navigation, filtering and explicit committed choice.",
+      "Available in the source registry; not yet included in published UI 0.1.10. Caller-composed single-select searchable popup with keyboard navigation, filtering and explicit committed choice.",
     story: "default",
     Preview: Previewcombobox,
     code: codecombobox,
@@ -121,7 +121,7 @@ export const catalog = [
     id: "calendar",
     name: "Calendar",
     description:
-      "Unreleased candidate; absent from published UI 0.1.10 and the main registry. Inline single, multiple-date and range selection with caller-owned state and replaceable calendar slots.",
+      "Available in the source registry; not yet included in published UI 0.1.10. Inline single, multiple-date and range selection with caller-owned state and replaceable calendar slots.",
     story: "default",
     Preview: Previewcalendar,
     code: codecalendar,
@@ -299,7 +299,7 @@ export const catalog = [
     id: "select",
     name: "Select",
     description:
-      "Unreleased candidate; absent from published UI 0.1.10 and the main registry. A single-value choice with explicit portal, viewport, item text and indicator slots. Radix owns focus and native form behavior.",
+      "Available in the source registry; not yet included in published UI 0.1.10. A single-value choice with explicit portal, viewport, item text and indicator slots. Radix owns focus and native form behavior.",
     story: "default",
     Preview: PreviewSelect,
     code: codeSelect,
@@ -308,7 +308,7 @@ export const catalog = [
     id: "tabs",
     name: "Tabs",
     description:
-      "Unreleased candidate; absent from published UI 0.1.10 and the main registry. Linked tabs and panels with automatic or manual activation, horizontal or vertical orientation, and default or line styling.",
+      "Available in the source registry; not yet included in published UI 0.1.10. Linked tabs and panels with automatic or manual activation, horizontal or vertical orientation, and default or line styling.",
     story: "default",
     Preview: PreviewTabs,
     code: codeTabs,
@@ -317,7 +317,7 @@ export const catalog = [
     id: "dialog",
     name: "Dialog",
     description:
-      "Unreleased candidate; absent from published UI 0.1.10 and the main registry. A centered, scrollable dialog with explicit portal, overlay and close parts. Radix owns modal focus and dismissal; the caller owns content and saving.",
+      "Available in the source registry; not yet included in published UI 0.1.10. A centered, scrollable dialog with explicit portal, overlay and close parts. Radix owns modal focus and dismissal; the caller owns content and saving.",
     story: "default",
     Preview: Previewdialog,
     code: codedialog,
@@ -326,7 +326,7 @@ export const catalog = [
     id: "alert-dialog",
     name: "AlertDialog",
     description:
-      "Unreleased candidate; absent from published UI 0.1.10 and the main registry. A composed confirmation with Cancel initial focus, blocked outside dismissal, and caller-controlled closing. Portal, overlay and actions are explicit.",
+      "Available in the source registry; not yet included in published UI 0.1.10. A composed confirmation with Cancel initial focus, blocked outside dismissal, and caller-controlled closing. Portal, overlay and actions are explicit.",
     story: "default",
     Preview: Previewalertdialog,
     code: codealertdialog,
@@ -335,7 +335,7 @@ export const catalog = [
     id: "popover",
     name: "Popover",
     description:
-      "Unreleased candidate; absent from published UI 0.1.10 and the main registry. An anchored panel with explicit parts, caller-owned labels and optional modal focus.",
+      "Available in the source registry; not yet included in published UI 0.1.10. An anchored panel with explicit parts, caller-owned labels and optional modal focus.",
     story: "default",
     Preview: Previewpopover,
     code: codepopover,
@@ -344,7 +344,7 @@ export const catalog = [
     id: "tooltip",
     name: "Tooltip",
     description:
-      "Unreleased candidate; absent from published UI 0.1.10 and the main registry. Supplemental noninteractive text with explicit provider, portal and arrow. Radix owns focus, hover and collision placement; actions retain independent accessible names.",
+      "Available in the source registry; not yet included in published UI 0.1.10. Supplemental noninteractive text with explicit provider, portal and arrow. Radix owns focus, hover and collision placement; actions retain independent accessible names.",
     story: "default",
     Preview: Previewtooltip,
     code: codetooltip,
@@ -353,7 +353,7 @@ export const catalog = [
     id: "slider",
     name: "Slider",
     description:
-      "Unreleased candidate; absent from published UI 0.1.10 and the main registry. Numeric values and ranges with explicit track, range and independently named thumbs. Radix owns keyboard, pointer, direction and form reset; controlled callers accept reset changes.",
+      "Available in the source registry; not yet included in published UI 0.1.10. Numeric values and ranges with explicit track, range and independently named thumbs. Radix owns keyboard, pointer, direction and form reset; controlled callers accept reset changes.",
     story: "default",
     Preview: Previewslider,
     code: codeslider,
@@ -362,7 +362,7 @@ export const catalog = [
     id: "dropdown-menu",
     name: "DropdownMenu",
     description:
-      "Unreleased candidate; absent from published UI 0.1.10 and the main registry. Explicit action menu parts with checkboxes, radio choices and directional submenus. Default modal; portals, indicators, arrows and chevrons belong to the caller.",
+      "Available in the source registry; not yet included in published UI 0.1.10. Explicit action menu parts with checkboxes, radio choices and directional submenus. Default modal; portals, indicators, arrows and chevrons belong to the caller.",
     story: "default",
     Preview: Previewdropdownmenu,
     code: codedropdownmenu,
