@@ -105,8 +105,10 @@ test("AlertDialog names, focuses Cancel, traps focus, blocks outside dismissal a
 test("AlertDialog preserves the caller's asynchronous closing and nested Sheet input recovery", async ({
   page,
 }) => {
-  await openExample(page);
+  // React and Radix must start with the same clock that advances the simulated save.
+  // Replacing timers after the app loads is undefined behavior in Playwright.
   await page.clock.install();
+  await openExample(page);
   const canvas = page.locator(".family-canvas");
   const save = canvas.getByRole("button", { name: "Save before closing" });
   await save.click();

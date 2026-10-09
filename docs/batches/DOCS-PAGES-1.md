@@ -49,3 +49,20 @@ Full verification logs, captures and the final preview handoff are retained unde
 `/home/ankit/.marquee-scratch/DOCS-PAGES-1/`. Package source and the prepared UI
 0.2.0 registry/tarball are unchanged by this docs/branding work. Public release
 remains held.
+
+## CI follow-up: initialize the clock before the app
+
+The push gate at `d5d0e8c` passed, while the PR gate twice failed the tablet nested
+AlertDialog focus-return assertion (323 passed / 1 failed). Push and PR source
+trees were identical. Local repetitions did not reproduce it: 20 direct, 30 with
+CPU throttling, and 20 with the preceding case included. These results do not
+erase the hosted failures; the original logs remain in the scratch handoff.
+
+Investigation found the test installed its virtual clock **after** loading the
+app, contrary to [Playwright's required ordering](https://playwright.dev/docs/clock).
+Clock installation now precedes navigation, so React/Radix and the simulated save
+use the same timer environment. Every behavioral assertion remains. A failure-only
+diagnostic captures the raw Sheet/AlertDialog DOM and active element, then rethrows
+the original error; it distinguishes a closed parent from an inaccessible one.
+No production component or package source changed. Final CI verdicts are recorded
+in the linked draft PR and scratch handoff.
