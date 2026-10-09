@@ -1,9 +1,10 @@
 "use client";
 
+import { useComposedRefs } from "@radix-ui/react-compose-refs";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Slot } from "@radix-ui/react-slot";
-import type { ComponentProps } from "react";
-import { cn } from "@/lib/utils";
+import { useRef, type ComponentProps } from "react";
+import { cn, handleModalEscape } from "@/lib/utils";
 
 /**
  * A centered dialog at every width. Radix owns state, modality, focus and
@@ -55,10 +56,16 @@ export function DialogOverlay({
 
 export function DialogContent({
   className,
+  ref,
+  onEscapeKeyDown,
   ...props
 }: ComponentProps<typeof DialogPrimitive.Content>) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const composedRef = useComposedRefs(ref, contentRef);
   return (
     <DialogPrimitive.Content
+      ref={composedRef}
+      onEscapeKeyDown={(event) => handleModalEscape(contentRef.current, event, onEscapeKeyDown)}
       data-slot="dialog-content"
       className={cn(
         "fixed left-1/2 top-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto overscroll-contain rounded-lg border-2 border-border bg-overlay p-6 text-foreground shadow-lg focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-ink",

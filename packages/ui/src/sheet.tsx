@@ -1,8 +1,10 @@
 "use client";
 
+import { useComposedRefs } from "@radix-ui/react-compose-refs";
 import * as Dialog from "@radix-ui/react-dialog";
-import type { ComponentProps } from "react";
-import { cn } from "@/lib/utils";
+import { Slottable } from "@radix-ui/react-slot";
+import { useRef, type ComponentProps } from "react";
+import { cn, handleModalEscape } from "@/lib/utils";
 
 /**
  * A bottom sheet on mobile, a centred dialog from 768 up, built on Radix Dialog:
@@ -55,13 +57,19 @@ export function SheetOverlay({ className, ...props }: ComponentProps<typeof Dial
  */
 export function SheetContent({
   className,
+  ref,
+  onEscapeKeyDown,
   children,
   ...props
 }: ComponentProps<typeof Dialog.Content>) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const composedRef = useComposedRefs(ref, contentRef);
   return (
     <SheetPortal>
       <SheetOverlay />
       <Dialog.Content
+        ref={composedRef}
+        onEscapeKeyDown={(event) => handleModalEscape(contentRef.current, event, onEscapeKeyDown)}
         data-slot="sheet-content"
         className={cn(
           "fixed z-50 flex max-h-[85dvh] flex-col gap-3 bg-overlay p-4 shadow-lg focus:outline-none inset-x-0 bottom-0 w-full rounded-t-lg border-t-2 border-border pb-[max(1rem,var(--safe-bottom,0px))] md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:w-[min(92vw,28rem)] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-lg md:border-2 md:pb-4",
@@ -77,7 +85,7 @@ export function SheetContent({
           data-slot="sheet-handle"
           className="mx-auto h-1 w-10 shrink-0 rounded-full bg-border-strong forced-colors:border-2 md:hidden"
         />
-        {children}
+        <Slottable>{children}</Slottable>
       </Dialog.Content>
     </SheetPortal>
   );

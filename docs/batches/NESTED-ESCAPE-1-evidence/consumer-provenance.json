@@ -1,0 +1,320 @@
+{
+  "measuredAt": "2026-10-09T06:08:16.474Z",
+  "sourceSha": "b416aeea92bfdc3cc658c44c1203ee18ddefbb41",
+  "node": "v22.18.0",
+  "consumer": "/home/ankit/.marquee-scratch/NESTED-ESCAPE-1/consumer",
+  "ui": {
+    "version": "0.2.0",
+    "artifact": "/home/ankit/.marquee-scratch/NESTED-ESCAPE-1/artifacts/marquee-ui-ui-0.2.0.tgz",
+    "sha256": "30722a131209193ab603d23f9816e454d5747eeca887429b48a6d7c0b85e0461",
+    "integrity": "sha512-vPvli4nMc7uufyip/lJSu9uMBKurNtooRyoKB/OVyyND6a03b4tieQOZAA8UkBDPc2szL3oka+tCBliSHj+cBg=="
+  },
+  "tokens": {
+    "version": "0.1.0",
+    "tarball": "https://registry.npmjs.org/@marquee-ui/tokens/-/tokens-0.1.0.tgz",
+    "integrity": "sha512-xqQ43AAscvaE2glvtSLMUZ6Qi5bKz+ShCzvKHbubuxQtdgwkD5zFoFN/cygwAm8/2nCneTpWCj35xkD/9iJdsQ=="
+  },
+  "families": [
+    "button",
+    "toggle",
+    "input",
+    "textarea",
+    "label",
+    "description-list",
+    "form",
+    "card",
+    "checkbox",
+    "radio-group",
+    "alert",
+    "avatar",
+    "badge",
+    "separator",
+    "accordion",
+    "sheet",
+    "switch",
+    "toast",
+    "ribbon",
+    "breadcrumb",
+    "pagination",
+    "select",
+    "tabs",
+    "dialog",
+    "alert-dialog",
+    "popover",
+    "tooltip",
+    "dropdown-menu",
+    "slider",
+    "combobox",
+    "calendar",
+    "date-picker",
+    "table",
+    "data-table",
+    "chart"
+  ],
+  "registryItems": 36,
+  "copied": [
+    {
+      "family": "utils",
+      "target": "lib/utils.ts",
+      "sha256": "45faec399c49705ae740674b094ed87e245f3195945c36b130b5ff1ce6b0fff3"
+    },
+    {
+      "family": "button",
+      "target": "components/ui/button.tsx",
+      "sha256": "b5f5be8608dc7d723ef5c945e33a940aed84f4108ed68dd6348ec23271c0163e"
+    },
+    {
+      "family": "toggle",
+      "target": "components/ui/toggle.tsx",
+      "sha256": "75553dccca49011ee4289822eea6c8c4dee181d1342e015e1f1ad91549d6a424"
+    },
+    {
+      "family": "input",
+      "target": "components/ui/input.tsx",
+      "sha256": "f270b4f623aaeb45eed96cd2ea0c85f104c09f94342c48eb0f1bc4f731fc48dd"
+    },
+    {
+      "family": "textarea",
+      "target": "components/ui/textarea.tsx",
+      "sha256": "4441c5d0c9dd300aeba4a2839e339703424c0b328dc2a3e4d43a5950027ec3cb"
+    },
+    {
+      "family": "label",
+      "target": "components/ui/label.tsx",
+      "sha256": "75fed6913ca995a21ad1a6a87080d01c53c68831e3cd18b404eac25cff1e9805"
+    },
+    {
+      "family": "description-list",
+      "target": "components/ui/description-list.tsx",
+      "sha256": "4d911795b20c47fd16878a6f50911b4e0094fd1a4f3ae3454eb90fdb26dba035"
+    },
+    {
+      "family": "form",
+      "target": "components/ui/form.tsx",
+      "sha256": "b5fae80b3708418e07b39537ed5abe012cf37a105c10ddc3ac81b9f75272debc"
+    },
+    {
+      "family": "card",
+      "target": "components/ui/card.tsx",
+      "sha256": "a193bdcf2052fe5c1c121f0c30e429882ff00e81f323be75cf4db05d2cebe165"
+    },
+    {
+      "family": "checkbox",
+      "target": "components/ui/checkbox.tsx",
+      "sha256": "7b6317e98d9bbf44cc6b49dc7ce43fc0a27ce333e09949854b135212ac7b1aca"
+    },
+    {
+      "family": "radio-group",
+      "target": "components/ui/radio-group.tsx",
+      "sha256": "aaf1ff9836ba3ef0b8ef03efa119d4cd03fb78d96edbfdbae1ed9786a5e1b509"
+    },
+    {
+      "family": "alert",
+      "target": "components/ui/alert.tsx",
+      "sha256": "25e65370d13ffece63ba52f3d9bfc6de7697227c60dbe16f9d43d2187c3468af"
+    },
+    {
+      "family": "avatar",
+      "target": "components/ui/avatar.tsx",
+      "sha256": "2b009b9505f4a928deffaa04ec18020607a1c9bf9fc5b6c8081163237fb967eb"
+    },
+    {
+      "family": "badge",
+      "target": "components/ui/badge.tsx",
+      "sha256": "e01294f58c91e24cdcf2ff2166ced1dcda3db12c767eda0c8d5c1871c7f3bd58"
+    },
+    {
+      "family": "separator",
+      "target": "components/ui/separator.tsx",
+      "sha256": "66bdd1f464d58163368ba8976096a2515b34985a26a47e8c3199a961508458a7"
+    },
+    {
+      "family": "accordion",
+      "target": "components/ui/accordion.tsx",
+      "sha256": "0d6f6217a2d4fa42b27e0c30c570e8cef3e19e599f370601511f32c2ea79b420"
+    },
+    {
+      "family": "sheet",
+      "target": "components/ui/sheet.tsx",
+      "sha256": "e20e3186bb21aa6684c76c08dfd9797c53b124e7f730b778489cd86c3db9d6a4"
+    },
+    {
+      "family": "switch",
+      "target": "components/ui/switch.tsx",
+      "sha256": "ee3bcb22ec3bf413cb8747a19b0cce338ccfb6f3990afceef2b729a9222bbd6e"
+    },
+    {
+      "family": "toast",
+      "target": "components/ui/toast.tsx",
+      "sha256": "860b3bd52e0d16ca57470daf5f5743d3f5c172913aad420306b609aca3068324"
+    },
+    {
+      "family": "ribbon",
+      "target": "components/ui/ribbon.tsx",
+      "sha256": "0b97950faf0cd1e2467fbbd9c76a22695913fdcedf840de6868e6a11162bdbe1"
+    },
+    {
+      "family": "ribbon",
+      "target": "components/ui/ribbon.css",
+      "sha256": "4f78546e1fce834c50258a4354bbfa3e49df1b1a438ed0824f97e842c3b4e89f"
+    },
+    {
+      "family": "breadcrumb",
+      "target": "components/ui/breadcrumb.tsx",
+      "sha256": "7183fb61d84791b8cc88d2a0ffa41e92a6362345a6a28c5fd69678accf44c745"
+    },
+    {
+      "family": "pagination",
+      "target": "components/ui/pagination.tsx",
+      "sha256": "4f0236f0a435de58bc79cd219056cfa7aae4569ab7a406e1208bbdf48dcfc04a"
+    },
+    {
+      "family": "select",
+      "target": "components/ui/select.tsx",
+      "sha256": "925c5382964cdcc2960b2864076bdaa103146751fb9840dc463dede8e723db0f"
+    },
+    {
+      "family": "tabs",
+      "target": "components/ui/tabs.tsx",
+      "sha256": "dd55531716e1db26020e8314550454d2ac55abf84c61d9169bdb3201a13c90e7"
+    },
+    {
+      "family": "dialog",
+      "target": "components/ui/dialog.tsx",
+      "sha256": "11d4edb8aad0b63e91bc2a88b8a87e345ee4523e60a40b7eb5cc3b33e904ba5b"
+    },
+    {
+      "family": "alert-dialog",
+      "target": "components/ui/alert-dialog.tsx",
+      "sha256": "b08f62d050136777d78d23c9ced204c13360ea99ca6809370c6ef5d06ed36a4d"
+    },
+    {
+      "family": "popover",
+      "target": "components/ui/popover.tsx",
+      "sha256": "a929ed261780b23f7030ff93802526d05412a727eb8fc181d44a676406ef017c"
+    },
+    {
+      "family": "tooltip",
+      "target": "components/ui/tooltip.tsx",
+      "sha256": "0ef21e4efec55fb45959564926e476b05085612e3d8f3124bc2ab2fee75586ba"
+    },
+    {
+      "family": "dropdown-menu",
+      "target": "components/ui/dropdown-menu.tsx",
+      "sha256": "d3cd6539ed4566cf9ee65f0fff8864bcbe7e85d4c2919ee1b0d9b5316e5ebf64"
+    },
+    {
+      "family": "slider",
+      "target": "components/ui/slider.tsx",
+      "sha256": "c8897ea2b88f34ad8b29ed7f4356fdfe0e1570817ba4c4f07ed52fe78efa11b5"
+    },
+    {
+      "family": "combobox",
+      "target": "components/ui/combobox.tsx",
+      "sha256": "08f0f84628b18e7931010babfbd1eaccdef45693cc2188b6178ee69b66c428ea"
+    },
+    {
+      "family": "calendar",
+      "target": "components/ui/calendar.tsx",
+      "sha256": "3615e0c1794c7f775dd51d9b0abc82326ed800f1fe5b9c353f376c9fc4d83358"
+    },
+    {
+      "family": "date-picker",
+      "target": "components/ui/date-picker.tsx",
+      "sha256": "4f3cc30a324c77c0daf2ed53d6ab7d1efba074814e8f70f43be0cb62e2f61ae9"
+    },
+    {
+      "family": "table",
+      "target": "components/ui/table.tsx",
+      "sha256": "d7674e1c2223947fe8e58c29300712ed0e6de68203c642aebef01924736f2c49"
+    },
+    {
+      "family": "data-table",
+      "target": "components/ui/data-table.tsx",
+      "sha256": "b1a01dc5e6864984a9893ff870b3fcd482cb6eb1ee12feda6aaf996762f6172d"
+    },
+    {
+      "family": "chart",
+      "target": "components/ui/chart.tsx",
+      "sha256": "2366f33ab65df973731900e2bbc26bb21f975d5caac37f6af40fd93ddbfee45d"
+    }
+  ],
+  "browser": {
+    "startTime": "2026-10-09T06:06:16.685Z",
+    "duration": 119774.28099999999,
+    "expected": 108,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "commands": [
+    {
+      "command": "npm",
+      "args": ["install", "--registry=https://registry.npmjs.org", "--no-audit", "--no-fund"]
+    },
+    {
+      "command": "npm",
+      "args": [
+        "view",
+        "@marquee-ui/tokens@0.1.0",
+        "--json",
+        "--registry=https://registry.npmjs.org"
+      ]
+    },
+    {
+      "command": "npm",
+      "args": [
+        "exec",
+        "--",
+        "shadcn",
+        "add",
+        "@marquee/button",
+        "@marquee/toggle",
+        "@marquee/input",
+        "@marquee/textarea",
+        "@marquee/label",
+        "@marquee/description-list",
+        "@marquee/form",
+        "@marquee/card",
+        "@marquee/checkbox",
+        "@marquee/radio-group",
+        "@marquee/alert",
+        "@marquee/avatar",
+        "@marquee/badge",
+        "@marquee/separator",
+        "@marquee/accordion",
+        "@marquee/sheet",
+        "@marquee/switch",
+        "@marquee/toast",
+        "@marquee/ribbon",
+        "@marquee/breadcrumb",
+        "@marquee/pagination",
+        "@marquee/select",
+        "@marquee/tabs",
+        "@marquee/dialog",
+        "@marquee/alert-dialog",
+        "@marquee/popover",
+        "@marquee/tooltip",
+        "@marquee/dropdown-menu",
+        "@marquee/slider",
+        "@marquee/combobox",
+        "@marquee/calendar",
+        "@marquee/date-picker",
+        "@marquee/table",
+        "@marquee/data-table",
+        "@marquee/chart",
+        "--yes",
+        "--overwrite"
+      ]
+    },
+    {
+      "command": "npm",
+      "args": ["run", "build"]
+    },
+    {
+      "command": "npm",
+      "args": ["run", "proof"]
+    }
+  ],
+  "coverage": "All 35 families installed and compiled; 99 inherited browser journeys plus 9 new regression cases exercise 21 selected families at 390/768/1280. This is a fresh packed artifact proof with published tokens, not a public UI 0.2.0 install."
+}

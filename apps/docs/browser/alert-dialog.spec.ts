@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { demoThemes, withDemoAccent } from "../../../packages/tokens/src/presets/docs-themes";
 import { resolveColors } from "../../../packages/tokens/src/resolve";
+import { modalOwnsEscape } from "./helpers/modal";
 
 const example = readFileSync(new URL("../src/examples/alert-dialog.tsx", import.meta.url), "utf8");
 
@@ -131,6 +132,7 @@ test("AlertDialog preserves the caller's asynchronous closing and nested Sheet i
   await review.click();
   const nested = page.getByRole("alertdialog", { name: "Remove this draft?" });
   await expect(nested.getByRole("button", { name: "Keep draft" })).toBeFocused();
+  await modalOwnsEscape(nested, page.locator('[data-slot="sheet-content"]'));
   await page.keyboard.press("Escape");
   await expect(nested).toHaveCount(0);
   try {
@@ -160,6 +162,41 @@ test("AlertDialog preserves the caller's asynchronous closing and nested Sheet i
   await expect(sheet).toHaveCount(0);
   await expect(editor).toBeFocused();
   await target(save);
+});
+
+test("Escape during nested confirmation registration preserves its parent Sheet", async ({
+  page,
+}) => {
+  await openExample(page);
+  await page.getByRole("button", { name: "Open draft editor", exact: true }).click();
+  const parent = page.locator('[data-slot="sheet-content"]');
+  const review = parent.getByRole("button", { name: "Review removal in editor" });
+  await page.evaluate(() => {
+    document.documentElement.dataset.registrationEscapes = "0";
+    const duringRegistration = () => {
+      const child = document.querySelector('[data-slot="alert-dialog-content"]');
+      if (!child) return;
+      document.removeEventListener("dismissableLayer.update", duringRegistration);
+      document.documentElement.dataset.registrationEscapes = "1";
+      child.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
+      );
+    };
+    document.addEventListener("dismissableLayer.update", duringRegistration);
+  });
+  await review.click();
+  await expect(page.locator("html")).toHaveAttribute("data-registration-escapes", "1");
+  await expect(parent, "registration Escape must not close the parent").toBeVisible();
+  const child = page.getByRole("alertdialog", { name: "Remove this draft?" });
+  await expect(child).toBeVisible();
+  await modalOwnsEscape(child, parent);
+  await page.keyboard.press("Escape");
+  await expect(child).toHaveCount(0);
+  await expect(review).toBeFocused();
+  await expect(parent).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(parent).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Open draft editor", exact: true })).toBeFocused();
 });
 
 test("AlertDialog source is highlighted and copies exact registry-alias composition", async ({

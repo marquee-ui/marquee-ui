@@ -39,3 +39,21 @@ const twMerge = extendTailwindMerge({
 export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
+
+/**
+ * Radix can retain a background layer's Escape listener during registration of
+ * a nested modal (radix-ui/primitives#4143). Its live aria-hidden boundary is
+ * already set at that point. Ignore Escape on that background layer until the
+ * new layer owns dismissal; never call the background caller's handler either.
+ */
+export function handleModalEscape(
+  content: HTMLElement | null,
+  event: KeyboardEvent,
+  onEscapeKeyDown?: (event: KeyboardEvent) => void,
+) {
+  if (content?.closest('[aria-hidden="true"]')) {
+    event.preventDefault();
+    return;
+  }
+  onEscapeKeyDown?.(event);
+}
