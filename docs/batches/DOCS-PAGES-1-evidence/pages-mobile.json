@@ -1,0 +1,130 @@
+[
+  {
+    "mode": "dark",
+    "page": "home",
+    "title": "Marquee UI — Compose it your way",
+    "h1": ["Compose ityour way."],
+    "width": 390,
+    "links": ["#main"]
+  },
+  {
+    "mode": "dark",
+    "page": "getting-started",
+    "title": "Get started — Marquee UI",
+    "h1": ["From empty project to your first composition."],
+    "width": 390,
+    "links": ["#main"]
+  },
+  {
+    "mode": "dark",
+    "page": "components",
+    "title": "Components — Marquee UI",
+    "h1": ["A kit of possibilities."],
+    "width": 390,
+    "links": ["#main"]
+  },
+  {
+    "mode": "dark",
+    "page": "themes",
+    "title": "Themes — Marquee UI",
+    "h1": ["A role for every detail."],
+    "width": 390,
+    "links": ["#main", "#theme-studio"]
+  },
+  {
+    "mode": "dark",
+    "page": "supported-stack",
+    "title": "Supported stack — Marquee UI",
+    "h1": ["Know the contract."],
+    "width": 390,
+    "links": ["#main"]
+  },
+  {
+    "mode": "dark",
+    "page": "composition",
+    "title": "Composition — Marquee UI",
+    "h1": ["Put the parts together."],
+    "width": 390,
+    "links": ["#main"]
+  },
+  {
+    "mode": "dark",
+    "page": "common-name-api",
+    "title": "Component contracts — Marquee UI",
+    "h1": ["Familiar names. Explicit contracts."],
+    "width": 390,
+    "links": ["#main"]
+  },
+  {
+    "mode": "dark",
+    "page": "recipe-contracts",
+    "title": "Recipe contracts — Marquee UI",
+    "h1": ["Compose the newer families."],
+    "width": 390,
+    "links": ["#main"]
+  },
+  {
+    "mode": "light",
+    "page": "home",
+    "title": "Marquee UI — Compose it your way",
+    "h1": ["Compose ityour way."],
+    "width": 390,
+    "links": ["#main"]
+  },
+  {
+    "mode": "light",
+    "page": "getting-started",
+    "title": "Get started — Marquee UI",
+    "h1": ["From empty project to your first composition."],
+    "width": 390,
+    "links": ["#main"]
+  },
+  {
+    "mode": "light",
+    "page": "components",
+    "title": "Components — Marquee UI",
+    "h1": ["A kit of possibilities."],
+    "width": 390,
+    "links": ["#main"]
+  },
+  {
+    "mode": "light",
+    "page": "themes",
+    "title": "Themes — Marquee UI",
+    "h1": ["A role for every detail."],
+    "width": 390,
+    "links": ["#main", "#theme-studio"]
+  },
+  {
+    "mode": "light",
+    "page": "supported-stack",
+    "title": "Supported stack — Marquee UI",
+    "h1": ["Know the contract."],
+    "width": 390,
+    "links": ["#main"]
+  },
+  {
+    "mode": "light",
+    "page": "composition",
+    "title": "Composition — Marquee UI",
+    "h1": ["Put the parts together."],
+    "width": 390,
+    "links": ["#main"]
+  },
+  {
+    "mode": "light",
+    "page": "common-name-api",
+    "title": "Component contracts — Marquee UI",
+    "h1": ["Familiar names. Explicit contracts."],
+    "width": 390,
+    "links": ["#main"]
+  },
+  {
+    "mode": "light",
+    "page": "recipe-contracts",
+    "title": "Recipe contracts — Marquee UI",
+    "h1": ["Compose the newer families."],
+    "width": 390,
+    "links": ["#main"]
+  }
+]

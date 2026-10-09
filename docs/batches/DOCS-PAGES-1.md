@@ -41,7 +41,11 @@ component and composition previews, opening their new pages in the same browser
 context. It continues to prove that using theme controls does not reload the
 active document.
 
-Full verification, captures and the final preview handoff are retained under
+Full `DOCS_PORT=4182 pnpm verify` passed at `facb18a50e14556907866651e3ec1a55d7163710` on 2026-10-09: **996 library, 39 docs, 5 consumer-harness and 324 Chromium tests**, exit 0 in 396.4 seconds. The registry diff is empty. The earlier focused pass was 39 docs tests plus 72 browser cases; the full run includes the additional complete legacy-bookmark/recovery case.
+
+The stable preview serves the immutable successful build. All **129 files** were checked byte-for-byte against it; all eight routes passed live title, heading and viewport checks at 390/768/1280 with zero page errors. The first byte check preceded server readiness and received connection refused; the check after HTTP 200 passed. The [evidence directory](DOCS-PAGES-1-evidence/) retains hashes, metadata and the exact inspected-image list.
+
+Full verification logs, captures and the final preview handoff are retained under
 `/home/ankit/.marquee-scratch/DOCS-PAGES-1/`. Package source and the prepared UI
 0.2.0 registry/tarball are unchanged by this docs/branding work. Public release
 remains held.
