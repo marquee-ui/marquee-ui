@@ -131,7 +131,26 @@ test("AlertDialog preserves the caller's asynchronous closing and nested Sheet i
   await expect(nested.getByRole("button", { name: "Keep draft" })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(nested).toHaveCount(0);
-  await expect(review).toBeFocused();
+  try {
+    await expect(review).toBeFocused();
+  } catch (error) {
+    // Preserve the actual parent state when a hosted run cannot restore focus.
+    // Role locators alone cannot distinguish a closed Sheet from aria-hidden one.
+    console.error(
+      "NESTED_ESCAPE_STATE",
+      await page.evaluate(() => ({
+        activeElement: document.activeElement?.outerHTML,
+        sheets: Array.from(document.querySelectorAll('[data-slot="sheet-content"]')).map(
+          (element) => element.outerHTML,
+        ),
+        confirmations: Array.from(
+          document.querySelectorAll('[data-slot="alert-dialog-content"]'),
+        ).map((element) => element.outerHTML),
+        bodyPointerEvents: document.body.style.pointerEvents,
+      })),
+    );
+    throw error;
+  }
   await target(input);
   await input.fill("Recovered after confirmation");
   await expect(input).toHaveValue("Recovered after confirmation");
