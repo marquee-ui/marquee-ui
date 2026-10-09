@@ -38,7 +38,28 @@ Scratch: `/home/ankit/.marquee-scratch/NESTED-ESCAPE-1`.
   six new tests for registration, normal dismissal, caller cancellation and refs.
 - `focused.log`: 45 repeated browser cases passed across 390/768/1280 before the
   additional Sheet slot correction. The full gate below covers the final source.
-- Full gate and fresh installed-package evidence: pending in this working slice.
+- `DOCS_PORT=4182 pnpm verify` (`verify.log`, sentinel exit 0): lint, typecheck,
+  build, 1,007 library tests, 39 docs tests, 5 consumer-harness tests and all 336
+  Chromium cases passed. Registry generation left no diff.
+- `pnpm --dir packages/ui pack --pack-destination <scratch>/artifacts` packed
+  source commit `b416aeea92bfdc3cc658c44c1203ee18ddefbb41` without publishing.
+- `candidate-proof.mjs` created a separate consumer with a new npm cache and
+  installed that exact UI archive plus published tokens 0.1.0. All 35 families
+  (36 registry items / 37 copied files) matched the reviewed source byte for byte,
+  built with strict TypeScript, and declared the imported runtime helpers.
+- The first consumer browser run passed 106/108; two old harness assertions saw
+  a 44px Slider target as 43.999992px after fractional translation. The harness
+  now uses the repository's existing 0.001px DOMRect tolerance. No package or
+  component change followed. `consumer-recheck.log` records the complete rerun:
+  **108 passed**, zero skipped, flaky or unexpected (2.0m). The 99 inherited cases
+  cover 21 selected families; nine new cases exercise Slider endpoints, compact
+  Calendar and Escape during nested registration across all three widths.
+- [Consumer provenance](NESTED-ESCAPE-1-evidence/consumer-provenance.json) records
+  archive integrity, SHA-256, source commit, copied-file hashes and commands.
+  This is a local candidate installation, not a published UI 0.2.0 installation.
+- The immutable `preview-verified` snapshot is served on localhost:4174. Nine
+  focused nested-modal checks passed after switching the server; `preview-check.log`
+  and `preview-manifest.json` record the served build and source commit.
 
 The guard is scoped to Sheet/Dialog/AlertDialog modal content. It is not a fork of
 Radix and does not claim to repair every possible third-party overlay composition.

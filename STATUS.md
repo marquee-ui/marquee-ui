@@ -1,6 +1,6 @@
 # Marquee implementation status
 
-CURSOR: IN PROGRESS — nested modal Escape repair and fresh candidate proof; npm 0.2.0 held
+CURSOR: READY — nested modal repair and fresh candidate verified; npm 0.2.0 held
 
 The user authorized a finite component-parity program on 2026-10-08. All eight
 [ordered batches](docs/component-parity.md) are complete. No batch 9 is queued.
@@ -18,7 +18,8 @@ Escape failure: the background Sheet could close while its child registered.
 The user authorized continuing that repair and rebuilding the held candidate.
 [NESTED-ESCAPE-1](docs/batches/NESTED-ESCAPE-1.md) records the deterministic
 reproduction, background-modal guard and Sheet slot correction. Full verification
-and a fresh external package proof are in progress. No new roadmap batch is queued.
+and the fresh external package proof passed. Review this repair before merging;
+publication is still held. No new roadmap batch is queued.
 
 The preceding preview fix was verified as follows:
 
@@ -36,9 +37,11 @@ those transitions. The full command above passed again on 2026-10-09 with the
 same counts; 30 focused browser repetitions also passed. Diagnosis and repetition
 evidence: `/home/ankit/.marquee-scratch/UI-FIXES-1/ci-repair/diagnosis.md`.
 
-The retained [release-readiness artifact](docs/batches/RELEASE-READINESS-1.md)
-predates these source/dependency changes. Rebuild and verify a fresh packed
-consumer before any future npm publication; do not publish the old tarball.
+The fresh candidate and its exact hashes are recorded in
+[NESTED-ESCAPE-1](docs/batches/NESTED-ESCAPE-1.md). The older
+[release-readiness artifact](docs/batches/RELEASE-READINESS-1.md) is obsolete for
+publication. Renewed release direction is still required; rebuild and reverify
+if the candidate source changes.
 
 ## Release hold and current preview
 
@@ -53,7 +56,7 @@ of npm availability. Main/next verification and documentation deployment passed;
 served-page evidence is in the DOCS-PAGES-1 handoff below.
 
 Current verified local preview: **http://localhost:4174/marquee-ui/**, served from
-`/home/ankit/.marquee-scratch/UI-FIXES-1/preview-verified`. The handoff records the
+`/home/ankit/.marquee-scratch/NESTED-ESCAPE-1/preview-verified`. The handoff records the
 source commit, preview manifest, screenshots and before/after measurements.
 The public site serves PR #3. The nested modal repair is not deployed yet.
 
@@ -62,7 +65,7 @@ The public site serves PR #3. The nested modal repair is not deployed yet.
 [Release](docs/batches/RELEASE-1.md), [theme/code revision](docs/batches/RELEASE-1-UX.md),
 and [visual controls](docs/batches/RELEASE-1-CONTROLS.md) retain their evidence.
 Latest completed handoff:
-`/home/ankit/.marquee-scratch/UI-FIXES-1/final-handoff.md`.
+`/home/ankit/.marquee-scratch/NESTED-ESCAPE-1/final-handoff.md`.
 The prior Pages deployment evidence remains in
 `/home/ankit/.marquee-scratch/DOCS-PAGES-1/final-handoff.md`.
 Inspect branch/CI/worktrees, this cursor, the matrix and final batch record before
@@ -88,3 +91,4 @@ advances.
 | 2026-10-09 | DOCS-PAGES-1        | Tide PNG exports; eight static docs pages with preserved themes/bookmarks; full local verification 996/39/5/324 green; immutable preview refreshed; publication held.                                         |
 | 2026-10-09 | UI-FIXES-1          | Slider endpoints, compact Calendar and Toggle demo spacing fixed; full gate 1001/39/5/333 green; preview audit and immutable localhost refreshed; npm release held.                                           |
 | 2026-10-09 | UI-FIXES-1-CI       | Reproduced Tooltip scroll and DropdownMenu focus-return races; repaired browser sequencing; 30 focused repetitions and full gate 1001/39/5/333 passed; npm release held.                                      |
+| 2026-10-09 | NESTED-ESCAPE-1     | Nested modal registration and Sheet custom hosts repaired; full gate, fresh installed candidate and refreshed local preview verified; npm held.                                                               |
