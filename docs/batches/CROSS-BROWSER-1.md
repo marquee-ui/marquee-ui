@@ -17,8 +17,8 @@ and Select/Combobox. These also join the regular Chromium gate.
 Source-copy tests tagged `@clipboard` retain their real Chromium clipboard
 permission/readback checks. Firefox/WebKit do not accept the same permission
 set. Theme persistence was split from clipboard readback, so refresh/storage
-behavior still runs in all engines. No interaction check is skipped as a way to
-hide a failing component.
+behavior still runs in all engines. The excluded cases and their coverage bounds
+are listed below.
 
 The lockfile resolves Playwright 1.63.0; the browser server reports Firefox 155.0
 and WebKit 26.6. The Arch host uses the matching official
@@ -75,12 +75,45 @@ permission cases. Traces and event probes retain the actual failure assertions.
 
 ## Verification and artifacts
 
-Verification is in progress. Full outcomes and the refreshed candidate will be
-recorded before this work is presented as complete.
+On 2026-10-13, the final source at `01cbfcd` (with a test-only type annotation
+correction) passed all **330 Firefox/WebKit cases**, zero skipped, with runner
+exit 0 in 5.1 minutes. Command:
+`DOCS_PORT=4183 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:4199 pnpm test:docs:cross-browser --workers=2`.
+`DOCS_PORT=4182 pnpm verify` passed with exit 0: 1,016 library tests, 39 docs
+unit tests, five consumer-harness tests and all 348 Chromium browser cases.
+The generated registry remained byte-identical after the build.
+
+A fresh external consumer installed the held UI archive with published tokens
+0.1.0, then copied and compiled all 35 families (36 registry items, 37 byte-exact
+source files). `npm run proof` passed all 111 Chromium cases with no skips,
+flakiness or failures. The separate installed-package Firefox/WebKit run passed
+all 12 checks for Combobox paint and exact controlled/uncontrolled Slider touch
+commit histories. Its command and results are in the
+[consumer provenance](CROSS-BROWSER-1-evidence/consumer-provenance.json).
+
+Candidate source: `01cbfcd9b2d665d239272a0c73e41bae21dca1ca`. Later changes are
+limited to test type annotations, documentation and retained evidence. Archive:
+`/home/ankit/.marquee-scratch/CROSS-BROWSER-1/artifacts/marquee-ui-ui-0.2.0.tgz`.
+SHA-256: `f9830d014812df87496b182c409a81af1e21373e9def64db28d4fe834508e39b`.
+This supersedes the earlier NESTED-ESCAPE-1 and release-readiness archives; it
+has not been published to npm. A live `npm view @marquee-ui/ui version` check
+still returned 0.1.10 on 2026-10-13.
 
 Durable evidence: `/home/ankit/.marquee-scratch/CROSS-BROWSER-1/`, including
 `engine-baseline.log`, `webkit-baseline.log`, their trace directories,
 `endpoint-probe.jsonl`, `webkit-probe.log` and the before-fix screenshot.
+
+The separator repair is visible in the retained
+[before](CROSS-BROWSER-1-evidence/combobox-forced-before.png) and
+[after](CROSS-BROWSER-1-evidence/combobox-forced-after.png) captures. The
+[original pointer trace](CROSS-BROWSER-1-evidence/touch-events-before.jsonl)
+records WebKit's mismatched capture/release target alongside Firefox's normal
+release. [Browser versions](CROSS-BROWSER-1-evidence/browser-versions.json) were
+read from the running engines.
+
+The immutable local preview at `http://localhost:4174/marquee-ui/` was refreshed
+from the final build. All 18 Firefox/WebKit touch checks passed against that
+copy; file hashes are retained in scratch `preview-manifest.json`.
 
 ## Limits
 
@@ -88,5 +121,7 @@ This is a selected docs/Storybook suite, not all 35 family APIs or every consume
 framework. WebKit is Playwright's Linux engine, not branded Safari or an iPhone
 test. Viewport and touch emulation do not prove real-device gestures, virtual
 keyboards, OS accessibility behavior or Safari integration. Clipboard write/read
-permission coverage remains Chromium-only. npm publication requires new user
-direction after this QA work.
+permission coverage remains Chromium-only, as does the extra uncontrolled
+form-reset assertion bundled into the clipboard-tagged Slider journey. The
+separate keyboard, controlled reset and native touch checks run in both engines.
+npm publication requires new user direction after this QA work.

@@ -47,9 +47,9 @@ The pre-fix proposed-release proof is recorded in
 [RELEASE-READINESS-1](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/RELEASE-READINESS-1.md).
 The [Batch 8 audit record](https://github.com/marquee-ui/marquee-ui/blob/next/docs/slices/RECIPE-INSTALL-AUDIT-1.md)
 records the inventory check. The subsequent
-[nested-modal candidate](./batches/NESTED-ESCAPE-1.md) includes the Slider/Calendar
-repairs. The [Firefox/WebKit QA record](./batches/CROSS-BROWSER-1.md) tracks the
-newer separator repair and refreshed candidate; earlier archives are historical. [Recipe contracts](./recipe-contracts.md) define caller
+[nested-modal candidate](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/NESTED-ESCAPE-1.md) includes the Slider/Calendar
+repairs. The [Firefox/WebKit QA record](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/CROSS-BROWSER-1.md) tracks the
+newer separator and Slider touch repairs and refreshed candidate; earlier archives are historical. [Recipe contracts](./recipe-contracts.md) define caller
 responsibilities and deferred behaviors; [common-name APIs](./common-name-api.md)
 cover deliberate differences in the original families. A named family or a passing
 journey does not establish full shadcn catalog/API parity.
@@ -70,7 +70,7 @@ every possible assertion, SVG descendant or caller composition.
 - Tailwind 4 requires modern browser CSS support. Follow its
   [compatibility requirements](https://tailwindcss.com/docs/compatibility);
   the retained broad consumer proofs exercise Chromium at the widths above.
-  The separate [focused Firefox/WebKit suite](./batches/CROSS-BROWSER-1.md)
+  The separate [focused Firefox/WebKit suite](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/CROSS-BROWSER-1.md)
   exercises selected docs/Storybook controls at the same widths. Its Linux
   WebKit runs do not establish Safari/iOS device coverage or all-family consumer
   coverage.

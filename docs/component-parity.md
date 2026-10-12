@@ -74,9 +74,10 @@ with existing overlay parts and align compatible primitive dependencies in both 
 workspace and shipped registry; workspace-only overrides do not protect copied components.
 Require the predicted assertion to redden under mutation.
 
-Public operations stay held as recorded in [STATUS.md](../STATUS.md). The finite eight-batch
-program is complete; no next batch is queued. The accumulated release PR remains draft
-and unmerged. [Batch 8](batches/BATCH-PARITY-8.md) records the final audit, review and
+npm publication stays held as recorded in [STATUS.md](../STATUS.md). The finite eight-batch
+program is complete; no next parity batch is queued. The source/docs release and prior
+preview repairs have merged and GitHub Pages is live. Later QA repairs are recorded
+separately in STATUS. [Batch 8](batches/BATCH-PARITY-8.md) records the final audit, review and
 validation closure. Remaining implementation below needs a new scope decision.
 
 ## Deferred backlog after the finite program

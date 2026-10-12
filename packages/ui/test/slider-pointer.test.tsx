@@ -6,13 +6,22 @@ import { Slider, SliderRange, SliderThumb, SliderTrack } from "../src/slider";
 const captures = new Map<number, HTMLElement>();
 beforeEach(() => {
   captures.clear();
-  vi.spyOn(HTMLElement.prototype, "setPointerCapture").mockImplementation(function (id) {
+  vi.spyOn(HTMLElement.prototype, "setPointerCapture").mockImplementation(function (
+    this: HTMLElement,
+    id,
+  ) {
     captures.set(id, this);
   });
-  vi.spyOn(HTMLElement.prototype, "hasPointerCapture").mockImplementation(function (id) {
+  vi.spyOn(HTMLElement.prototype, "hasPointerCapture").mockImplementation(function (
+    this: HTMLElement,
+    id,
+  ) {
     return captures.get(id) === this;
   });
-  vi.spyOn(HTMLElement.prototype, "releasePointerCapture").mockImplementation(function (id) {
+  vi.spyOn(HTMLElement.prototype, "releasePointerCapture").mockImplementation(function (
+    this: HTMLElement,
+    id,
+  ) {
     if (captures.get(id) === this) captures.delete(id);
   });
   vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({
