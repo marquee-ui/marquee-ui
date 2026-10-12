@@ -67,6 +67,16 @@ jobs:
           curl --fail --silent http://127.0.0.1:4177/marquee-ui/ > /dev/null
           curl --fail --silent http://127.0.0.1:4444/status > /dev/null
           pnpm test:docs:safari
+      - name: Capture native simulator screen after failure
+        if: failure() && matrix.target == 'iphone' && env.SAFARI_DEVICE_UDID != ''
+        continue-on-error: true
+        run: xcrun simctl io "$SAFARI_DEVICE_UDID" screenshot "$SAFARI_RESULTS/native-screen.png"
+      - name: Retain driver diagnostics
+        if: always()
+        run: |
+          if [ -d "$HOME/Library/Logs/com.apple.WebDriver" ]; then
+            cp -R "$HOME/Library/Logs/com.apple.WebDriver" "$SAFARI_RESULTS/driver-diagnostics"
+          fi
       - name: Retain Safari evidence
         if: always()
         uses: actions/upload-artifact@v4

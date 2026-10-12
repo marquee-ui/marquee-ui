@@ -12,18 +12,27 @@ const output = process.env.SAFARI_RESULTS ?? ".docs-browser-results/safari";
 await mkdir(output, { recursive: true });
 let session;
 const report = { mode, commit: process.env.GITHUB_SHA, checks: [] };
-async function request(method, path, body) {
-  const response = await globalThis.fetch(`${endpoint}${path}`, {
-    method,
-    headers: { "Content-Type": "application/json" },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-    signal: globalThis.AbortSignal.timeout(90_000),
-  });
-  const { value } = await response.json();
+async function request(method, path, body, timeout = 30_000) {
+  let response;
+  let value;
+  try {
+    response = await globalThis.fetch(`${endpoint}${path}`, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      signal: globalThis.AbortSignal.timeout(timeout),
+    });
+    ({ value } = await response.json());
+  } catch (cause) {
+    const error = new Error(`WebDriver transport failed: ${method} ${path}`, { cause });
+    error.fatalTransport = true;
+    throw error;
+  }
   assert.ok(response.ok && !value?.error, `${method} ${path}: ${JSON.stringify(value)}`);
   return value;
 }
-const command = (method, path, body) => request(method, `/session/${session}${path}`, body);
+const command = (method, path, body, timeout) =>
+  request(method, `/session/${session}${path}`, body, timeout);
 const script = (code, ...args) => command("POST", "/execute/sync", { script: code, args });
 async function until(code, label, ...args) {
   const end = Date.now() + 20_000;
@@ -70,7 +79,7 @@ async function preview(name) {
   await click(await element(`button[aria-label="Preview ${name}"]`));
 }
 async function screenshot(name) {
-  const encoded = await command("GET", "/screenshot");
+  const encoded = await command("GET", "/screenshot", undefined, 10_000);
   await writeFile(`${output}/${name}.png`, Buffer.from(encoded, "base64"));
 }
 async function keys(value) {
@@ -279,11 +288,17 @@ try {
       "safari:deviceUDID": process.env.SAFARI_DEVICE_UDID,
     });
   }
-  const created = await request("POST", "/session", {
-    capabilities: { alwaysMatch: capabilities },
-  });
+  const created = await request(
+    "POST",
+    "/session",
+    {
+      capabilities: { alwaysMatch: capabilities },
+    },
+    90_000,
+  );
   session = created.sessionId;
   report.capabilities = created.capabilities;
+  await writeFile(`${output}/results.json`, JSON.stringify(report, null, 2) + "\n");
   assert.match(created.capabilities.browserName, /^safari$/i, "Actual Safari is required");
   assert.match(
     created.capabilities.platformName,
@@ -292,8 +307,25 @@ try {
   if (mode === "iphone") assert.equal(created.capabilities["safari:useSimulator"], true);
   else await command("POST", "/window/rect", { width: 1280, height: 900 });
   console.log("SAFARI_SESSION", JSON.stringify(created.capabilities));
+  report.phase = "driver-preflight";
+  console.log("START driver-preflight");
+  await navigate(
+    "data:text/html," +
+      encodeURIComponent(
+        '<meta name="viewport" content="width=device-width,initial-scale=1"><button style="margin:60px;padding:30px" onclick="document.querySelector(\'output\').textContent=\'ready\'">Driver probe</button><output>waiting</output>',
+      ),
+  );
+  await button("Driver probe");
+  await until(
+    "return document.querySelector('output').textContent === 'ready'",
+    "Native Safari click completes on plain HTML",
+  );
+  report.preflightPassed = true;
+  console.log("PASS driver-preflight");
   for (const [name, run] of checks) {
     try {
+      report.phase = name;
+      console.log("START", name);
       await run();
       await screenshot(name);
       report.checks.push({ name, passed: true });
@@ -305,10 +337,15 @@ try {
         error: String(error.stack ?? error),
       });
       console.error("FAIL", name, error);
+      // A dead driver cannot supply diagnostics or run the remaining journeys.
+      // Preserve the failure now instead of repeatedly waiting on that session.
+      if (error.fatalTransport) break;
       await screenshot(`${name}-failure`).catch(() => {});
-      await command("GET", "/source")
+      await command("GET", "/source", undefined, 10_000)
         .then((source) => writeFile(`${output}/${name}-failure.html`, source))
         .catch(() => {});
+    } finally {
+      await writeFile(`${output}/results.json`, JSON.stringify(report, null, 2) + "\n");
     }
   }
   assert.equal(
@@ -322,7 +359,7 @@ try {
   console.error(error);
 } finally {
   if (session)
-    await command("DELETE", "").catch((error) => {
+    await command("DELETE", "", undefined, 5_000).catch((error) => {
       console.error(error);
       process.exitCode = 1;
     });
