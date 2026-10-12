@@ -8,7 +8,7 @@ account is not required for desktop Safari or iPhone Simulator Safari.
 ## Scope
 
 `.github/workflows/safari.yml` runs two independent jobs on standard runners:
-desktop Safari on `macos-15` and iPhone Simulator Safari on `macos-26` with
+desktop Safari on `macos-15` and iPhone Simulator Safari on `macos-26-intel` with
 Xcode 26.6 / iOS 26.2.
 The simulator selector fails if the pinned runtime has no available iPhone. The
 tests verify the returned Safari/platform capabilities and record them; they
@@ -47,7 +47,11 @@ of this route is in progress. Its first run,
 [38322492583](https://github.com/marquee-ui/marquee-ui/actions/runs/38322492583),
 failed while building WebDriverAgent: Xcode 26.3 lacks the required
 `lib_TestingInterop.dylib`. The iPhone job now selects Xcode 26.6 on standard
-`macos-26` and checks this prerequisite before booting. It still pins iOS 26.2.
+`macos-26-intel` and checks this prerequisite before booting. It still pins iOS 26.2.
+The initial ARM macOS 26 attempt passed that prerequisite but exhausted the
+server-readiness wait before running the client. The Intel runner has 14 GB RAM,
+and readiness now waits for each live server with a bounded deadline and explicit
+failure diagnostics.
 
 The preceding run was canceled after the simulator driver stopped responding;
 its later errors are not independent component findings. Results, platform
@@ -65,7 +69,7 @@ and Chromium suites remain separate evidence.
 
 - [GitHub standard runners and public-repository policy](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)
 - [Installed macOS 15 runner software](https://github.com/actions/runner-images/blob/main/images/macos/macos-15-arm64-Readme.md)
-- [Installed macOS 26 runner software](https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md)
+- [Installed macOS 26 Intel runner software](https://github.com/actions/runner-images/blob/main/images/macos/macos-26-Readme.md)
 - [Apple Safari WebDriver and simulator capabilities](https://webkit.org/blog/9395/webdriver-is-coming-to-safari-in-ios-13/)
 - [Enabling Safari WebDriver](https://developer.apple.com/documentation/webkit/testing-with-webdriver-in-safari)
 - [Appium native web taps and simulator capabilities](https://appium.github.io/appium-xcuitest-driver/latest/reference/capabilities/)

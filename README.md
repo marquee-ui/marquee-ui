@@ -112,7 +112,7 @@ release notes and installation steps; published UI remains 0.1.10 until release.
 ### Native Safari QA
 
 The `Safari` GitHub Actions workflow uses standard `macos-15` for desktop Safari
-and `macos-26` for an iPhone simulator (Xcode 26.6, iOS 26.2). It drives the
+and `macos-26-intel` for an iPhone simulator (Xcode 26.6, iOS 26.2). It drives the
 built docs and Storybook through Apple's bundled `safaridriver` on desktop and
 Appium/XCTest with native taps on iPhone. This is separate from Playwright's
 patched Linux WebKit suite. Simulator coverage is not physical

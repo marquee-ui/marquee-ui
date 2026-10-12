@@ -25,7 +25,7 @@ jobs:
           - target: desktop
             runner: macos-15
           - target: iphone
-            runner: macos-26
+            runner: macos-26-intel
     env:
       SAFARI_TARGET: ${{ matrix.target }}
       SAFARI_RESULTS: .docs-browser-results/safari
@@ -75,12 +75,18 @@ jobs:
           fi
           driver_pid=$!
           trap 'kill "$driver_pid" "$preview_pid" 2>/dev/null || true' EXIT
-          for attempt in {1..30}; do
-            if curl --max-time 5 --fail --silent http://127.0.0.1:4177/marquee-ui/ > /dev/null && curl --max-time 5 --fail --silent http://127.0.0.1:4444/status > /dev/null; then break; fi
-            sleep 1
+          for url in http://127.0.0.1:4177/marquee-ui/ http://127.0.0.1:4444/status; do
+            deadline=$((SECONDS + 120))
+            until curl --max-time 5 --fail --silent "$url" > /dev/null; do
+              kill -0 "$preview_pid" "$driver_pid"
+              if (( SECONDS >= deadline )); then
+                echo "Server did not become ready: $url" >&2
+                cat "$SAFARI_RESULTS/preview.log" "$SAFARI_RESULTS/driver.log"
+                exit 1
+              fi
+              sleep 2
+            done
           done
-          curl --max-time 5 --fail --silent http://127.0.0.1:4177/marquee-ui/ > /dev/null
-          curl --max-time 5 --fail --silent http://127.0.0.1:4444/status > /dev/null
           pnpm test:docs:safari
       - name: Capture native simulator screen after failure
         if: failure() && matrix.target == 'iphone' && env.SAFARI_DEVICE_UDID != ''
