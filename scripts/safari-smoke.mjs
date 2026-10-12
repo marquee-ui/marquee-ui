@@ -350,13 +350,13 @@ try {
   await navigate(
     "data:text/html," +
       encodeURIComponent(
-        '<meta name="viewport" content="width=device-width,initial-scale=1"><button style="margin:60px;padding:30px" onclick="document.querySelector(\'output\').textContent=\'ready\'">Driver probe</button><output>waiting</output>',
+        '<meta name="viewport" content="width=device-width,initial-scale=1"><button style="margin:60px;padding:30px" onclick="document.querySelector(\'output\').textContent=event.isTrusted ? \'ready\' : \'untrusted\'">Driver probe</button><output>waiting</output>',
       ),
   );
   await button("Driver probe");
   await until(
     "return document.querySelector('output').textContent === 'ready'",
-    "Native Safari click completes on plain HTML",
+    "Trusted native Safari click completes on plain HTML",
   );
   report.preflightPassed = true;
   console.log("PASS driver-preflight");
@@ -409,7 +409,7 @@ try {
     ).catch((captureError) => console.error(captureError));
 } finally {
   if (session)
-    await command("DELETE", "", undefined, 5_000).catch((error) => {
+    await command("DELETE", "", undefined, mode === "iphone" ? 30_000 : 5_000).catch((error) => {
       console.error(error);
       process.exitCode = 1;
     });
