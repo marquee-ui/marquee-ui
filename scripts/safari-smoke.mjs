@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
+import { execFile } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import { setTimeout as delay } from "node:timers/promises";
+import { promisify } from "node:util";
 
 // Native Safari WebDriver: all input goes through WebDriver, never DOM .click().
 const mode = process.env.SAFARI_TARGET ?? "desktop";
@@ -60,7 +62,13 @@ async function element(selector, using = "css selector") {
 const id = (el) => el["element-6066-11e4-a52e-4f735466cecf"];
 async function click(el) {
   await script("arguments[0].scrollIntoView({block:'center',inline:'nearest'})", el);
-  await command("POST", `/element/${id(el)}/click`, {});
+  if (mode === "iphone") {
+    const center = await script(
+      "const r=arguments[0].getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}",
+      el,
+    );
+    await tap(center.x, center.y);
+  } else await command("POST", `/element/${id(el)}/click`, {});
 }
 async function button(text) {
   const el = await element(`//button[normalize-space(.)=${JSON.stringify(text)}]`, "xpath");
@@ -113,6 +121,7 @@ async function tap(x, y) {
             y: Math.round(y),
           },
           { type: "pointerDown", button: 0 },
+          { type: "pause", duration: 100 },
           { type: "pointerUp", button: 0 },
         ],
       },
@@ -357,6 +366,18 @@ try {
   report.error = String(error.stack ?? error);
   process.exitCode = 1;
   console.error(error);
+  if (mode === "iphone" && process.env.SAFARI_DEVICE_UDID)
+    await promisify(execFile)(
+      "xcrun",
+      [
+        "simctl",
+        "io",
+        process.env.SAFARI_DEVICE_UDID,
+        "screenshot",
+        `${output}/failure-before-teardown.png`,
+      ],
+      { timeout: 10_000 },
+    ).catch((captureError) => console.error(captureError));
 } finally {
   if (session)
     await command("DELETE", "", undefined, 5_000).catch((error) => {
