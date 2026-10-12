@@ -1,6 +1,6 @@
 # Marquee implementation status
 
-CURSOR: READY — nested modal repair and fresh candidate verified; npm 0.2.0 held
+CURSOR: IN PROGRESS — focused Firefox/WebKit QA; npm 0.2.0 held
 
 The user authorized a finite component-parity program on 2026-10-08. All eight
 [ordered batches](docs/component-parity.md) are complete. No batch 9 is queued.
@@ -10,16 +10,16 @@ and validation limits are explicitly deferred in the matrix.
 
 ## Next work
 
-PR #3 merged as `7e929d55e6a903dafb1671c3dca71a74d4b349b4` after green
-PR CI. Pages deployed the Slider/Calendar fixes and all nine targeted public
-checks passed. The separate main/next runs exposed an intermittent nested modal
-Escape failure: the background Sheet could close while its child registered.
+PR #4 merged as `ba7149567fdf9c0d0cd76b38d6d359f1d7f55fcb` after green
+PR CI. Main/next verification, Pages deployment and nine targeted public nested
+modal checks passed. The Slider/Calendar and nested-modal fixes are live.
 
-The user authorized continuing that repair and rebuilding the held candidate.
-[NESTED-ESCAPE-1](docs/batches/NESTED-ESCAPE-1.md) records the deterministic
-reproduction, background-modal guard and Sheet slot correction. Full verification
-and the fresh external package proof passed. Review this repair before merging;
-publication is still held. No new roadmap batch is queued.
+On 2026-10-13 the user authorized a focused Firefox/WebKit QA pass and fixes,
+while explicitly retaining the npm hold. [CROSS-BROWSER-1](docs/batches/CROSS-BROWSER-1.md)
+records the scope, browser setup, findings and validation. No new parity batch
+or package publication is authorized. The separator repair changes the package
+source, so the previous candidate is historical; use the refreshed proof recorded
+in CROSS-BROWSER-1 before considering publication.
 
 The preceding preview fix was verified as follows:
 
@@ -37,8 +37,8 @@ those transitions. The full command above passed again on 2026-10-09 with the
 same counts; 30 focused browser repetitions also passed. Diagnosis and repetition
 evidence: `/home/ankit/.marquee-scratch/UI-FIXES-1/ci-repair/diagnosis.md`.
 
-The fresh candidate and its exact hashes are recorded in
-[NESTED-ESCAPE-1](docs/batches/NESTED-ESCAPE-1.md). The older
+The preceding candidate and its exact hashes are recorded in
+[NESTED-ESCAPE-1](docs/batches/NESTED-ESCAPE-1.md). This QA changes its source. The older
 [release-readiness artifact](docs/batches/RELEASE-READINESS-1.md) is obsolete for
 publication. Renewed release direction is still required; rebuild and reverify
 if the candidate source changes.
@@ -58,7 +58,7 @@ served-page evidence is in the DOCS-PAGES-1 handoff below.
 Current verified local preview: **http://localhost:4174/marquee-ui/**, served from
 `/home/ankit/.marquee-scratch/NESTED-ESCAPE-1/preview-verified`. The handoff records the
 source commit, preview manifest, screenshots and before/after measurements.
-The public site serves PR #3. The nested modal repair is not deployed yet.
+The public site serves PR #4. The cross-browser separator repair is not deployed yet.
 
 ## Previous evidence and cold resume
 

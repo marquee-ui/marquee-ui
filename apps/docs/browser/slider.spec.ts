@@ -327,9 +327,10 @@ test("Slider painted endpoints accept pointer input and retain the whole thumb t
       await track.scrollIntoViewIfNeeded();
       const box = (await track.boundingBox())!;
       const end = (value === 100) !== fromEnd;
+      // Firefox rounds pointer coordinates down; stay a full pixel inside the painted track.
       await page.mouse.click(
-        box.x + (orientation === "horizontal" ? (end ? box.width - 0.1 : 0.1) : box.width / 2),
-        box.y + (orientation === "vertical" ? (end ? box.height - 0.1 : 0.1) : box.height / 2),
+        box.x + (orientation === "horizontal" ? (end ? box.width - 1 : 1) : box.width / 2),
+        box.y + (orientation === "vertical" ? (end ? box.height - 1 : 1) : box.height / 2),
       );
       await expect(thumb).toHaveAttribute("aria-valuenow", String(value));
       await target(thumb);
@@ -536,31 +537,36 @@ test("Slider focus and markers paint without docs CSS in dark, light, accent and
   ).toBe(2);
 });
 
-test("Slider example is highlighted and copied exactly; uncontrolled native form reset works", async ({
-  page,
-  context,
-}) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("components/");
-  await page.getByRole("button", { name: "Preview Slider", exact: true }).click();
-  const section = page.locator(".family-detail .code-block");
-  expect(await section.locator("pre code").textContent()).toBe(example);
-  expect(
-    await section.locator("pre code .token").count(),
-    "Slider source is highlighted",
-  ).toBeGreaterThan(10);
-  await section.getByRole("button", { name: "Copy Slider composition" }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(example);
-  await expect(section.getByRole("status")).toHaveText("Copied to clipboard");
-  await page.goto("storybook/iframe.html?id=parts-slider--in-a-form&viewMode=story&embed=true");
-  const thumb = page.getByRole("slider", { name: "Volume", exact: true });
-  await expect(thumb).toHaveAttribute("aria-valuenow", "40");
-  await thumb.focus();
-  await thumb.press("ArrowRight");
-  await expect(thumb).toHaveAttribute("aria-valuenow", "45");
-  const form = page.getByRole("form", { name: "Volume settings" });
-  expect(await form.evaluate((el) => new FormData(el as HTMLFormElement).get("volume"))).toBe("45");
-  await page.getByRole("button", { name: "Reset volume" }).click();
-  await expect(thumb).toHaveAttribute("aria-valuenow", "40");
-  expect(await form.evaluate((el) => new FormData(el as HTMLFormElement).get("volume"))).toBe("40");
-});
+test(
+  "Slider example is highlighted and copied exactly; uncontrolled native form reset works",
+  { tag: "@clipboard" },
+  async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.goto("components/");
+    await page.getByRole("button", { name: "Preview Slider", exact: true }).click();
+    const section = page.locator(".family-detail .code-block");
+    expect(await section.locator("pre code").textContent()).toBe(example);
+    expect(
+      await section.locator("pre code .token").count(),
+      "Slider source is highlighted",
+    ).toBeGreaterThan(10);
+    await section.getByRole("button", { name: "Copy Slider composition" }).click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(example);
+    await expect(section.getByRole("status")).toHaveText("Copied to clipboard");
+    await page.goto("storybook/iframe.html?id=parts-slider--in-a-form&viewMode=story&embed=true");
+    const thumb = page.getByRole("slider", { name: "Volume", exact: true });
+    await expect(thumb).toHaveAttribute("aria-valuenow", "40");
+    await thumb.focus();
+    await thumb.press("ArrowRight");
+    await expect(thumb).toHaveAttribute("aria-valuenow", "45");
+    const form = page.getByRole("form", { name: "Volume settings" });
+    expect(await form.evaluate((el) => new FormData(el as HTMLFormElement).get("volume"))).toBe(
+      "45",
+    );
+    await page.getByRole("button", { name: "Reset volume" }).click();
+    await expect(thumb).toHaveAttribute("aria-valuenow", "40");
+    expect(await form.evaluate((el) => new FormData(el as HTMLFormElement).get("volume"))).toBe(
+      "40",
+    );
+  },
+);

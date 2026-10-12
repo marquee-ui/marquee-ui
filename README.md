@@ -85,6 +85,19 @@ For the assembled docs and nested Storybook, run `pnpm build`, then
 Stop the dev server before using the same preview port. Browser tests also need
 Chromium's system libraries; CI installs those before running the gate.
 
+The separate focused Firefox/WebKit gate runs Slider, Calendar, DatePicker, Select,
+Combobox, nested dialogs, themes and touch taps at 390/768/1280px:
+
+```sh
+pnpm --filter @marquee-ui/docs exec playwright install --with-deps firefox webkit
+pnpm build
+pnpm test:docs:cross-browser
+```
+
+CI runs both gates. Chromium retains the clipboard-permission tests. See the
+[cross-browser QA record](docs/batches/CROSS-BROWSER-1.md) for measured coverage,
+the container setup for unsupported Linux hosts, and real-device limitations.
+
 Node 22.12+ within Node 22, pnpm 10.24.0, TypeScript strict with no `any`. `AGENTS.md` is the short
 version for a coding agent.
 

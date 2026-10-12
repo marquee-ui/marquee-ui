@@ -9,8 +9,9 @@ const day = (root: Locator, number: number) =>
 async function target(control: Locator) {
   await expect(control).toBeVisible();
   const box = (await control.boundingBox())!;
-  expect(box.width, "DatePicker real target width").toBeGreaterThanOrEqual(44);
-  expect(box.height, "DatePicker real target height").toBeGreaterThanOrEqual(44);
+  // Engine DOMRects can differ from CSS pixels by a few hundred-thousandths.
+  expect(box.width, "DatePicker real target width").toBeGreaterThanOrEqual(44 - 0.001);
+  expect(box.height, "DatePicker real target height").toBeGreaterThanOrEqual(44 - 0.001);
   await expect
     .poll(
       () =>
@@ -399,20 +400,21 @@ test("DatePicker real hosts paint focus outside docs CSS in light, dark and forc
   }
 });
 
-test("DatePicker example source is highlighted and copied byte for byte", async ({
-  page,
-  context,
-}) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("components/");
-  await page.getByRole("button", { name: "Preview DatePicker", exact: true }).click();
-  const block = page.locator(".family-detail .code-block");
-  expect(await block.locator("pre code").textContent()).toBe(example);
-  expect(
-    await block.locator("pre code .token").count(),
-    "DatePicker source is highlighted",
-  ).toBeGreaterThan(20);
-  await block.getByRole("button", { name: "Copy DatePicker composition" }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(example);
-  await expect(block.getByRole("status")).toHaveText("Copied to clipboard");
-});
+test(
+  "DatePicker example source is highlighted and copied byte for byte",
+  { tag: "@clipboard" },
+  async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.goto("components/");
+    await page.getByRole("button", { name: "Preview DatePicker", exact: true }).click();
+    const block = page.locator(".family-detail .code-block");
+    expect(await block.locator("pre code").textContent()).toBe(example);
+    expect(
+      await block.locator("pre code .token").count(),
+      "DatePicker source is highlighted",
+    ).toBeGreaterThan(20);
+    await block.getByRole("button", { name: "Copy DatePicker composition" }).click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(example);
+    await expect(block.getByRole("status")).toHaveText("Copied to clipboard");
+  },
+);
