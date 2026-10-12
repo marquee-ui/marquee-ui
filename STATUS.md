@@ -24,8 +24,10 @@ harness and 348 Chromium tests). A fresh candidate passed all 111 Chromium
 consumer cases and 12 targeted Firefox/WebKit consumer checks. Exact artifact
 hashes and evidence are in CROSS-BROWSER-1. PR #5 merged as
 `ff774b9c45dddb1bbb43367bc0f19be23873e9e1` after all four exact-head checks passed.
-Main and next are synchronized to that merge. The continuation verifies Pages
-and adds [native Safari CI](docs/batches/SAFARI-CI-1.md) on GitHub macOS runners.
+Main and next are synchronized to that merge. Their verification and Pages
+deployment passed; 20 public files match the deployment artifact and 72 targeted
+public-site checks passed across Chromium, Firefox and Linux WebKit. The
+continuation adds [native Safari CI](docs/batches/SAFARI-CI-1.md) on GitHub macOS runners.
 No physical Apple device is available; iPhone Simulator coverage is separate
 from real-device testing. npm publication remains held.
 

@@ -113,12 +113,15 @@ release notes and installation steps; published UI remains 0.1.10 until release.
 
 The `Safari` GitHub Actions workflow uses standard `macos-15` runners for desktop
 Safari and Safari in an iPhone simulator (Xcode 26.3, iOS 26.2). It drives the
-built docs and Storybook through Apple's bundled `safaridriver`; this is separate
-from Playwright's patched Linux WebKit suite. Simulator coverage is not physical
+built docs and Storybook through Apple's bundled `safaridriver` on desktop and
+Appium/XCTest with native taps on iPhone. This is separate from Playwright's
+patched Linux WebKit suite. Simulator coverage is not physical
 iPhone coverage. Five bounded checks cover Slider endpoint commits, Calendar
 selection/layout, Combobox form state, nested dialogs and modal scroll reachability.
 
 On a configured Mac, build the site, serve it at port 4177, enable Safari remote
 automation and start `safaridriver --port 4444`, then run `pnpm test:docs:safari`.
 The workflow records actual browser/platform capabilities, screenshots and failures.
+The iPhone job pins Appium 3.8.0 and XCUITest driver 12.17.3, with native web taps
+enabled, and dismisses browser onboarding before the plain-HTML input preflight.
 See [SAFARI-CI-1](docs/batches/SAFARI-CI-1.md) for measured results and limitations.

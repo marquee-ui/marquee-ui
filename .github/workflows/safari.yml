@@ -36,6 +36,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      - name: Install iPhone native automation
+        if: matrix.target == 'iphone'
+        run: |
+          npm install --global appium@3.8.0
+          appium driver install xcuitest@12.17.3
       - name: Enable native Safari automation
         run: |
           mkdir -p "$SAFARI_RESULTS"
@@ -58,15 +63,19 @@ jobs:
         run: |
           node node_modules/vite/bin/vite.js preview --config apps/docs/vite.config.ts --outDir "$PWD/apps/docs/dist" --host 127.0.0.1 --port 4177 --strictPort > "$SAFARI_RESULTS/preview.log" 2>&1 &
           preview_pid=$!
-          /usr/bin/safaridriver --port 4444 --diagnose > "$SAFARI_RESULTS/driver.log" 2>&1 &
+          if [ "$SAFARI_TARGET" = iphone ]; then
+            appium --address 127.0.0.1 --port 4444 --log-no-colors > "$SAFARI_RESULTS/driver.log" 2>&1 &
+          else
+            /usr/bin/safaridriver --port 4444 --diagnose > "$SAFARI_RESULTS/driver.log" 2>&1 &
+          fi
           driver_pid=$!
           trap 'kill "$driver_pid" "$preview_pid" 2>/dev/null || true' EXIT
           for attempt in {1..30}; do
-            if curl --fail --silent http://127.0.0.1:4177/marquee-ui/ > /dev/null && curl --fail --silent http://127.0.0.1:4444/status > /dev/null; then break; fi
+            if curl --max-time 5 --fail --silent http://127.0.0.1:4177/marquee-ui/ > /dev/null && curl --max-time 5 --fail --silent http://127.0.0.1:4444/status > /dev/null; then break; fi
             sleep 1
           done
-          curl --fail --silent http://127.0.0.1:4177/marquee-ui/ > /dev/null
-          curl --fail --silent http://127.0.0.1:4444/status > /dev/null
+          curl --max-time 5 --fail --silent http://127.0.0.1:4177/marquee-ui/ > /dev/null
+          curl --max-time 5 --fail --silent http://127.0.0.1:4444/status > /dev/null
           pnpm test:docs:safari
       - name: Capture native simulator screen after failure
         if: failure() && matrix.target == 'iphone' && env.SAFARI_DEVICE_UDID != ''

@@ -5,7 +5,8 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { setTimeout as delay } from "node:timers/promises";
 import { promisify } from "node:util";
 
-// Native Safari WebDriver: all input goes through WebDriver, never DOM .click().
+// Desktop uses SafariDriver; iPhone uses XCTest native input via Appium.
+// All component input goes through the driver, never DOM .click().
 const mode = process.env.SAFARI_TARGET ?? "desktop";
 assert.ok(["desktop", "iphone"].includes(mode), "SAFARI_TARGET must be desktop or iphone");
 const endpoint = process.env.WEBDRIVER_URL ?? "http://127.0.0.1:4444";
@@ -62,13 +63,7 @@ async function element(selector, using = "css selector") {
 const id = (el) => el["element-6066-11e4-a52e-4f735466cecf"];
 async function click(el) {
   await script("arguments[0].scrollIntoView({block:'center',inline:'nearest'})", el);
-  if (mode === "iphone") {
-    const center = await script(
-      "const r=arguments[0].getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}",
-      el,
-    );
-    await tap(center.x, center.y);
-  } else await command("POST", `/element/${id(el)}/click`, {});
+  await command("POST", `/element/${id(el)}/click`, {});
 }
 async function button(text) {
   const el = await element(`//button[normalize-space(.)=${JSON.stringify(text)}]`, "xpath");
@@ -104,19 +99,19 @@ async function keys(value) {
     ],
   });
 }
-async function tap(x, y) {
-  // Safari's iOS driver translates mouse input into single-finger touch input.
+async function tap(x, y, origin = "viewport") {
+  // Appium translates element-relative web coordinates to native screen points.
   await command("POST", "/actions", {
     actions: [
       {
         type: "pointer",
         id: "pointer",
-        parameters: { pointerType: "mouse" },
+        parameters: { pointerType: mode === "iphone" ? "touch" : "mouse" },
         actions: [
           {
             type: "pointerMove",
             duration: 0,
-            origin: "viewport",
+            origin,
             x: Math.round(x),
             y: Math.round(y),
           },
@@ -144,7 +139,9 @@ const checks = [
           "const r=arguments[0].getBoundingClientRect(); return {x:r.x,y:r.y,width:r.width,height:r.height}",
           track,
         );
-        await tap(rect.x + (value ? rect.width - 1 : 1), rect.y + rect.height / 2);
+        if (mode === "iphone")
+          await tap(value ? rect.width / 2 - 1 : -rect.width / 2 + 1, 0, track);
+        else await tap(rect.x + (value ? rect.width - 1 : 1), rect.y + rect.height / 2);
         await until(
           "return arguments[0].getAttribute('aria-valuenow') === String(arguments[1])",
           `Slider reaches ${value}`,
@@ -242,16 +239,19 @@ const checks = [
         "Parent becomes inert",
       );
       await element('[data-slot="dialog-content"]');
-      await keys("\uE00C");
+      if (mode === "iphone")
+        await click(await element('[data-slot="dialog-content"] [data-slot="dialog-close"]'));
+      else await keys("\uE00C");
       await until(
         "return !document.querySelector('[data-slot=dialog-content]') && document.querySelector('[data-slot=sheet-content]') && document.activeElement === arguments[0]",
-        "Escape closes only child and restores focus",
+        "Dismissal closes only child and restores focus",
         trigger,
       );
-      await keys("\uE00C");
+      if (mode === "iphone") await button("Close sheet");
+      else await keys("\uE00C");
       await until(
         "return !document.querySelector('[data-slot=sheet-content]') && document.activeElement === arguments[0] && getComputedStyle(document.body).pointerEvents !== 'none'",
-        "Second Escape closes parent and unlocks page",
+        "Second dismissal closes parent and unlocks page",
         outside,
       );
     },
@@ -293,8 +293,15 @@ try {
   if (mode === "iphone") {
     assert.ok(process.env.SAFARI_DEVICE_UDID, "SAFARI_DEVICE_UDID identifies the booted simulator");
     Object.assign(capabilities, {
-      "safari:useSimulator": true,
-      "safari:deviceUDID": process.env.SAFARI_DEVICE_UDID,
+      "appium:automationName": "XCUITest",
+      "appium:udid": process.env.SAFARI_DEVICE_UDID,
+      "appium:platformVersion": "26.2",
+      "appium:nativeWebTap": true,
+      "appium:nativeWebTapStrict": true,
+      "appium:safariInitialUrl": base,
+      "appium:showXcodeLog": true,
+      "appium:wdaLaunchTimeout": 120_000,
+      "appium:wdaConnectionTimeout": 30_000,
     });
   }
   const created = await request(
@@ -303,7 +310,7 @@ try {
     {
       capabilities: { alwaysMatch: capabilities },
     },
-    90_000,
+    mode === "iphone" ? 300_000 : 90_000,
   );
   session = created.sessionId;
   report.capabilities = created.capabilities;
@@ -313,8 +320,30 @@ try {
     created.capabilities.platformName,
     mode === "iphone" ? /^ios$/i : /^mac(os| os x)?$/i,
   );
-  if (mode === "iphone") assert.equal(created.capabilities["safari:useSimulator"], true);
-  else await command("POST", "/window/rect", { width: 1280, height: 900 });
+  if (mode === "iphone") {
+    const caps = created.capabilities;
+    assert.equal(caps["appium:udid"] ?? caps.udid, process.env.SAFARI_DEVICE_UDID);
+    assert.equal(caps["appium:nativeWebTap"] ?? caps.nativeWebTap, true);
+    assert.equal(caps["appium:platformVersion"] ?? caps.platformVersion, "26.2");
+    report.phase = "safari-setup";
+    const context = await command("GET", "/context");
+    await command("POST", "/context", { name: "NATIVE_APP" });
+    await writeFile(`${output}/safari-setup.xml`, await command("GET", "/source"));
+    // Only browser onboarding is present here; no component journey has started.
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const close = await command("POST", "/elements", {
+        using: "-ios predicate string",
+        value:
+          'type == "XCUIElementTypeButton" AND (label == "Close" OR label == "Close tip" OR label == "Dismiss")',
+      });
+      if (!close.length) break;
+      assert.equal(close.length, 1, "Unique Safari tutorial dismissal");
+      await command("POST", `/element/${id(close[0])}/click`, {});
+    }
+    await command("POST", "/context", { name: context });
+    report.userAgent = await script("return navigator.userAgent");
+    assert.match(report.userAgent, /iPhone.*Safari/);
+  } else await command("POST", "/window/rect", { width: 1280, height: 900 });
   console.log("SAFARI_SESSION", JSON.stringify(created.capabilities));
   report.phase = "driver-preflight";
   console.log("START driver-preflight");
