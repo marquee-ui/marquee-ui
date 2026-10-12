@@ -3,7 +3,7 @@
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { useDirection } from "@radix-ui/react-direction";
 import { Slot } from "@radix-ui/react-slot";
-import { createContext, useContext, type ComponentProps } from "react";
+import { createContext, useContext, useRef, type ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 const SliderDirection = createContext(1);
@@ -26,10 +26,17 @@ export function Slider({
   dir,
   orientation = "horizontal",
   inverted = false,
+  onValueChange,
+  onValueCommit,
+  onPointerDown,
+  onPointerUp,
+  onPointerCancel,
   ...props
 }: ComponentProps<typeof SliderPrimitive.Root>) {
   const direction = useDirection(dir);
   const forward = orientation === "vertical" ? inverted : (direction === "ltr") !== inverted;
+  const uncontrolledValues = useRef(props.defaultValue ?? [props.min ?? 0]);
+  const gesture = useRef<{ id: number; target: Element; values: number[] } | null>(null);
   return (
     <SliderDirection.Provider value={forward ? 1 : -1}>
       <SliderPrimitive.Root
@@ -42,6 +49,45 @@ export function Slider({
           className,
         )}
         {...props}
+        onValueChange={(values) => {
+          uncontrolledValues.current = values;
+          onValueChange?.(values);
+        }}
+        onValueCommit={onValueCommit}
+        onPointerDown={(event) => {
+          onPointerDown?.(event);
+          if (!event.defaultPrevented && !props.disabled)
+            gesture.current = {
+              id: event.pointerId,
+              target: event.target as Element,
+              values: [...(props.value ?? uncontrolledValues.current)],
+            };
+        }}
+        onPointerUp={(event) => {
+          onPointerUp?.(event);
+          const active = gesture.current;
+          if (!active || active.id !== event.pointerId) return;
+          gesture.current = null;
+          const target = event.target as Element;
+          // WebKit can release over the moved thumb while the original track
+          // still owns capture. Radix then skips onSlideEnd because it checks
+          // event.target. Recover only this mismatch; normal commits stay Radix-owned.
+          if (
+            !event.defaultPrevented &&
+            !props.disabled &&
+            active.target !== target &&
+            active.target.hasPointerCapture(event.pointerId) &&
+            !target.hasPointerCapture(event.pointerId)
+          ) {
+            active.target.releasePointerCapture(event.pointerId);
+            const values = props.value ?? uncontrolledValues.current;
+            if (String(values) !== String(active.values)) onValueCommit?.([...values]);
+          }
+        }}
+        onPointerCancel={(event) => {
+          onPointerCancel?.(event);
+          if (gesture.current?.id === event.pointerId) gesture.current = null;
+        }}
       />
     </SliderDirection.Provider>
   );

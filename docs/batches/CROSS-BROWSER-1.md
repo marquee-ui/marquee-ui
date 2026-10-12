@@ -20,7 +20,8 @@ set. Theme persistence was split from clipboard readback, so refresh/storage
 behavior still runs in all engines. No interaction check is skipped as a way to
 hide a failing component.
 
-The lockfile resolves Playwright 1.63.0. The Arch host uses the matching official
+The lockfile resolves Playwright 1.63.0; the browser server reports Firefox 155.0
+and WebKit 26.6. The Arch host uses the matching official
 `mcr.microsoft.com/playwright:v1.63.0-noble` image, digest
 `sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27`.
 Its browser server runs on loopback port 4199, with a read-only repository mount.
@@ -38,6 +39,18 @@ and their system dependencies directly as shown in the README.
   the existing rendered-paint test. Add `forced-colors:border-current` so the
   separator explicitly follows the foreground instead of relying on the engine
   to replace the border. Regenerate the copied-source registry.
+- **Slider touch commit:** the added native touch test failed in WebKit at
+  all three widths: the thumb changed from 40 to 0 while the committed value
+  stayed 40. The event trace shows pointer capture on the track, but pointerup
+  delivered to the newly moved thumb. Radix checks the release target's capture
+  and skips its end handler. Retain the gesture's capture owner and recover only
+  this mismatch, using the accepted controlled value or the latest uncontrolled
+  value. Normal captured releases and numeric/keyboard behavior remain Radix-owned.
+  Caller prevention, cancellation, unrelated pointers, unchanged values and
+  rejected controlled changes do not gain a commit. Two controlled/uncontrolled
+  regression tests failed with zero callbacks before repair; all nine focused
+  cases plus the existing Slider unit suite passed afterward (29 tests). All
+  eighteen native touch browser cases then passed in both engines.
 - **Firefox geometry precision:** Calendar and DatePicker returned
   43.999969482421875px for CSS 44px controls. Apply the existing Slider tolerance
   of 0.001px; real hit-area checks and the 44px requirement remain.
@@ -51,6 +64,9 @@ and their system dependencies directly as shown in the README.
   click generated pointermove over Low, after Normal had correctly received
   keyboard focus. Move the pointer away before testing keyboard ownership;
   pointer and touch selection remain separately exercised.
+
+The first broad rerun passed 327/330 and exposed the three WebKit touch-commit
+failures described above. Its full log and traces are retained as `repaired.*`.
 
 Before repair, the Firefox run stopped at its configured failure limit (12
 failed, 128 passed, one interrupted); a separate mobile WebKit baseline passed
