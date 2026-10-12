@@ -16,12 +16,16 @@ concurrency:
 jobs:
   safari:
     name: Safari (${{ matrix.target }})
-    runs-on: macos-15
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        target: [desktop, iphone]
+        include:
+          - target: desktop
+            runner: macos-15
+          - target: iphone
+            runner: macos-26
     env:
       SAFARI_TARGET: ${{ matrix.target }}
       SAFARI_RESULTS: .docs-browser-results/safari
@@ -50,8 +54,9 @@ jobs:
       - name: Boot iPhone simulator
         if: matrix.target == 'iphone'
         run: |
-          sudo xcode-select --switch /Applications/Xcode_26.3.app/Contents/Developer
+          sudo xcode-select --switch /Applications/Xcode_26.6.app/Contents/Developer
           xcodebuild -version >> "$SAFARI_RESULTS/platform.txt"
+          test -f "$(xcode-select -p)/Platforms/iPhoneSimulator.platform/Developer/usr/lib/lib_TestingInterop.dylib"
           xcrun simctl list devices available --json > "$SAFARI_RESULTS/devices.json"
           node scripts/select-safari-simulator.mjs "$SAFARI_RESULTS/devices.json" >> "$GITHUB_ENV"
           device_id=$(node scripts/select-safari-simulator.mjs "$SAFARI_RESULTS/devices.json" --udid)
