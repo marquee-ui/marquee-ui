@@ -19,7 +19,8 @@
     "verify": "pnpm lint && pnpm typecheck && pnpm build && pnpm test && pnpm test:docs:browser",
     "build:registry": "shadcn build --output packages/ui/r",
     "build:storybook": "storybook build --output-dir storybook-static --quiet",
-    "storybook": "storybook dev -p 6006"
+    "storybook": "storybook dev -p 6006",
+    "test:docs:cross-browser": "pnpm --filter @marquee-ui/docs test:cross-browser"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

@@ -350,22 +350,23 @@ test("Dialog hosts paint readable focus in isolated dark, light, accent and forc
   ).not.toBe(await panel.evaluate((el) => getComputedStyle(el).backgroundColor));
 });
 
-test("Dialog live composition is highlighted and copies exact local-alias source bytes", async ({
-  page,
-  context,
-}) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("components/");
-  await page.getByRole("button", { name: "Preview Dialog", exact: true }).click();
-  const block = page.locator(".family-detail .code-block");
-  const code = block.locator("pre code");
-  expect(await code.textContent()).toBe(example);
-  expect(await code.locator(".token").count(), "TSX syntax is highlighted").toBeGreaterThan(20);
-  await block.getByRole("button", { name: "Copy Dialog composition" }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(example);
-  await expect(block.getByRole("status")).toHaveText("Copied to clipboard");
-  await expect(page.locator(".family-canvas")).toContainText("Unreleased candidate.");
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
-    page.viewportSize()!.width,
-  );
-});
+test(
+  "Dialog live composition is highlighted and copies exact local-alias source bytes",
+  { tag: "@clipboard" },
+  async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.goto("components/");
+    await page.getByRole("button", { name: "Preview Dialog", exact: true }).click();
+    const block = page.locator(".family-detail .code-block");
+    const code = block.locator("pre code");
+    expect(await code.textContent()).toBe(example);
+    expect(await code.locator(".token").count(), "TSX syntax is highlighted").toBeGreaterThan(20);
+    await block.getByRole("button", { name: "Copy Dialog composition" }).click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(example);
+    await expect(block.getByRole("status")).toHaveText("Copied to clipboard");
+    await expect(page.locator(".family-canvas")).toContainText("Unreleased candidate.");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      page.viewportSize()!.width,
+    );
+  },
+);

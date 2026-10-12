@@ -9,8 +9,9 @@ async function target(control: Locator) {
   await expect(control).toBeVisible();
   await control.scrollIntoViewIfNeeded();
   const box = (await control.boundingBox())!;
-  expect(box.width, "calendar real target width").toBeGreaterThanOrEqual(44);
-  expect(box.height, "calendar real target height").toBeGreaterThanOrEqual(44);
+  // Engine DOMRects can differ from CSS pixels by a few hundred-thousandths.
+  expect(box.width, "calendar real target width").toBeGreaterThanOrEqual(44 - 0.001);
+  expect(box.height, "calendar real target height").toBeGreaterThanOrEqual(44 - 0.001);
   await expect
     .poll(
       () =>
@@ -489,20 +490,21 @@ test("Calendar disabled/hidden matchers and custom slot keyboard navigation work
   await expect(root.getByRole("grid", { name: "November 2026" })).toBeVisible();
 });
 
-test("Calendar example source is highlighted and copied byte for byte", async ({
-  page,
-  context,
-}) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("components/");
-  await page.getByRole("button", { name: "Preview Calendar", exact: true }).click();
-  const section = page.locator(".family-detail .code-block");
-  expect(await section.locator("pre code").textContent()).toBe(example);
-  expect(
-    await section.locator("pre code .token").count(),
-    "Calendar source is highlighted",
-  ).toBeGreaterThan(10);
-  await section.getByRole("button", { name: "Copy Calendar composition" }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(example);
-  await expect(section.getByRole("status")).toHaveText("Copied to clipboard");
-});
+test(
+  "Calendar example source is highlighted and copied byte for byte",
+  { tag: "@clipboard" },
+  async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.goto("components/");
+    await page.getByRole("button", { name: "Preview Calendar", exact: true }).click();
+    const section = page.locator(".family-detail .code-block");
+    expect(await section.locator("pre code").textContent()).toBe(example);
+    expect(
+      await section.locator("pre code .token").count(),
+      "Calendar source is highlighted",
+    ).toBeGreaterThan(10);
+    await section.getByRole("button", { name: "Copy Calendar composition" }).click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(example);
+    await expect(section.getByRole("status")).toHaveText("Copied to clipboard");
+  },
+);

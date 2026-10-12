@@ -237,7 +237,7 @@ test("every mode/palette repaints the page and actual previews with readable rol
         await page.evaluate(() =>
           Array.from(document.fonts)
             .filter((face) => face.status === "loaded")
-            .map((face) => face.family)
+            .map((face) => face.family.replace(/^["']|["']$/g, ""))
             .sort(),
         ),
       ).toEqual(["Boldonse", "Space Grotesk", "Space Mono"]);
@@ -259,11 +259,7 @@ test("every mode/palette repaints the page and actual previews with readable rol
   expect(navigationCount, "theme changes happen without a reload").toBe(0);
 });
 
-test("persists palette, mode and composition across refresh and copies the selected CSS", async ({
-  page,
-  context,
-}) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+test("persists palette, mode and composition across refresh", async ({ page }) => {
   await page.goto("./");
   await page.getByRole("button", { name: "Light", exact: true }).click();
   await choosePalette(page, "electric");
@@ -283,6 +279,20 @@ test("persists palette, mode and composition across refresh and copies the selec
     "false",
   );
   expect(await pageAppearance(page)).toEqual(chosen);
+  expect(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!), storageKey)).toEqual({
+    mode: "light",
+    palette: "electric",
+    expressive: false,
+    accent: "violet",
+  });
+});
+
+test("copies the selected theme CSS", { tag: "@clipboard" }, async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("./");
+  await page.getByRole("button", { name: "Light", exact: true }).click();
+  await choosePalette(page, "electric");
+  await chooseAccent(page, "Violet");
   await page.goto("themes/");
   await page.getByRole("button", { name: "Copy Selected theme recipe" }).click();
   const recipe = await page.locator("#theme-recipe pre code").innerText();
@@ -292,12 +302,6 @@ test("persists palette, mode and composition across refresh and copies the selec
   await expect(page.locator("#theme-recipe")).toContainText(
     "local customizations, not preset exports in npm 0.1.0",
   );
-  expect(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!), storageKey)).toEqual({
-    mode: "light",
-    palette: "electric",
-    expressive: false,
-    accent: "violet",
-  });
 });
 
 for (const raw of [

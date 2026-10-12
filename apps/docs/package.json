@@ -8,7 +8,8 @@
     "preview": "vite preview --host 0.0.0.0 --port 4176 --strictPort",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --config vitest.config.ts",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "test:cross-browser": "playwright test --config playwright.cross-browser.config.ts"
   },
   "dependencies": {
     "@marquee-ui/tokens": "workspace:*",

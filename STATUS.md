@@ -1,6 +1,6 @@
 # Marquee implementation status
 
-CURSOR: READY — nested modal repair and fresh candidate verified; npm 0.2.0 held
+CURSOR: QA COMPLETE — cross-browser fixes ready for PR review; npm 0.2.0 held
 
 The user authorized a finite component-parity program on 2026-10-08. All eight
 [ordered batches](docs/component-parity.md) are complete. No batch 9 is queued.
@@ -10,16 +10,19 @@ and validation limits are explicitly deferred in the matrix.
 
 ## Next work
 
-PR #3 merged as `7e929d55e6a903dafb1671c3dca71a74d4b349b4` after green
-PR CI. Pages deployed the Slider/Calendar fixes and all nine targeted public
-checks passed. The separate main/next runs exposed an intermittent nested modal
-Escape failure: the background Sheet could close while its child registered.
+PR #4 merged as `ba7149567fdf9c0d0cd76b38d6d359f1d7f55fcb` after green
+PR CI. Main/next verification, Pages deployment and nine targeted public nested
+modal checks passed. The Slider/Calendar and nested-modal fixes are live.
 
-The user authorized continuing that repair and rebuilding the held candidate.
-[NESTED-ESCAPE-1](docs/batches/NESTED-ESCAPE-1.md) records the deterministic
-reproduction, background-modal guard and Sheet slot correction. Full verification
-and the fresh external package proof passed. Review this repair before merging;
-publication is still held. No new roadmap batch is queued.
+On 2026-10-13 the user authorized a focused Firefox/WebKit QA pass and fixes,
+while explicitly retaining the npm hold. [CROSS-BROWSER-1](docs/batches/CROSS-BROWSER-1.md)
+records the scope, browser setup, findings and validation. No new parity batch
+or package publication is authorized. The separator and Slider touch repairs change the
+package source, so the previous candidate is historical. The final QA passed
+330 Firefox/WebKit cases and the full local gate (1,016 library, 39 docs, five
+harness and 348 Chromium tests). A fresh candidate passed all 111 Chromium
+consumer cases and 12 targeted Firefox/WebKit consumer checks. Exact artifact
+hashes and evidence are in CROSS-BROWSER-1. The fixes await PR review and merge.
 
 The preceding preview fix was verified as follows:
 
@@ -37,8 +40,8 @@ those transitions. The full command above passed again on 2026-10-09 with the
 same counts; 30 focused browser repetitions also passed. Diagnosis and repetition
 evidence: `/home/ankit/.marquee-scratch/UI-FIXES-1/ci-repair/diagnosis.md`.
 
-The fresh candidate and its exact hashes are recorded in
-[NESTED-ESCAPE-1](docs/batches/NESTED-ESCAPE-1.md). The older
+The preceding candidate and its exact hashes are recorded in
+[NESTED-ESCAPE-1](docs/batches/NESTED-ESCAPE-1.md). This QA changes its source. The older
 [release-readiness artifact](docs/batches/RELEASE-READINESS-1.md) is obsolete for
 publication. Renewed release direction is still required; rebuild and reverify
 if the candidate source changes.
@@ -56,16 +59,16 @@ of npm availability. Main/next verification and documentation deployment passed;
 served-page evidence is in the DOCS-PAGES-1 handoff below.
 
 Current verified local preview: **http://localhost:4174/marquee-ui/**, served from
-`/home/ankit/.marquee-scratch/NESTED-ESCAPE-1/preview-verified`. The handoff records the
+`/home/ankit/.marquee-scratch/CROSS-BROWSER-1/preview-verified`. The handoff records the
 source commit, preview manifest, screenshots and before/after measurements.
-The public site serves PR #3. The nested modal repair is not deployed yet.
+The public site serves PR #4. The cross-browser repairs are not deployed yet.
 
 ## Previous evidence and cold resume
 
 [Release](docs/batches/RELEASE-1.md), [theme/code revision](docs/batches/RELEASE-1-UX.md),
 and [visual controls](docs/batches/RELEASE-1-CONTROLS.md) retain their evidence.
 Latest completed handoff:
-`/home/ankit/.marquee-scratch/NESTED-ESCAPE-1/final-handoff.md`.
+`/home/ankit/.marquee-scratch/CROSS-BROWSER-1/final-handoff.md`.
 The prior Pages deployment evidence remains in
 `/home/ankit/.marquee-scratch/DOCS-PAGES-1/final-handoff.md`.
 Inspect branch/CI/worktrees, this cursor, the matrix and final batch record before
@@ -92,3 +95,4 @@ advances.
 | 2026-10-09 | UI-FIXES-1          | Slider endpoints, compact Calendar and Toggle demo spacing fixed; full gate 1001/39/5/333 green; preview audit and immutable localhost refreshed; npm release held.                                           |
 | 2026-10-09 | UI-FIXES-1-CI       | Reproduced Tooltip scroll and DropdownMenu focus-return races; repaired browser sequencing; 30 focused repetitions and full gate 1001/39/5/333 passed; npm release held.                                      |
 | 2026-10-09 | NESTED-ESCAPE-1     | Nested modal registration and Sheet custom hosts repaired; full gate, fresh installed candidate and refreshed local preview verified; npm held.                                                               |
+| 2026-10-13 | CROSS-BROWSER-1     | Fixed WebKit Slider touch commits and Combobox forced-colors contrast; 330 Firefox/WebKit cases, full gate and fresh 111 Chromium plus 12 cross-browser consumer checks passed; npm held.                     |

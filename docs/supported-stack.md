@@ -46,8 +46,10 @@ and its
 The pre-fix proposed-release proof is recorded in
 [RELEASE-READINESS-1](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/RELEASE-READINESS-1.md).
 The [Batch 8 audit record](https://github.com/marquee-ui/marquee-ui/blob/next/docs/slices/RECIPE-INSTALL-AUDIT-1.md)
-records the inventory check. Slider/Calendar fixes after that artifact require a
-new packed consumer proof before npm publication. [Recipe contracts](./recipe-contracts.md) define caller
+records the inventory check. The subsequent
+[nested-modal candidate](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/NESTED-ESCAPE-1.md) includes the Slider/Calendar
+repairs. The [Firefox/WebKit QA record](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/CROSS-BROWSER-1.md) tracks the
+newer separator and Slider touch repairs and refreshed candidate; earlier archives are historical. [Recipe contracts](./recipe-contracts.md) define caller
 responsibilities and deferred behaviors; [common-name APIs](./common-name-api.md)
 cover deliberate differences in the original families. A named family or a passing
 journey does not establish full shadcn catalog/API parity.
@@ -67,8 +69,11 @@ every possible assertion, SVG descendant or caller composition.
   a client boundary in an SSR framework.
 - Tailwind 4 requires modern browser CSS support. Follow its
   [compatibility requirements](https://tailwindcss.com/docs/compatibility);
-  the retained consumer proofs exercise Chromium at the widths above. Safari,
-  Firefox and other browser/viewport consumer runs remain unvalidated.
+  the retained broad consumer proofs exercise Chromium at the widths above.
+  The separate [focused Firefox/WebKit suite](https://github.com/marquee-ui/marquee-ui/blob/next/docs/batches/CROSS-BROWSER-1.md)
+  exercises selected docs/Storybook controls at the same widths. Its Linux
+  WebKit runs do not establish Safari/iOS device coverage or all-family consumer
+  coverage.
 - GitHub registry URLs follow their named branch independently of npm versions.
   `main` includes all 35 source families; `next` is the integration branch.
   Use a reviewed commit SHA for repeatable source installs or the

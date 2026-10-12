@@ -349,18 +349,19 @@ test("isolated trigger, input, content and active choice paint in dark/light/acc
   }
 });
 
-test("copyable composition uses local registry aliases and preserves exact source", async ({
-  page,
-  context,
-}) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("components/");
-  await page.getByRole("button", { name: "Preview Combobox", exact: true }).click();
-  const block = page.locator(".family-detail .code-block");
-  await expect(block.locator("pre code")).toHaveText(example);
-  await block.getByRole("button", { name: "Copy Combobox composition" }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(example);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
-    page.viewportSize()!.width,
-  );
-});
+test(
+  "copyable composition uses local registry aliases and preserves exact source",
+  { tag: "@clipboard" },
+  async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.goto("components/");
+    await page.getByRole("button", { name: "Preview Combobox", exact: true }).click();
+    const block = page.locator(".family-detail .code-block");
+    await expect(block.locator("pre code")).toHaveText(example);
+    await block.getByRole("button", { name: "Copy Combobox composition" }).click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(example);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      page.viewportSize()!.width,
+    );
+  },
+);

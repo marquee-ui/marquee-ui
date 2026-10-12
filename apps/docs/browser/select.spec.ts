@@ -58,6 +58,9 @@ test("Select demo selects with the keyboard, skips disabled, restores focus and 
   const trigger = canvas.getByRole("combobox", { name: "Project priority" });
   await visibleTarget(trigger);
   await expect(trigger).toHaveText("Normal⌄");
+  // WebKit sends pointermove when the popup appears under the last preview click.
+  // Move off the popup so this journey measures keyboard-owned focus.
+  await page.mouse.move(0, 0);
   await trigger.focus();
   await page.keyboard.press("Enter");
   const list = page.getByRole("listbox");
@@ -198,26 +201,27 @@ test("Select popup fits, exposes 44px choices and stays readable through dark, l
   await page.keyboard.press("Escape");
 });
 
-test("Select source is highlighted, copies exact bytes and contains its scrolling at every width", async ({
-  page,
-  context,
-}) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("components/");
-  await page.getByRole("button", { name: "Preview Select", exact: true }).click();
-  const block = page.locator(".family-detail .code-block");
-  const code = block.locator("pre code");
-  expect(await code.textContent()).toBe(example);
-  expect(await code.locator(".token").count(), "TSX syntax must be highlighted").toBeGreaterThan(
-    20,
-  );
-  await block.getByRole("button", { name: "Copy Select composition" }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(example);
-  await expect(block.getByRole("status")).toHaveText("Copied to clipboard");
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
-    page.viewportSize()!.width,
-  );
-});
+test(
+  "Select source is highlighted, copies exact bytes and contains its scrolling at every width",
+  { tag: "@clipboard" },
+  async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.goto("components/");
+    await page.getByRole("button", { name: "Preview Select", exact: true }).click();
+    const block = page.locator(".family-detail .code-block");
+    const code = block.locator("pre code");
+    expect(await code.textContent()).toBe(example);
+    expect(await code.locator(".token").count(), "TSX syntax must be highlighted").toBeGreaterThan(
+      20,
+    );
+    await block.getByRole("button", { name: "Copy Select composition" }).click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(example);
+    await expect(block.getByRole("status")).toHaveText("Copied to clipboard");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      page.viewportSize()!.width,
+    );
+  },
+);
 
 test("Select's optional scroll parts reveal distant items in a constrained popup", async ({
   page,

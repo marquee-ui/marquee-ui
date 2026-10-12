@@ -199,24 +199,26 @@ test("Escape during nested confirmation registration preserves its parent Sheet"
   await expect(page.getByRole("button", { name: "Open draft editor", exact: true })).toBeFocused();
 });
 
-test("AlertDialog source is highlighted and copies exact registry-alias composition", async ({
-  page,
-  context,
-}) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await openExample(page);
-  const block = page.locator(".family-detail .code-block");
-  expect(await block.locator("pre code").textContent()).toBe(example);
-  expect(await block.locator(".token").count(), "source has highlighted semantics").toBeGreaterThan(
-    5,
-  );
-  await block.getByRole("button", { name: "Copy AlertDialog composition" }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(example);
-  await expect(block.getByRole("status")).toHaveText("Copied to clipboard");
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
-    page.viewportSize()!.width,
-  );
-});
+test(
+  "AlertDialog source is highlighted and copies exact registry-alias composition",
+  { tag: "@clipboard" },
+  async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await openExample(page);
+    const block = page.locator(".family-detail .code-block");
+    expect(await block.locator("pre code").textContent()).toBe(example);
+    expect(
+      await block.locator(".token").count(),
+      "source has highlighted semantics",
+    ).toBeGreaterThan(5);
+    await block.getByRole("button", { name: "Copy AlertDialog composition" }).click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(example);
+    await expect(block.getByRole("status")).toHaveText("Copied to clipboard");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      page.viewportSize()!.width,
+    );
+  },
+);
 
 test("isolated native and composed AlertDialog controls paint focus through presets, accents and forced colors", async ({
   page,
