@@ -108,3 +108,17 @@ matching names do not imply drop-in APIs. Fourteen newer families remain unrelea
 publication stays held as recorded in [STATUS.md](STATUS.md).
 The [UI 0.2.0 release proposal](docs/releases/0.2.0.md) records the prepared package,
 release notes and installation steps; published UI remains 0.1.10 until release.
+
+### Native Safari QA
+
+The `Safari` GitHub Actions workflow uses standard `macos-15` runners for desktop
+Safari and Safari in an iPhone simulator (Xcode 26.3, iOS 26.2). It drives the
+built docs and Storybook through Apple's bundled `safaridriver`; this is separate
+from Playwright's patched Linux WebKit suite. Simulator coverage is not physical
+iPhone coverage. Five bounded checks cover Slider endpoint commits, Calendar
+selection/layout, Combobox form state, nested dialogs and modal scroll reachability.
+
+On a configured Mac, build the site, serve it at port 4177, enable Safari remote
+automation and start `safaridriver --port 4444`, then run `pnpm test:docs:safari`.
+The workflow records actual browser/platform capabilities, screenshots and failures.
+See [SAFARI-CI-1](docs/batches/SAFARI-CI-1.md) for measured results and limitations.
