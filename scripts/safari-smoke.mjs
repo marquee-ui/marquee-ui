@@ -94,8 +94,8 @@ async function dismissSafariKeyboard() {
     await writeFile(`${output}/dialog-keyboard.xml`, await command("GET", "/source"));
     assert.equal(await script("mobile: isKeyboardShown"), true, "Dialog input opens keyboard");
     const el = await element(
-      'type == "XCUIElementTypeButton" AND label == "Done" AND visible == 1',
-      "-ios predicate string",
+      '//XCUIElementTypeToolbar//XCUIElementTypeButton[@label="Done" and @visible="true"]',
+      "xpath",
     );
     await command("POST", `/element/${id(el)}/click`, {});
     const deadline = Date.now() + 20_000;
