@@ -29,7 +29,6 @@ jobs:
     env:
       SAFARI_TARGET: ${{ matrix.target }}
       SAFARI_RESULTS: .docs-browser-results/safari
-      SAFARI_WDA_APP: ${{ runner.temp }}/marquee-wda/WebDriverAgentRunner-Runner.app
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
@@ -47,7 +46,8 @@ jobs:
           npm install --global appium@3.8.0
           appium driver install xcuitest@12.17.3
           appium driver run xcuitest download-wda -- --outdir "$RUNNER_TEMP/marquee-wda" --kind sim --platform ios
-          test -d "$SAFARI_WDA_APP"
+          test -d "$RUNNER_TEMP/marquee-wda/WebDriverAgentRunner-Runner.app"
+          echo "SAFARI_WDA_APP=$RUNNER_TEMP/marquee-wda/WebDriverAgentRunner-Runner.app" >> "$GITHUB_ENV"
       - name: Enable native Safari automation
         run: |
           mkdir -p "$SAFARI_RESULTS"
