@@ -45,8 +45,7 @@ component defect. A timed-tap attempt in
 [38321683993](https://github.com/marquee-ui/marquee-ui/actions/runs/38321683993)
 also failed the preflight; its screenshot captured before session teardown
 shows Safari's first-run tutorial over the page. The iPhone job now uses
-XCTest so browser setup can be handled through native controls; validation
-of this route is in progress. Its first run,
+XCTest so browser setup can be handled through native controls. Its first run,
 [38322492583](https://github.com/marquee-ui/marquee-ui/actions/runs/38322492583),
 failed while building WebDriverAgent: Xcode 26.3 lacks the required
 `lib_TestingInterop.dylib`. The later macOS 26 ARM attempt exhausted its
@@ -58,9 +57,20 @@ destination. No iPhone component checks passed in these setup attempts.
 At source `65de774`, all four regular CI checks and desktop Safari's five
 journeys plus trusted-input preflight passed. The current iPhone route uses
 Appium's version-matched prebuilt simulator agent on `macos-15`, bypassing test
-agent compilation and Xcode destination discovery. Its result is pending.
+agent compilation and Xcode destination discovery.
 Readiness waits for each live server with a bounded deadline and explicit
 failure diagnostics.
+
+At source `67391e6`, run
+[38326835637](https://github.com/marquee-ui/marquee-ui/actions/runs/38326835637)
+passed the trusted HTTP input preflight and four iPhone journeys: Slider,
+Calendar, Combobox and modal scrolling. The nested-dialog check failed inside
+Appium's coordinate calibration with the iOS keyboard open, before tapping the
+child close control. The runner now targets the native accessibility buttons
+within Safari's WebView for this journey, preserving dismissal and focus
+assertions. The Safari workflow's `safari-desktop` and `safari-iphone` artifacts
+record the outcome for each checked revision; an earlier passing run does not
+establish the status of a later revision.
 
 The preceding run was canceled after the simulator driver stopped responding;
 its later errors are not independent component findings. Results, platform
