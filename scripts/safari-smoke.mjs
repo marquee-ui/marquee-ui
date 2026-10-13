@@ -349,6 +349,7 @@ try {
       "appium:showXcodeLog": true,
       "appium:wdaLaunchTimeout": 120_000,
       "appium:wdaConnectionTimeout": 30_000,
+      "appium:webviewConnectTimeout": 60_000,
       "appium:usePreinstalledWDA": true,
       "appium:prebuiltWDAPath": process.env.SAFARI_WDA_APP,
     });
