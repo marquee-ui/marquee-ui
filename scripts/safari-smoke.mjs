@@ -85,6 +85,21 @@ async function button(text) {
   await click(el);
   return el;
 }
+async function nativeWebButton(text) {
+  // The open keyboard obstructs Appium's web-coordinate calibration probes.
+  // Target the visible accessibility button within Safari's WebView instead.
+  const context = await command("GET", "/context");
+  await command("POST", "/context", { name: "NATIVE_APP" });
+  try {
+    const el = await element(
+      `//XCUIElementTypeWebView//XCUIElementTypeButton[@label=${JSON.stringify(text)}]`,
+      "xpath",
+    );
+    await command("POST", `/element/${id(el)}/click`, {});
+  } finally {
+    await command("POST", "/context", { name: context });
+  }
+}
 async function navigate(path) {
   const url = new URL(path, base).href;
   await command("POST", "/url", { url });
@@ -256,15 +271,14 @@ const checks = [
         "Parent becomes inert",
       );
       await element('[data-slot="dialog-content"]');
-      if (mode === "iphone")
-        await click(await element('[data-slot="dialog-content"] [data-slot="dialog-close"]'));
+      if (mode === "iphone") await nativeWebButton("Done");
       else await keys("\uE00C");
       await until(
         "return !document.querySelector('[data-slot=dialog-content]') && document.querySelector('[data-slot=sheet-content]') && document.activeElement === arguments[0]",
         "Dismissal closes only child and restores focus",
         trigger,
       );
-      if (mode === "iphone") await button("Close sheet");
+      if (mode === "iphone") await nativeWebButton("Close sheet");
       else await keys("\uE00C");
       await until(
         "return !document.querySelector('[data-slot=sheet-content]') && document.activeElement === arguments[0] && getComputedStyle(document.body).pointerEvents !== 'none'",
