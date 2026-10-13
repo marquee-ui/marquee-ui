@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
 import { execFile } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
+import { createServer } from "node:http";
 import { setTimeout as delay } from "node:timers/promises";
 import { promisify } from "node:util";
 
@@ -13,6 +14,20 @@ const endpoint = process.env.WEBDRIVER_URL ?? "http://127.0.0.1:4444";
 const base = process.env.SAFARI_BASE_URL ?? "http://127.0.0.1:4177/marquee-ui/";
 const output = process.env.SAFARI_RESULTS ?? ".docs-browser-results/safari";
 await mkdir(output, { recursive: true });
+// Keep the input control independent of the docs styles and framework. Safari's
+// Web Inspector navigation path can reject top-level data: URLs.
+const probeServer = createServer((request, response) => {
+  void request;
+  response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+  response.end(
+    '<meta name="viewport" content="width=device-width,initial-scale=1"><button style="margin:60px;padding:30px" onclick="document.querySelector(\'output\').textContent=event.isTrusted ? \'ready\' : \'untrusted\'">Driver probe</button><output>waiting</output>',
+  );
+});
+await new Promise((resolve, reject) => {
+  probeServer.once("error", reject);
+  probeServer.listen(0, "127.0.0.1", resolve);
+});
+const probeUrl = `http://127.0.0.1:${probeServer.address().port}/`;
 let session;
 const report = { mode, commit: process.env.GITHUB_SHA, checks: [] };
 async function request(method, path, body, timeout = 30_000) {
@@ -71,10 +86,12 @@ async function button(text) {
   return el;
 }
 async function navigate(path) {
-  await command("POST", "/url", { url: new URL(path, base).href });
+  const url = new URL(path, base).href;
+  await command("POST", "/url", { url });
   await until(
-    "return document.readyState === 'complete' && document.fonts.status === 'loaded'",
-    "page and bundled fonts load",
+    "return location.href === arguments[0] && document.readyState === 'complete' && document.fonts.status === 'loaded'",
+    "requested page and bundled fonts load",
+    url,
   );
 }
 async function preview(name) {
@@ -353,12 +370,7 @@ try {
   console.log("SAFARI_SESSION", JSON.stringify(created.capabilities));
   report.phase = "driver-preflight";
   console.log("START driver-preflight");
-  await navigate(
-    "data:text/html," +
-      encodeURIComponent(
-        '<meta name="viewport" content="width=device-width,initial-scale=1"><button style="margin:60px;padding:30px" onclick="document.querySelector(\'output\').textContent=event.isTrusted ? \'ready\' : \'untrusted\'">Driver probe</button><output>waiting</output>',
-      ),
-  );
+  await navigate(probeUrl);
   await button("Driver probe");
   await until(
     "return document.querySelector('output').textContent === 'ready'",
@@ -414,6 +426,7 @@ try {
       { timeout: 10_000 },
     ).catch((captureError) => console.error(captureError));
 } finally {
+  probeServer.close();
   if (session)
     await command("DELETE", "", undefined, mode === "iphone" ? 30_000 : 5_000).catch((error) => {
       console.error(error);
