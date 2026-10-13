@@ -66,9 +66,12 @@ At source `67391e6`, run
 passed the trusted HTTP input preflight and four iPhone journeys: Slider,
 Calendar, Combobox and modal scrolling. The nested-dialog check failed inside
 Appium's coordinate calibration with the iOS keyboard open, before tapping the
-child close control. The runner now targets the native accessibility buttons
-within Safari's WebView for this journey, preserving dismissal and focus
-assertions. The Safari workflow's `safari-desktop` and `safari-iphone` artifacts
+child close control. A native accessibility tap in run
+[38327693157](https://github.com/marquee-ui/marquee-ui/actions/runs/38327693157)
+dismissed the keyboard but left the child dialog open. The runner now explicitly
+dismisses Safari's keyboard accessory, checks that the keyboard is gone and the
+dialog remains open, then targets the dialog's web close control. Dismissal and
+focus assertions are unchanged. The Safari workflow's `safari-desktop` and `safari-iphone` artifacts
 record the outcome for each checked revision; an earlier passing run does not
 establish the status of a later revision.
 
