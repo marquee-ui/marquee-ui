@@ -1,6 +1,6 @@
 # Marquee implementation status
 
-CURSOR: QA COMPLETE — cross-browser fixes ready for PR review; npm 0.2.0 held
+CURSOR: IN PROGRESS — PR #5 merged; native Safari CI and deployed-site QA; npm 0.2.0 held
 
 The user authorized a finite component-parity program on 2026-10-08. All eight
 [ordered batches](docs/component-parity.md) are complete. No batch 9 is queued.
@@ -22,7 +22,14 @@ package source, so the previous candidate is historical. The final QA passed
 330 Firefox/WebKit cases and the full local gate (1,016 library, 39 docs, five
 harness and 348 Chromium tests). A fresh candidate passed all 111 Chromium
 consumer cases and 12 targeted Firefox/WebKit consumer checks. Exact artifact
-hashes and evidence are in CROSS-BROWSER-1. The fixes await PR review and merge.
+hashes and evidence are in CROSS-BROWSER-1. PR #5 merged as
+`ff774b9c45dddb1bbb43367bc0f19be23873e9e1` after all four exact-head checks passed.
+Main and next are synchronized to that merge. Their verification and Pages
+deployment passed; 20 public files match the deployment artifact and 72 targeted
+public-site checks passed across Chromium, Firefox and Linux WebKit. The
+continuation adds [native Safari CI](docs/batches/SAFARI-CI-1.md) on GitHub macOS runners.
+No physical Apple device is available; iPhone Simulator coverage is separate
+from real-device testing. npm publication remains held.
 
 The preceding preview fix was verified as follows:
 
@@ -61,7 +68,8 @@ served-page evidence is in the DOCS-PAGES-1 handoff below.
 Current verified local preview: **http://localhost:4174/marquee-ui/**, served from
 `/home/ankit/.marquee-scratch/CROSS-BROWSER-1/preview-verified`. The handoff records the
 source commit, preview manifest, screenshots and before/after measurements.
-The public site serves PR #4. The cross-browser repairs are not deployed yet.
+Pages deployment and served-site verification for PR #5 are recorded in the
+CROSS-BROWSER-1 merge handoff; do not infer deployment from a green PR check.
 
 ## Previous evidence and cold resume
 

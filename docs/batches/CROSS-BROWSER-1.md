@@ -1,8 +1,9 @@
 # CROSS-BROWSER-1 — focused Firefox and WebKit QA
 
 Authorized on 2026-10-13: exercise the release-critical controls in Firefox and
-WebKit and fix reproducible bugs. npm UI 0.2.0 remains held. No new parity batch,
-package publication or PR merge is part of this work.
+WebKit and fix reproducible bugs. The user subsequently authorized merging PR #5
+after green CI and continuing verification. npm UI 0.2.0 remains held; no new
+parity batch or package publication is authorized.
 
 ## Scope and runner
 
@@ -114,6 +115,29 @@ read from the running engines.
 The immutable local preview at `http://localhost:4174/marquee-ui/` was refreshed
 from the final build. All 18 Firefox/WebKit touch checks passed against that
 copy; file hashes are retained in scratch `preview-manifest.json`.
+
+## Merge and public-site verification
+
+PR [#5](https://github.com/marquee-ui/marquee-ui/pull/5) merged as
+`ff774b9c45dddb1bbb43367bc0f19be23873e9e1` on 2026-10-13 IST after all four
+checks passed at source `58cff720441a6a1fc467c219c73334cf2853ccee`.
+The merged tree matches that checked source. Main and next were synchronized;
+their verification runs [38319427993](https://github.com/marquee-ui/marquee-ui/actions/runs/38319427993)
+and [38319465323](https://github.com/marquee-ui/marquee-ui/actions/runs/38319465323)
+passed. Pages run [38319428028](https://github.com/marquee-ui/marquee-ui/actions/runs/38319428028)
+built and deployed that merge successfully.
+
+Twenty public HTML, JavaScript, CSS, font and Storybook files were compared
+byte-for-byte with that run's Pages artifact. Public main/next Slider and
+Combobox registry files also match the repaired source. A focused public-site
+run passed **72 checks** in Chromium, Firefox and Linux WebKit at 390, 768 and
+1280 pixels, with exit 0. These cover touch controls, forced-colors separation,
+nested dismissal/focus and long-modal reachability. The exact test selection,
+command, results and file manifests are retained in
+`/home/ankit/.marquee-scratch/CROSS-BROWSER-1/merge/` (`public.config.mts`,
+`live-check.log`, `live-results.json`, `deployed-artifact-proof.json` and
+`public-registry-proof.json`). Native Safari is tracked separately in
+[SAFARI-CI-1](SAFARI-CI-1.md).
 
 ## Limits
 

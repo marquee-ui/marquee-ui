@@ -1,0 +1,112 @@
+name: Safari
+
+on:
+  pull_request:
+  push:
+    branches: [main, next]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: safari-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  safari:
+    name: Safari (${{ matrix.target }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: desktop
+            runner: macos-15
+          - target: iphone
+            runner: macos-15
+    env:
+      SAFARI_TARGET: ${{ matrix.target }}
+      SAFARI_RESULTS: .docs-browser-results/safari
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.24.0
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Install iPhone native automation
+        if: matrix.target == 'iphone'
+        run: |
+          npm install --global appium@3.8.0
+          appium driver install xcuitest@12.17.3
+          appium driver run xcuitest download-wda -- --outdir "$RUNNER_TEMP/marquee-wda" --kind sim --platform ios
+          test -d "$RUNNER_TEMP/marquee-wda/WebDriverAgentRunner-Runner.app"
+          echo "SAFARI_WDA_APP=$RUNNER_TEMP/marquee-wda/WebDriverAgentRunner-Runner.app" >> "$GITHUB_ENV"
+      - name: Enable native Safari automation
+        run: |
+          mkdir -p "$SAFARI_RESULTS"
+          sw_vers > "$SAFARI_RESULTS/platform.txt"
+          /usr/bin/safaridriver --version >> "$SAFARI_RESULTS/platform.txt"
+          sudo /usr/bin/safaridriver --enable
+      - name: Boot iPhone simulator
+        if: matrix.target == 'iphone'
+        run: |
+          sudo xcode-select --switch /Applications/Xcode_26.3.app/Contents/Developer
+          xcodebuild -version >> "$SAFARI_RESULTS/platform.txt"
+          xcrun simctl list devices available --json > "$SAFARI_RESULTS/devices.json"
+          node scripts/select-safari-simulator.mjs "$SAFARI_RESULTS/devices.json" >> "$GITHUB_ENV"
+          device_id=$(node scripts/select-safari-simulator.mjs "$SAFARI_RESULTS/devices.json" --udid)
+          xcrun simctl boot "$device_id"
+          xcrun simctl bootstatus "$device_id" -b
+          open -a Simulator --args -CurrentDeviceUDID "$device_id"
+          xcrun simctl launch "$device_id" com.apple.mobilesafari
+      - name: Test the built site in Safari
+        run: |
+          node node_modules/vite/bin/vite.js preview --config apps/docs/vite.config.ts --outDir "$PWD/apps/docs/dist" --host 127.0.0.1 --port 4177 --strictPort > "$SAFARI_RESULTS/preview.log" 2>&1 &
+          preview_pid=$!
+          if [ "$SAFARI_TARGET" = iphone ]; then
+            appium --address 127.0.0.1 --port 4444 --log-no-colors > "$SAFARI_RESULTS/driver.log" 2>&1 &
+          else
+            /usr/bin/safaridriver --port 4444 --diagnose > "$SAFARI_RESULTS/driver.log" 2>&1 &
+          fi
+          driver_pid=$!
+          trap 'kill "$driver_pid" "$preview_pid" 2>/dev/null || true' EXIT
+          for url in http://127.0.0.1:4177/marquee-ui/ http://127.0.0.1:4444/status; do
+            deadline=$((SECONDS + 120))
+            until curl --max-time 5 --fail --silent "$url" > /dev/null; do
+              kill -0 "$preview_pid" "$driver_pid"
+              if (( SECONDS >= deadline )); then
+                echo "Server did not become ready: $url" >&2
+                cat "$SAFARI_RESULTS/preview.log" "$SAFARI_RESULTS/driver.log"
+                exit 1
+              fi
+              sleep 2
+            done
+          done
+          pnpm test:docs:safari
+      - name: Capture native simulator screen after failure
+        if: failure() && matrix.target == 'iphone' && env.SAFARI_DEVICE_UDID != ''
+        continue-on-error: true
+        run: xcrun simctl io "$SAFARI_DEVICE_UDID" screenshot "$SAFARI_RESULTS/native-screen.png"
+      - name: Retain driver diagnostics
+        if: always()
+        run: |
+          if [ -d "$HOME/Library/Logs/com.apple.WebDriver" ]; then
+            cp -R "$HOME/Library/Logs/com.apple.WebDriver" "$SAFARI_RESULTS/driver-diagnostics"
+          fi
+      - name: Retain Safari evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: safari-${{ matrix.target }}
+          path: .docs-browser-results/safari
+          retention-days: 14
+      - name: Stop simulator
+        if: always() && matrix.target == 'iphone' && env.SAFARI_DEVICE_UDID != ''
+        run: xcrun simctl shutdown "$SAFARI_DEVICE_UDID"
