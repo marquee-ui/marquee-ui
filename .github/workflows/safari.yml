@@ -25,10 +25,11 @@ jobs:
           - target: desktop
             runner: macos-15
           - target: iphone
-            runner: macos-26-intel
+            runner: macos-15
     env:
       SAFARI_TARGET: ${{ matrix.target }}
       SAFARI_RESULTS: .docs-browser-results/safari
+      SAFARI_WDA_APP: ${{ runner.temp }}/marquee-wda/WebDriverAgentRunner-Runner.app
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
@@ -45,6 +46,8 @@ jobs:
         run: |
           npm install --global appium@3.8.0
           appium driver install xcuitest@12.17.3
+          appium driver run xcuitest download-wda -- --outdir "$RUNNER_TEMP/marquee-wda" --kind sim --platform ios
+          test -d "$SAFARI_WDA_APP"
       - name: Enable native Safari automation
         run: |
           mkdir -p "$SAFARI_RESULTS"
@@ -54,9 +57,8 @@ jobs:
       - name: Boot iPhone simulator
         if: matrix.target == 'iphone'
         run: |
-          sudo xcode-select --switch /Applications/Xcode_26.6.app/Contents/Developer
+          sudo xcode-select --switch /Applications/Xcode_26.3.app/Contents/Developer
           xcodebuild -version >> "$SAFARI_RESULTS/platform.txt"
-          test -f "$(xcode-select -p)/Platforms/iPhoneSimulator.platform/Developer/usr/lib/lib_TestingInterop.dylib"
           xcrun simctl list devices available --json > "$SAFARI_RESULTS/devices.json"
           node scripts/select-safari-simulator.mjs "$SAFARI_RESULTS/devices.json" >> "$GITHUB_ENV"
           device_id=$(node scripts/select-safari-simulator.mjs "$SAFARI_RESULTS/devices.json" --udid)

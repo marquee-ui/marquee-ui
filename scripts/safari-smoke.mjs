@@ -292,6 +292,10 @@ try {
   };
   if (mode === "iphone") {
     assert.ok(process.env.SAFARI_DEVICE_UDID, "SAFARI_DEVICE_UDID identifies the booted simulator");
+    assert.ok(
+      process.env.SAFARI_WDA_APP,
+      "SAFARI_WDA_APP identifies the matching prebuilt test agent",
+    );
     Object.assign(capabilities, {
       "appium:automationName": "XCUITest",
       "appium:udid": process.env.SAFARI_DEVICE_UDID,
@@ -302,6 +306,8 @@ try {
       "appium:showXcodeLog": true,
       "appium:wdaLaunchTimeout": 120_000,
       "appium:wdaConnectionTimeout": 30_000,
+      "appium:usePreinstalledWDA": true,
+      "appium:prebuiltWDAPath": process.env.SAFARI_WDA_APP,
     });
   }
   const created = await request(

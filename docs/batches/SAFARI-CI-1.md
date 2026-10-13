@@ -8,8 +8,8 @@ account is not required for desktop Safari or iPhone Simulator Safari.
 ## Scope
 
 `.github/workflows/safari.yml` runs two independent jobs on standard runners:
-desktop Safari on `macos-15` and iPhone Simulator Safari on `macos-26-intel` with
-Xcode 26.6 / iOS 26.2.
+desktop Safari and iPhone Simulator Safari on `macos-15`, with
+Xcode 26.3 / iOS 26.2 for the simulator.
 The simulator selector fails if the pinned runtime has no available iPhone. The
 tests verify the returned Safari/platform capabilities and record them; they
 never silently substitute Linux WebKit or desktop emulation.
@@ -17,7 +17,10 @@ never silently substitute Linux WebKit or desktop emulation.
 The dependency-free Node client talks W3C WebDriver to Apple's bundled
 SafariDriver on desktop and Appium 3.8.0 / XCUITest driver 12.17.3 on iPhone.
 The iPhone driver uses `nativeWebTap` and native XCTest actions, with browser
-onboarding dismissed before a plain-HTML input preflight. Input uses driver clicks and actions; JavaScript reads state
+automation supplied by the driver's matching prebuilt WebDriverAgent 16.15.0
+from Appium's official release. No test-agent compilation is needed in the job.
+Browser onboarding is dismissed before a plain-HTML preflight that requires
+a trusted click. Input uses driver clicks and actions; JavaScript reads state
 and geometry or scrolls controls into view, but never synthesizes clicks or
 changes component values. It tests the built local site from the checked-out
 revision, including nested Storybook pages, and retains results and screenshots
@@ -46,11 +49,17 @@ XCTest so browser setup can be handled through native controls; validation
 of this route is in progress. Its first run,
 [38322492583](https://github.com/marquee-ui/marquee-ui/actions/runs/38322492583),
 failed while building WebDriverAgent: Xcode 26.3 lacks the required
-`lib_TestingInterop.dylib`. The iPhone job now selects Xcode 26.6 on standard
-`macos-26-intel` and checks this prerequisite before booting. It still pins iOS 26.2.
-The initial ARM macOS 26 attempt passed that prerequisite but exhausted the
-server-readiness wait before running the client. The Intel runner has 14 GB RAM,
-and readiness now waits for each live server with a bounded deadline and explicit
+`lib_TestingInterop.dylib`. The later macOS 26 ARM attempt exhausted its
+server-readiness wait; the Intel attempt
+[38324088292](https://github.com/marquee-ui/marquee-ui/actions/runs/38324088292)
+timed out before session creation, with Xcode unable to resolve its simulator
+destination. No iPhone component checks passed in these setup attempts.
+
+At source `65de774`, all four regular CI checks and desktop Safari's five
+journeys plus trusted-input preflight passed. The current iPhone route uses
+Appium's version-matched prebuilt simulator agent on `macos-15`, bypassing test
+agent compilation and Xcode destination discovery. Its result is pending.
+Readiness waits for each live server with a bounded deadline and explicit
 failure diagnostics.
 
 The preceding run was canceled after the simulator driver stopped responding;
@@ -73,3 +82,5 @@ and Chromium suites remain separate evidence.
 - [Apple Safari WebDriver and simulator capabilities](https://webkit.org/blog/9395/webdriver-is-coming-to-safari-in-ios-13/)
 - [Enabling Safari WebDriver](https://developer.apple.com/documentation/webkit/testing-with-webdriver-in-safari)
 - [Appium native web taps and simulator capabilities](https://appium.github.io/appium-xcuitest-driver/latest/reference/capabilities/)
+
+- [Appium prebuilt test-agent setup](https://appium.github.io/appium-xcuitest-driver/latest/guides/run-prebuilt-wda/)
